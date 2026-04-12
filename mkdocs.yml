@@ -17,9 +17,10 @@ theme:
 
 plugins:
   - search
-  # monorepo lets each sub-project's docs live under its own tree and be
-  # composed into this site via `!include ./<pkg>/mkdocs.yml`.
-  - monorepo
+
+# Each sub-project has its own mkdocs site under github.com/trnsci/<pkg>.
+# The umbrella site links out to them in the libraries.md index rather than
+# embedding them — keeps umbrella builds independent of sub-project layout.
 
 nav:
   - Home: index.md
@@ -33,13 +34,7 @@ nav:
       - Integration (DF-MP2): workflows/integration.md
       - Speech enhancement: workflows/speech_enhancement.md
       - Quantum chemistry: workflows/quantum_chemistry.md
-  - Libraries:
-      - trnfft: '!include ./trnfft/mkdocs.yml'
-      - trnblas: '!include ./trnblas/mkdocs.yml'
-      - trnrand: '!include ./trnrand/mkdocs.yml'
-      - trnsolver: '!include ./trnsolve/mkdocs.yml'
-      - trnsparse: '!include ./trnsparse/mkdocs.yml'
-      - trntensor: '!include ./trntensor/mkdocs.yml'
+  - Libraries: libraries.md
   - Contributing: contributing.md
 
 markdown_extensions:
