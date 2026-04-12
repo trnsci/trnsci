@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 
-EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "examples"
+EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "examples" / "quantum_chemistry"
 sys.path.insert(0, str(EXAMPLES_DIR))
 
 
@@ -21,7 +21,7 @@ def _ensure_imports():
 
 def test_df_mp2_smoke():
     """Runs the integration example on a tiny system and asserts finiteness."""
-    import df_mp2_integrated as demo
+    import df_mp2_synthetic as demo
     import math
 
     eri, J, C_occ, C_vir, eps_occ, eps_vir = demo.synthetic_system(
@@ -39,7 +39,7 @@ def test_df_mp2_smoke():
 
 def test_df_mp2_deterministic():
     """Same seed must give the same energy on two runs."""
-    import df_mp2_integrated as demo
+    import df_mp2_synthetic as demo
 
     def run():
         eri, J, C_occ, C_vir, eps_occ, eps_vir = demo.synthetic_system(

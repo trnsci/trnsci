@@ -1,7 +1,7 @@
 # trnsci
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![Docs](https://img.shields.io/badge/docs-mkdocs-blue)](https://trnsci.github.io/trnsci/)
+[![Docs](https://img.shields.io/badge/docs-trnsci.dev-blue)](https://trnsci.dev/)
 
 Scientific computing suite for AWS Trainium via NKI. Six focused libraries providing the cu\* equivalents the Neuron SDK doesn't ship.
 
@@ -45,14 +45,20 @@ make test-all      # run pytest across all sub-projects
 ## Cross-project example
 
 ```bash
-python examples/df_mp2_integrated.py --demo
+python examples/quantum_chemistry/df_mp2_synthetic.py --demo
 ```
 
-DF-MP2 energy evaluation composing `trnblas` (half-transforms), `trnsolver` (Cholesky of DF metric), and `trntensor` (einsum contraction).
+DF-MP2 energy evaluation composing `trnblas` (half-transforms), `trnsolver` (Cholesky of DF metric), and `trntensor` (einsum contraction). See also `examples/nvidia_samples/` for direct ports of canonical NVIDIA CUDA samples.
 
 ## Status
 
 All sub-projects are **Alpha**. CPU/PyTorch fallback is functional end-to-end. NKI kernels are scaffolded across the suite; on-hardware validation is the next milestone.
+
+## Community
+
+- Site: [trnsci.dev](https://trnsci.dev/)
+- [Contributing guidelines](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## License
 

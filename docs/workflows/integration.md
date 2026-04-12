@@ -1,6 +1,6 @@
 # Cross-project integration: DF-MP2
 
-The canonical integration demo is `examples/df_mp2_integrated.py`. It computes a density-fitted MP2 correlation energy on a small synthetic system, with each stage handled by a different library in the suite:
+The canonical integration demo is `examples/quantum_chemistry/df_mp2_synthetic.py`. It computes a density-fitted MP2 correlation energy on a small synthetic system, with each stage handled by a different library in the suite:
 
 | Stage | Library | API used |
 |---|---|---|
@@ -15,7 +15,7 @@ The same pattern could substitute `trnsparse` for the DF tensor when shell scree
 ## Run it
 
 ```bash
-python examples/df_mp2_integrated.py --demo
+python examples/quantum_chemistry/df_mp2_synthetic.py --demo
 ```
 
 Output reports per-stage wall time and a FLOPs estimate from the contraction planner.

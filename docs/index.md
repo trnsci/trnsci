@@ -1,31 +1,49 @@
 # trnsci
 
-Scientific computing suite for AWS Trainium via NKI.
+Scientific computing libraries for AWS Trainium.
 
-NVIDIA's CUDA ecosystem ships cuFFT, cuBLAS, cuRAND, cuSOLVER, cuSPARSE, and cuTENSOR. AWS Neuron SDK ships none of these. **trnsci fills that gap.**
+NVIDIA CUDA programmers reach for **cuFFT**, **cuBLAS**, **cuRAND**, **cuSOLVER**, **cuSPARSE**, and **cuTENSOR** when they need fast numerical primitives. The AWS Neuron SDK ships none of these. `trnsci` is six libraries that fill the gap:
 
-## The six libraries
-
-| Library | Analog | What it provides |
+| trnsci | NVIDIA analog | Scope |
 |---|---|---|
-| [trnfft](trnfft/) | cuFFT | FFT (Cooley-Tukey, Bluestein), complex tensors, complex NN layers, STFT |
-| [trnblas](trnblas/) | cuBLAS | Level 1-3 BLAS, batched GEMM, DF-MP2 primitives |
-| [trnrand](trnrand/) | cuRAND | Philox PRNG, distributions, Sobol / Halton / LHS QMC |
-| [trnsolver](trnsolver/) | cuSOLVER | Cholesky / LU / QR, Jacobi eigh, CG / GMRES |
-| [trnsparse](trnsparse/) | cuSPARSE | CSR / COO, SpMV / SpMM, Schwarz integral screening |
-| [trntensor](trntensor/) | cuTENSOR | einsum w/ contraction planning, CP / Tucker decompositions |
+| [trnfft](trnfft/) | cuFFT | FFT, complex tensors, STFT, complex NN layers |
+| [trnblas](trnblas/) | cuBLAS | BLAS Levels 1–3, batched GEMM |
+| [trnrand](trnrand/) | cuRAND | Philox PRNG, Sobol/Halton QMC |
+| [trnsolver](trnsolve/) | cuSOLVER | Cholesky/LU/QR, Jacobi eigh, CG/GMRES |
+| [trnsparse](trnsparse/) | cuSPARSE | CSR/COO, SpMV, SpMM, Schwarz screening |
+| [trntensor](trntensor/) | cuTENSOR | Einstein summation with planning, CP/Tucker |
 
-## How they compose
+## What is this for
 
-Each library is independent; none import another. The umbrella provides a single meta-install (`pip install trnsci[all]`) and a cross-project integration example ([DF-MP2](integration.md)) that exercises multiple libraries in one pipeline.
+Workloads that don't fit into a deep-learning framework but still need fast linear algebra on accelerator hardware. Signal processing, quantum chemistry, Monte Carlo, spectral methods, sparse linear systems — all of them routinely depend on cuFFT, cuBLAS, and siblings. `trnsci` brings the same primitives to Trainium, with a PyTorch-first API and optional NKI kernels underneath.
 
-## Design principles
+## Who is this for
 
-- **Match NVIDIA API shapes** — CUDA programmers can navigate trnsci without a guide.
-- **PyTorch fallback on CPU** — everything works off-hardware for development and CI.
-- **NKI dispatch** — `set_backend("auto"|"pytorch"|"nki")` across the suite.
-- **FP32-first** — Trainium's Tensor Engine is FP32-only; chemistry workarounds (double-double, Kahan) are opt-in.
+- **CUDA programmers** who want the mental model they already have to map onto Trainium. See the [CUDA → trnsci Rosetta stone](cuda_rosetta.md).
+- **Trainium programmers** who want a scientific-computing library stack that isn't deep-learning-specific.
+
+## Get started
+
+```bash
+pip install trnsci[all]
+```
+
+Try the cross-library integration demo:
+
+```bash
+git clone git@github.com:trnsci/trnsci.git
+cd trnsci
+make install-dev
+python examples/quantum_chemistry/df_mp2_synthetic.py --demo
+```
 
 ## Status
 
-All sub-projects are **Alpha**. CPU/PyTorch paths are wired end-to-end. NKI kernels are scaffolded; on-hardware validation on trn1/trn2 is the next milestone.
+**Alpha across the suite.** PyTorch fallback works end-to-end on any machine. NKI kernels are scaffolded; on-hardware validation on trn1 / trn2 is the next milestone.
+
+Read more:
+
+- [Why this exists](why.md)
+- [Trainium's place between SMs and TPUs](trainium_positioning.md)
+- [CUDA → trnsci library mapping](cuda_rosetta.md)
+- [Cross-library integration example](workflows/integration.md)

@@ -1,6 +1,6 @@
 site_name: trnsci
-site_description: Scientific computing suite for AWS Trainium via NKI
-site_url: https://trnsci.github.io/trnsci/
+site_description: Scientific computing libraries for AWS Trainium
+site_url: https://trnsci.dev/
 repo_url: https://github.com/trnsci/trnsci
 repo_name: trnsci/trnsci
 
@@ -13,24 +13,34 @@ theme:
     - content.code.copy
     - navigation.sections
     - navigation.tabs
+    - navigation.indexes
 
 plugins:
   - search
-  # The monorepo plugin lets sub-project docs live under each <pkg>/docs/
-  # and be composed into this site at build time.
+  # monorepo lets each sub-project's docs live under its own tree and be
+  # composed into this site via `!include ./<pkg>/mkdocs.yml`.
   - monorepo
 
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - Integration Example: integration.md
-  - Sub-projects:
+  - Why trnsci: why.md
+  - CUDA → trnsci: cuda_rosetta.md
+  - Trainium positioning: trainium_positioning.md
+  - Getting started:
+      - Installation: installation.md
+      - Deployment: deployment.md
+  - Workflows:
+      - Integration (DF-MP2): workflows/integration.md
+      - Speech enhancement: workflows/speech_enhancement.md
+      - Quantum chemistry: workflows/quantum_chemistry.md
+  - Libraries:
       - trnfft: '!include ./trnfft/mkdocs.yml'
       - trnblas: '!include ./trnblas/mkdocs.yml'
       - trnrand: '!include ./trnrand/mkdocs.yml'
       - trnsolver: '!include ./trnsolve/mkdocs.yml'
       - trnsparse: '!include ./trnsparse/mkdocs.yml'
       - trntensor: '!include ./trntensor/mkdocs.yml'
+  - Contributing: contributing.md
 
 markdown_extensions:
   - pymdownx.highlight

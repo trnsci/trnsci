@@ -1,20 +1,21 @@
 # trnsci examples
 
-Cross-project integration demos exercising multiple libraries from the suite in a single pipeline.
+Three kinds of examples live here:
 
-## df_mp2_integrated.py
+## [`nvidia_samples/`](nvidia_samples/)
 
-Density-fitted MP2 correlation energy on a small synthetic system.
+Python ports of canonical NVIDIA CUDA samples. Each script cites the upstream sample by URL and implements the same algorithm against `trnsci` APIs. Use these if you already know the CUDA library and want to see the equivalent `trnsci` call pattern.
 
-| Stage | Library | APIs |
-|---|---|---|
-| Random MO coefficients | `trnrand` | `manual_seed`, `normal` |
-| Cholesky of DF metric $J$ | `trnsolver` | `cholesky` |
-| Half-transform $(\mu\nu\|P) \to (ia\|P)$ | `trnblas` | `gemm`, `batched_gemm`, `trsm` |
-| Pair-energy contraction $T_{ab} = B_{ia}^P B_{jb}^P$ | `trntensor` | `einsum`, `estimate_flops` |
+See [`nvidia_samples/README.md`](nvidia_samples/README.md) for the mapping table.
 
-```bash
-python examples/df_mp2_integrated.py --demo
-```
+## [`quantum_chemistry/`](quantum_chemistry/)
 
-The synthetic system is not physically meaningful — this is a plumbing demo that verifies the APIs across libraries compose end-to-end. For a chemistry-valid DF-MP2 pipeline, drive it with AO integrals and SCF MO coefficients from a quantum-chemistry driver.
+Density-fitted MP2 plumbing demo composing `trnrand` + `trnsolver` + `trnblas` + `trntensor` end-to-end. This is the cross-library integration test — the single workload that touches the most libraries in the suite.
+
+## [`speech_enhancement/`](speech_enhancement/)
+
+Synthetic complex-ratio-mask demo exercising `trnfft` STFT + complex NN layers + iSTFT. Shows the full signal-processing pipeline for a complex-valued workload.
+
+## Reverse direction
+
+[`reverse_port_note.md`](reverse_port_note.md) — a short note on `trnsci` idioms a CUDA programmer might borrow in the other direction (stationary-tile complex GEMM, gather-matmul-scatter SpMM, Jacobi eigh, first-class contraction plans).

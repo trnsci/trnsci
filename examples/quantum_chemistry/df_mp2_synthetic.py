@@ -10,7 +10,12 @@ Each stage is handled by a different library in the trnsci suite:
 
 Run:
 
-    python examples/df_mp2_integrated.py --demo
+    python examples/quantum_chemistry/df_mp2_synthetic.py --demo
+
+The inputs are randomly generated; the resulting energy is not physically
+meaningful. This is a plumbing demo for the cross-library API surface. For
+a real DF-MP2 calculation, drive the pipeline with AO integrals and SCF
+MO coefficients from a quantum-chemistry driver such as PySCF.
 """
 
 from __future__ import annotations
