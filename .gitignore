@@ -1,0 +1,33 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.pytest_cache/
+.tox/
+.venv/
+venv/
+*.so
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+site/
+.benchmarks/
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Sub-projects live here as sibling directories but each has its own .git
+# and its own repo under github.com/trnsci/. The umbrella does not vendor them.
+/trnfft/
+/trnblas/
+/trnrand/
+/trnsolve/
+/trnsparse/
+/trntensor/
