@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Rebuild daily to pick up sub-project changes.
+  schedule:
+    - cron: "0 6 * * *"
+  # External trigger so sub-project CIs can kick off an umbrella rebuild.
+  repository_dispatch:
+    types: [subproject-updated]
 
 permissions:
   contents: write
@@ -20,10 +26,29 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Clone sub-projects
+        run: |
+          set -euo pipefail
+          # Each sub-project's own mkdocs.yml is composed into the umbrella site
+          # via mkdocs-monorepo-plugin. The trnsolver repo lives at the
+          # "trnsolve" directory name inside the umbrella layout.
+          declare -A REPOS=(
+            [trnfft]=trnfft
+            [trnblas]=trnblas
+            [trnrand]=trnrand
+            [trnsolve]=trnsolver
+            [trnsparse]=trnsparse
+            [trntensor]=trntensor
+          )
+          for dir in "${!REPOS[@]}"; do
+            repo="${REPOS[$dir]}"
+            git clone --depth 1 "https://github.com/trnsci/${repo}.git" "$dir"
+          done
+
       - name: Install docs dependencies
         run: |
           pip install --upgrade pip
-          pip install mkdocs-material
+          pip install mkdocs-material mkdocs-monorepo-plugin
 
       - name: Build and deploy to gh-pages
         run: mkdocs gh-deploy --force --clean
