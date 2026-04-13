@@ -47,3 +47,5 @@ Read more:
 - [Trainium's place between SMs and TPUs](trainium_positioning.md)
 - [CUDA → trnsci library mapping](cuda_rosetta.md)
 - [Cross-library integration example](workflows/integration.md)
+
+Follow the [blog](blog/index.md) for monthly suite digests and technical deep-dives from the sub-project libraries.
