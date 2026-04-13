@@ -39,6 +39,7 @@ nav:
   - CUDA → trnsci: cuda_rosetta.md
   - Trainium positioning: trainium_positioning.md
   - Roadmap: roadmap.md
+  - NKI validation status: nki_validation_status.md
   - Blog:
       - blog/index.md
   - Getting started:
