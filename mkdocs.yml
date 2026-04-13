@@ -30,6 +30,7 @@ nav:
   - Why trnsci: why.md
   - CUDA → trnsci: cuda_rosetta.md
   - Trainium positioning: trainium_positioning.md
+  - Roadmap: roadmap.md
   - Getting started:
       - Installation: installation.md
       - Deployment: deployment.md

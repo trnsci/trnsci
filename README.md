@@ -53,6 +53,10 @@ DF-MP2 energy evaluation composing `trnblas` (half-transforms), `trnsolver` (Cho
 
 All sub-projects are **Alpha**. CPU/PyTorch fallback is functional end-to-end. NKI kernels are scaffolded across the suite; on-hardware validation is the next milestone.
 
+## Roadmap
+
+Five-phase plan from current alpha to generation-tuned stable release. See [`ROADMAP.md`](ROADMAP.md) or the [reader-oriented version on trnsci.dev](https://trnsci.dev/roadmap/).
+
 ## Community
 
 - Site: [trnsci.dev](https://trnsci.dev/)
