@@ -1998,6 +1998,8 @@
       
         
       
+        
+      
     
     
     
@@ -2481,6 +2483,34 @@
     
   
     Release procedure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trnrand/stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API stability
   
 
     
@@ -3958,7 +3988,8 @@
 <p>trn1 (NeuronCore v2) and trn2 (NeuronCore v3) get fast paths that exploit their respective architectural strengths — trn2's larger SBUF, wider PSUM, and FP16 accumulate are the main levers today — without requiring the maintainer to track two separately tuned code paths.</p>
 <p>The common Phase 3 path stays the default. Generation-specific paths are opt-in via backend selection or automatic based on runtime capability detection.</p>
 <h2 id="where-each-library-is-today">Where each library is today<a class="headerlink" href="#where-each-library-is-today" title="Permanent link">&para;</a></h2>
-<p>All six sub-projects are in <strong>late Phase 1</strong> — APIs stable, PyTorch fallback wired everywhere, NKI dispatch layer in place, hardware validation pending for each kernel. <code>trnblas</code> has published DF-MP2 results against PySCF at nanohartree tolerance on small molecules, which touches Phase 2 territory. <code>trnsolver</code> has published CPU baselines against LAPACK and scipy, which sets up Phase 3.</p>
+<p>As of 2026-04-13, two sub-projects have completed Phase 1 correctness: <strong>trnfft</strong> (butterfly + complex GEMM kernels, hardware-validated on trn1.2xlarge in v0.8.0) and <strong>trnblas</strong> (GEMM, SYRK, and fused MP2 energy reduction, hardware-validated with end-to-end DF-MP2 timings). <strong>trnblas</strong> additionally has PySCF validation against real chemistry at nanohartree tolerance on small molecules, which touches Phase 2 territory. <strong>trnsolver</strong> has published CPU baselines against LAPACK and scipy, which sets up Phase 3.</p>
+<p>The remaining four sub-projects — <strong>trnrand</strong>, <strong>trnsolver</strong>, <strong>trnsparse</strong>, <strong>trntensor</strong> — have Phase 1 NKI code scaffolded in their respective <code>nki/dispatch.py</code> modules but have not yet had a hardware-validation run on trn1 / trn2. Closing the validation gap is the immediate next step across those four; progress is tracked in <a href="https://github.com/trnsci/trnsci/issues/1">trnsci/trnsci#1</a>.</p>
 <p>See each sub-project's docs (<code>trnsci.dev/&lt;name&gt;/</code>) for library-specific status.</p>
 <h2 id="how-to-follow-along">How to follow along<a class="headerlink" href="#how-to-follow-along" title="Permanent link">&para;</a></h2>
 <ul>

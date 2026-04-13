@@ -1887,6 +1887,8 @@
       
         
       
+        
+      
     
     
     
@@ -2373,6 +2375,34 @@
     
   
     Release procedure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trnrand/stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API stability
   
 
     
@@ -3947,9 +3977,14 @@ available, otherwise <code>False</code>.</p>
 <ul>
 <li><code>matmul_kernel(a, b)</code> — 2-index matmul with stationary-A tile reuse.
   Tile constants: <code>TILE_M=128</code>, <code>TILE_K=128</code>, <code>TILE_N=512</code>.</li>
+<li><code>batched_matmul_kernel(a, b)</code> — per-batch-slice matmul. Batch dim
+  iterated via <code>nl.affine_range</code>; each slice reuses the stationary-A
+  tile layout.</li>
 </ul>
-<p>Additional kernels (batched matmul, DF-MP2 pair, fused energy
-denominator) are tracked in milestone <a href="https://github.com/trnsci/trntensor/milestone/2">v0.2.0</a>.</p>
+<p>The DF-MP2 pair pattern <code>einsum("ap,bp-&gt;ab")</code> is served by
+<code>matmul_kernel</code> through the planner's <code>transB=True</code> route — no
+dedicated kernel needed. Fused energy-denominator kernel is tracked
+in <a href="https://github.com/trnsci/trntensor/issues/13">#13</a>.</p>
 
 
 

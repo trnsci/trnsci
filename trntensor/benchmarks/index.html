@@ -1887,6 +1887,8 @@
       
         
       
+        
+      
     
     
     
@@ -2373,6 +2375,34 @@
     
   
     Release procedure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnrand/stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API stability
   
 
     
@@ -3633,10 +3663,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pytorch-cpu-baseline" class="md-nav__link">
+  <a href="#results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        PyTorch CPU baseline
+        Results
       
     </span>
   </a>
@@ -3644,10 +3674,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nki-trainium-pending" class="md-nav__link">
+  <a href="#interpretation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NKI (Trainium) — pending
+        Interpretation
       
     </span>
   </a>
@@ -3835,10 +3865,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pytorch-cpu-baseline" class="md-nav__link">
+  <a href="#results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        PyTorch CPU baseline
+        Results
       
     </span>
   </a>
@@ -3846,10 +3876,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nki-trainium-pending" class="md-nav__link">
+  <a href="#interpretation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NKI (Trainium) — pending
+        Interpretation
       
     </span>
   </a>
@@ -3883,71 +3913,79 @@
 pytest<span class="w"> </span>benchmarks/bench_einsum.py<span class="w"> </span>--benchmark-only
 
 <span class="c1"># On-hardware (via SSM orchestration)</span>
-<span class="nv">AWS_PROFILE</span><span class="o">=</span>...<span class="w"> </span>./scripts/run_benchmarks.sh<span class="w"> </span>trn1
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_benchmarks.sh<span class="w"> </span>trn1
 </code></pre></div>
-<h2 id="pytorch-cpu-baseline">PyTorch CPU baseline<a class="headerlink" href="#pytorch-cpu-baseline" title="Permanent link">&para;</a></h2>
-<p>Runs on a developer laptop. Use these numbers to sanity-check relative costs of different contraction patterns — not as a ceiling for what Trainium can do.</p>
-<p><em>Platform: Darwin arm64, PyTorch CPU, median of ≥5 rounds.</em></p>
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<p><em>CPU: Darwin arm64, PyTorch CPU. NKI: trn1.2xlarge (1 NeuronCore), neuronxcc 2.24, end-to-end <code>einsum()</code> call via <code>_nki_matmul</code> / <code>_nki_batched_matmul</code>.</em></p>
 <table>
 <thead>
 <tr>
 <th>Op</th>
 <th>Shape</th>
-<th>Median</th>
+<th style="text-align: right;">PyTorch (CPU)</th>
+<th style="text-align: right;">NKI (trn1)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>einsum ap,bp-&gt;ab</code> (DF-MP2 pair)</td>
 <td>48×128 × 48×128</td>
-<td>4.5 µs</td>
+<td style="text-align: right;"><strong>4.5 µs</strong></td>
+<td style="text-align: right;">1068 µs</td>
 </tr>
 <tr>
 <td><code>einsum mi,mnP-&gt;inP</code> (4-index)</td>
 <td>32×8, 32×32×64</td>
-<td>10.5 µs</td>
+<td style="text-align: right;"><strong>10.5 µs</strong></td>
+<td style="text-align: right;">46.7 µs</td>
 </tr>
 <tr>
 <td><code>einsum ij,jk-&gt;ik</code></td>
 <td>512×512 × 512×512</td>
-<td>104 µs</td>
+<td style="text-align: right;"><strong>104 µs</strong></td>
+<td style="text-align: right;">1643 µs</td>
 </tr>
 <tr>
 <td><code>tucker_decompose</code></td>
 <td>16³ ranks (4,4,4)</td>
-<td>177 µs</td>
+<td style="text-align: right;"><strong>177 µs</strong></td>
+<td style="text-align: right;">926 µs</td>
 </tr>
 <tr>
 <td><code>einsum bij,bjk-&gt;bik</code></td>
 <td>16×256×256</td>
-<td>337 µs</td>
+<td style="text-align: right;"><strong>337 µs</strong></td>
+<td style="text-align: right;">4309 µs</td>
 </tr>
 <tr>
 <td><code>cp_decompose</code></td>
 <td>16³ rank 8 (20 iters)</td>
-<td>4.6 ms</td>
+<td style="text-align: right;"><strong>4.6 ms</strong></td>
+<td style="text-align: right;">21.7 ms</td>
 </tr>
 </tbody>
 </table>
-<h2 id="nki-trainium-pending">NKI (Trainium) — pending<a class="headerlink" href="#nki-trainium-pending" title="Permanent link">&para;</a></h2>
-<p>Fused-contraction kernels are scaffolded in <code>trntensor/nki/dispatch.py</code> but not yet implemented. Tracked in <a href="https://github.com/trnsci/trntensor/issues/1">#1</a>. The <code>scripts/run_benchmarks.sh</code> SSM orchestration is ready to populate the NKI column once kernels land.</p>
-<table>
-<thead>
-<tr>
-<th>Op</th>
-<th>NKI (Trainium)</th>
-<th>Speedup vs CPU</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>all</td>
-<td>pending</td>
-<td>pending</td>
-</tr>
-</tbody>
-</table>
-<p>See <a href="../aws_setup/">AWS Setup</a> for the on-hardware CI flow.</p>
+<h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
+<p>The CPU path currently beats the NKI path across the board on these
+workload sizes. This is <strong>not</strong> because the on-chip NKI kernels are
+slow — it's because the per-call wrapper (XLA device transfer, NEFF
+cache lookup, kernel launch) dominates at these sizes. <code>einsum()</code> is
+called many times with small-to-medium tensors; each call incurs
+roughly a millisecond of overhead before the kernel runs.</p>
+<p>The kernels themselves are correct (validated by 9 hardware tests in
+<code>tests/test_nki_kernels.py</code>). Closing the gap means reducing per-call
+overhead — either by keeping tensors on the XLA device across multiple
+calls, batching dispatches, or switching to a lower-overhead launch
+path for small kernels.</p>
+<p>Tracked as follow-up work in <a href="https://github.com/trnsci/trntensor/issues/33">#33</a>. Until that lands, the
+practical recommendation for trntensor users is:</p>
+<ul>
+<li>Use the <strong>PyTorch fallback</strong> (<code>set_backend("pytorch")</code>) for iterative
+  Python loops of small contractions.</li>
+<li>Use the <strong>NKI backend</strong> (<code>set_backend("auto")</code> on Trainium) for
+  large GEMM-dominant payloads where the per-call overhead is
+  amortized.</li>
+</ul>
 
 
 

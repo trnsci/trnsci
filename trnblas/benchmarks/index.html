@@ -1810,6 +1810,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nki-trsm-per-call-timing-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI TRSM — per-call timing (#19)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nki-syrk-per-call-timing-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI SYRK — per-call timing (#18)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#nki-batched-gemm" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2001,6 +2023,8 @@
       
         
           
+        
+      
         
       
         
@@ -2505,6 +2529,34 @@
     
   
     Release procedure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnrand/stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API stability
   
 
     
@@ -3885,6 +3937,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nki-trsm-per-call-timing-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI TRSM — per-call timing (#19)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nki-syrk-per-call-timing-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI SYRK — per-call timing (#18)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#nki-batched-gemm" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4000,6 +4074,126 @@ the v0.4.0 <a href="https://github.com/trnsci/trnblas/blob/main/CHANGELOG.md#040
 </tr>
 </tbody>
 </table>
+<h2 id="nki-trsm-per-call-timing-19">NKI TRSM — per-call timing (#19)<a class="headerlink" href="#nki-trsm-per-call-timing-19" title="Permanent link">&para;</a></h2>
+<p><code>trnblas.trsm</code> on Trainium uses a blocked panel algorithm: diagonal
+panels solved via <code>torch.linalg.solve_triangular</code> (tiny P×P, intrinsically
+sequential); trailing off-diagonal updates run through <code>nki_gemm</code>
+(dominant work for large M). Block size fixed at 128; autotuning is
+Phase 3 work (#26). Correctness: 7/7 <code>@pytest.mark.neuron</code> tests pass
+on trn1 across <code>{lower, upper} × {trans, not}</code> + unit-diag.</p>
+<p>Warm-cache per-call timings (mean of 5, using the DF-MP2 call pattern
+<code>uplo="lower", trans=True</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Shape (M × N)</th>
+<th style="text-align: right;">trn1 warm</th>
+<th style="text-align: right;">trn1 TFLOPS</th>
+<th style="text-align: right;">A10G warm</th>
+<th style="text-align: right;">A10G TFLOPS</th>
+<th style="text-align: right;">A10G vs trn1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>512 × 512</td>
+<td style="text-align: right;">6.05 ms</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.21 ms</td>
+<td style="text-align: right;">0.65</td>
+<td style="text-align: right;">29×</td>
+</tr>
+<tr>
+<td>1024 × 512</td>
+<td style="text-align: right;">11.78 ms</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.36 ms</td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">33×</td>
+</tr>
+<tr>
+<td>1024 × 1024</td>
+<td style="text-align: right;">15.47 ms</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0.47 ms</td>
+<td style="text-align: right;">2.29</td>
+<td style="text-align: right;">33×</td>
+</tr>
+<tr>
+<td>2048 × 512</td>
+<td style="text-align: right;">27.75 ms</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.81 ms</td>
+<td style="text-align: right;">2.67</td>
+<td style="text-align: right;">34×</td>
+</tr>
+</tbody>
+</table>
+<p>Lower TFLOPS than GEMM/SYRK is inherent to TRSM — the sequential
+panel solve limits parallelism. On trn1 the blocked structure adds
+Python-loop + per-block <code>nki_gemm</code> dispatch overhead on top; closing
+that gap is a Phase 3 follow-up (autotuner #26 and eventually a pure
+NKI substitution kernel).</p>
+<h2 id="nki-syrk-per-call-timing-18">NKI SYRK — per-call timing (#18)<a class="headerlink" href="#nki-syrk-per-call-timing-18" title="Permanent link">&para;</a></h2>
+<p><code>trnblas.syrk</code> on Trainium dispatches to a dedicated kernel (single-A
+HBM load via two <code>load_transpose2d</code> calls) rather than
+<code>gemm(A, A.T)</code>. Correctness: 7/7 <code>@pytest.mark.neuron</code> tests pass on
+trn1; outputs match <code>torch.matmul(A, A.T)</code> to <code>atol=1e-3, rtol=1e-4</code>.</p>
+<p>Warm-cache per-call timings and effective TFLOPS (mean of 5 runs):</p>
+<table>
+<thead>
+<tr>
+<th>Shape (M×K)</th>
+<th style="text-align: right;">trn1 warm</th>
+<th style="text-align: right;">trn1 TFLOPS</th>
+<th style="text-align: right;">A10G warm</th>
+<th style="text-align: right;">A10G TFLOPS</th>
+<th style="text-align: right;">A10G vs trn1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>512×512</td>
+<td style="text-align: right;">2.45 ms</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">0.11 ms</td>
+<td style="text-align: right;">2.39</td>
+<td style="text-align: right;">22×</td>
+</tr>
+<tr>
+<td>1024×512</td>
+<td style="text-align: right;">6.15 ms</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">0.16 ms</td>
+<td style="text-align: right;">6.90</td>
+<td style="text-align: right;">38×</td>
+</tr>
+<tr>
+<td>1024×1024</td>
+<td style="text-align: right;">7.91 ms</td>
+<td style="text-align: right;">0.27</td>
+<td style="text-align: right;">0.21 ms</td>
+<td style="text-align: right;">10.07</td>
+<td style="text-align: right;">38×</td>
+</tr>
+<tr>
+<td>2048×512</td>
+<td style="text-align: right;">21.93 ms</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.53 ms</td>
+<td style="text-align: right;">8.11</td>
+<td style="text-align: right;">41×</td>
+</tr>
+</tbody>
+</table>
+<p>Same pattern as the DF-MP2 end-to-end: the NKI kernel is correct and
+well-tiled, but A10G's cuBLAS remains ~30× faster per-call on
+Ampere-era single-GPU hardware at these sizes. Reproducible:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_neuron_tests.sh<span class="w">     </span><span class="c1"># trn1 correctness</span>
+<span class="c1"># Then ad-hoc:</span>
+python<span class="w"> </span>examples/bench_syrk.py<span class="w">                     </span><span class="c1"># cpu</span>
+python<span class="w"> </span>examples/bench_syrk.py<span class="w"> </span>--device<span class="w"> </span>cuda<span class="w">       </span><span class="c1"># on a g5.xlarge</span>
+</code></pre></div>
 <h2 id="nki-batched-gemm">NKI batched GEMM<a class="headerlink" href="#nki-batched-gemm" title="Permanent link">&para;</a></h2>
 <p>Warm cache, batch=32 of 256×128×256. Per-slice cost after the first is
 HBM transfer + Tensor Engine dispatch only (NEFF cache hit).</p>

@@ -1887,6 +1887,8 @@
       
         
       
+        
+      
     
     
     
@@ -2386,6 +2388,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnrand/stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2781,6 +2811,17 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#phase-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase roadmap
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#package-layout" class="md-nav__link">
@@ -3846,6 +3887,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#phase-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#package-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3921,6 +3973,51 @@
 
 
 <h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<h2 id="phase-roadmap">Phase roadmap<a class="headerlink" href="#phase-roadmap" title="Permanent link">&para;</a></h2>
+<p>trnsolver follows the <a href="https://trnsci.dev/roadmap/">trnsci 5-phase roadmap</a>. Each phase has a tracker issue; work is labeled <code>phase-N-&lt;theme&gt;</code> across the whole suite for cross-project coordination.</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Theme</th>
+<th>Trnsolver scope</th>
+<th>Tracker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>correctness</td>
+<td>NKI Jacobi kernel validated on trn1/trn2; eigh_generalized on NKI path; SCF example end-to-end</td>
+<td><a href="https://github.com/trnsci/trnsolver/issues/26">#26</a></td>
+</tr>
+<tr>
+<td>2</td>
+<td>precision</td>
+<td>Iterative refinement for eigh / solve_spd; Kahan summation in CG / GMRES; depends on trnblas double-double GEMM</td>
+<td><a href="https://github.com/trnsci/trnsolver/issues/27">#27</a></td>
+</tr>
+<tr>
+<td>3</td>
+<td>perf</td>
+<td>Newton-Schulz NKI backend, preconditioners (Jacobi ✓, IC0, SSOR, block-Jacobi), NEFF cache reuse</td>
+<td><a href="https://github.com/trnsci/trnsolver/issues/28">#28</a></td>
+</tr>
+<tr>
+<td>4</td>
+<td>multi-chip</td>
+<td>Parallel Jacobi sweeps across NeuronCores; sharded preconditioners</td>
+<td><a href="https://github.com/trnsci/trnsolver/issues/29">#29</a></td>
+</tr>
+<tr>
+<td>5</td>
+<td>generation</td>
+<td>trn2-tuned rotation-block tile size; runtime capability detection in dispatch</td>
+<td><a href="https://github.com/trnsci/trnsolver/issues/30">#30</a></td>
+</tr>
+</tbody>
+</table>
+<p>v0.3.0 shipped with the CPU path feature-complete and a stub NKI kernel. v0.4.0 is the Phase 1 ship.</p>
 <h2 id="package-layout">Package layout<a class="headerlink" href="#package-layout" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>trnsolver/
 ├── eigen.py        # eigh, eigh_generalized

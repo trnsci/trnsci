@@ -1887,6 +1887,8 @@
       
         
       
+        
+      
     
     
     
@@ -2373,6 +2375,34 @@
     
   
     Release procedure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trnrand/stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API stability
   
 
     
@@ -3894,6 +3924,9 @@ strategy and estimate cost.</p>
 <p>Dataclass with the fields above plus:</p>
 <ul>
 <li><code>subscripts</code> — the original subscript string</li>
+<li><code>backend</code> — executor that will run the contraction: <code>"nki"</code> (when
+  the strategy is <code>matmul</code>/<code>bmm</code> and <code>neuronxcc</code> is importable) or
+  <code>"pytorch"</code></li>
 <li><code>estimated_flops: int</code></li>
 </ul>
 <h2 id="estimate_flopssubscripts-operands-int"><code>estimate_flops(subscripts, *operands) -&gt; int</code><a class="headerlink" href="#estimate_flopssubscripts-operands-int" title="Permanent link">&para;</a></h2>

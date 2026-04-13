@@ -1889,6 +1889,8 @@
       
         
       
+        
+      
     
     
     
@@ -2312,10 +2314,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#v040-candidates-not-yet-issue-tracked" class="md-nav__link">
+  <a href="#v040-phase-3-single-chip-performance-planned" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.4.0+ candidates (not yet issue-tracked)
+        v0.4.0 — Phase 3: single-chip performance (planned)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v050-phase-4-multi-chip-counter-partitioning-planned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.5.0 — Phase 4: multi-chip counter partitioning (planned)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v060-phase-5-trn2-wider-psum-fast-path-planned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.6.0 — Phase 5: trn2 wider-PSUM fast path (planned)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suite-phase-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suite phase mapping
       
     </span>
   </a>
@@ -2466,6 +2501,34 @@
     
   
     Release procedure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API stability
   
 
     
@@ -3868,10 +3931,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#v040-candidates-not-yet-issue-tracked" class="md-nav__link">
+  <a href="#v040-phase-3-single-chip-performance-planned" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.4.0+ candidates (not yet issue-tracked)
+        v0.4.0 — Phase 3: single-chip performance (planned)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v050-phase-4-multi-chip-counter-partitioning-planned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.5.0 — Phase 4: multi-chip counter partitioning (planned)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v060-phase-5-trn2-wider-psum-fast-path-planned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.6.0 — Phase 5: trn2 wider-PSUM fast path (planned)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suite-phase-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suite phase mapping
       
     </span>
   </a>
@@ -3954,19 +4050,69 @@ the distributions that close the gap vs cuRAND / NumPy.</p>
 <li><a href="https://github.com/trnsci/trnrand/issues/17">#17</a> — Truncated normal on
   the Vector Engine (currently host-side rejection).</li>
 </ul>
-<h2 id="v040-candidates-not-yet-issue-tracked">v0.4.0+ candidates <em>(not yet issue-tracked)</em><a class="headerlink" href="#v040-candidates-not-yet-issue-tracked" title="Permanent link">&para;</a></h2>
-<p>Directions that didn't make v0.3.0 but are on the radar:</p>
+<h2 id="v040-phase-3-single-chip-performance-planned">v0.4.0 — Phase 3: single-chip performance <em>(planned)</em><a class="headerlink" href="#v040-phase-3-single-chip-performance-planned" title="Permanent link">&para;</a></h2>
+<p>Batched-tile RNG streaming, NEFF compile-cache reuse, per-kernel tuning
+so the NKI path is meaningfully faster than the PyTorch fallback.</p>
 <ul>
-<li><strong>Multi-NeuronCore counter-space sharding.</strong> Throughput scaling beyond
-  one NeuronCore by partitioning Philox counter space across cores.</li>
-<li><strong>BF16 / FP16 output dtypes.</strong> Today trnrand emits FP32 only. Low-
-  precision paths save bandwidth in weight-init and noise-injection
-  workloads.</li>
-<li><strong><code>torch.compile</code> / inductor integration.</strong> Make <code>Generator</code> state
-  graph-friendly so trnrand slots into compiled model graphs without
-  tracing breaks.</li>
+<li><a href="https://github.com/trnsci/trnrand/issues/19">#19</a> — Phase 3 tracker:
+  <code>trnrand.normal_into(buf)</code> streaming API, Sobol/Halton perf parity,
+  published tokens/sec + GB/s benchmarks.</li>
 </ul>
-<p>Open an issue if any of these turn into priorities.</p>
+<h2 id="v050-phase-4-multi-chip-counter-partitioning-planned">v0.5.0 — Phase 4: multi-chip counter partitioning <em>(planned)</em><a class="headerlink" href="#v050-phase-4-multi-chip-counter-partitioning-planned" title="Permanent link">&para;</a></h2>
+<p>Philox's counter-based design makes cross-chip sharding trivial — each
+NeuronCore gets a disjoint counter subrange, outputs are bit-exact vs
+single-chip.</p>
+<ul>
+<li><a href="https://github.com/trnsci/trnrand/issues/20">#20</a> — Phase 4 tracker:
+  <code>Generator</code> accepts <code>partition_rank</code> / <code>partition_size</code>; near-linear
+  strong scaling on <code>trn1.32xlarge</code>.</li>
+</ul>
+<h2 id="v060-phase-5-trn2-wider-psum-fast-path-planned">v0.6.0 — Phase 5: trn2 wider-PSUM fast path <em>(planned)</em><a class="headerlink" href="#v060-phase-5-trn2-wider-psum-fast-path-planned" title="Permanent link">&para;</a></h2>
+<p>Exploit trn2's larger partition count without maintaining two separately
+tuned codebases; runtime capability detection picks the right kernel.</p>
+<ul>
+<li><a href="https://github.com/trnsci/trnrand/issues/21">#21</a> — Phase 5 tracker:
+  trn2-specific Philox kernel + runtime hardware detection in dispatch.</li>
+</ul>
+<h2 id="suite-phase-mapping">Suite phase mapping<a class="headerlink" href="#suite-phase-mapping" title="Permanent link">&para;</a></h2>
+<p>trnrand's roadmap aligns with the
+<a href="https://github.com/trnsci/trnsci/blob/main/ROADMAP.md">trnsci suite-wide phase plan</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Suite Phase</th>
+<th>trnrand Milestone</th>
+<th>Tracker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase 1 — correctness on hardware</td>
+<td>v0.3.0</td>
+<td><a href="https://github.com/trnsci/trnrand/issues/18">#18</a></td>
+</tr>
+<tr>
+<td>Phase 2 — precision</td>
+<td><em>(N/A — trnrand is precision-neutral)</em></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Phase 3 — single-chip perf</td>
+<td>v0.4.0</td>
+<td><a href="https://github.com/trnsci/trnrand/issues/19">#19</a></td>
+</tr>
+<tr>
+<td>Phase 4 — multi-chip</td>
+<td>v0.5.0</td>
+<td><a href="https://github.com/trnsci/trnrand/issues/20">#20</a></td>
+</tr>
+<tr>
+<td>Phase 5 — generation-specific</td>
+<td>v0.6.0</td>
+<td><a href="https://github.com/trnsci/trnrand/issues/21">#21</a></td>
+</tr>
+</tbody>
+</table>
 
 
 

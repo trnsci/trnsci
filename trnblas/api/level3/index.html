@@ -1753,10 +1753,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#trsmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" class="md-nav__link">
+  <a href="#trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        trsm(alpha, A, B, side="left", uplo="upper", trans=False, unit=False)
+        trsm(alpha, A, B, side="left", uplo="upper", trans=False, diag="nonunit")
       
     </span>
   </a>
@@ -1986,6 +1986,8 @@
       
         
           
+        
+      
         
       
         
@@ -2490,6 +2492,34 @@
     
   
     Release procedure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trnrand/stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API stability
   
 
     
@@ -3903,10 +3933,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#trsmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" class="md-nav__link">
+  <a href="#trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        trsm(alpha, A, B, side="left", uplo="upper", trans=False, unit=False)
+        trsm(alpha, A, B, side="left", uplo="upper", trans=False, diag="nonunit")
       
     </span>
   </a>
@@ -3958,8 +3988,20 @@ over auxiliary basis indices.</p>
 <p>Symmetric matrix-matrix multiply.</p>
 <h2 id="syrkalpha-a-beta00-cnone-uploupper-transfalse"><code>syrk(alpha, A, beta=0.0, C=None, uplo="upper", trans=False)</code><a class="headerlink" href="#syrkalpha-a-beta00-cnone-uploupper-transfalse" title="Permanent link">&para;</a></h2>
 <p>Symmetric rank-k update: <code>C = α·A·Aᵀ + β·C</code> (or <code>AᵀA</code> when <code>trans=True</code>).</p>
-<h2 id="trsmalpha-a-b-sideleft-uploupper-transfalse-unitfalse"><code>trsm(alpha, A, B, side="left", uplo="upper", trans=False, unit=False)</code><a class="headerlink" href="#trsmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" title="Permanent link">&para;</a></h2>
+<p>Dispatches to a dedicated NKI kernel (<code>trnblas.nki.nki_syrk</code>) on
+Trainium: loads <code>A</code> once into SBUF for both operand roles, avoiding the
+<code>A.T.contiguous()</code> HBM write that <code>gemm(A, A.T)</code> would otherwise issue.
+Return value is the dense symmetric matrix (both triangles populated);
+a small post-kernel <code>0.5·(C + Cᵀ)</code> symmetrisation protects against fp32
+reduction-order asymmetry.</p>
+<h2 id="trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit"><code>trsm(alpha, A, B, side="left", uplo="upper", trans=False, diag="nonunit")</code><a class="headerlink" href="#trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit" title="Permanent link">&para;</a></h2>
 <p>Triangular solve: solves <code>op(A)·X = α·B</code> (or <code>X·op(A) = α·B</code> when <code>side="right"</code>).</p>
+<p>On Trainium + <code>side="left"</code>, dispatches to a blocked panel algorithm
+(<code>trnblas.nki.nki_trsm</code>): tiny diagonal panels solve via
+<code>torch.linalg.solve_triangular</code>; trailing off-diagonal updates run
+through <code>nki_gemm</code>. Covers all combinations of <code>uplo ∈ {"upper", "lower"}</code>,
+<code>trans ∈ {True, False}</code>, <code>diag ∈ {"unit", "nonunit"}</code>. <code>side="right"</code>
+falls back to direct <code>torch.linalg.solve_triangular</code>.</p>
 <h2 id="trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse"><code>trmm(alpha, A, B, side="left", uplo="upper", trans=False, unit=False)</code><a class="headerlink" href="#trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" title="Permanent link">&para;</a></h2>
 <p>Triangular matrix-matrix multiply: <code>B = α·op(A)·B</code>.</p>
 
