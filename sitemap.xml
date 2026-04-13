@@ -141,6 +141,10 @@
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/trnfft/design-notes/fft-is-a-gemm/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnrand/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
