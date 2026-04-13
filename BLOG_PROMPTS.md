@@ -22,29 +22,42 @@ multiply, and a Kahan-compensated butterfly variant. All 70 benchmark cases
 pass on trn1.2xlarge.
 
 Please draft a technical retrospective blog post on the Phase 1 work.
-Suggested angle: "FFT on hardware without a complex dtype" — how trnfft
-represents complex values (split real/imag ComplexTensor), how complex GEMM
-decomposes into four real GEMMs with stationary-tile reuse, how butterfly
-stages map onto the Tensor Engine + Vector Engine, and the Kahan
-compensated variant that restores FP32 precision for long Bluestein
-chains.
 
-Before writing: read https://trnsci.dev/blog/AUTHOR_BRIEF/ (or the local
-docs/blog/AUTHOR_BRIEF.md in the trnsci/trnsci umbrella repo). Key rules:
+Frame the post around what Trainium's architecture affords, not around
+porting cuFFT. A useful spine: start from "Trainium has no complex dtype
+and a fixed 128-partition Tensor Engine tile" and ask what that makes
+possible (or forces). Where did the split real/imag representation,
+four-real-GEMM complex multiply, and stationary-tile reuse come from? Not
+from cuFFT — from the engine layout. Butterfly stages mapping to
+Tensor Engine (multiply) + Vector Engine (add) in parallel isn't a
+textbook radix-2 Cooley-Tukey; it's what the per-engine scheduling makes
+cheap. The Kahan variant exists because FP32 PSUM has a ceiling that
+long Bluestein chains bump into — and because Vector Engine can do the
+compensation cheaply in the same kernel.
+
+Candidate angle for the title: "FFT on hardware that doesn't want to be
+an FFT engine" — leaning into the "the architecture suggests something
+different" framing over "here's how we built an FFT."
+
+Before writing: read https://trnsci.dev/blog/AUTHOR_BRIEF/. Key rules:
 
   - Authorless. Library as subject ("trnfft's butterfly kernel", not "I"
     or "we"). No byline.
-  - Use the eight required section headings from the brief, in order:
-    Lead, The problem, The approach, Implementation, What didn't work,
-    Numbers, What's next, Takeaway.
-  - Be transparent about blind alleys. NKI compiler surprises, reverted
-    approaches, numbers that disappointed — put them in "What didn't
-    work". That section is required.
-  - Absolute numbers with units. Microseconds, TFLOPS, rel error bounds.
+  - Nine required sections in order: Lead, The problem, What the
+    architecture suggests (required, the heart of the post), The
+    approach, Implementation, What didn't work, Numbers, What's next,
+    Takeaway.
+  - "What the architecture suggests" is where the post earns its keep.
+    What does the four-engine layout, PSUM accumulation, and 128-partition
+    tile make natural for FFT that a CUDA warp-per-butterfly approach
+    wouldn't? Write that paragraph as if cuFFT didn't exist.
+  - "What didn't work" also required — NKI compiler surprises, reverted
+    approaches, FP32 precision fails that motivated the Kahan variant.
+  - Absolute numbers with units. Benchmarks are context, not the point.
   - 1200–2500 words.
 
 Open the PR as docs/blog/posts/2026-04-DD-trnfft-fft-without-complex-dtype.md
-(pick the date) against trnsci/trnsci. Use the frontmatter:
+(pick the date) against trnsci/trnsci. Frontmatter:
 
   ---
   date: 2026-04-DD
@@ -66,25 +79,48 @@ end-to-end density-fitted MP2 is validated against PySCF at nanohartree
 tolerance on H2O, CH4, and NH3 at cc-pVDZ.
 
 Please draft a technical retrospective blog post on the Phase 1 work.
-Suggested angle: "trnblas: matching PySCF at nanohartree on Trainium" —
-the DF-MP2 code path (Cholesky → half-transform → metric contract → pair
-energy), the fused MP2 energy kernel that collapses the per-(i,j) store
-pattern, how batched_gemm is a hybrid (host-side loop over a real NKI
-GEMM) and why that's Phase 1 by design, the FP32 precision story against
-FP64 PySCF.
 
-Before writing: read https://trnsci.dev/blog/AUTHOR_BRIEF/ (or the local
-docs/blog/AUTHOR_BRIEF.md in the trnsci/trnsci umbrella repo). Key rules:
+Frame the post around what Trainium's architecture affords for GEMM-heavy
+chemistry, not around porting cuBLAS. The interesting story isn't "we
+made GEMM work on NKI" — it's what the Tensor Engine's systolic layout
+plus SBUF-resident stationary operand plus PSUM accumulation lets you do
+that per-op cuBLAS calls can't express cleanly.
+
+Load-bearing architectural points worth exploring:
+
+  - Stationary-tile reuse (A SBUF-resident, B streaming) is natural on
+    Trainium and saves dramatic HBM bandwidth versus the per-call GEMM
+    mental model CUDA programmers carry.
+  - The fused MP2 energy kernel (#15) is the real architectural story:
+    intermediates stay SBUF-resident across the contraction +
+    denominator division + reduction, in one NKI pass. That's not a
+    cuBLAS shape. CuBLAS would need three calls and three HBM round
+    trips. On Trainium, NEFF-cached DAG compilation keeps the whole
+    thing in one kernel. This is the kind of thing the architecture
+    makes natural that a CUDA port wouldn't reach for.
+  - Why batched_gemm is a hybrid (host-side loop around a real NKI GEMM)
+    rather than a true 3D batched NKI kernel in Phase 1 — and what the
+    Tensor Engine makes that choice about. Defer the true batched kernel
+    to Phase 3 where the perf case justifies it.
+  - FP32-accumulate precision story against FP64 PySCF — why
+    nanohartree tolerance holds despite FP32, and what that says about
+    iterative-refinement as a Phase 2 direction.
+
+Candidate title direction: something that leads with "what the Tensor
+Engine wanted us to do" rather than "how we ported cuBLAS."
+
+Before writing: read https://trnsci.dev/blog/AUTHOR_BRIEF/. Key rules:
 
   - Authorless. Library as subject. No byline.
-  - Use the eight required section headings from the brief, in order.
-  - "What didn't work" is required. Candidate content: any reverted
-    kernel attempts (the examples/df_mp2 revert in #15 looks relevant),
-    NKI partition-dim constraints that tripped you up, numbers that
-    disappointed at small shapes, the hybrid batched_gemm tradeoff.
-  - Include a benchmark table. Cold/warm DF-MP2 wall time by shape,
-    TFLOPS, E_MP2 values. Use real numbers from the v0.4.0 CHANGELOG and
-    benchmarks.
+  - Nine required sections in order. "What the architecture suggests" is
+    where the post earns its keep — write it as if cuBLAS didn't exist.
+  - "What didn't work" is required. Candidates: the examples/df_mp2
+    revert in #15, NKI partition-dim constraints that tripped you up,
+    numbers that disappointed at small shapes, the hybrid batched_gemm
+    tradeoff.
+  - Include a benchmark table — real numbers from v0.4.0 CHANGELOG /
+    benchmarks. Present them as confirming the architectural choice, not
+    as the reason for it.
   - Absolute numbers with units. 1200–2500 words.
 
 Open the PR as docs/blog/posts/2026-04-DD-trnblas-df-mp2-nanohartree.md
@@ -108,26 +144,49 @@ CSR/COO, SpMV, SpMM, Schwarz screening. In v0.2.0 you shipped the first
 hardware-validated NKI SpMM kernel in the suite, using a densify-then-GEMM
 approach. You also published benchmarks honestly showing the NKI path is
 slower than scipy and torch.sparse at current shapes — because v0.2.0 is
-about correctness, not speed; row-bucketing lands in v0.3.0.
+about correctness, not speed; nnz-bucketing / gather-matmul-scatter lands
+in v0.3.0.
 
-Please draft a technical retrospective blog post. Suggested angle:
-"trnsparse v0.2.0: shipping SpMM when it's slower than scipy" — the
-deliberate Phase 1 tradeoff of correctness over speed, the densify-then-
-GEMM design (and its cost at low nnz density), the fact that the full
-Neuron toolchain is exercised end-to-end, why nnz-bucketing is a separate
-phase, and why autograd validation mattered more than throughput for v0.2.
+Please draft a technical retrospective blog post.
 
-The "it's slower than scipy" framing is a feature, not a bug. It's a
-useful antidote to vendor-marketing posts that only claim wins, and it
-sets up why Phase 3 (nnz-bucketing) is the next interesting milestone.
+The architectural story here is especially rich because Trainium's sparse
+primitive isn't CSR — it's the 128×128 Tensor Engine tile. The interesting
+angle is: what does Trainium's architecture think sparse matrices should
+look like?
 
-Before writing: read https://trnsci.dev/blog/AUTHOR_BRIEF/ (or the local
-docs/blog/AUTHOR_BRIEF.md). Key rules:
+Load-bearing architectural points worth exploring:
+
+  - BSR at 128×128 isn't a port of cuSPARSE's BSR — it IS the native
+    Trainium sparse format because each block matches a Tensor Engine
+    tile with zero gather overhead. CSR/COO become input formats that
+    get materialized into BSR-style tiles at dispatch time. This reframes
+    the whole library.
+  - The densify-then-GEMM approach in v0.2 is an admission of this: the
+    Tensor Engine doesn't want sparsity at the element level, it wants
+    dense tiles. v0.2 materializes the dense tile naively; v0.3's row-
+    bucketing + gather-matmul-scatter is the native Trainium version.
+  - The DMA engine as a first-class gather/scatter resource is what
+    makes the full gather-matmul-scatter pattern pay off — and it's not
+    a thing CUDA programmers think about with the same granularity.
+  - Why the "slower than scipy" numbers in v0.2 aren't a failure: the
+    full Neuron toolchain (compile, NEFF cache, XLA, PyTorch autograd
+    bridge) is exercised end-to-end. That's what Phase 1 validates.
+    Perf is what v0.3 validates, against the right architectural pattern.
+
+Candidate title direction: "what Trainium thinks a sparse matrix is" or
+similar — foregrounding that the library is on a different axis than
+cuSPARSE, not a worse version of it.
+
+Before writing: read https://trnsci.dev/blog/AUTHOR_BRIEF/. Key rules:
 
   - Authorless. Library as subject. No byline.
-  - Eight required sections in order.
+  - Nine required sections in order. "What the architecture suggests"
+    is where the post earns its keep — frame around the 128×128 tile
+    and the DMA engine, not around cuSPARSE CSR.
   - Include the full benchmark table from docs/benchmarks.md. Don't
-    editorialize the numbers — show them, explain them.
+    editorialize the numbers. Present them as confirming that v0.2 is
+    Phase 1 (correctness) and perf belongs to the architecturally-right
+    approach in v0.3.
   - "What didn't work" — any kernel-launch overhead investigation,
     initial nnz-aware attempts that didn't pan out for Phase 1, the
     decision to materialize rather than gather in v0.2.
@@ -161,16 +220,26 @@ GpSimd engine and the Box-Muller kernel on the Vector Engine are verified
 against the Salmon SC'11 published test vectors and match PyTorch
 reference moments.
 
-Please draft a technical retrospective. Suggested angle: counter-based
-RNG on a non-NVIDIA accelerator — why Philox over Mersenne Twister, how
-integer multiply-XOR maps to GpSimd (not Tensor Engine), Box-Muller on
-Vector Engine for the normal distribution, partition-axis parallel
-generation that's deterministic given (counter, key).
+Frame the post around what Trainium's four-engine architecture affords
+for RNG, not around porting cuRAND. The interesting angle: RNG is where
+Trainium's *non*-Tensor-Engine resources (GpSimd for integer multiply-
+XOR, Vector Engine for Box-Muller's cos/sin/log/sqrt) become first-class,
+not afterthoughts. A CUDA programmer reaches for cuRAND and gets a
+single-purpose RNG; on Trainium the RNG naturally spans engines in a
+way that mirrors the workload's structure (counter-based integer stage
+→ transcendental stage → downstream consumer). That's worth articulating.
+
+Load-bearing points: Philox is stateless by design, which makes
+partition-axis splitting trivially correct. Box-Muller on Vector Engine
+fuses with downstream consumers (e.g., noise injection into trnfft's
+STFT) without going through HBM. Counter-based RNG on GpSimd is a
+different architectural story than Mersenne Twister on SM.
 
 Before writing: read https://trnsci.dev/blog/AUTHOR_BRIEF/. Usual rules —
-authorless, eight sections, "What didn't work" required (candidates:
-integer-op gotchas on GpSimd, host-device transfer cost benchmarks that
-motivated on-device generation in the first place).
+authorless, nine sections with "What the architecture suggests" as the
+heart, "What didn't work" required (candidates: integer-op gotchas on
+GpSimd, host-device transfer cost benchmarks that motivated on-device
+generation).
 
 Open the PR as docs/blog/posts/<date>-trnrand-philox-on-gpsimd.md.
 Frontmatter categories: [Deep dive, trnrand].
@@ -188,17 +257,24 @@ Phase 1 just landed: the Jacobi rotation NKI kernel on the Tensor Engine,
 validated for correctness against torch.linalg.eigh on random symmetric
 matrices up to n=512.
 
-Please draft a technical retrospective. Suggested angle: why Jacobi for
-Trainium — the asymptotic tradeoff (O(n³) per sweep with O(n) sweeps vs
-Householder's better constant) and why tile-friendliness wins on fixed-
-tile systolic hardware even when FLOP count is higher. Each Givens
-rotation as a rank-2 matmul. Batched-within-sweep parallelism as a Phase
-3 item, not Phase 1.
+Frame around what the 128-partition Tensor Engine tile affords for
+eigendecomposition, not around porting cuSOLVER. The core architectural
+insight: a Givens rotation is a rank-2 matmul, and rank-2 is what the
+Tensor Engine tile shape is. Householder's reflector chains don't tile;
+rotations do. That asymmetry — "the hardware doesn't want Householder,
+it wants Jacobi" — is a concrete case where the naive port is worse than
+the architecturally-native choice even though FLOP count disagrees.
 
-Before writing: https://trnsci.dev/blog/AUTHOR_BRIEF/. Usual rules.
-"What didn't work" — any Householder scaffolding you tried first,
-convergence-criterion missteps, single-rotation dispatch overhead
-observations.
+Additional architectural angles: batched-within-sweep parallelism (two
+rotations on disjoint pairs commute → run them simultaneously on
+different Tensor Engine slices in Phase 3), convergence check as a
+Scalar Engine reduction rather than a host round-trip, eigenvector
+accumulation as column updates that stay SBUF-resident.
+
+Before writing: https://trnsci.dev/blog/AUTHOR_BRIEF/. Usual rules —
+authorless, nine sections, architecture-first. "What didn't work" —
+Householder scaffolding you tried first, convergence-criterion missteps,
+single-rotation dispatch overhead observations.
 
 docs/blog/posts/<date>-trnsolver-jacobi-for-trainium.md.
 Categories: [Deep dive, trnsolver].
@@ -216,17 +292,25 @@ Phase 1 just landed: NKI matmul and batched-matmul kernels validated on
 trn1/trn2, and the ContractionPlan object's dispatch now actually routes
 to the NKI backend when shapes qualify.
 
-Please draft a technical retrospective. Suggested angle: first-class
-contraction plans as an API idiom — why plan_contraction returns a
-reusable object (vs cuTENSOR's more hidden plan), how the planner picks
-matmul/bmm/torch.einsum/nki based on index structure, the FLOPs estimator
-and what it's good for (host-side routing decisions, back-of-envelope
-benchmarks).
+Frame around what whole-program NKI compilation and SBUF-resident
+intermediates afford for tensor contraction, not around porting
+cuTENSOR. The core architectural story: NKI can compile a multi-step
+contraction DAG into one kernel where intermediates never leave SBUF.
+cuTENSOR has a plan API that hides the kernel boundary; on Trainium the
+kernel boundary is what you design around. A Tucker / THC pipeline that
+touches a rank-R tensor multiple times can keep R-resident across
+contractions — that's a cuTENSOR *superset*, not a cuTENSOR clone.
 
-Before writing: https://trnsci.dev/blog/AUTHOR_BRIEF/. Usual rules.
-"What didn't work" — candidates: the DF-MP2 pair pattern that motivated
-fused kernels, plans that didn't dispatch well initially, any operation-
-fusion attempts that didn't pan out.
+Additional angles: the FLOPs estimator drives host-side routing among
+matmul/bmm/torch.einsum/nki paths at plan time. Fused kernels aren't a
+Phase 3 perf nicety — they're the natural Trainium shape for contraction,
+and unfused multi-op dispatch is the perf-compromise path.
+
+Before writing: https://trnsci.dev/blog/AUTHOR_BRIEF/. Usual rules —
+authorless, nine sections, architecture-first. "What didn't work" —
+candidates: the DF-MP2 pair pattern that motivated fused kernels, plans
+that didn't dispatch well initially, operation-fusion attempts that
+didn't pan out.
 
 docs/blog/posts/<date>-trntensor-contraction-plans.md.
 Categories: [Deep dive, trntensor].

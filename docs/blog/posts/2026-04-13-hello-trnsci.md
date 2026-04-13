@@ -34,9 +34,13 @@ Three tracks, running in parallel, with different cadences.
 
 ## Editorial stance
 
-One thing worth saying up front: this blog will be transparent about failure, not just success.
+Two things worth saying up front about what this blog is going to be.
 
-The project has already reverted kernels that looked right on paper, hit NKI compiler surprises that took days to explain, and produced benchmark numbers that were honestly disappointing on some shapes. Those stories are more useful to other people building on Trainium than "trnsci delivers unprecedented throughput" would be. The [author brief](https://trnsci.dev/blog/AUTHOR_BRIEF/) for technical deep-dives requires a "What didn't work" section because we've watched too many vendor-driven engineering blogs skip that part, and the result is a public narrative that doesn't match what any real user experiences.
+**Architecture-first, not port-first.** The trnsci suite isn't interesting because it ports cuFFT / cuBLAS / cuRAND / cuSOLVER / cuSPARSE / cuTENSOR techniques one-to-one. What's interesting is what Trainium's specific architecture — four programmable engines (Tensor, Vector, Scalar, GpSimd), a fixed 128-partition × 512-moving tile shape, explicit SBUF / PSUM memory, DMA as a first-class resource, whole-program NKI compilation — makes natural that a GPU wouldn't suggest. Jacobi rotations on the Tensor Engine because each is a rank-2 matmul that fits the tile exactly. BSR at 128×128 as the native sparse format, not a port of cuSPARSE BSR. Fused MP2 energy kernels that keep intermediates SBUF-resident across contractions, which cuBLAS can't express as one call. Writing about these reveals something about the hardware; writing about "how we replicated the CUDA approach" reveals nothing. The [author brief](https://trnsci.dev/blog/AUTHOR_BRIEF/) for technical deep-dives requires a "What the architecture suggests" section for exactly this reason.
+
+**Transparency over polish.** The project has already reverted kernels that looked right on paper, hit NKI compiler surprises that took days to explain, and produced benchmark numbers that were honestly disappointing on some shapes. Those stories are more useful to other people building on Trainium than "trnsci delivers unprecedented throughput" would be. The author brief requires a "What didn't work" section because we've watched too many vendor-driven engineering blogs skip that part, and the result is a public narrative that doesn't match what any real user experiences.
+
+Benchmarks appear in every technical post, but they're context — they confirm or contextualize an architectural choice, not justify one on their own. A post with modest numbers and a clear articulation of what the hardware enabled is worth more than a post with bigger numbers and no insight.
 
 If the blog reads like marketing, it's failing. If it reads like a maintainer talking to another maintainer over coffee, it's working.
 

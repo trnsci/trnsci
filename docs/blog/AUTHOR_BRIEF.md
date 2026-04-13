@@ -36,7 +36,25 @@ Exceptions where a byline is appropriate:
 
 When in doubt on a technical post: no byline.
 
-## Editorial stance — transparency over polish
+## Editorial stance — architecture-first, transparency-always
+
+**Two principles stacked.**
+
+### Architecture first, not straight porting
+
+The trnsci suite isn't interesting because it ports cuFFT / cuBLAS / cuRAND / cuSOLVER / cuSPARSE / cuTENSOR techniques to Trainium one-to-one. If all we have to say is "we replicated NVIDIA's approach on different silicon", that's not a post worth writing.
+
+What's worth writing: **what does Trainium's architecture — the four programmable engines, the fixed 128-partition × 512-moving tile, the explicit SBUF/PSUM memory hierarchy, the DMA engine as a first-class resource, the NEFF cache semantics, whole-program NKI compilation — make possible that a GPU wouldn't naturally suggest?**
+
+Concrete examples of the framing we want:
+
+- "Jacobi rotations land on the Tensor Engine because each Givens rotation is a rank-2 matmul that matches the 128-partition tile exactly; that tile-friendliness matters more than the O(n³) FLOP count disadvantage versus Householder." Not: "we chose Jacobi because it's different."
+- "BSR at 128×128 isn't a port of cuSPARSE's BSR — it's the native Trainium sparse format because each block is a Tensor Engine tile with zero gather overhead." Not: "we added BSR because cuSPARSE has it."
+- "The MP2 energy kernel fuses the per-(i,j) contraction with the orbital-energy denominator division in one NKI pass because intermediates can stay SBUF-resident across a DAG-scheduled kernel — that's a pattern that doesn't translate back to per-op PyTorch cleanly." Not: "we wrote a fused kernel for speed."
+
+The question to hold in your head while drafting: **what about this kernel reveals something about the hardware that a CUDA programmer wouldn't have reached for?** If the answer is "nothing", the post probably isn't ready.
+
+### Transparency over polish
 
 **Post what actually happened, including the parts that didn't work.** Vendor-marketing voice ("trnblas delivers unprecedented DF-MP2 throughput") is not useful and actively harms credibility.
 
@@ -47,20 +65,21 @@ Useful content we want in every technical deep-dive:
 - **Tradeoffs made deliberately.** "Jacobi was chosen over Householder because X, and the cost is Y." The "cost is Y" half is the credibility half.
 - **Open questions.** Follow-ups that are known, behaviors that have been observed but not fully explained.
 
-A post that says "here's what this cost and here's what we don't know" is more useful than one that only claims wins.
+**Benchmarks are validation, not the point.** A post full of numbers and no architectural insight is a fail state. A post with modest numbers but a clear articulation of what the hardware enabled that wasn't natural on NVIDIA is a win.
 
 ## Required structure
 
 Use these section headings in this order. The `posts/_template.md` file has them pre-filled.
 
-1. **Lead** (2–3 sentences) — one sentence on what shipped, one on why it's interesting, one on who should care.
-2. **The problem** — the technical constraint or gap. What Trainium lacks or does differently from NVIDIA. Cite the cuX analog by name.
-3. **The approach** — the design. Why this design over alternatives. At least one tradeoff made deliberately.
-4. **Implementation** — at least one code sample showing the key NKI kernel or dispatch pattern. Real code from the repo, not pseudocode.
-5. **What didn't work** — blind alleys, reverted approaches, NKI compiler surprises, numbers that disappointed. Named in full. This section is required; "nothing" is almost never the right answer.
-6. **Numbers** — if hardware benchmarks exist, put a table. CPU baseline + Trainium, same inputs, honest numbers including the ones that look bad.
-7. **What's next** — explicitly link the Phase 2/3/4/5 tracker issues for the library. Readers should know where the project goes from here.
-8. **Takeaway** (3–5 sentences) — what one idea should the reader leave with.
+1. **Lead** (2–3 sentences) — one sentence on what shipped, one on why it's interesting *architecturally*, one on who should care.
+2. **The problem** — what workload is this solving, and what's awkward about solving it on Trainium with a naive port of the CUDA approach. Cite the cuX analog by name but don't privilege its design.
+3. **What the architecture suggests** — **required section.** What does Trainium's hardware (engines, tile, memory hierarchy, NEFF, DMA) actually afford for this problem? What's the native-to-Trainium design, independent of CUDA? This section is the heart of the post.
+4. **The approach** — the design chosen. How it exploits what Section 3 identified. At least one tradeoff made deliberately. If the design ended up looking like the CUDA approach, say so and say why — but don't default to that framing.
+5. **Implementation** — at least one code sample showing the key NKI kernel or dispatch pattern. Real code from the repo, not pseudocode.
+6. **What didn't work** — blind alleys, reverted approaches, NKI compiler surprises, numbers that disappointed. Named in full. This section is required; "nothing" is almost never the right answer.
+7. **Numbers** — if hardware benchmarks exist, put a table. CPU baseline + Trainium, same inputs, honest numbers including the ones that look bad. Numbers confirm or contextualize the architectural choice in Section 3 — they don't justify it on their own.
+8. **What's next** — explicitly link the Phase 2/3/4/5 tracker issues for the library. Readers should know where the project goes from here.
+9. **Takeaway** (3–5 sentences) — what one architectural idea should the reader leave with.
 
 ## Style rules
 
