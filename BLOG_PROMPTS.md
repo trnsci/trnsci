@@ -5,7 +5,29 @@ Self-contained prompts to paste into each sub-project's Claude agent when you wa
 Each prompt is designed to be pasted verbatim — it carries all the context the agent needs (editorial brief, structure, voice, suite positioning). The agent drafts a post in the correct location (`docs/blog/posts/<date>-<slug>.md`), opens a PR against `trnsci/trnsci`, and you/Scott reviews before merge.
 
 Editorial brief the prompts reference: [`docs/blog/AUTHOR_BRIEF.md`](docs/blog/AUTHOR_BRIEF.md).
-Template file: [`docs/blog/posts/_template.md`](docs/blog/posts/_template.md).
+Template file: [`docs/blog/_template.md`](docs/blog/_template.md).
+
+---
+
+## One-time setup: pointer in each sub-project's `CLAUDE.md`
+
+So sub-project agents can find their own prompt without the user couriering it, add this block to `CLAUDE.md` in each of the six sub-project repos (`trnfft`, `trnblas`, `trnrand`, `trnsolver`, `trnsparse`, `trntensor`). Paste once per repo — content is identical across the suite.
+
+```markdown
+## Blog posts
+
+When asked to draft a blog post for this library for the [trnsci blog](https://trnsci.dev/blog/):
+
+1. Read the editorial brief at [`docs/blog/AUTHOR_BRIEF.md`](https://github.com/trnsci/trnsci/blob/main/docs/blog/AUTHOR_BRIEF.md) in the umbrella repo (trnsci/trnsci). It defines voice (authorless, library-as-subject), stance (architecture-first, transparency-always), and the nine required section headings.
+
+2. Find the prompt block for this library in [`BLOG_PROMPTS.md`](https://github.com/trnsci/trnsci/blob/main/BLOG_PROMPTS.md) at the umbrella repo root. It carries library-specific context and suggested architectural angles.
+
+3. Draft the post following the brief. Open a PR against `trnsci/trnsci` at `docs/blog/posts/<YYYY-MM-DD>-<slug>.md`. Scott (suite director) reviews before merge.
+
+The umbrella repo — not this one — owns the blog. Per-library retrospective posts are unsigned; library is the subject, no byline. See the brief for the full set of rules.
+```
+
+After this is in place, prompting a sub-project agent with "draft your Phase 1 blog post" (or similar) is enough — the agent fetches the brief and its own prompt block without further instruction.
 
 ---
 
