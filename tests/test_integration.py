@@ -15,7 +15,7 @@ sys.path.insert(0, str(EXAMPLES_DIR))
 @pytest.fixture(autouse=True)
 def _ensure_imports():
     # Fail fast if any sub-project is missing
-    for pkg in ("trnblas", "trnrand", "trnsolver", "trntensor"):
+    for pkg in ("trnblas", "trnrand", "trnsolver", "trnsparse", "trntensor"):
         pytest.importorskip(pkg)
 
 
@@ -24,7 +24,7 @@ def test_df_mp2_smoke():
     import df_mp2_synthetic as demo
     import math
 
-    eri, J, C_occ, C_vir, eps_occ, eps_vir = demo.synthetic_system(
+    eri, J, C_occ, C_vir, eps_occ, eps_vir, Q = demo.synthetic_system(
         n_ao=8, n_aux=12, n_occ=3, seed=42
     )
     ia_P = demo.half_transform(eri, C_occ, C_vir)
@@ -35,6 +35,7 @@ def test_df_mp2_smoke():
     assert flops > 0, "FLOPs estimate must be positive"
     assert ia_P.shape == (3, 5, 12)
     assert B.shape == (3, 5, 12)
+    assert Q.shape == (8, 8)
 
 
 def test_df_mp2_deterministic():
@@ -42,7 +43,7 @@ def test_df_mp2_deterministic():
     import df_mp2_synthetic as demo
 
     def run():
-        eri, J, C_occ, C_vir, eps_occ, eps_vir = demo.synthetic_system(
+        eri, J, C_occ, C_vir, eps_occ, eps_vir, Q = demo.synthetic_system(
             n_ao=8, n_aux=12, n_occ=3, seed=7
         )
         ia_P = demo.half_transform(eri, C_occ, C_vir)
@@ -51,3 +52,18 @@ def test_df_mp2_deterministic():
         return e
 
     assert run() == run()
+
+
+def test_schwarz_screening_bounds():
+    """Screening mask degenerates correctly at extreme thresholds."""
+    import df_mp2_synthetic as demo
+    import trnsparse
+
+    _, _, _, _, _, _, Q = demo.synthetic_system(
+        n_ao=8, n_aux=12, n_occ=3, seed=1
+    )
+    # Threshold of 0 keeps every pair with Q > 0, which for random
+    # inputs is all of them.
+    assert trnsparse.screen_quartets(Q, threshold=0.0).all()
+    # Huge threshold drops everything.
+    assert trnsparse.screen_quartets(Q, threshold=1e30).sum().item() == 0

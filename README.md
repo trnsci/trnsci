@@ -5,7 +5,6 @@
 
 Scientific computing suite for AWS Trainium via NKI. Six focused libraries providing the cu\* equivalents the Neuron SDK doesn't ship.
 
-Maintained by [Playground Logic](https://playgroundlogic.co).
 
 ## Suite
 

@@ -1,6 +1,6 @@
 # Example workflow: quantum chemistry
 
-Synthetic, end-to-end DF-MP2 plumbing demo. Uses `trnrand` + `trnsolver` + `trnblas` + `trntensor` in one pipeline — see [`../../docs/workflows/quantum_chemistry.md`](../../docs/workflows/quantum_chemistry.md) for workflow context.
+Synthetic, end-to-end DF-MP2 plumbing demo. Uses `trnrand` + `trnsparse` + `trnsolver` + `trnblas` + `trntensor` in one pipeline — see [`../../docs/workflows/quantum_chemistry.md`](../../docs/workflows/quantum_chemistry.md) for workflow context.
 
 ## `df_mp2_synthetic.py`
 
@@ -9,6 +9,7 @@ Density-fitted MP2 correlation energy on a small synthetic system.
 | Stage | Library | APIs |
 |---|---|---|
 | Random MO coefficients | `trnrand` | `manual_seed`, `normal` |
+| AO-pair Schwarz screening (report only) | `trnsparse` | `schwarz_bounds`, `sparsity_stats` |
 | Cholesky of DF metric J | `trnsolver` | `cholesky` |
 | Half-transform (μν\|P) → (ia\|P) | `trnblas` | `gemm`, `batched_gemm`, `trsm` |
 | Pair-energy contraction T_ab = B_iaP B_jbP | `trntensor` | `einsum`, `estimate_flops` |

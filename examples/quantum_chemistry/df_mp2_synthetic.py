@@ -4,6 +4,9 @@ Cross-project DF-MP2 integration example.
 Each stage is handled by a different library in the trnsci suite:
 
     trnrand   — synthetic occupied/virtual MO coefficients
+    trnsparse — Schwarz screening of AO pairs (reporting only; does not
+                 affect the synthetic energy since random inputs aren't
+                 chemistry-realistic)
     trnsolver — Cholesky of the DF metric J
     trnblas   — half-transforms (μν|P) → (ia|P) via GEMM
     trntensor — pair-energy contraction via einsum, with FLOPs estimate
@@ -28,18 +31,20 @@ import torch
 import trnblas
 import trnrand
 import trnsolver
+import trnsparse
 import trntensor
 
 
 def synthetic_system(*, n_ao: int, n_aux: int, n_occ: int, seed: int):
     """Build a small synthetic DF-MP2 problem.
 
-    Returns (eri_ao, J, C_occ, C_vir, eps_occ, eps_vir) where
+    Returns (eri_ao, J, C_occ, C_vir, eps_occ, eps_vir, Q) where
         eri_ao : (n_ao, n_ao, n_aux)   — AO-basis three-center integrals
         J      : (n_aux, n_aux)        — DF metric (SPD)
         C_occ  : (n_ao, n_occ)         — occupied MO coefficients
         C_vir  : (n_ao, n_vir)         — virtual MO coefficients
         eps_*  : orbital energies (ascending / descending)
+        Q      : (n_ao, n_ao)          — Schwarz upper bounds on AO pairs
     """
     g = trnrand.manual_seed(seed)
     n_vir = n_ao - n_occ
@@ -59,7 +64,22 @@ def synthetic_system(*, n_ao: int, n_aux: int, n_occ: int, seed: int):
     eps_occ = -torch.linspace(1.0, 0.1, n_occ)
     eps_vir = torch.linspace(0.1, 1.0, n_vir)
 
-    return eri_ao, J, C_occ, C_vir, eps_occ, eps_vir
+    # Schwarz bounds on AO pairs: Q_μν = √(μν|μν). For the synthetic
+    # three-center tensor, approximate (μν|μν) by ‖eri_ao[μ,ν,:]‖².
+    diag = (eri_ao * eri_ao).sum(dim=-1)
+    Q = trnsparse.schwarz_bounds(diag)
+
+    return eri_ao, J, C_occ, C_vir, eps_occ, eps_vir, Q
+
+
+def screening_report(Q: torch.Tensor, threshold: float = 1e-4) -> dict:
+    """Summarize Schwarz screening for the AO pair block.
+
+    Returns the sparsity dict so callers can log or assert on it. This
+    does not feed back into the energy calculation — synthetic random
+    integrals don't have the block-sparse structure real chemistry has.
+    """
+    return trnsparse.sparsity_stats(Q, threshold=threshold)
 
 
 def half_transform(eri_ao, C_occ, C_vir):
@@ -112,7 +132,7 @@ def pair_energy(B, eps_occ, eps_vir):
 
 
 def run_demo(*, n_ao: int, n_aux: int, n_occ: int, seed: int) -> None:
-    eri_ao, J, C_occ, C_vir, eps_occ, eps_vir = synthetic_system(
+    eri_ao, J, C_occ, C_vir, eps_occ, eps_vir, Q = synthetic_system(
         n_ao=n_ao, n_aux=n_aux, n_occ=n_occ, seed=seed
     )
 
@@ -120,6 +140,13 @@ def run_demo(*, n_ao: int, n_aux: int, n_occ: int, seed: int) -> None:
     print(f"backends: trnblas={trnblas.get_backend()} "
           f"trnsolver={trnsolver.get_backend()} "
           f"trntensor={trntensor.get_backend()}")
+
+    stats = screening_report(Q)
+    print(
+        f"screening (trnsparse): "
+        f"{stats['significant_pairs']}/{stats['total_pairs']} AO pairs "
+        f"above threshold (pair sparsity {stats['pair_sparsity']:.3f})"
+    )
     print()
 
     stages = []

@@ -12,7 +12,7 @@ This Code applies within all project spaces — the GitHub repositories under th
 
 Concerns about behaviour in project spaces may be reported confidentially to:
 
-**scott@playgroundlogic.co**
+**scttfrdmn@gmail.com**
 
 All reports will be reviewed and investigated promptly and fairly. The project maintainers are obligated to respect the privacy and security of the reporter.
 
