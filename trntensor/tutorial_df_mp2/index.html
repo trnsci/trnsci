@@ -1741,6 +1741,8 @@
       
         
       
+        
+      
     
     
     
@@ -2070,6 +2072,98 @@
   
   
   
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_2_6" id="__nav_10_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fused DF-MP2 pair-energy kernel (Phase 3 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
@@ -2116,10 +2210,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_8" >
         
           
-          <label class="md-nav__link" for="__nav_10_2_7" id="__nav_10_2_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_2_8" id="__nav_10_2_8_label" tabindex="0">
             
   
   
@@ -2137,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_2_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3873,6 +3967,8 @@
       
         
       
+        
+      
     
     
     
@@ -3998,6 +4094,34 @@
     
   
     Decompositions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/quantum/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantum primitives
   
 
     
@@ -4294,6 +4418,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#fusing-the-whole-calculation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fusing the whole calculation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#current-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4548,6 +4683,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#fusing-the-whole-calculation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fusing the whole calculation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#current-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4642,6 +4788,18 @@ $$</p>
         <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">estimated_flops</span><span class="p">)</span>
 </code></pre></div>
 <p>will reveal exactly where NKI is or isn't being used.</p>
+<h2 id="fusing-the-whole-calculation">Fusing the whole calculation<a class="headerlink" href="#fusing-the-whole-calculation" title="Permanent link">&para;</a></h2>
+<p>The Python loop above does 25 einsum calls, 25 elementwise passes, and 25 host reductions — each landing in HBM between steps. On Trainium, trntensor can compile the entire DF-MP2 energy into <strong>one NKI program</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">E</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">mp2_energy</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">eps_occ</span><span class="p">,</span> <span class="n">eps_vir</span><span class="p">)</span>
+</code></pre></div>
+<p>Inside that single call:</p>
+<ol>
+<li><code>T_ab = Σ_P B[i,a,P] B[j,b,P]</code> accumulates in PSUM via <code>nc_matmul</code></li>
+<li>The spin-adapted numerator <code>(2T − T^T)</code> and the denominator <code>Δ_ab = ε_i + ε_j − ε_a − ε_b</code> are built on the Vector Engine from SBUF-resident ε tiles</li>
+<li><code>(T·(2T − T^T) / Δ).sum()</code> folds into a scalar accumulator in SBUF</li>
+<li>One HBM partial per <code>(i, j)</code> pair; host sums to the final scalar</li>
+</ol>
+<p>No intermediate <code>T</code> tensor is ever materialized to HBM. See <a href="../api/quantum/">API: quantum</a> and <a href="../architecture/">Architecture</a> for the full description.</p>
 <h2 id="current-limitations">Current limitations<a class="headerlink" href="#current-limitations" title="Permanent link">&para;</a></h2>
 <ul>
 <li>The energy denominator is a separate element-wise op. A fused kernel that folds the division into the PSUM accumulation — <code>E = Σ T²/Δ</code> in one kernel — is tracked in <a href="https://github.com/trnsci/trntensor/issues/13">#13</a>. Landing it collapses the pair-energy loop into a single tensor-engine invocation per <code>(i,j)</code>.</li>

@@ -1741,6 +1741,8 @@
       
         
       
+        
+      
     
     
     
@@ -2070,6 +2072,98 @@
   
   
   
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_2_6" id="__nav_10_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fused DF-MP2 pair-energy kernel (Phase 3 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
@@ -2116,10 +2210,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_8" >
         
           
-          <label class="md-nav__link" for="__nav_10_2_7" id="__nav_10_2_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_2_8" id="__nav_10_2_8_label" tabindex="0">
             
   
   
@@ -2137,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_2_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3595,6 +3689,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#why-bsr-is-trainium-native" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why BSR is Trainium-native
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#nki-spmm-strategy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3629,10 +3734,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#v020-spmm-path" class="md-nav__link">
+  <a href="#v020-csr-spmm-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.2.0 SpMM path
+        v0.2.0 CSR SpMM path
       
     </span>
   </a>
@@ -3981,6 +4086,8 @@
       
         
       
+        
+      
     
     
     
@@ -4106,6 +4213,34 @@
     
   
     Decompositions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/quantum/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantum primitives
   
 
     
@@ -4464,6 +4599,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#why-bsr-is-trainium-native" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why BSR is Trainium-native
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#nki-spmm-strategy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4498,10 +4644,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#v020-spmm-path" class="md-nav__link">
+  <a href="#v020-csr-spmm-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.2.0 SpMM path
+        v0.2.0 CSR SpMM path
       
     </span>
   </a>
@@ -4545,6 +4691,29 @@
 
 
 <h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<h2 id="why-bsr-is-trainium-native">Why BSR is Trainium-native<a class="headerlink" href="#why-bsr-is-trainium-native" title="Permanent link">&para;</a></h2>
+<p>Trainium's Tensor Engine is a 128×128 systolic array. <code>nisa.nc_matmul</code>
+moves a 128-partition stationary tile against a moving operand of up to
+128 × 512, all on-chip. The natural "unit of sparse work" on this
+architecture is therefore not a single nonzero — it's a 128×128 block.</p>
+<p><strong>BSR (block-sparse row)</strong> at <code>block_size=128</code> stores a matrix as a list
+of these blocks plus a block-level CSR pattern. Every stored block is
+already in the shape the systolic array wants: one <code>nc_matmul</code> per block,
+no gather step, no padding-within-tile waste. The architectural match is
+exact.</p>
+<p>Contrast with CSR, which stores individual nonzero elements. The v0.2.0
+NKI path for CSR materializes the matrix into a dense <code>(M, K)</code> tile
+before the matmul (see the <a href="#v020-csr-spmm-path">SpMM path</a> below) —
+necessary for correctness, but it pays the full <code>M × K</code> cost whether the
+matrix is sparse or not. BSR skips this because blocks are already dense.</p>
+<p><strong>Consequence for the library's shape:</strong> CSR remains the construction and
+interop format (scipy compatibility, PyTorch's <code>torch.sparse_csr_tensor</code>
+interop). BSR is the compute format for the NKI path. For matrices with
+real block structure — Fock/ERI tensors after Schwarz screening, FEM
+stiffness matrices, graph adjacencies, block-sparse attention masks —
+BSR is strictly preferred. For truly unstructured sparse (random CSR),
+the PyTorch fallback is already within 2× of scipy; NKI adds nothing.</p>
+<p>See <a href="../benchmarks/">Benchmarks</a> for numbers that validate this framing.</p>
 <div class="highlight"><pre><span></span><code>trnsparse/
 ├── trnsparse/
 │   ├── __init__.py
@@ -4574,7 +4743,7 @@
 <p>Conversions <code>csr_to_coo()</code> / <code>coo_to_csr()</code> are cheap (bucket sort).</p>
 <h2 id="dispatch">Dispatch<a class="headerlink" href="#dispatch" title="Permanent link">&para;</a></h2>
 <p><code>nki/dispatch.py</code> exposes <code>HAS_NKI</code>, <code>set_backend("auto"|"pytorch"|"nki")</code>, <code>get_backend()</code>, and the NKI entry points. In v0.2.0, <code>spmm</code> routes through <code>_use_nki()</code> and calls <code>_spmm_dense_kernel</code> on the Tensor Engine. <code>spmv</code>, <code>spmv_symmetric</code>, and screening still run the PyTorch path (single-column NKI matmul doesn't pay off).</p>
-<h3 id="v020-spmm-path">v0.2.0 SpMM path<a class="headerlink" href="#v020-spmm-path" title="Permanent link">&para;</a></h3>
+<h3 id="v020-csr-spmm-path">v0.2.0 CSR SpMM path<a class="headerlink" href="#v020-csr-spmm-path" title="Permanent link">&para;</a></h3>
 <p>Forward — <code>_SpMMFunction.forward</code>:</p>
 <ol>
 <li>Materialize the CSR into a dense <code>(M, K)</code> tile (host-side).</li>

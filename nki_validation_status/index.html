@@ -691,6 +691,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#design-rfcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design RFCs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#maintenance" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1811,6 +1822,8 @@
       
         
       
+        
+      
     
     
     
@@ -2137,6 +2150,98 @@
   
   
   
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_2_6" id="__nav_10_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fused DF-MP2 pair-energy kernel (Phase 3 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../trnblas/benchmarks/" class="md-nav__link">
         
@@ -2183,10 +2288,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_8" >
         
           
-          <label class="md-nav__link" for="__nav_10_2_7" id="__nav_10_2_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_2_8" id="__nav_10_2_8_label" tabindex="0">
             
   
   
@@ -2204,8 +2309,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_2_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3926,6 +4031,8 @@
       
         
       
+        
+      
     
     
     
@@ -4051,6 +4158,34 @@
     
   
     Decompositions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trntensor/api/quantum/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantum primitives
   
 
     
@@ -4431,6 +4566,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#design-rfcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design RFCs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#maintenance" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4548,6 +4694,13 @@ Per-phase definitions live in the suite <a href="../roadmap/">roadmap</a>.</p>
   specific optimization) build on top of Phase 1 per the
   <a href="../roadmap/">roadmap</a> and are tracked per sub-project via the
   matching <code>phase-N</code> labels.</li>
+</ul>
+<h2 id="design-rfcs">Design RFCs<a class="headerlink" href="#design-rfcs" title="Permanent link">&para;</a></h2>
+<p>Sub-projects with published design docs for upcoming phases:</p>
+<ul>
+<li><a href="https://trnsci.dev/trnblas/design/fused_df_mp2_energy_kernel/">trnblas: fused DF-MP2 pair-energy kernel (Phase 3)</a> — collapse <code>(T*(2T−T.T)/denom).sum()</code> into one SBUF-resident Vector+Scalar pass; targets 3–6× speedup on the DF-MP2 hot path.</li>
+<li><a href="https://trnsci.dev/trnrand/design/sbuf_resident_generator/">trnrand: SBUF-resident streaming Generator (Phase 3)</a> — pre-compiled multi-distribution kernel with pipelined GpSimd / Vector / Scalar engines.</li>
+<li><a href="https://trnsci.dev/trnrand/design/counter_partitioned_multichip/">trnrand: counter-partitioned multi-chip RNG (Phase 4)</a> — bit-exact cross-cluster-size RNG via Philox counter-space partitioning.</li>
 </ul>
 <h2 id="maintenance">Maintenance<a class="headerlink" href="#maintenance" title="Permanent link">&para;</a></h2>
 <p>This page is updated when a Phase 1 tracker closes (or opens, for any

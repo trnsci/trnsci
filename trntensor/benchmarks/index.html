@@ -1741,6 +1741,8 @@
       
         
       
+        
+      
     
     
     
@@ -2070,6 +2072,98 @@
   
   
   
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_2_6" id="__nav_10_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fused DF-MP2 pair-energy kernel (Phase 3 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
@@ -2116,10 +2210,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_8" >
         
           
-          <label class="md-nav__link" for="__nav_10_2_7" id="__nav_10_2_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_2_8" id="__nav_10_2_8_label" tabindex="0">
             
   
   
@@ -2137,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_2_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3873,6 +3967,8 @@
       
         
       
+        
+      
     
     
     
@@ -3998,6 +4094,34 @@
     
   
     Decompositions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/quantum/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantum primitives
   
 
     
@@ -4157,6 +4281,17 @@
     <span class="md-ellipsis">
       
         Results (trn1.2xlarge, neuronxcc 2.24)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#df-mp2-energy-fused-vs-python-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 energy — fused vs Python-loop
       
     </span>
   </a>
@@ -4469,6 +4604,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#df-mp2-energy-fused-vs-python-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 energy — fused vs Python-loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#size-based-dispatch-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4611,6 +4757,33 @@ pytest<span class="w"> </span>benchmarks/bench_einsum.py<span class="w"> </span>
 </tbody>
 </table>
 <p><strong>NKI wins</strong>: 2048×2048 matmul (1.6× faster than CPU). All other sizes still favor CPU on this hardware.</p>
+<h2 id="df-mp2-energy-fused-vs-python-loop">DF-MP2 energy — fused vs Python-loop<a class="headerlink" href="#df-mp2-energy-fused-vs-python-loop" title="Permanent link">&para;</a></h2>
+<p>Fused <code>trntensor.mp2_energy</code> (single NKI program) vs the reference loop from <code>examples/df_mp2_einsum.py</code> (25–256 einsum calls), both on trn1.2xlarge:</p>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th style="text-align: right;">Python loop</th>
+<th style="text-align: right;">Fused NKI</th>
+<th>Winner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(nocc, nvir, naux) = (5, 19, 72)</code></td>
+<td style="text-align: right;"><strong>1.5 ms</strong></td>
+<td style="text-align: right;">15.6 ms</td>
+<td>Loop 10×</td>
+</tr>
+<tr>
+<td><code>(nocc, nvir, naux) = (16, 128, 128)</code></td>
+<td style="text-align: right;"><strong>25.5 ms</strong></td>
+<td style="text-align: right;">41.3 ms</td>
+<td>Loop 1.6×</td>
+</tr>
+</tbody>
+</table>
+<p>The fused kernel is <strong>architecturally</strong> what we want — one program, no intermediate HBM materialization of the four-index <code>T</code> tensor, PSUM/SBUF-resident across contract → elementwise → reduce. But NKI's per-call dispatch + compile overhead (~15–40 ms floor) still eats the win at current sizes. The gap closes with scale (10× → 1.6× as workload grows), consistent with the overhead being a fixed cost the compute amortizes. See <a href="https://github.com/trnsci/trntensor/issues/33">#33</a> and <a href="https://github.com/trnsci/trntensor/issues/34">#34</a>.</p>
 <h2 id="size-based-dispatch-threshold">Size-based dispatch threshold<a class="headerlink" href="#size-based-dispatch-threshold" title="Permanent link">&para;</a></h2>
 <p>Because per-call NKI dispatch currently carries ~1 ms of XLA launch overhead, <code>nki_matmul</code> and <code>nki_batched_matmul</code> short-circuit to the PyTorch path when the contraction is below <code>TRNTENSOR_MIN_NKI_FLOPS</code> (default <strong>2 GFLOPs</strong>, calibrated at ≈ half the smallest NKI-winning size). The <code>plan.backend</code> field reflects this: it reports <code>"nki"</code> only when the dispatch will actually invoke a kernel, and <code>"pytorch"</code> otherwise.</p>
 <p>Overrides:</p>

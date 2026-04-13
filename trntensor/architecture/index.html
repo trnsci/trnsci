@@ -1741,6 +1741,8 @@
       
         
       
+        
+      
     
     
     
@@ -2070,6 +2072,98 @@
   
   
   
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_2_6" id="__nav_10_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fused DF-MP2 pair-energy kernel (Phase 3 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
@@ -2116,10 +2210,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_8" >
         
           
-          <label class="md-nav__link" for="__nav_10_2_7" id="__nav_10_2_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_2_8" id="__nav_10_2_8_label" tabindex="0">
             
   
   
@@ -2137,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_2_7">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3873,6 +3967,8 @@
       
         
       
+        
+      
     
     
     
@@ -4018,6 +4114,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../api/quantum/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api/nki/" class="md-nav__link">
         
   
@@ -4118,6 +4242,17 @@
     <span class="md-ellipsis">
       
         Contraction planning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fused-contraction-reduction-the-architectural-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fused contraction-reduction: the architectural core
       
     </span>
   </a>
@@ -4436,6 +4571,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#fused-contraction-reduction-the-architectural-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fused contraction-reduction: the architectural core
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#decompositions-for-quantum-chemistry" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4489,6 +4635,23 @@
 <li><strong>nki</strong> (future): fused multi-index contractions on the Tensor Engine</li>
 </ul>
 <p><code>ContractionPlan</code> carries the dispatch decision, the FLOPs estimate, and any reshape/transpose preamble so the same plan can be re-executed cheaply.</p>
+<h2 id="fused-contraction-reduction-the-architectural-core">Fused contraction-reduction: the architectural core<a class="headerlink" href="#fused-contraction-reduction-the-architectural-core" title="Permanent link">&para;</a></h2>
+<p>What makes trntensor different from <code>torch.einsum</code> or <code>trnblas.gemm</code> is <strong>fusion across the boundary between contraction and reduction</strong>. On Trainium:</p>
+<ul>
+<li>the Tensor Engine does the contraction, accumulating into PSUM</li>
+<li>the Vector Engine does the elementwise reshaping, reading from SBUF</li>
+<li>a small SBUF scalar accumulates the reduction</li>
+<li>nothing lands in HBM until the whole program finishes</li>
+</ul>
+<p>A cuTENSOR clone would compose these three phases as separate ops with HBM round-trips between them. NKI lets us write them as one <code>@nki.jit</code> program with the same data living in PSUM → SBUF → accumulator across phases. That's the architectural lever.</p>
+<p>The canonical demonstration is <code>trntensor.mp2_energy</code> — the DF-MP2 correlation energy is</p>
+<div class="highlight"><pre><span></span><code>T_{i,j,a,b} = Σ_P B_{i,a,P} B_{j,b,P}              (contraction)
+term        = T * (2T - T^T) / Δ_{i,j,a,b}         (elementwise)
+E           = Σ_{i,j,a,b} term                      (reduction)
+</code></pre></div>
+<p>The fused kernel in <code>trntensor/nki/_kernels.py::mp2_energy_kernel</code> does all three in one program, iterating over <code>(i, j)</code> pairs in <code>affine_range</code>. No intermediate <code>T</code> tensor is ever materialized to HBM.</p>
+<p>This pattern — fused contract + elementwise + reduce with SBUF-resident intermediates — is what trntensor extends across the suite. Generic <code>einsum</code> dispatch to <code>matmul</code> / <code>bmm</code> kernels is the foundation; primitives like <code>mp2_energy</code> are the architectural flagships.</p>
+<p><strong>Performance honest note.</strong> The fused kernel is architecturally correct but currently carries ~15–40 ms of XLA dispatch + compile overhead per call, which means at small chemistry sizes the CPU fallback path still wins. The fusion work pays off once per-call overhead is amortized (tracked in #33/#34). See <a href="../benchmarks/">Benchmarks</a> for the current numbers.</p>
 <h2 id="decompositions-for-quantum-chemistry">Decompositions for quantum chemistry<a class="headerlink" href="#decompositions-for-quantum-chemistry" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>CP (CANDECOMP/PARAFAC)</strong> — Tensor hypercontraction (THC) of two-electron integrals. Reduces $O(N^4)$ storage to $O(N^2 R)$.</li>

@@ -97,6 +97,10 @@
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/trnblas/design/fused_df_mp2_energy_kernel/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnfft/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
@@ -314,6 +318,10 @@
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/api/plan/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trntensor/api/quantum/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>
