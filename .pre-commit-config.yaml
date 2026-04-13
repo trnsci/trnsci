@@ -1,0 +1,49 @@
+# Pre-commit hooks for the trnsci umbrella repo.
+# Install with: pre-commit install
+# Run against all files: pre-commit run --all-files
+# CI enforcement: .github/workflows/pre-commit.yml + pre-commit.ci autoupdate
+
+default_language_version:
+  python: python3.11
+
+repos:
+  # Standard hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: "^(LICENSE|trnfft/|trnblas/|trnrand/|trnsolve/|trnsparse/|trntensor/)"
+      - id: end-of-file-fixer
+        exclude: "^(LICENSE|trnfft/|trnblas/|trnrand/|trnsolve/|trnsparse/|trntensor/)"
+      - id: check-yaml
+        exclude: "^(mkdocs.yml)$"   # mkdocs uses !include directives that aren't pure YAML
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+
+  # Python linter + formatter — ruff handles both
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.3
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  # Typo catcher for docs and comments
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args: ["--ignore-words-list", "crate,nd,te,BLAS,blas"]
+        exclude: "^(LICENSE|conda-recipes/|trnfft/|trnblas/|trnrand/|trnsolve/|trnsparse/|trntensor/)"
+
+# Sub-project directories (trnfft/, trnblas/, etc.) are excluded — each has
+# its own repo and its own pre-commit config. The umbrella only lints the
+# umbrella's own source and docs.
+
+ci:
+  autofix_commit_msg: "style: pre-commit autofixes"
+  autoupdate_commit_msg: "ci: pre-commit autoupdate"
+  autoupdate_schedule: weekly

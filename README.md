@@ -1,5 +1,10 @@
 # trnsci
 
+[![CI](https://github.com/trnsci/trnsci/actions/workflows/test.yml/badge.svg)](https://github.com/trnsci/trnsci/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/trnsci/trnsci/graph/badge.svg)](https://codecov.io/gh/trnsci/trnsci)
+[![pre-commit](https://results.pre-commit.ci/badge/github/trnsci/trnsci/main.svg)](https://results.pre-commit.ci/latest/github/trnsci/trnsci/main)
+[![PyPI](https://img.shields.io/pypi/v/trnsci)](https://pypi.org/project/trnsci/)
+[![Python](https://img.shields.io/pypi/pyversions/trnsci)](https://pypi.org/project/trnsci/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-trnsci.dev-blue)](https://trnsci.dev/)
 

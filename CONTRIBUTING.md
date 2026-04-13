@@ -30,10 +30,25 @@ pip install -e ".[dev]"
 pytest tests/ -v -m "not neuron"
 ```
 
+## Pre-commit hooks
+
+The umbrella repo uses [pre-commit](https://pre-commit.com) for lint, formatting, and hygiene. Install once after cloning:
+
+```bash
+pip install pre-commit         # or part of make install-dev
+pre-commit install             # wires the git hook
+pre-commit run --all-files     # sanity check before your first commit
+```
+
+Hooks run automatically on every commit. CI enforces them via `.github/workflows/pre-commit.yml` and [pre-commit.ci](https://pre-commit.ci/) auto-updates the pinned versions weekly.
+
+Sub-project repos (trnfft, trnblas, etc.) each maintain their own `.pre-commit-config.yaml`.
+
 ## Tests
 
 - `pytest tests/ -v -m "not neuron"` — the CPU-only suite. Must pass on every PR.
 - `pytest tests/ -v -m neuron` — on-hardware suite, run from a machine with AWS credentials via `scripts/run_neuron_tests.sh`. Not part of standard CI.
+- Coverage is collected on the umbrella CI and uploaded to [Codecov](https://codecov.io/gh/trnsci/trnsci).
 
 ## Conventions
 
