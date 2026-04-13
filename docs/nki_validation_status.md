@@ -44,6 +44,14 @@ Per-phase definitions live in the suite [roadmap](roadmap.md).
   [roadmap](roadmap.md) and are tracked per sub-project via the
   matching `phase-N` labels.
 
+## Design RFCs
+
+Sub-projects with published design docs for upcoming phases:
+
+- [trnblas: fused DF-MP2 pair-energy kernel (Phase 3)](https://trnsci.dev/trnblas/design/fused_df_mp2_energy_kernel/) — collapse `(T*(2T−T.T)/denom).sum()` into one SBUF-resident Vector+Scalar pass; targets 3–6× speedup on the DF-MP2 hot path.
+- [trnrand: SBUF-resident streaming Generator (Phase 3)](https://trnsci.dev/trnrand/design/sbuf_resident_generator/) — pre-compiled multi-distribution kernel with pipelined GpSimd / Vector / Scalar engines.
+- [trnrand: counter-partitioned multi-chip RNG (Phase 4)](https://trnsci.dev/trnrand/design/counter_partitioned_multichip/) — bit-exact cross-cluster-size RNG via Philox counter-space partitioning.
+
 ## Maintenance
 
 This page is updated when a Phase 1 tracker closes (or opens, for any
