@@ -2693,6 +2693,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#inv_sqrt_spd_nsa-max_iters20-tol1e-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inv_sqrt_spd_ns(A, *, max_iters=20, tol=1e-7)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3703,6 +3714,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#inv_sqrt_spd_nsa-max_iters20-tol1e-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inv_sqrt_spd_ns(A, *, max_iters=20, tol=1e-7)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3739,9 +3761,19 @@
 <h2 id="inv_spda"><code>inv_spd(A)</code><a class="headerlink" href="#inv_spda" title="Permanent link">&para;</a></h2>
 <p>Returns <code>A⁻¹</code> for SPD <code>A</code> via Cholesky.</p>
 <h2 id="inv_sqrt_spda"><code>inv_sqrt_spd(A)</code><a class="headerlink" href="#inv_sqrt_spda" title="Permanent link">&para;</a></h2>
-<p>Returns <code>A⁻¹ᐟ²</code> for SPD <code>A</code>. Used as the density-fitting metric inverse in DF-MP2 (paired with <code>gemm</code> in trnblas).</p>
-<p>Currently implemented via eigendecomposition: <code>A⁻¹ᐟ² = V Λ⁻¹ᐟ² Vᵀ</code>. A Newton-Schulz GEMM-only variant is on the roadmap once the NKI GEMM in trnblas is validated.</p>
+<p>Returns <code>A⁻¹ᐟ²</code> for SPD <code>A</code> via eigendecomposition: <code>A⁻¹ᐟ² = V Λ⁻¹ᐟ² Vᵀ</code>.
+Robust default for general SPD, including ill-conditioned metrics.</p>
 <div class="highlight"><pre><span></span><code><span class="n">M</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">inv_sqrt_spd</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="inv_sqrt_spd_nsa-max_iters20-tol1e-7"><code>inv_sqrt_spd_ns(A, *, max_iters=20, tol=1e-7)</code><a class="headerlink" href="#inv_sqrt_spd_nsa-max_iters20-tol1e-7" title="Permanent link">&para;</a></h2>
+<p>Returns <code>(X, iters, residual)</code> where <code>X ≈ A⁻¹ᐟ²</code>, computed via the coupled
+Newton-Schulz iteration <code>T = ½(3I − ZY); Y ← YT; Z ← TZ</code> starting from a
+Frobenius-norm-scaled <code>Y₀</code>. All operations are GEMMs, which maps cleanly to
+the Trainium Tensor Engine via <code>trnblas.gemm</code> once that backend validates.</p>
+<p>Choose this over <code>inv_sqrt_spd</code> when the NKI backend is active <strong>and</strong> <code>A</code> is
+well-conditioned (condition number ≲ 10⁶). For ill-conditioned SPD, stick
+with the eigendecomposition path.</p>
+<div class="highlight"><pre><span></span><code><span class="n">M</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="n">res</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">inv_sqrt_spd_ns</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)</span>
 </code></pre></div>
 
 
