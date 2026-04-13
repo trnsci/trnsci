@@ -37,6 +37,22 @@
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/AUTHOR_BRIEF/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/_template/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/2026/04/13/hello-trnsci/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
@@ -233,6 +249,10 @@
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/trnsparse/migration_scipy/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnsparse/quickstart/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
@@ -258,6 +278,10 @@
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/quickstart/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trntensor/tutorial_df_mp2/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>
@@ -290,6 +314,14 @@
     </url>
     <url>
          <loc>https://trnsci.dev/workflows/speech_enhancement/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/archive/2026/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/announcements/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
 </urlset>
