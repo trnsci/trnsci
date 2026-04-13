@@ -7,6 +7,13 @@ Each prompt is designed to be pasted verbatim — it carries all the context the
 Editorial brief the prompts reference: [`docs/blog/AUTHOR_BRIEF.md`](docs/blog/AUTHOR_BRIEF.md).
 Template file: [`docs/blog/_template.md`](docs/blog/_template.md).
 
+**A standing editorial note for every post:** the brief's "What didn't work" section also covers two axes of candor beyond internal project decisions.
+
+1. **Toolchain feedback** — NKI compiler bugs, missing primitives, awkward APIs, doc gaps, unhelpful error messages, and concrete suggestions for the AWS Neuron team.
+2. **Fit assessment** — whether this workload is actually well-matched to Trainium's current architecture, where the silicon looks over-indexed for training workloads at the expense of the target workload, and where it looks under-indexed for patterns the workload needs.
+
+Professional and specific, not bitter. Readers evaluating Trainium benefit more from that candor than from a post that pretends everything was smooth. See the brief for the detailed stance on both.
+
 ---
 
 ## One-time setup: pointer in each sub-project's `CLAUDE.md`

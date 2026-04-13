@@ -64,8 +64,43 @@ Useful content we want in every technical deep-dive:
 - **Honest benchmark numbers, including the ones that disappointed.** If the NKI path is slower than PyTorch CPU at small shapes (it often is), say so and explain why. Readers will find out anyway.
 - **Tradeoffs made deliberately.** "Jacobi was chosen over Householder because X, and the cost is Y." The "cost is Y" half is the credibility half.
 - **Open questions.** Follow-ups that are known, behaviors that have been observed but not fully explained.
+- **NKI and Neuron toolchain observations.** This one is important enough to call out separately — see the next subsection.
 
 **Benchmarks are validation, not the point.** A post full of numbers and no architectural insight is a fail state. A post with modest numbers but a clear articulation of what the hardware enabled that wasn't natural on NVIDIA is a win.
+
+### Be candid about the toolchain, not just the library
+
+The trnsci suite is built on top of NKI and the Neuron SDK. Both are actively evolving. Readers deciding whether to adopt Trainium will benefit more from honest notes on toolchain maturity than from a post that pretends everything was smooth.
+
+Concrete things worth writing about when they apply:
+
+- **NKI compiler bugs or surprising behaviors.** "This `nl.store` pattern produced wrong results with no error until we added an explicit barrier" is the kind of note that saves someone else days. Include the SDK version you were on.
+- **Missing primitives.** If you needed `nl.frobnicate` and it didn't exist, say so and describe the workaround. That's a feature request signal AWS can act on, and a warning for other users.
+- **Awkward APIs.** If an op took ten lines when it should have taken two, document the shape that felt natural to reach for and the shape that was actually required.
+- **Documentation gaps.** If official Neuron docs were silent on a behavior you had to discover empirically, name the behavior. Link to the relevant docs page (or its absence).
+- **Error messages.** When a compile error was unhelpful, quote it. "Partition dim must be at position 0" with no pointer to *why* is an example of the kind of message that belongs in a post so future searchers find it.
+- **Version drift.** If behavior changed between `neuronxcc` versions and you noticed, log it. Version-pinning guidance is part of a library's public contract.
+- **Specific suggestions to AWS Neuron.** If you have a concrete request — "it would help to have X primitive" or "this error should include Y" — write it. The Neuron team reads the ecosystem. Be useful feedback.
+
+The tone here matters. Professional, not bitter. Specific, not vague. Anchored in reproducible experience, not generic gripes. Constructive where possible — suggest a fix, don't just note the problem. The goal is to be the kind of honest technical write-up that makes the whole Trainium ecosystem better, including AWS's own work on the toolchain.
+
+If there's nothing worth saying about the toolchain for a given post, that's fine — don't manufacture complaints. But if there is something, don't leave it out to sound polished.
+
+### Be candid about fit — what Trainium is and isn't well-indexed for
+
+Trainium was designed primarily for large-model training and inference. That design choice over-indexed the silicon toward certain shapes (dense GEMM-heavy workloads with long sequences) and under-indexed it relative to other scientific-computing patterns. A library that sits on top of Trainium has an honest obligation to name both.
+
+Useful framing to include when it applies:
+
+- **Where the workload is a natural fit.** "DF-MP2 is dense-GEMM-heavy with regular basis-set shapes; that's exactly what the Tensor Engine was built for." Good fits aren't accidental — they happen when scientific workload shapes happen to coincide with training workload shapes. Name the coincidence.
+- **Where the workload is an awkward fit.** "Large sparse matrices with highly variable nnz are painful on Trainium because the Tensor Engine assumes dense tiles and the DMA gather penalty grows fast. BSR at 128×128 is the pragmatic response, but it's a response to a shape mismatch, not an architectural win." Don't pretend a workaround is a native fit.
+- **Where the hardware looks over-indexed.** Trainium's systolic array is larger and more constrained than what some scientific workloads need. A small FFT (N ≤ 256) is memory-latency-bound and leaves most of the Tensor Engine idle. That's not a trnfft failure — it's a silicon sizing observation. Note it.
+- **Where the hardware looks under-indexed.** Variable-rate scatter/gather, irregular graph workloads, dynamic-shape inference — these patterns are second-class citizens on Trainium today. If your library bumps into that, say so.
+- **Specific suggestions to AWS silicon design.** These go further than toolchain suggestions — they're "a future chip could help this workload by X". Feature creep into hardware design, but AWS reads the ecosystem and hardware roadmaps do respond to real workload feedback. Be the signal.
+
+The stance is the same: professional, specific, anchored in what you actually built. Not "Trainium is bad at sparse" — say which nnz pattern, which tile size, which DMA behavior, and what a better fit would look like. The framing that works: "this library exists because Trainium's current shape makes sense for this workload, and the places where it doesn't are named below."
+
+This matters beyond ecosystem credibility — it also shapes how the suite should grow. A library whose motivating workload is a poor fit for current Trainium should be honest about what future silicon generations would unlock, and prioritize phases accordingly.
 
 ## Required structure
 

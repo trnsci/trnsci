@@ -42,7 +42,11 @@ Real code from the repo, not pseudocode. At least one snippet showing the key NK
 
 ## What didn't work
 
-Blind alleys. Reverted approaches. NKI compiler surprises. Numbers that disappointed. This section is required.
+Blind alleys. Reverted approaches. Numbers that disappointed. This section is required.
+
+Also belong here (when they apply): NKI compiler bugs or surprising behaviors (with SDK version), missing primitives that forced workarounds, awkward APIs, documentation gaps you had to discover empirically, unhelpful error messages (quote them so future searchers find them), and concrete suggestions for the AWS Neuron team. Professional and specific, not bitter — the goal is useful feedback for the whole ecosystem.
+
+Candid fit-assessment also belongs here: is this workload actually well-matched to Trainium, or is the library working around a shape mismatch? Where is the silicon over-indexed for training workloads at the expense of this one? Where is it under-indexed? Name both, with specifics.
 
 ## Numbers
 
