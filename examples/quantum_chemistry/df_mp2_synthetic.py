@@ -86,7 +86,6 @@ def half_transform(eri_ao, C_occ, C_vir):
     """(μν|P) → (ia|P) via two trnblas GEMMs."""
     n_ao, _, n_aux = eri_ao.shape
     n_occ = C_occ.shape[1]
-    n_vir = C_vir.shape[1]
 
     # Reshape to (n_ao, n_ao * n_aux), contract index μ with C_occ
     flat = eri_ao.reshape(n_ao, n_ao * n_aux)
@@ -98,7 +97,7 @@ def half_transform(eri_ao, C_occ, C_vir):
     # Want: (n_occ, n_vir, n_aux) = C_vir.T @ iv_P[i]  stacked over i.
     C_vir_T = C_vir.transpose(0, 1).unsqueeze(0).expand(n_occ, -1, -1)
     ia_P = trnblas.batched_gemm(1.0, C_vir_T, iv_P)
-    return ia_P   # (n_occ, n_vir, n_aux)
+    return ia_P  # (n_occ, n_vir, n_aux)
 
 
 def metric_contract(ia_P, J):
@@ -125,7 +124,9 @@ def pair_energy(B, eps_occ, eps_vir):
         for j in range(i, n_occ):
             T = trntensor.einsum("ap,bp->ab", B[i], B[j])
             flops += trntensor.estimate_flops("ap,bp->ab", B[i], B[j])
-            denom = (eps_occ[i] + eps_occ[j]).item() - (eps_vir.unsqueeze(1) + eps_vir.unsqueeze(0))
+            denom = (eps_occ[i] + eps_occ[j]).item() - (
+                eps_vir.unsqueeze(1) + eps_vir.unsqueeze(0)
+            )
             pair = (T * T / denom).sum().item()
             e += pair if i == j else 2.0 * pair
     return e, flops
@@ -137,9 +138,11 @@ def run_demo(*, n_ao: int, n_aux: int, n_occ: int, seed: int) -> None:
     )
 
     print(f"system: n_ao={n_ao} n_aux={n_aux} n_occ={n_occ} n_vir={n_ao - n_occ}")
-    print(f"backends: trnblas={trnblas.get_backend()} "
-          f"trnsolver={trnsolver.get_backend()} "
-          f"trntensor={trntensor.get_backend()}")
+    print(
+        f"backends: trnblas={trnblas.get_backend()} "
+        f"trnsolver={trnsolver.get_backend()} "
+        f"trntensor={trntensor.get_backend()}"
+    )
 
     stats = screening_report(Q)
     print(
@@ -173,7 +176,9 @@ def run_demo(*, n_ao: int, n_aux: int, n_occ: int, seed: int) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--demo", action="store_true", help="run the small synthetic demo")
+    parser.add_argument(
+        "--demo", action="store_true", help="run the small synthetic demo"
+    )
     parser.add_argument("--n-ao", type=int, default=32)
     parser.add_argument("--n-aux", type=int, default=64)
     parser.add_argument("--n-occ", type=int, default=8)

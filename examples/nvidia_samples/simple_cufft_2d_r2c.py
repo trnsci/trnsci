@@ -38,7 +38,11 @@ def main() -> None:
     X = trnfft.rfft2(x) if hasattr(trnfft, "rfft2") else torch.fft.rfft2(x)
 
     # C2R inverse transform (like cufftExecC2R)
-    x_back = trnfft.irfft2(X, s=x.shape) if hasattr(trnfft, "irfft2") else torch.fft.irfft2(X, s=x.shape)
+    x_back = (
+        trnfft.irfft2(X, s=x.shape)
+        if hasattr(trnfft, "irfft2")
+        else torch.fft.irfft2(X, s=x.shape)
+    )
 
     err = (x - x_back).abs().max().item()
     rel = err / x.abs().max().item()

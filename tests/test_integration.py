@@ -59,9 +59,7 @@ def test_schwarz_screening_bounds():
     import df_mp2_synthetic as demo
     import trnsparse
 
-    _, _, _, _, _, _, Q = demo.synthetic_system(
-        n_ao=8, n_aux=12, n_occ=3, seed=1
-    )
+    _, _, _, _, _, _, Q = demo.synthetic_system(n_ao=8, n_aux=12, n_occ=3, seed=1)
     # Threshold of 0 keeps every pair with Q > 0, which for random
     # inputs is all of them.
     assert trnsparse.screen_quartets(Q, threshold=0.0).all()

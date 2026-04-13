@@ -54,7 +54,9 @@ def main() -> None:
     rel = err / C_ref.abs().max().item()
 
     print(f"contraction: {expr}")
-    print(f"  A shape: {tuple(A.shape)}  B shape: {tuple(B.shape)}  C shape: {tuple(C.shape)}")
+    print(
+        f"  A shape: {tuple(A.shape)}  B shape: {tuple(B.shape)}  C shape: {tuple(C.shape)}"
+    )
     print(f"  dispatch:   {getattr(plan, 'dispatch', '?')}")
     print(f"  FLOPs:      {flops:,}")
     print(f"  max error:  {err:.3e}  (rel {rel:.3e})")

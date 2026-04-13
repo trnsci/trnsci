@@ -22,7 +22,9 @@ from trnfft import ComplexTensor
 from trnfft.nn import ComplexLinear, ComplexModReLU
 
 
-def synthesize(*, sr: int, duration: float, seed: int) -> tuple[torch.Tensor, torch.Tensor]:
+def synthesize(
+    *, sr: int, duration: float, seed: int
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Return (noisy, clean) signals of shape (samples,).
 
     clean = sum of a few sinusoids; noisy = clean + white noise. The network's
@@ -59,15 +61,17 @@ class CIRMNet(nn.Module):
 
 
 def train_one_step(
-    net: CIRMNet, noisy_spec: ComplexTensor, clean_spec: ComplexTensor, opt: torch.optim.Optimizer
+    net: CIRMNet,
+    noisy_spec: ComplexTensor,
+    clean_spec: ComplexTensor,
+    opt: torch.optim.Optimizer,
 ) -> float:
     """One gradient step. Loss is MSE on (real, imag) of the masked spectrogram vs clean."""
     mask = net(noisy_spec)
     predicted = noisy_spec * mask
-    loss = (
-        (predicted.real - clean_spec.real).pow(2).mean()
-        + (predicted.imag - clean_spec.imag).pow(2).mean()
-    )
+    loss = (predicted.real - clean_spec.real).pow(2).mean() + (
+        predicted.imag - clean_spec.imag
+    ).pow(2).mean()
     opt.zero_grad()
     loss.backward()
     opt.step()
@@ -78,7 +82,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--sr", type=int, default=8000)
-    parser.add_argument("--duration", type=float, default=1.0, help="seconds of synthetic audio")
+    parser.add_argument(
+        "--duration", type=float, default=1.0, help="seconds of synthetic audio"
+    )
     parser.add_argument("--n-fft", type=int, default=256)
     parser.add_argument("--hop", type=int, default=128)
     parser.add_argument("--steps", type=int, default=50)
@@ -121,7 +127,9 @@ def main() -> None:
     print()
     print(f"initial loss: {initial_loss:.6f}")
     print(f"final loss:   {loss:.6f}")
-    print(f"status:       {'OK (loss decreased)' if loss < initial_loss else 'FAIL (no improvement)'}")
+    print(
+        f"status:       {'OK (loss decreased)' if loss < initial_loss else 'FAIL (no improvement)'}"
+    )
 
 
 if __name__ == "__main__":

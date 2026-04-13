@@ -50,7 +50,9 @@ def build_2d_laplacian(grid: int) -> tuple[torch.Tensor, int]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--demo", action="store_true")
-    parser.add_argument("--grid", type=int, default=16, help="grid size (n = grid*grid unknowns)")
+    parser.add_argument(
+        "--grid", type=int, default=16, help="grid size (n = grid*grid unknowns)"
+    )
     parser.add_argument("--tol", type=float, default=1e-6)
     parser.add_argument("--max-iter", type=int, default=500)
     args = parser.parse_args()

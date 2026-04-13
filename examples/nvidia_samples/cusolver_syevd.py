@@ -48,7 +48,9 @@ def main() -> None:
     print(f"  max |V^T V - I|:         {orth:.3e}")
     print(f"  smallest eigenvalue:     {w.min().item():+.4f}")
     print(f"  largest eigenvalue:      {w.max().item():+.4f}")
-    print(f"  status:                  {'OK' if err < 1e-3 and orth < 1e-4 else 'FAIL'}")
+    print(
+        f"  status:                  {'OK' if err < 1e-3 and orth < 1e-4 else 'FAIL'}"
+    )
 
 
 if __name__ == "__main__":
