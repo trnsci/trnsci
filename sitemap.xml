@@ -237,10 +237,6 @@
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/trntensor/api/</loc>
-         <lastmod>2026-04-13</lastmod>
-    </url>
-    <url>
          <loc>https://trnsci.dev/trntensor/architecture/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
@@ -258,6 +254,26 @@
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/quickstart/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trntensor/api/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trntensor/api/decompose/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trntensor/api/einsum/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trntensor/api/nki/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trntensor/api/plan/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>

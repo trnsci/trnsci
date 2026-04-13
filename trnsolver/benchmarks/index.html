@@ -2866,10 +2866,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#gpu-results-a10g-g5xlarge" class="md-nav__link">
+  <a href="#gpu-results-a10g-g5xlarge-cusolver-via-torchlinalg" class="md-nav__link">
     <span class="md-ellipsis">
       
-        GPU results (A10G / g5.xlarge)
+        GPU results — A10G / g5.xlarge (cuSOLVER via torch.linalg)
       
     </span>
   </a>
@@ -3473,9 +3473,40 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../trntensor/api/" class="md-nav__link">
+    
+    
+      
         
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_6_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../trntensor/api/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
@@ -3489,7 +3520,143 @@
   
   
 
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_6_4" id="__nav_8_6_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_6_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_6_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/einsum/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    einsum
+  
+
+    
+  </span>
+  
+  
+
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/decompose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decompositions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/nki/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NKI dispatch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -3767,10 +3934,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#gpu-results-a10g-g5xlarge" class="md-nav__link">
+  <a href="#gpu-results-a10g-g5xlarge-cusolver-via-torchlinalg" class="md-nav__link">
     <span class="md-ellipsis">
       
-        GPU results (A10G / g5.xlarge)
+        GPU results — A10G / g5.xlarge (cuSOLVER via torch.linalg)
       
     </span>
   </a>
@@ -3933,13 +4100,70 @@
 </tbody>
 </table>
 <p>Numbers are for illustration — on the benchmark-target Linux CI hardware scipy.linalg is generally faster than torch.linalg for small dense factorizations, and the trnsolver CPU path should sit between them (thin layer over <code>torch.linalg</code>). Reference values live in <code>results.json</code> artifacts from CI runs.</p>
-<h2 id="gpu-results-a10g-g5xlarge">GPU results (A10G / g5.xlarge)<a class="headerlink" href="#gpu-results-a10g-g5xlarge" title="Permanent link">&para;</a></h2>
-<p><em>Pending — populated by running <code>AWS_PROFILE=aws ./scripts/run_cuda_tests.sh</code>.</em></p>
+<h2 id="gpu-results-a10g-g5xlarge-cusolver-via-torchlinalg">GPU results — A10G / g5.xlarge (cuSOLVER via torch.linalg)<a class="headerlink" href="#gpu-results-a10g-g5xlarge-cusolver-via-torchlinalg" title="Permanent link">&para;</a></h2>
+<p>Run on AWS <code>g5.xlarge</code> (1× A10G, 24 GB, Ampere). Numbers include an explicit <code>torch.cuda.synchronize()</code> so the timer captures kernel execution, not async launch. Mean of 5+ warm rounds, µs:</p>
+<table>
+<thead>
+<tr>
+<th>Op</th>
+<th style="text-align: right;">n=64</th>
+<th style="text-align: right;">n=128</th>
+<th style="text-align: right;">n=256</th>
+<th style="text-align: right;">n=512</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cholesky</code></td>
+<td style="text-align: right;">95</td>
+<td style="text-align: right;">110</td>
+<td style="text-align: right;">166</td>
+<td style="text-align: right;">277</td>
+</tr>
+<tr>
+<td><code>qr</code></td>
+<td style="text-align: right;">283</td>
+<td style="text-align: right;">615</td>
+<td style="text-align: right;">1,028</td>
+<td style="text-align: right;">2,248</td>
+</tr>
+<tr>
+<td><code>solve_spd</code></td>
+<td style="text-align: right;">195</td>
+<td style="text-align: right;">293</td>
+<td style="text-align: right;">560</td>
+<td style="text-align: right;">1,306</td>
+</tr>
+<tr>
+<td><code>eigh</code></td>
+<td style="text-align: right;">944</td>
+<td style="text-align: right;">2,095</td>
+<td style="text-align: right;">5,463</td>
+<td style="text-align: right;">15,919</td>
+</tr>
+<tr>
+<td><code>inv_sqrt_spd</code> (eig-based)</td>
+<td style="text-align: right;">1,108</td>
+<td style="text-align: right;">2,298</td>
+<td style="text-align: right;">6,191</td>
+<td style="text-align: right;">17,709</td>
+</tr>
+<tr>
+<td><code>inv_sqrt_spd_ns</code> (Newton-Schulz)</td>
+<td style="text-align: right;">2,979</td>
+<td style="text-align: right;">3,005</td>
+<td style="text-align: right;"><strong>2,973</strong></td>
+<td style="text-align: right;">3,492</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The headline result</strong>: on GPU, <code>inv_sqrt_spd_ns</code> <strong>beats the eigendecomposition-based <code>inv_sqrt_spd</code> by 2.1× at n=256 and 5.1× at n=512</strong>. Same story — eigh dominates on CPU because LAPACK is heavily optimized for it, but when you're on an accelerator the all-GEMM shape of Newton-Schulz wins. This is the evidence that the NS path will pay off on Trainium once the trnblas NKI GEMM backend lands.</p>
+<p>Reproduce: <code>AWS_PROFILE=aws ./scripts/run_cuda_tests.sh g5</code>.</p>
 <h2 id="trainium-results-trn1-trn2">Trainium results (trn1 / trn2)<a class="headerlink" href="#trainium-results-trn1-trn2" title="Permanent link">&para;</a></h2>
-<p><em>Pending — populated by running <code>AWS_PROFILE=aws ./scripts/run_neuron_tests.sh</code>.</em></p>
+<p><em>Pending — the NKI Jacobi kernel at <code>trnsolver/nki/dispatch.py</code> needs to be rewritten with valid NKI 2.24 syntax and wired into <code>eigen.py</code> before hardware validation can produce numbers. See <a href="https://github.com/trnsci/trnsolver/issues/9">#9</a> for the current audit and v0.4.0 plan.</em></p>
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>inv_sqrt_spd_ns</code> is Newton-Schulz — all GEMM. On CPU it loses to the eigendecomposition path because eigh is heavily optimized in LAPACK/MKL. The shape of the workload is the important thing: once the trnblas NKI GEMM backend validates on Trainium, the NS path should win on trn1 / trn2.</li>
+<li><code>inv_sqrt_spd_ns</code> is Newton-Schulz — all GEMM. On CPU it loses to the eigendecomposition path because eigh is heavily optimized in LAPACK/MKL. On GPU it wins at n ≥ 256 because the workload shape fits the Tensor Core pipeline. Trainium's Tensor Engine should show a similar win once <code>trnblas</code> GEMM validates on hardware.</li>
 <li>cuSOLVER is invoked indirectly via <code>torch.linalg</code> on a CUDA tensor. We don't link cuSOLVER directly.</li>
 </ul>
 
