@@ -1712,6 +1712,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#batched-gemm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batched GEMM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fused-mp2-energy-reduction-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fused MP2 energy-reduction kernel
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3593,6 +3615,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#batched-gemm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batched GEMM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fused-mp2-energy-reduction-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fused MP2 energy-reduction kernel
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3624,17 +3668,45 @@ Trainium Tensor Engine or fall back to PyTorch.</p>
 <span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># force NKI (requires neuronxcc)</span>
 </code></pre></div>
 <p><code>trnblas.HAS_NKI</code> is <code>True</code> when <code>neuronxcc</code> is importable.</p>
+<p>Set <code>TRNBLAS_REQUIRE_NKI=1</code> in the environment to re-raise kernel
+exceptions instead of falling back to <code>torch.matmul</code> — useful in
+validation runs to surface silent breakage.</p>
 <h2 id="gemm-kernel">GEMM kernel<a class="headerlink" href="#gemm-kernel" title="Permanent link">&para;</a></h2>
-<p>The NKI GEMM kernel lives in <code>trnblas/nki/dispatch.py</code>. It uses stationary
-tile reuse:</p>
+<p><code>trnblas.nki.nki_gemm</code> — NKI-dispatched GEMM with stationary tile reuse:</p>
 <ul>
 <li>A tile (128×128) loaded once to SBUF, held stationary in the systolic array.</li>
 <li>B tiles streamed through as the moving operand.</li>
 <li>Partial products accumulated in PSUM.</li>
+<li>HBM padding: M/K rounded to 128, N rounded to 512 (when N &gt; 512); kernel
+  uses <code>TILE_N = min(N, 512)</code> for single-tile small-N. Result is sliced back
+  to the original (M, N).</li>
 </ul>
-<p><strong>Status:</strong> scaffolded but not yet validated on trn1/trn2 hardware. Falls
-back to <code>torch.matmul</code> until the kernel ships. See the roadmap issues for
-on-hardware validation work.</p>
+<p><strong>Status:</strong> validated on trn1.2xlarge with neuronxcc 2.24. 17/17 hardware
+tests pass. Cached-NEFF speedup ~2.8× on warm runs; per-call kernel
+timings land at 1.6 ms (512³) and 4.5 ms (1024³) on warm cache.</p>
+<h2 id="batched-gemm">Batched GEMM<a class="headerlink" href="#batched-gemm" title="Permanent link">&para;</a></h2>
+<p><code>trnblas.nki.nki_batched_gemm</code> — per-slice dispatch through the cached 2D
+<code>_gemm_kernel</code>. Every slice after the first hits the NEFF cache (identical
+signature), so per-slice cost is HBM transfer + Tensor Engine dispatch only.</p>
+<h2 id="fused-mp2-energy-reduction-kernel">Fused MP2 energy-reduction kernel<a class="headerlink" href="#fused-mp2-energy-reduction-kernel" title="Permanent link">&para;</a></h2>
+<p><code>trnblas.nki.nki_mp2_energy(T_flat, eps_occ_chunk, eps_occ_full, eps_vir)</code>
+— computes</p>
+<div class="highlight"><pre><span></span><code>E_chunk = Σ_{i, j, a, b} T[i,j,a,b] * (2·T[i,j,a,b] - T[i,j,b,a]) / Δ[i,j,a,b]
+</code></pre></div>
+<p>where <code>T[i,j,a,b] = T_flat[i*nvir + a, j*nvir + b]</code> and
+<code>Δ[i,j,a,b] = eps_occ[i] + eps_occ[j] - eps_vir[a] - eps_vir[b]</code>.</p>
+<p>Partition-dim sub-tiling: <code>P_TILE</code> picked at trace time as the largest
+divisor of <code>nvir</code> that is ≤ 128 (the NKI partition limit). All three
+DF-MP2 bench shapes (nvir = 112 / 448 / 672) share <code>P_TILE = 112</code>, so
+one compiled kernel serves all.</p>
+<p><strong>Returns:</strong> <code>(ic, nocc)</code> fp32 tensor of per-(i,j) partials; caller
+reduces host-side via <code>.sum()</code>.</p>
+<p><strong>Status:</strong> on-hardware correctness validated across
+<code>nvir ∈ {8, 16, 64, 256, 448}</code> (all 5 tests pass on trn1). <strong>Perf
+caveat:</strong> at medium DF-MP2 shape the kernel matches (not beats) the
+torch reduction — per-(i,j) dispatch/load chain swamps the compute
+savings. Production <code>examples/df_mp2.py</code> keeps the torch path;
+further perf work tracked under <a href="https://github.com/trnsci/trnblas/issues/15">#15</a>.</p>
 
 
 

@@ -3512,6 +3512,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#trn-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trn-* suite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#quick-example" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3559,11 +3570,21 @@
 <p>Part of the trnsci scientific computing suite (<a href="https://github.com/trnsci">github.com/trnsci</a>).</p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Drop-in <code>torch.fft</code> replacement</strong> — <code>fft</code>, <code>ifft</code>, <code>rfft</code>, <code>irfft</code>, <code>fft2</code>, <code>fftn</code>, <code>stft</code>, <code>istft</code></li>
+<li><strong><code>torch.fft</code>-compatible API</strong> — <code>fft</code>, <code>ifft</code>, <code>rfft</code>, <code>irfft</code>, <code>fft2</code>, <code>fftn</code>, <code>ifftn</code>, <code>stft</code>, <code>istft</code> (9 of 12; real-FFT variants <code>hfft</code>, <code>ihfft</code>, <code>rfft2</code>, <code>irfft2</code>, <code>rfftn</code>, <code>irfftn</code> are on the roadmap)</li>
 <li><strong>ComplexTensor</strong> — split real/imaginary representation with full arithmetic</li>
 <li><strong>Complex NN layers</strong> — <code>ComplexLinear</code>, <code>ComplexConv1d</code>, <code>ComplexBatchNorm1d</code>, <code>ComplexModReLU</code></li>
-<li><strong>NKI acceleration</strong> — butterfly FFT, complex GEMM, and fused multiply kernels for Trainium</li>
+<li><strong>NKI acceleration</strong> — butterfly FFT, complex GEMM, ComplexLinear, and fused multiply kernels for Trainium. Validated on trn1.2xlarge; beats vanilla <code>torch.fft</code> for STFT and batched FFT. See <a href="benchmarks/">Benchmarks</a>.</li>
 <li><strong>Plan-based caching</strong> — FFTW-style plan creation and reuse</li>
+</ul>
+<h2 id="trn-suite">trn-* suite<a class="headerlink" href="#trn-suite" title="Permanent link">&para;</a></h2>
+<p>trnfft is one of six packages (plus an umbrella meta-package) in the trnsci scientific computing suite for AWS Trainium:</p>
+<ul>
+<li><a href="https://github.com/trnsci/trnblas">trnblas</a> — BLAS Level 1–3</li>
+<li><a href="https://github.com/trnsci/trnrand">trnrand</a> — Philox / Sobol RNG</li>
+<li><a href="https://github.com/trnsci/trnsolver">trnsolver</a> — linear solvers, eigendecomposition</li>
+<li><a href="https://github.com/trnsci/trnsparse">trnsparse</a> — sparse matrix ops</li>
+<li><a href="https://github.com/trnsci/trntensor">trntensor</a> — tensor contractions</li>
+<li><a href="https://github.com/trnsci/trnsci">trnsci</a> — umbrella meta-package</li>
 </ul>
 <h2 id="quick-example">Quick example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>

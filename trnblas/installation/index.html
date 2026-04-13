@@ -1509,10 +1509,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#with-pyscf-real-molecule-df-mp2-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With PySCF (real-molecule DF-MP2 validation)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#from-source" class="md-nav__link">
     <span class="md-ellipsis">
       
         From source
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime environment variables
       
     </span>
   </a>
@@ -3614,10 +3636,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#with-pyscf-real-molecule-df-mp2-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With PySCF (real-molecule DF-MP2 validation)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#from-source" class="md-nav__link">
     <span class="md-ellipsis">
       
         From source
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime environment variables
       
     </span>
   </a>
@@ -3665,18 +3709,44 @@
 <p>This pulls in <code>neuronxcc</code> and <code>torch-neuronx</code>, which are only needed on
 Trainium/Inferentia instances. On CPU or GPU, trnblas falls back to
 <code>torch.matmul</code> automatically.</p>
+<h2 id="with-pyscf-real-molecule-df-mp2-validation">With PySCF (real-molecule DF-MP2 validation)<a class="headerlink" href="#with-pyscf-real-molecule-df-mp2-validation" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnblas<span class="o">[</span>pyscf<span class="o">]</span>
+</code></pre></div>
+<p>Pulls in <a href="https://pyscf.org/">PySCF</a> so the end-to-end DF-MP2 example
+(<code>examples/df_mp2_pyscf.py</code>) and the correctness test
+(<code>tests/test_df_mp2_pyscf.py</code>, <code>@pytest.mark.pyscf</code>) can run real
+molecules and compare against PySCF's own <code>mp.dfmp2.DFMP2</code> reference.</p>
 <h2 id="from-source">From source<a class="headerlink" href="#from-source" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/trnsci/trnblas
 <span class="nb">cd</span><span class="w"> </span>trnblas
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
 pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 </code></pre></div>
+<h2 id="runtime-environment-variables">Runtime environment variables<a class="headerlink" href="#runtime-environment-variables" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TRNBLAS_REQUIRE_NKI=1</code></td>
+<td>Re-raise on NKI kernel errors instead of silently falling back to <code>torch.matmul</code>. Useful in the validation suite to surface kernel breakage. Unset (default): kernel exceptions fall back to PyTorch.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Python ≥ 3.10</li>
 <li><code>torch &gt;= 2.1</code></li>
 <li><code>numpy &gt;= 1.24</code></li>
-<li><code>neuronxcc &gt;= 2.15</code> (optional, for on-hardware NKI kernels)</li>
+<li><code>neuronxcc &gt;= 2.24</code> (optional, for on-hardware NKI kernels — pinned to
+  the 2.24+ <code>nisa.nc_matmul</code> calling convention used across the trnsci
+  suite)</li>
+<li><code>torch-neuronx &gt;= 2.9</code> (optional, pulled in by the <code>[neuron]</code> extra)</li>
+<li><code>pyscf &gt;= 2.4</code> (optional, pulled in by the <code>[pyscf]</code> extra)</li>
 </ul>
 
 

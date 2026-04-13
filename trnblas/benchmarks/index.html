@@ -1753,10 +1753,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#status" class="md-nav__link">
+  <a href="#nki-gemm-per-call-kernel-timing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Status
+        NKI GEMM — per-call kernel timing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nki-batched-gemm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI batched GEMM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#df-mp2-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 end-to-end
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#neff-cache-warmup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NEFF cache warmup
       
     </span>
   </a>
@@ -1775,10 +1808,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-table-placeholder" class="md-nav__link">
+  <a href="#out-of-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results table (placeholder)
+        Out of scope
       
     </span>
   </a>
@@ -3581,10 +3614,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#status" class="md-nav__link">
+  <a href="#nki-gemm-per-call-kernel-timing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Status
+        NKI GEMM — per-call kernel timing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nki-batched-gemm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI batched GEMM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#df-mp2-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 end-to-end
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#neff-cache-warmup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NEFF cache warmup
       
     </span>
   </a>
@@ -3603,10 +3669,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-table-placeholder" class="md-nav__link">
+  <a href="#out-of-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results table (placeholder)
+        Out of scope
       
     </span>
   </a>
@@ -3634,66 +3700,133 @@
 
 
 <h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
-<p>Performance results for trnblas kernels — comparing the PyTorch CPU fallback and NKI Trainium path (when available) across canonical Level 3 BLAS workloads.</p>
-<h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
-<p>Baseline PyTorch-fallback numbers run on every CI build. NKI numbers are pending on-hardware validation on trn1 / trn2 — run <code>scripts/run_neuron_tests.sh</code> to generate them locally once a Neuron CI instance is provisioned (see <a href="../aws_setup/">AWS Setup</a>).</p>
-<p>Until the on-hardware data is stable enough to publish here, refer to the <a href="https://github.com/trnsci/trnblas/blob/main/examples/df_mp2.py">examples/df_mp2.py</a> <code>--bench</code> output for an end-to-end DF-MP2 wall-time pass, and <code>scripts/run_df_mp2_bench.sh</code> for the SSM-driven runner.</p>
-<h2 id="reproducing-locally">Reproducing locally<a class="headerlink" href="#reproducing-locally" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-only
-</code></pre></div>
-<p>Or the full DF-MP2 bench:</p>
-<div class="highlight"><pre><span></span><code>./scripts/run_df_mp2_bench.sh
-</code></pre></div>
-<h2 id="results-table-placeholder">Results table (placeholder)<a class="headerlink" href="#results-table-placeholder" title="Permanent link">&para;</a></h2>
+<p>All numbers on <code>trn1.2xlarge</code>, <code>neuronxcc 2.24.5133</code>, warm NEFF cache
+unless noted. Source: the <code>examples/df_mp2.py --bench</code> runs captured in
+the v0.4.0 <a href="https://github.com/trnsci/trnblas/blob/main/CHANGELOG.md#040--2026-04-12">CHANGELOG</a>.</p>
+<h2 id="nki-gemm-per-call-kernel-timing">NKI GEMM — per-call kernel timing<a class="headerlink" href="#nki-gemm-per-call-kernel-timing" title="Permanent link">&para;</a></h2>
+<p>Warm cache, mean of 5 calls. Aligned shapes (multiples of 128).</p>
 <table>
 <thead>
 <tr>
-<th>Op</th>
-<th>Size</th>
-<th>PyTorch (CPU)</th>
-<th>NKI (Trainium)</th>
-<th>Speedup</th>
+<th>Shape (M×K×N)</th>
+<th style="text-align: right;">Per-call</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>gemm</td>
-<td>1024×1024</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
+<td>512 × 512 × 512</td>
+<td style="text-align: right;">1.6 ms</td>
 </tr>
 <tr>
-<td>gemm</td>
-<td>4096×4096</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
-</tr>
-<tr>
-<td>batched_gemm</td>
-<td>64×256×256</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
-</tr>
-<tr>
-<td>trsm</td>
-<td>1024×1024</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
-</tr>
-<tr>
-<td>syrk</td>
-<td>1024×1024</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
+<td>1024 × 1024 × 1024</td>
+<td style="text-align: right;">4.5 ms</td>
 </tr>
 </tbody>
 </table>
-<p>Numbers will be populated once the NKI GEMM kernel validates on trn1 / trn2 and the benchmark harness is wired into CI.</p>
+<h2 id="nki-batched-gemm">NKI batched GEMM<a class="headerlink" href="#nki-batched-gemm" title="Permanent link">&para;</a></h2>
+<p>Warm cache, batch=32 of 256×128×256. Per-slice cost after the first is
+HBM transfer + Tensor Engine dispatch only (NEFF cache hit).</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total</td>
+<td style="text-align: right;">39.3 ms</td>
+</tr>
+<tr>
+<td>Per-slice</td>
+<td style="text-align: right;">1.23 ms</td>
+</tr>
+</tbody>
+</table>
+<h2 id="df-mp2-end-to-end">DF-MP2 end-to-end<a class="headerlink" href="#df-mp2-end-to-end" title="Permanent link">&para;</a></h2>
+<p>Synthetic inputs. Energy reproducible bit-for-bit across runs.</p>
+<table>
+<thead>
+<tr>
+<th>Shape</th>
+<th style="text-align: right;">Flops</th>
+<th style="text-align: right;">Cold</th>
+<th style="text-align: right;">Warm</th>
+<th style="text-align: right;">TFLOPS</th>
+<th style="text-align: right;">E_MP2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>small (128/16/384)</td>
+<td style="text-align: right;">3.4 G</td>
+<td style="text-align: right;">0.025s</td>
+<td style="text-align: right;">0.008s</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">-1.619250e-04</td>
+</tr>
+<tr>
+<td>medium (512/64/1536)</td>
+<td style="text-align: right;">2757 G</td>
+<td style="text-align: right;">12.9s</td>
+<td style="text-align: right;">9.77s</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: right;">-2.487221</td>
+</tr>
+<tr>
+<td>large (768/96/2304)</td>
+<td style="text-align: right;">20352 G</td>
+<td style="text-align: right;">65.9s</td>
+<td style="text-align: right;">62.8s</td>
+<td style="text-align: right;">0.32</td>
+<td style="text-align: right;">-4.351183e+01</td>
+</tr>
+</tbody>
+</table>
+<p>At large the energy step is 92% of wall-time — memory-bandwidth bound on
+the T tensor + intermediates. The fused <code>nki_mp2_energy</code> kernel is
+correct but does not yet beat this torch path; see
+<a href="https://github.com/trnsci/trnblas/issues/15">#15</a> for the perf
+follow-up.</p>
+<h2 id="neff-cache-warmup">NEFF cache warmup<a class="headerlink" href="#neff-cache-warmup" title="Permanent link">&para;</a></h2>
+<p>Same suite run twice on a freshly started instance:</p>
+<table>
+<thead>
+<tr>
+<th>Pass</th>
+<th style="text-align: right;">Wall time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cold (first run after instance start)</td>
+<td style="text-align: right;">7.01s</td>
+</tr>
+<tr>
+<td>Warm (NEFF cache hit + warm XLA graph)</td>
+<td style="text-align: right;">2.52s (2.8× faster)</td>
+</tr>
+</tbody>
+</table>
+<p>The cache at <code>/var/tmp/neuron-compile-cache/</code> persists across instance
+stop/start (EBS-backed), so kernel compile cost is paid exactly once
+per shape per cache lifetime.</p>
+<h2 id="reproducing-locally">Reproducing locally<a class="headerlink" href="#reproducing-locally" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Micro-benchmark harness (CPU baselines + NKI when available):</span>
+pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-only
+
+<span class="c1"># Full DF-MP2 bench on trn1 (provisions + runs + stops instance):</span>
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_df_mp2_bench.sh<span class="w"> </span>--shape<span class="w"> </span>medium
+</code></pre></div>
+<p>See <a href="../aws_setup/">AWS Setup</a> for the one-time Terraform provisioning.</p>
+<h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>syrk</code> / <code>trsm</code> NKI numbers:</strong> those ops are PyTorch-only in v0.4.x;
+  v0.5.0 will add NKI kernels and a dedicated row here.</li>
+<li><strong>cuBLAS head-to-head:</strong> requires GPU access; tracked under
+  <a href="https://github.com/trnsci/trnblas/issues/4">#4</a>.</li>
+</ul>
 
 
 

@@ -1,0 +1,148 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/ubuntu/trnfft
+configfile: pyproject.toml
+plugins: anyio-4.13.0, benchmark-5.2.3
+collected 70 items
+
+benchmarks/bench_fft.py ................................................ [ 68%]
+..................F...                                                   [100%]
+Wrote benchmark data in: <_io.BufferedWriter name='/home/ubuntu/bench.json'>
+
+
+=================================== FAILURES ===================================
+__________________ TestComplexMask.test_mask_nki[mask_shape2] __________________
+benchmarks/bench_fft.py:351: in test_mask_nki
+    _warm(complex_mask_apply, mask, spec)
+benchmarks/bench_fft.py:38: in _warm
+    fn(*args, **kwargs)
+trnfft/nki/dispatch.py:86: in complex_mask_apply
+    return _nki_complex_mask(mask, spec)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+trnfft/nki/dispatch.py:332: in _nki_complex_mask
+    c_real, c_imag = _complex_mul_kernel(mr, mi, sr, si)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+neuronxcc/nki/compile.py:108: in neuronxcc.nki.compile.GenericKernel.__call__
+    ???
+neuronxcc/nki/_torch_xla.py:127: in neuronxcc.nki._torch_xla.PyTorchXLAKernel.__call__
+    ???
+neuronxcc/nki/_torch_xla.py:129: in neuronxcc.nki._torch_xla.PyTorchXLAKernel.__call__
+    ???
+neuronxcc/nki/compiler/backends/neuron/FrameworkKernel.py:258: in neuronxcc.nki.compiler.backends.neuron.FrameworkKernel.FrameworkKernel.dump_config_with_boundargs
+    ???
+neuronxcc/nki/compiler/backends/neuron/TraceKernel.py:386: in neuronxcc.nki.compiler.backends.neuron.TraceKernel.TraceKernel.specialize_and_call
+    ???
+neuronxcc/nki/compiler/backends/neuron/TraceKernel.py:389: in neuronxcc.nki.compiler.backends.neuron.TraceKernel.TraceKernel.specialize_and_call
+    ???
+neuronxcc/nki/compiler/backends/neuron/TraceKernel.py:397: in neuronxcc.nki.compiler.backends.neuron.TraceKernel.TraceKernel.expand_kernel_with_ctx
+    ???
+neuronxcc/nki/compiler/backends/neuron/TraceKernel.py:424: in neuronxcc.nki.compiler.backends.neuron.TraceKernel.TraceKernel.expand_kernel_with_ctx
+    ???
+neuronxcc/nki/compiler/backends/neuron/TraceKernel.py:409: in neuronxcc.nki.compiler.backends.neuron.TraceKernel.TraceKernel.expand_kernel_with_ctx
+    ???
+trnfft/nki/dispatch.py:272: in _complex_mul_kernel
+    ar = nl.load(a_re_2d[:, f_off:f_end])
+             ^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: slice with variable size is not supported
+----------------------------- Captured stdout call -----------------------------
+Neuron NKI - Kernel call: _complex_mul_kernel(a_real = Tensor(shape: (1024, 512), dtype: float32), a_imag = Tensor(shape: (1024, 512), dtype: float32), b_real = Tensor(shape: (1024, 512), dtype: float32), b_imag = Tensor(shape: (1024, 512), dtype: float32))
+=============================== warnings summary ===============================
+benchmarks/bench_fft.py::TestSTFT::test_stft_torch
+  /opt/aws_neuronx_venv_pytorch_2_9/lib/python3.12/site-packages/torch/functional.py:681: UserWarning: A window was not provided. A rectangular window will be applied,which is known to cause spectral leakage. Other windows such as torch.hann_window or torch.hamming_window are recommended to reduce spectral leakage.To suppress this warning and use a rectangular window, explicitly set `window=torch.ones(n_fft, device=<device>)`. (Triggered internally at /pytorch/aten/src/ATen/native/SpectralOps.cpp:836.)
+    return _VF.stft(  # type: ignore[attr-defined]
+
+benchmarks/bench_fft.py::TestComplexMask::test_mask_nki[mask_shape2]
+  benchmarks/bench_fft.py:345: PytestBenchmarkWarning: Benchmark fixture was not used at all in this test!
+    @pytest.mark.neuron
+
+../../../opt/aws_neuronx_venv_pytorch_2_9/lib/python3.12/site-packages/_pytest/cacheprovider.py:475
+  /opt/aws_neuronx_venv_pytorch_2_9/lib/python3.12/site-packages/_pytest/cacheprovider.py:475: PytestCacheWarning: cache could not write path /home/ubuntu/trnfft/.pytest_cache/v/cache/nodeids: [Errno 13] Permission denied: '/home/ubuntu/trnfft/.pytest_cache/v/cache/nodeids'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+../../../opt/aws_neuronx_venv_pytorch_2_9/lib/python3.12/site-packages/_pytest/cacheprovider.py:429
+  /opt/aws_neuronx_venv_pytorch_2_9/lib/python3.12/site-packages/_pytest/cacheprovider.py:429: PytestCacheWarning: cache could not write path /home/ubuntu/trnfft/.pytest_cache/v/cache/lastfailed: [Errno 13] Permission denied: '/home/ubuntu/trnfft/.pytest_cache/v/cache/lastfailed'
+    config.cache.set("cache/lastfailed", self.lastfailed)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+-------------------------------------------------------------------------------------------------------------------- benchmark: 69 tests --------------------------------------------------------------------------------------------------------------------
+Name (time in us)                                              Min                       Max                      Mean                 StdDev                    Median                    IQR            Outliers          OPS            Rounds  Iterations
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_fft_torch[256]                                         8.6680 (1.0)             27.1460 (1.0)             10.1811 (1.0)           2.4985 (1.97)            10.6020 (1.0)           1.8610 (18.38)         1;1  98,221.6523 (1.0)          55           1
+test_bluestein_torch[127]                                  13.7790 (1.59)            33.9340 (1.25)            14.3198 (1.41)          2.2676 (1.78)            13.9660 (1.32)          0.1013 (1.0)          5;13  69,833.2494 (0.71)        213           1
+test_mask_trnfft_pytorch[mask_shape0]                      14.3330 (1.65)            32.9350 (1.21)            14.8356 (1.46)          1.2710 (1.0)             14.6280 (1.38)          0.1370 (1.35)     374;1794  67,405.5310 (0.69)      19645           1
+test_fftn_torch[fftn_shape0]                               16.0350 (1.85)            46.0110 (1.69)            17.0460 (1.67)          3.4408 (2.71)            16.4960 (1.56)          0.2555 (2.52)          2;8  58,664.8981 (0.60)         95           1
+test_fft2_torch[fft2_shape0]                               18.2610 (2.11)            41.5250 (1.53)            20.8221 (2.05)          2.8213 (2.22)            20.3370 (1.92)          0.3650 (3.60)          4;9  48,025.8699 (0.49)        117           1
+test_fft_torch[1024]                                       23.5560 (2.72)            48.5920 (1.79)            28.9939 (2.85)          2.4551 (1.93)            28.5580 (2.69)          0.1175 (1.16)        25;48  34,489.9966 (0.35)        489           1
+test_gemm_torch_complex64[128]                             34.7420 (4.01)            68.7910 (2.53)            36.1277 (3.55)          3.7768 (2.97)            35.1800 (3.32)          0.2190 (2.16)        18;25  27,679.6011 (0.28)        247           1
+test_stft_torch                                            43.1410 (4.98)            98.9990 (3.65)            50.0421 (4.92)          4.4564 (3.51)            48.8560 (4.61)          0.3868 (3.82)        26;45  19,983.1901 (0.20)        349           1
+test_batched_fft_torch[batched_shape0]                     43.1460 (4.98)            74.2610 (2.74)            49.5354 (4.87)          2.6872 (2.11)            48.8580 (4.61)          0.3060 (3.02)      506;829  20,187.5934 (0.21)       8178           1
+test_mask_trnfft_pytorch[mask_shape1]                      50.3130 (5.80)            74.0120 (2.73)            52.1034 (5.12)          3.3277 (2.62)            51.1190 (4.82)          0.6667 (6.59)      276;321  19,192.6134 (0.20)       3131           1
+test_bluestein_torch[997]                                  51.1490 (5.90)            81.0100 (2.98)            59.7546 (5.87)          3.4150 (2.69)            58.7570 (5.54)          0.2920 (2.88)       65;124  16,735.1069 (0.17)        846           1
+test_batched_fft_torch[batched_shape1]                     76.8150 (8.86)           217.0530 (8.00)            80.5724 (7.91)          3.8836 (3.06)            79.2175 (7.47)          1.6310 (16.11)     780;782  12,411.2055 (0.13)       7610           1
+test_fft_torch[4096]                                       77.4900 (8.94)           123.0110 (4.53)            94.9942 (9.33)          3.9472 (3.11)            93.7270 (8.84)          0.3910 (3.86)        60;68  10,526.9596 (0.11)        494           1
+test_fftn_torch[fftn_shape1]                               82.6110 (9.53)           170.1070 (6.27)            90.0803 (8.85)          5.6613 (4.45)            88.5510 (8.35)          2.1340 (21.08)     128;131  11,101.2040 (0.11)       1115           1
+test_fft2_torch[fft2_shape1]                              104.3360 (12.04)          134.7840 (4.97)           109.0693 (10.71)         4.4174 (3.48)           107.2660 (10.12)         2.5680 (25.36)     827;829   9,168.4841 (0.09)       5773           1
+test_gemm_trnfft_pytorch[128]                             113.7060 (13.12)          137.6660 (5.07)           117.6440 (11.56)         6.7051 (5.28)           114.7455 (10.82)         1.5950 (15.75)        8;10   8,500.2210 (0.09)         54           1
+test_fft_torch[16384]                                     162.2750 (18.72)          183.6450 (6.77)           166.9012 (16.39)         5.1120 (4.02)           164.6470 (15.53)         2.4345 (24.04)       30;31   5,991.5683 (0.06)        143           1
+test_linear_trnfft_pytorch[linear_shape0]                 196.5640 (22.68)          318.9740 (11.75)          205.4528 (20.18)        12.8558 (10.11)          199.5220 (18.82)        14.6355 (144.55)       29;1   4,867.2979 (0.05)        184           1
+test_gemm_torch_complex64[256]                            226.8420 (26.17)          265.5710 (9.78)           231.8087 (22.77)         6.4930 (5.11)           228.1525 (21.52)        10.7505 (106.18)      567;2   4,313.9022 (0.04)       2300           1
+test_gemm_trnfft_pytorch[256]                             314.3950 (36.27)          661.8970 (24.38)          329.8989 (32.40)        44.0967 (34.70)          316.8850 (29.89)        18.7823 (185.50)      22;22   3,031.2320 (0.03)        997           1
+test_bluestein_torch[4097]                                325.1370 (37.51)          561.1820 (20.67)          333.5178 (32.76)        13.1766 (10.37)          328.5135 (30.99)        13.0130 (128.52)      79;11   2,998.3406 (0.03)       2860           1
+test_mask_trnfft_pytorch[mask_shape2]                     479.3130 (55.30)          585.3660 (21.56)          510.9936 (50.19)         8.7978 (6.92)           513.5280 (48.44)        13.5950 (134.27)      173;3   1,956.9717 (0.02)        638           1
+test_fft_torch[65536]                                     537.1820 (61.97)          575.9900 (21.22)          556.8773 (54.70)         8.0480 (6.33)           559.1550 (52.74)        12.8458 (126.87)      174;0   1,795.7279 (0.02)        553           1
+test_fft2_torch[fft2_shape2]                            1,070.9720 (123.55)       1,181.1500 (43.51)        1,085.7564 (106.64)       11.0340 (8.68)         1,082.8310 (102.13)       10.9135 (107.79)      48;13     921.0169 (0.01)        368           1
+test_mask_nki[mask_shape0]                              1,356.5750 (156.50)       3,492.9740 (128.67)       1,450.8926 (142.51)       96.0597 (75.58)        1,440.4860 (135.87)       52.2785 (516.33)      36;36     689.2309 (0.01)        633           1
+test_gemm_nki[128]                                      1,480.8970 (170.85)       2,216.8250 (81.66)        1,578.6063 (155.05)       56.3766 (44.36)        1,569.4295 (148.03)       26.6960 (263.66)      52;47     633.4702 (0.01)        614           1
+test_mask_nki[mask_shape1]                              1,491.9770 (172.12)       2,259.8980 (83.25)        1,560.8099 (153.31)       61.4006 (48.31)        1,546.1515 (145.84)       35.2320 (347.97)      70;66     640.6930 (0.01)        594           1
+test_linear_nki[linear_shape0]                          1,572.2280 (181.38)       6,894.4310 (253.98)       1,719.4316 (168.89)      245.4777 (193.14)       1,729.1030 (163.09)      131.0102 (>1000.0)       6;7     581.5876 (0.01)        505           1
+test_gemm_torch_complex64[512]                          1,696.5260 (195.72)       1,812.4100 (66.77)        1,716.1095 (168.56)       10.9290 (8.60)         1,715.9050 (161.85)       13.1720 (130.09)      119;3     582.7134 (0.01)        528           1
+test_gemm_nki[256]                                      1,715.4560 (197.91)       3,002.8440 (110.62)       1,799.8381 (176.78)       91.0712 (71.65)        1,785.8220 (168.44)       64.8900 (640.89)      30;24     555.6055 (0.01)        516           1
+test_gemm_trnfft_pytorch[512]                           1,908.0820 (220.13)       2,402.7570 (88.51)        1,938.6663 (190.42)       25.2051 (19.83)        1,936.7075 (182.67)       13.5465 (133.79)       14;8     515.8185 (0.01)        448           1
+test_gemm_nki[512]                                      2,272.7450 (262.20)       3,708.2400 (136.60)       2,425.3422 (238.22)      181.2247 (142.59)       2,339.9175 (220.71)      254.4540 (>1000.0)      70;6     412.3129 (0.00)        382           1
+test_linear_nki[linear_shape1]                          3,163.3750 (364.95)       6,481.9340 (238.78)       3,603.1450 (353.91)      313.8763 (246.96)       3,563.3795 (336.10)       53.5190 (528.58)      11;20     277.5353 (0.00)        252           1
+test_linear_trnfft_pytorch[linear_shape1]               3,937.9940 (454.31)       4,112.9540 (151.51)       4,012.7294 (394.14)       55.2919 (43.50)        3,975.5660 (374.98)      109.1188 (>1000.0)      89;0     249.2069 (0.00)        209           1
+test_fftn_trnfft_pytorch[fftn_shape0]                   4,068.2250 (469.34)       4,497.2480 (165.67)       4,116.0613 (404.29)       43.2028 (33.99)        4,109.5470 (387.62)       20.2153 (199.66)      11;11     242.9507 (0.00)        201           1
+test_gemm_nki[1024]                                     4,967.6700 (573.10)       9,181.8260 (338.24)       5,171.4286 (507.95)      506.3189 (398.37)       5,013.7850 (472.91)      207.9763 (>1000.0)       6;8     193.3702 (0.00)        167           1
+test_fft_nki[256]                                       9,696.2920 (>1000.0)     10,585.9870 (389.96)       9,893.8944 (971.79)      146.5613 (115.31)       9,852.0820 (929.27)      182.2650 (>1000.0)      15;2     101.0724 (0.00)         92           1
+test_fft2_trnfft_pytorch[fft2_shape0]                  12,028.2490 (>1000.0)     12,250.1830 (451.27)      12,086.1178 (>1000.0)      35.5331 (27.96)       12,080.5315 (>1000.0)      45.4680 (449.07)       16;2      82.7396 (0.00)         82           1
+test_gemm_torch_complex64[1024]                        12,570.8020 (>1000.0)     13,957.3730 (514.16)      13,007.4562 (>1000.0)     138.4942 (108.97)      13,001.2400 (>1000.0)      14.5000 (143.21)        4;8      76.8790 (0.00)         70           1
+test_gemm_trnfft_pytorch[1024]                         13,945.3070 (>1000.0)     16,781.8600 (618.21)      14,053.3019 (>1000.0)     378.6330 (297.91)      13,974.8180 (>1000.0)      27.6860 (273.44)        3;6      71.1577 (0.00)         59           1
+test_fftn_nki[fftn_shape0]                             13,997.6440 (>1000.0)     18,367.5160 (676.62)      14,327.2945 (>1000.0)     540.9595 (425.63)      14,248.1995 (>1000.0)     233.5975 (>1000.0)       3;3      69.7968 (0.00)         68           1
+test_fft2_nki[fft2_shape0]                             15,584.4860 (>1000.0)     17,705.0120 (652.21)      15,934.5951 (>1000.0)     447.2472 (351.89)      15,786.3050 (>1000.0)     236.1785 (>1000.0)       5;6      62.7565 (0.00)         61           1
+test_fft_nki[1024]                                     15,752.2540 (>1000.0)     16,453.1260 (606.10)      16,033.9888 (>1000.0)     177.4088 (139.59)      16,006.1290 (>1000.0)     198.6485 (>1000.0)      18;3      62.3675 (0.00)         61           1
+test_fft_trnfft_pytorch[256]                           21,523.6290 (>1000.0)     21,775.2540 (802.15)      21,595.5771 (>1000.0)      54.2334 (42.67)       21,590.1950 (>1000.0)      55.1903 (545.09)        8;2      46.3058 (0.00)         31           1
+test_batched_fft_nki[batched_shape0]                   24,853.7890 (>1000.0)     30,841.4520 (>1000.0)     25,285.6173 (>1000.0)     931.0680 (732.56)      25,103.3080 (>1000.0)     289.2522 (>1000.0)       1;1      39.5482 (0.00)         39           1
+test_stft_nki                                          27,486.8370 (>1000.0)     38,859.6510 (>1000.0)     28,296.0303 (>1000.0)   1,893.3080 (>1000.0)     27,905.1865 (>1000.0)     554.8750 (>1000.0)       1;1      35.3406 (0.00)         34           1
+test_bluestein_nki[127]                                31,254.3680 (>1000.0)     32,029.0650 (>1000.0)     31,604.8071 (>1000.0)     185.1279 (145.66)      31,553.3910 (>1000.0)     272.5923 (>1000.0)      12;0      31.6408 (0.00)         31           1
+test_fftn_trnfft_pytorch[fftn_shape1]                  31,455.3770 (>1000.0)     31,827.8620 (>1000.0)     31,582.2738 (>1000.0)      96.3386 (75.80)       31,561.1460 (>1000.0)     127.1190 (>1000.0)       8;1      31.6633 (0.00)         24           1
+test_fft_nki[4096]                                     39,209.6000 (>1000.0)     42,528.4770 (>1000.0)     39,663.3568 (>1000.0)     632.0273 (497.28)      39,537.2800 (>1000.0)     266.1870 (>1000.0)       1;1      25.2122 (0.00)         25           1
+test_fft2_nki[fft2_shape1]                             44,899.9690 (>1000.0)     46,138.8980 (>1000.0)     45,311.2449 (>1000.0)     303.6086 (238.88)      45,186.3525 (>1000.0)     305.4525 (>1000.0)       3;2      22.0696 (0.00)         20           1
+test_stft_trnfft_pytorch                               48,778.1430 (>1000.0)     49,141.7390 (>1000.0)     48,910.1385 (>1000.0)     103.9850 (81.82)       48,884.4230 (>1000.0)     189.0593 (>1000.0)       9;0      20.4457 (0.00)         21           1
+test_batched_fft_nki[batched_shape1]                   51,742.4200 (>1000.0)     63,929.9610 (>1000.0)     53,073.7710 (>1000.0)   2,657.4031 (>1000.0)     52,422.5960 (>1000.0)     424.4620 (>1000.0)       1;2      18.8417 (0.00)         19           1
+test_fft2_trnfft_pytorch[fft2_shape1]                  57,218.2150 (>1000.0)     60,216.4480 (>1000.0)     58,502.9998 (>1000.0)     994.4521 (782.44)      58,768.5240 (>1000.0)   1,988.9843 (>1000.0)       7;0      17.0931 (0.00)         17           1
+test_bluestein_trnfft_pytorch[127]                     66,543.5290 (>1000.0)     66,931.6810 (>1000.0)     66,723.7931 (>1000.0)     101.6049 (79.94)       66,740.5640 (>1000.0)     107.3973 (>1000.0)       4;0      14.9872 (0.00)         15           1
+test_fftn_nki[fftn_shape1]                             70,101.4060 (>1000.0)     81,773.5880 (>1000.0)     71,846.9560 (>1000.0)   2,926.1051 (>1000.0)     70,820.7220 (>1000.0)   1,002.1890 (>1000.0)       1;1      13.9185 (0.00)         14           1
+test_bluestein_nki[997]                                82,219.6910 (>1000.0)     83,382.1280 (>1000.0)     82,702.8911 (>1000.0)     310.8689 (244.59)      82,700.9040 (>1000.0)     354.4835 (>1000.0)       3;0      12.0915 (0.00)         12           1
+test_fft_trnfft_pytorch[1024]                          87,125.7700 (>1000.0)     87,603.8280 (>1000.0)     87,361.3401 (>1000.0)     146.3982 (115.19)      87,375.9050 (>1000.0)     190.6500 (>1000.0)       5;0      11.4467 (0.00)         12           1
+test_batched_fft_trnfft_pytorch[batched_shape0]        94,627.0280 (>1000.0)     95,303.0050 (>1000.0)     94,905.4300 (>1000.0)     218.3878 (171.83)      94,806.8320 (>1000.0)     338.4120 (>1000.0)       4;0      10.5368 (0.00)         11           1
+test_batched_fft_trnfft_pytorch[batched_shape1]       104,560.3640 (>1000.0)    104,987.9410 (>1000.0)    104,745.8926 (>1000.0)     127.2263 (100.10)     104,750.5180 (>1000.0)     160.5170 (>1000.0)       3;0       9.5469 (0.00)         10           1
+test_fft_nki[16384]                                   130,854.5460 (>1000.0)    137,341.9740 (>1000.0)    132,298.2207 (>1000.0)   2,084.7376 (>1000.0)    131,665.6470 (>1000.0)     781.7960 (>1000.0)       1;1       7.5587 (0.00)          8           1
+test_fft_trnfft_pytorch[4096]                         352,135.3210 (>1000.0)    353,255.6670 (>1000.0)    352,846.4822 (>1000.0)     449.7690 (353.88)     352,915.9230 (>1000.0)     622.3490 (>1000.0)       1;0       2.8341 (0.00)          5           1
+test_bluestein_nki[4097]                              434,077.4150 (>1000.0)    437,704.5980 (>1000.0)    435,436.2468 (>1000.0)   1,391.3901 (>1000.0)    435,055.5590 (>1000.0)   1,631.8328 (>1000.0)       1;0       2.2965 (0.00)          5           1
+test_fft2_trnfft_pytorch[fft2_shape2]                 449,705.4030 (>1000.0)    450,489.7770 (>1000.0)    449,969.2718 (>1000.0)     313.0899 (246.34)     449,887.0010 (>1000.0)     378.5100 (>1000.0)       1;0       2.2224 (0.00)          5           1
+test_bluestein_trnfft_pytorch[997]                    536,366.8590 (>1000.0)    538,721.8770 (>1000.0)    537,124.5468 (>1000.0)   1,038.6261 (817.19)     536,492.4720 (>1000.0)   1,518.4890 (>1000.0)       1;0       1.8618 (0.00)          5           1
+test_fft2_nki[fft2_shape2]                            541,915.5540 (>1000.0)    600,882.7420 (>1000.0)    555,669.2344 (>1000.0)  25,342.4519 (>1000.0)    545,473.5850 (>1000.0)  17,229.3978 (>1000.0)       1;1       1.7996 (0.00)          5           1
+test_fft_nki[65536]                                   552,726.8300 (>1000.0)    560,015.0070 (>1000.0)    556,719.9202 (>1000.0)   2,606.5808 (>1000.0)    556,940.6400 (>1000.0)   2,310.4908 (>1000.0)       2;0       1.7962 (0.00)          5           1
+test_fft_trnfft_pytorch[16384]                      1,426,406.9770 (>1000.0)  1,433,345.3370 (>1000.0)  1,429,823.5810 (>1000.0)   2,618.8962 (>1000.0)  1,430,051.1080 (>1000.0)   3,647.1387 (>1000.0)       2;0       0.6994 (0.00)          5           1
+test_bluestein_trnfft_pytorch[4097]                 4,325,896.9330 (>1000.0)  4,336,026.2860 (>1000.0)  4,331,888.5938 (>1000.0)   3,698.9006 (>1000.0)  4,332,786.8780 (>1000.0)   3,238.6028 (>1000.0)       2;0       0.2308 (0.00)          5           1
+test_fft_trnfft_pytorch[65536]                      5,768,542.0300 (>1000.0)  5,792,380.4420 (>1000.0)  5,780,366.8236 (>1000.0)   9,910.7990 (>1000.0)  5,783,417.7980 (>1000.0)  16,253.2750 (>1000.0)       2;0       0.1730 (0.00)          5           1
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Legend:
+  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.
+  OPS: Operations Per Second, computed as 1 / Mean
+=========================== short test summary info ============================
+FAILED benchmarks/bench_fft.py::TestComplexMask::test_mask_nki[mask_shape2]
+============= 1 failed, 69 passed, 4 warnings in 236.01s (0:03:56) =============

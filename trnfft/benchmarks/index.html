@@ -1299,10 +1299,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#findings-v070" class="md-nav__link">
+  <a href="#findings-v080" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Findings (v0.7.0)
+        Findings (v0.8.0)
       
     </span>
   </a>
@@ -3625,10 +3625,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#findings-v070" class="md-nav__link">
+  <a href="#findings-v080" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Findings (v0.7.0)
+        Findings (v0.8.0)
       
     </span>
   </a>
@@ -3698,26 +3698,82 @@
 <h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Small sizes are dispatch-bound.</strong> NKI kernel invocation has fixed overhead (XLA dispatch + tensor staging). Below some per-op threshold the host CPU wins.</li>
-<li><strong>Multi-call paths suffer from per-invocation overhead.</strong> <code>fftn</code>, <code>fft2</code>, batched 1D FFT, and STFT all loop over rows in Python and invoke the NKI kernel per row. They're 50-1600× slower than the same code with <code>set_backend("pytorch")</code>. Fixing this requires a batched butterfly kernel — tracked as a v0.8 follow-up.</li>
-<li><strong>Single-NeuronCore only.</strong> trn1.2xlarge has one NeuronCore. Multi-NeuronCore parallelism (planned for v0.8) will change the picture for large transforms.</li>
+<li><strong>Single-NeuronCore only.</strong> trn1.2xlarge has one NeuronCore. Multi-NeuronCore parallelism will change the picture for large transforms.</li>
 <li><strong>FP32 throughout.</strong> BF16 / FP16 paths are future work.</li>
 <li>Numbers can vary 5-15% run-to-run; treat the table as approximate.</li>
 </ul>
-<h2 id="findings-v070">Findings (v0.7.0)<a class="headerlink" href="#findings-v070" title="Permanent link">&para;</a></h2>
-<p><strong>Where NKI wins right now:</strong></p>
+<h2 id="findings-v080">Findings (v0.8.0)<a class="headerlink" href="#findings-v080" title="Permanent link">&para;</a></h2>
+<p>v0.8.0 shipped the batched <code>(B, n)</code> butterfly kernel, the single biggest gap in v0.7.0. Improvements on multi-call paths are dramatic:</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th style="text-align: right;">v0.7.0 (μs)</th>
+<th style="text-align: right;">v0.8.0 (μs)</th>
+<th style="text-align: right;">Speedup</th>
+<th style="text-align: right;">Now vs PyTorch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fftn 32×64×64</td>
+<td style="text-align: right;">52,258,203</td>
+<td style="text-align: right;">70,821</td>
+<td style="text-align: right;"><strong>738× faster</strong></td>
+<td style="text-align: right;">2.24× slower</td>
+</tr>
+<tr>
+<td>fft2 1024×1024</td>
+<td style="text-align: right;">32,441,988</td>
+<td style="text-align: right;">545,474</td>
+<td style="text-align: right;"><strong>59× faster</strong></td>
+<td style="text-align: right;">1.21× slower</td>
+</tr>
+<tr>
+<td>fft2 256×256</td>
+<td style="text-align: right;">5,014,511</td>
+<td style="text-align: right;">45,186</td>
+<td style="text-align: right;"><strong>111× faster</strong></td>
+<td style="text-align: right;"><strong>1.30× faster</strong></td>
+</tr>
+<tr>
+<td>batched FFT (128×1024)</td>
+<td style="text-align: right;">2,073,239</td>
+<td style="text-align: right;">52,422</td>
+<td style="text-align: right;"><strong>39× faster</strong></td>
+<td style="text-align: right;"><strong>2.00× faster</strong></td>
+</tr>
+<tr>
+<td>batched FFT (32×1024)</td>
+<td style="text-align: right;">519,479</td>
+<td style="text-align: right;">25,103</td>
+<td style="text-align: right;"><strong>21× faster</strong></td>
+<td style="text-align: right;"><strong>3.78× faster</strong></td>
+</tr>
+<tr>
+<td>STFT 16k samples</td>
+<td style="text-align: right;">765,369</td>
+<td style="text-align: right;">27,905</td>
+<td style="text-align: right;"><strong>27× faster</strong></td>
+<td style="text-align: right;"><strong>1.75× faster</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Where NKI wins today</strong> (NKI vs trnfft-PyTorch):</p>
 <ul>
-<li><strong>Single 1D FFT</strong> at n ≥ 256: 2-11× faster than the trnfft PyTorch fallback. Dispatch overhead amortizes well over a single-call butterfly chain.</li>
-<li><strong>Bluestein</strong> (arbitrary-size FFT): 2-10× faster than the trnfft PyTorch fallback because the inner three power-of-2 FFTs route through NKI butterfly.</li>
-<li><strong>Complex GEMM</strong> at K ≥ 512: 3-4× faster than <code>complex_matmul</code> (PyTorch). At 1024², beats <code>torch.matmul(complex64, complex64)</code> by 3.79×.</li>
-<li><strong>ComplexLinear</strong> at 512→1024: 1.22× faster than the 4-<code>nn.Linear</code> fallback.</li>
+<li><strong>Single 1D FFT</strong> at n ≥ 256: 2-11× faster (unchanged — single-call path was already batched across groups).</li>
+<li><strong>Bluestein</strong>: 2-10× faster.</li>
+<li><strong>Batched FFT, STFT</strong>: 1.75-3.78× faster. trnfft-NKI now beats <strong>vanilla</strong> <code>torch.fft.fft</code> for these workloads — the first category where that's true on this hardware.</li>
+<li><strong>Complex GEMM</strong> at K ≥ 1024: 2.79× faster than PyTorch; also beats <code>torch.matmul(complex64, complex64)</code>.</li>
+<li><strong>fft2</strong> at moderate sizes (256×256): 1.30× faster.</li>
 </ul>
-<p><strong>Where NKI loses today:</strong></p>
+<p><strong>Where NKI still loses:</strong></p>
 <ul>
-<li><strong>Multi-call code paths</strong> (fftn, fft2, batched FFT, STFT) are catastrophically slow because of per-row kernel dispatch in Python. The fix is a batched butterfly kernel (taking <code>(B, n)</code> directly), filed as a v0.8 issue.</li>
-<li><strong>Small operations</strong> (mask 64×32, GEMM 128, ComplexLinear 128→256) are dominated by dispatch overhead. The host CPU wins by 5-100×.</li>
-<li><strong>vs vanilla <code>torch.fft.fft</code></strong> the picture is harsher: PyTorch's FFT is extremely optimized on AMD EPYC and beats NKI for all 1D FFT sizes tested. NKI only beats vanilla PyTorch in the <strong>complex GEMM ≥ 512</strong> case, where Trainium's Tensor Engine systolic array shines.</li>
+<li><strong>Small operations</strong> (mask 64×32, GEMM 128, ComplexLinear 128→256) remain dispatch-bound. Host CPU wins by 5-100×. Tracked as #40 (SBUF-resident dispatch).</li>
+<li><strong>Very large 2D/3D FFT</strong> (fft2 1024×1024, fftn): NKI is now only 1.2-3.5× slower than PyTorch (down from 60-1600× in v0.7.0), but PyTorch still wins on pure throughput.</li>
+<li><strong>Complex mask at 1024×512</strong> still triggers a compile error — tracked as #39.</li>
 </ul>
-<p>The bottom line: <strong>trnfft's NKI backend is the right choice for large standalone GEMMs and for 1D FFTs when the alternative is the trnfft PyTorch path</strong> (e.g., as part of an autograd graph). For small ops, hot-path STFT, and arbitrary fftn/fft2, use <code>set_backend("pytorch")</code> until the v0.8 batched butterfly lands.</p>
+<p>The bottom line for v0.8.0: <strong>trnfft-NKI is now the right default for STFT and batched FFT on Trainium</strong>, and a clear win over the trnfft PyTorch fallback across most of the API. For small ops and 2D/3D FFT at very large sizes, keep using <code>set_backend("pytorch")</code>.</p>
 <h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
 <!-- BENCH_TABLE_START -->
 
@@ -3738,202 +3794,202 @@
 <tr>
 <td>batched_fft</td>
 <td>batched_shape0</td>
-<td style="text-align: right;">519,479.8</td>
-<td style="text-align: right;">96,145.7</td>
-<td style="text-align: right;">47.0</td>
-<td style="text-align: right;">5.40× slower</td>
+<td style="text-align: right;">25,103.3</td>
+<td style="text-align: right;">94,806.8</td>
+<td style="text-align: right;">48.9</td>
+<td style="text-align: right;">3.78× faster</td>
 </tr>
 <tr>
 <td>batched_fft</td>
 <td>batched_shape1</td>
-<td style="text-align: right;">2,073,239.9</td>
-<td style="text-align: right;">106,352.7</td>
-<td style="text-align: right;">77.7</td>
-<td style="text-align: right;">19.49× slower</td>
+<td style="text-align: right;">52,422.6</td>
+<td style="text-align: right;">104,750.5</td>
+<td style="text-align: right;">79.2</td>
+<td style="text-align: right;">2.00× faster</td>
 </tr>
 <tr>
 <td>bluestein</td>
 <td>127</td>
-<td style="text-align: right;">31,587.0</td>
-<td style="text-align: right;">67,531.3</td>
-<td style="text-align: right;">14.4</td>
-<td style="text-align: right;">2.14× faster</td>
+<td style="text-align: right;">31,553.4</td>
+<td style="text-align: right;">66,740.6</td>
+<td style="text-align: right;">14.0</td>
+<td style="text-align: right;">2.12× faster</td>
 </tr>
 <tr>
 <td>bluestein</td>
 <td>4097</td>
-<td style="text-align: right;">437,314.5</td>
-<td style="text-align: right;">4,369,754.4</td>
-<td style="text-align: right;">323.0</td>
-<td style="text-align: right;">9.99× faster</td>
+<td style="text-align: right;">435,055.6</td>
+<td style="text-align: right;">4,332,786.9</td>
+<td style="text-align: right;">328.5</td>
+<td style="text-align: right;">9.96× faster</td>
 </tr>
 <tr>
 <td>bluestein</td>
 <td>997</td>
-<td style="text-align: right;">83,438.8</td>
-<td style="text-align: right;">544,043.4</td>
-<td style="text-align: right;">58.3</td>
-<td style="text-align: right;">6.52× faster</td>
+<td style="text-align: right;">82,700.9</td>
+<td style="text-align: right;">536,492.5</td>
+<td style="text-align: right;">58.8</td>
+<td style="text-align: right;">6.49× faster</td>
 </tr>
 <tr>
 <td>fft</td>
 <td>1024</td>
-<td style="text-align: right;">15,648.8</td>
-<td style="text-align: right;">88,181.9</td>
-<td style="text-align: right;">27.5</td>
-<td style="text-align: right;">5.64× faster</td>
+<td style="text-align: right;">16,006.1</td>
+<td style="text-align: right;">87,375.9</td>
+<td style="text-align: right;">28.6</td>
+<td style="text-align: right;">5.46× faster</td>
 </tr>
 <tr>
 <td>fft</td>
 <td>16384</td>
-<td style="text-align: right;">130,692.8</td>
-<td style="text-align: right;">1,441,849.1</td>
-<td style="text-align: right;">157.8</td>
-<td style="text-align: right;">11.03× faster</td>
+<td style="text-align: right;">131,665.6</td>
+<td style="text-align: right;">1,430,051.1</td>
+<td style="text-align: right;">164.6</td>
+<td style="text-align: right;">10.86× faster</td>
 </tr>
 <tr>
 <td>fft</td>
 <td>256</td>
-<td style="text-align: right;">9,739.8</td>
-<td style="text-align: right;">21,931.1</td>
-<td style="text-align: right;">8.9</td>
-<td style="text-align: right;">2.25× faster</td>
+<td style="text-align: right;">9,852.1</td>
+<td style="text-align: right;">21,590.2</td>
+<td style="text-align: right;">10.6</td>
+<td style="text-align: right;">2.19× faster</td>
 </tr>
 <tr>
 <td>fft</td>
 <td>4096</td>
-<td style="text-align: right;">38,964.9</td>
-<td style="text-align: right;">358,264.5</td>
-<td style="text-align: right;">89.7</td>
-<td style="text-align: right;">9.19× faster</td>
+<td style="text-align: right;">39,537.3</td>
+<td style="text-align: right;">352,915.9</td>
+<td style="text-align: right;">93.7</td>
+<td style="text-align: right;">8.93× faster</td>
 </tr>
 <tr>
 <td>fft</td>
 <td>65536</td>
-<td style="text-align: right;">556,793.2</td>
-<td style="text-align: right;">5,829,695.7</td>
-<td style="text-align: right;">540.1</td>
-<td style="text-align: right;">10.47× faster</td>
+<td style="text-align: right;">556,940.6</td>
+<td style="text-align: right;">5,783,417.8</td>
+<td style="text-align: right;">559.2</td>
+<td style="text-align: right;">10.38× faster</td>
 </tr>
 <tr>
 <td>fft2</td>
 <td>fft2_shape0</td>
-<td style="text-align: right;">888,494.1</td>
-<td style="text-align: right;">12,220.2</td>
-<td style="text-align: right;">19.6</td>
-<td style="text-align: right;">72.71× slower</td>
+<td style="text-align: right;">15,786.3</td>
+<td style="text-align: right;">12,080.5</td>
+<td style="text-align: right;">20.3</td>
+<td style="text-align: right;">1.31× slower</td>
 </tr>
 <tr>
 <td>fft2</td>
 <td>fft2_shape1</td>
-<td style="text-align: right;">5,014,511.6</td>
-<td style="text-align: right;">57,407.8</td>
-<td style="text-align: right;">94.5</td>
-<td style="text-align: right;">87.35× slower</td>
+<td style="text-align: right;">45,186.4</td>
+<td style="text-align: right;">58,768.5</td>
+<td style="text-align: right;">107.3</td>
+<td style="text-align: right;">1.30× faster</td>
 </tr>
 <tr>
 <td>fft2</td>
 <td>fft2_shape2</td>
-<td style="text-align: right;">32,441,988.9</td>
-<td style="text-align: right;">440,604.6</td>
-<td style="text-align: right;">964.2</td>
-<td style="text-align: right;">73.63× slower</td>
+<td style="text-align: right;">545,473.6</td>
+<td style="text-align: right;">449,887.0</td>
+<td style="text-align: right;">1,082.8</td>
+<td style="text-align: right;">1.21× slower</td>
 </tr>
 <tr>
 <td>fftn</td>
 <td>fftn_shape0</td>
-<td style="text-align: right;">2,153,302.5</td>
-<td style="text-align: right;">4,143.3</td>
-<td style="text-align: right;">18.4</td>
-<td style="text-align: right;">519.71× slower</td>
+<td style="text-align: right;">14,248.2</td>
+<td style="text-align: right;">4,109.5</td>
+<td style="text-align: right;">16.5</td>
+<td style="text-align: right;">3.47× slower</td>
 </tr>
 <tr>
 <td>fftn</td>
 <td>fftn_shape1</td>
-<td style="text-align: right;">52,258,203.2</td>
-<td style="text-align: right;">31,563.8</td>
-<td style="text-align: right;">86.7</td>
-<td style="text-align: right;">1655.64× slower</td>
+<td style="text-align: right;">70,820.7</td>
+<td style="text-align: right;">31,561.1</td>
+<td style="text-align: right;">88.6</td>
+<td style="text-align: right;">2.24× slower</td>
 </tr>
 <tr>
 <td>gemm</td>
 <td>1024</td>
-<td style="text-align: right;">4,866.6</td>
-<td style="text-align: right;">18,423.9</td>
-<td style="text-align: right;">18,908.5</td>
-<td style="text-align: right;">3.79× faster</td>
+<td style="text-align: right;">5,013.8</td>
+<td style="text-align: right;">13,974.8</td>
+<td style="text-align: right;">13,001.2</td>
+<td style="text-align: right;">2.79× faster</td>
 </tr>
 <tr>
 <td>gemm</td>
 <td>128</td>
-<td style="text-align: right;">1,514.9</td>
-<td style="text-align: right;">73.4</td>
-<td style="text-align: right;">44.3</td>
-<td style="text-align: right;">20.65× slower</td>
+<td style="text-align: right;">1,569.4</td>
+<td style="text-align: right;">114.7</td>
+<td style="text-align: right;">35.2</td>
+<td style="text-align: right;">13.68× slower</td>
 </tr>
 <tr>
 <td>gemm</td>
 <td>256</td>
-<td style="text-align: right;">1,740.6</td>
-<td style="text-align: right;">304.9</td>
-<td style="text-align: right;">298.2</td>
-<td style="text-align: right;">5.71× slower</td>
+<td style="text-align: right;">1,785.8</td>
+<td style="text-align: right;">316.9</td>
+<td style="text-align: right;">228.2</td>
+<td style="text-align: right;">5.64× slower</td>
 </tr>
 <tr>
 <td>gemm</td>
 <td>512</td>
-<td style="text-align: right;">2,531.4</td>
-<td style="text-align: right;">2,642.4</td>
-<td style="text-align: right;">2,432.0</td>
-<td style="text-align: right;">1.04× faster</td>
+<td style="text-align: right;">2,339.9</td>
+<td style="text-align: right;">1,936.7</td>
+<td style="text-align: right;">1,715.9</td>
+<td style="text-align: right;">1.21× slower</td>
 </tr>
 <tr>
 <td>linear</td>
 <td>linear_shape0</td>
-<td style="text-align: right;">1,758.3</td>
-<td style="text-align: right;">197.4</td>
+<td style="text-align: right;">1,729.1</td>
+<td style="text-align: right;">199.5</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">8.91× slower</td>
+<td style="text-align: right;">8.67× slower</td>
 </tr>
 <tr>
 <td>linear</td>
 <td>linear_shape1</td>
-<td style="text-align: right;">3,183.0</td>
-<td style="text-align: right;">3,879.9</td>
+<td style="text-align: right;">3,563.4</td>
+<td style="text-align: right;">3,975.6</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">1.22× faster</td>
+<td style="text-align: right;">1.12× faster</td>
 </tr>
 <tr>
 <td>mask</td>
 <td>mask_shape0</td>
-<td style="text-align: right;">1,414.2</td>
-<td style="text-align: right;">14.7</td>
+<td style="text-align: right;">1,440.5</td>
+<td style="text-align: right;">14.6</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">96.18× slower</td>
+<td style="text-align: right;">98.47× slower</td>
 </tr>
 <tr>
 <td>mask</td>
 <td>mask_shape1</td>
-<td style="text-align: right;">1,568.0</td>
-<td style="text-align: right;">47.4</td>
+<td style="text-align: right;">1,546.2</td>
+<td style="text-align: right;">51.1</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">33.08× slower</td>
+<td style="text-align: right;">30.25× slower</td>
 </tr>
 <tr>
 <td>mask</td>
 <td>mask_shape2</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">337.1</td>
+<td style="text-align: right;">513.5</td>
 <td style="text-align: right;">—</td>
 <td style="text-align: right;">—</td>
 </tr>
 <tr>
 <td>stft</td>
 <td>-</td>
-<td style="text-align: right;">765,369.8</td>
-<td style="text-align: right;">48,920.9</td>
-<td style="text-align: right;">48.7</td>
-<td style="text-align: right;">15.65× slower</td>
+<td style="text-align: right;">27,905.2</td>
+<td style="text-align: right;">48,884.4</td>
+<td style="text-align: right;">48.9</td>
+<td style="text-align: right;">1.75× faster</td>
 </tr>
 </tbody>
 </table>
