@@ -80,6 +80,15 @@ Rough projection of what each phase means for each library. Not every phase appl
 | 4 multi-chip | N-chip large FFT | tensor-parallel GEMM | stream-partitioned RNG | parallel Jacobi sweeps | sharded sparse | sharded contraction |
 | 5 generation | trn2 larger SBUF path | trn2 FP16-accumulate path | trn2 PSUM sizing | trn2 rotation blocks | trn2 DMA bandwidth | trn2 fused paths |
 
+## Current state (2026-04-13)
+
+- **Phase 1 complete:** `trnfft` (butterfly + complex GEMM kernels, hardware-validated on trn1.2xlarge in v0.8.0) and `trnblas` (GEMM, SYRK, MP2 energy reduction, hardware-validated with end-to-end DF-MP2 timings).
+- **Phase 1 scaffolded, awaiting hardware validation:** `trnrand`, `trnsolver`, `trnsparse`, `trntensor`. All four have NKI code in `nki/dispatch.py`, a provisioned Terraform module under `infra/terraform/`, and a `scripts/run_neuron_tests.sh` runner. The remaining work is a hardware-validation sweep.
+- **Touching Phase 2:** `trnblas` has PySCF validation against real chemistry at nanohartree tolerance on small molecules, which is early Phase 2 precision work for dense GEMM.
+- **Setting up Phase 3:** `trnsolver` has published CPU baselines against LAPACK and scipy, which is the infrastructure Phase 3 benchmarks will compare against.
+
+Live progress counter in [`trnsci/trnsci#1`](https://github.com/trnsci/trnsci/issues/1).
+
 ## Tracking
 
 Each sub-project uses labels `phase-1-correctness`, `phase-2-precision`, `phase-3-perf`, `phase-4-multichip`, `phase-5-generation` on issues. A sub-project's README links to its active phase-tracker issues under a "Current phase" section.

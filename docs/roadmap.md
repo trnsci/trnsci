@@ -40,7 +40,9 @@ The common Phase 3 path stays the default. Generation-specific paths are opt-in 
 
 ## Where each library is today
 
-All six sub-projects are in **late Phase 1** — APIs stable, PyTorch fallback wired everywhere, NKI dispatch layer in place, hardware validation pending for each kernel. `trnblas` has published DF-MP2 results against PySCF at nanohartree tolerance on small molecules, which touches Phase 2 territory. `trnsolver` has published CPU baselines against LAPACK and scipy, which sets up Phase 3.
+As of 2026-04-13, two sub-projects have completed Phase 1 correctness: **trnfft** (butterfly + complex GEMM kernels, hardware-validated on trn1.2xlarge in v0.8.0) and **trnblas** (GEMM, SYRK, and fused MP2 energy reduction, hardware-validated with end-to-end DF-MP2 timings). **trnblas** additionally has PySCF validation against real chemistry at nanohartree tolerance on small molecules, which touches Phase 2 territory. **trnsolver** has published CPU baselines against LAPACK and scipy, which sets up Phase 3.
+
+The remaining four sub-projects — **trnrand**, **trnsolver**, **trnsparse**, **trntensor** — have Phase 1 NKI code scaffolded in their respective `nki/dispatch.py` modules but have not yet had a hardware-validation run on trn1 / trn2. Closing the validation gap is the immediate next step across those four; progress is tracked in [trnsci/trnsci#1](https://github.com/trnsci/trnsci/issues/1).
 
 See each sub-project's docs (`trnsci.dev/<name>/`) for library-specific status.
 
