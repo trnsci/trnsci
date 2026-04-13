@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/trntensor/benchmarks/">
+        <link rel="canonical" href="https://trnsci.dev/trnrand/design/counter_partitioned_multichip/">
       
       
-        <link rel="prev" href="../architecture/">
+        <link rel="prev" href="../sbuf_resident_generator/">
       
       
-        <link rel="next" href="../tutorial_df_mp2/">
+        <link rel="next" href="../../roadmap/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Benchmarks - trnsci</title>
+        <title>Counter-partitioned multi-chip RNG (Phase 4 RFC) - trnsci</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#benchmarks" class="md-skip">
+        <a href="#rfc-counter-partitioned-multi-chip-rng" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Benchmarks
+              Counter-partitioned multi-chip RNG (Phase 4 RFC)
             
           </span>
         </div>
@@ -195,7 +195,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../.." class="md-tabs__link">
         
   
   
@@ -214,7 +214,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../why/" class="md-tabs__link">
+      <a href="../../../why/" class="md-tabs__link">
         
   
   
@@ -233,7 +233,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../cuda_rosetta/" class="md-tabs__link">
+      <a href="../../../cuda_rosetta/" class="md-tabs__link">
         
   
   
@@ -252,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../trainium_positioning/" class="md-tabs__link">
+      <a href="../../../trainium_positioning/" class="md-tabs__link">
         
   
   
@@ -271,7 +271,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../roadmap/" class="md-tabs__link">
+      <a href="../../../roadmap/" class="md-tabs__link">
         
   
   
@@ -290,7 +290,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../nki_validation_status/" class="md-tabs__link">
+      <a href="../../../nki_validation_status/" class="md-tabs__link">
         
   
   
@@ -311,7 +311,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../blog/" class="md-tabs__link">
+        <a href="../../../blog/" class="md-tabs__link">
           
   
   
@@ -333,7 +333,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../installation/" class="md-tabs__link">
+        <a href="../../../installation/" class="md-tabs__link">
           
   
   
@@ -355,7 +355,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../workflows/integration/" class="md-tabs__link">
+        <a href="../../../workflows/integration/" class="md-tabs__link">
           
   
   
@@ -388,7 +388,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../trnfft/" class="md-tabs__link">
+        <a href="../../../trnfft/" class="md-tabs__link">
           
   
   
@@ -411,7 +411,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../contributing/" class="md-tabs__link">
+      <a href="../../../contributing/" class="md-tabs__link">
         
   
   
@@ -446,7 +446,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -476,7 +476,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -503,7 +503,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../why/" class="md-nav__link">
+      <a href="../../../why/" class="md-nav__link">
         
   
   
@@ -530,7 +530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cuda_rosetta/" class="md-nav__link">
+      <a href="../../../cuda_rosetta/" class="md-nav__link">
         
   
   
@@ -557,7 +557,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trainium_positioning/" class="md-nav__link">
+      <a href="../../../trainium_positioning/" class="md-nav__link">
         
   
   
@@ -584,7 +584,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../roadmap/" class="md-nav__link">
+      <a href="../../../roadmap/" class="md-nav__link">
         
   
   
@@ -611,7 +611,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../nki_validation_status/" class="md-nav__link">
+      <a href="../../../nki_validation_status/" class="md-nav__link">
         
   
   
@@ -665,7 +665,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../blog/" class="md-nav__link ">
+            <a href="../../../blog/" class="md-nav__link ">
               
   
   
@@ -767,7 +767,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/archive/2026/" class="md-nav__link">
+      <a href="../../../blog/archive/2026/" class="md-nav__link">
         
   
   
@@ -861,7 +861,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/announcements/" class="md-nav__link">
+      <a href="../../../blog/category/announcements/" class="md-nav__link">
         
   
   
@@ -962,7 +962,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/" class="md-nav__link">
+      <a href="../../../installation/" class="md-nav__link">
         
   
   
@@ -990,7 +990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../deployment/" class="md-nav__link">
+      <a href="../../../deployment/" class="md-nav__link">
         
   
   
@@ -1085,7 +1085,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workflows/integration/" class="md-nav__link">
+      <a href="../../../workflows/integration/" class="md-nav__link">
         
   
   
@@ -1113,7 +1113,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workflows/speech_enhancement/" class="md-nav__link">
+      <a href="../../../workflows/speech_enhancement/" class="md-nav__link">
         
   
   
@@ -1141,7 +1141,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workflows/quantum_chemistry/" class="md-nav__link">
+      <a href="../../../workflows/quantum_chemistry/" class="md-nav__link">
         
   
   
@@ -1285,7 +1285,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnfft/" class="md-nav__link ">
+            <a href="../../../trnfft/" class="md-nav__link ">
               
   
   
@@ -1329,7 +1329,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/installation/" class="md-nav__link">
+      <a href="../../../trnfft/installation/" class="md-nav__link">
         
   
   
@@ -1357,7 +1357,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/quickstart/" class="md-nav__link">
+      <a href="../../../trnfft/quickstart/" class="md-nav__link">
         
   
   
@@ -1447,7 +1447,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/api/fft/" class="md-nav__link">
+      <a href="../../../trnfft/api/fft/" class="md-nav__link">
         
   
   
@@ -1475,7 +1475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/api/complex/" class="md-nav__link">
+      <a href="../../../trnfft/api/complex/" class="md-nav__link">
         
   
   
@@ -1503,7 +1503,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/api/nn/" class="md-nav__link">
+      <a href="../../../trnfft/api/nn/" class="md-nav__link">
         
   
   
@@ -1531,7 +1531,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/api/nki/" class="md-nav__link">
+      <a href="../../../trnfft/api/nki/" class="md-nav__link">
         
   
   
@@ -1567,7 +1567,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/architecture/" class="md-nav__link">
+      <a href="../../../trnfft/architecture/" class="md-nav__link">
         
   
   
@@ -1595,7 +1595,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/benchmarks/" class="md-nav__link">
+      <a href="../../../trnfft/benchmarks/" class="md-nav__link">
         
   
   
@@ -1679,7 +1679,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/aws_setup/" class="md-nav__link">
+      <a href="../../../trnfft/aws_setup/" class="md-nav__link">
         
   
   
@@ -1761,7 +1761,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnblas/" class="md-nav__link ">
+            <a href="../../../trnblas/" class="md-nav__link ">
               
   
   
@@ -1805,7 +1805,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/installation/" class="md-nav__link">
+      <a href="../../../trnblas/installation/" class="md-nav__link">
         
   
   
@@ -1833,7 +1833,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/quickstart/" class="md-nav__link">
+      <a href="../../../trnblas/quickstart/" class="md-nav__link">
         
   
   
@@ -1923,7 +1923,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/api/level1/" class="md-nav__link">
+      <a href="../../../trnblas/api/level1/" class="md-nav__link">
         
   
   
@@ -1951,7 +1951,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/api/level2/" class="md-nav__link">
+      <a href="../../../trnblas/api/level2/" class="md-nav__link">
         
   
   
@@ -1979,7 +1979,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/api/level3/" class="md-nav__link">
+      <a href="../../../trnblas/api/level3/" class="md-nav__link">
         
   
   
@@ -2007,7 +2007,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/api/nki/" class="md-nav__link">
+      <a href="../../../trnblas/api/nki/" class="md-nav__link">
         
   
   
@@ -2043,7 +2043,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/architecture/" class="md-nav__link">
+      <a href="../../../trnblas/architecture/" class="md-nav__link">
         
   
   
@@ -2071,7 +2071,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/benchmarks/" class="md-nav__link">
+      <a href="../../../trnblas/benchmarks/" class="md-nav__link">
         
   
   
@@ -2155,7 +2155,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnblas/aws_setup/" class="md-nav__link">
+      <a href="../../../trnblas/aws_setup/" class="md-nav__link">
         
   
   
@@ -2196,8 +2196,10 @@
                 
   
   
+    
   
   
+  
     
     
       
@@ -2237,15 +2239,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnrand/" class="md-nav__link ">
+            <a href="../../" class="md-nav__link ">
               
   
   
@@ -2269,7 +2271,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_10_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2289,7 +2291,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -2317,7 +2319,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/quickstart/" class="md-nav__link">
+      <a href="../../quickstart/" class="md-nav__link">
         
   
   
@@ -2407,7 +2409,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/api/generator/" class="md-nav__link">
+      <a href="../../api/generator/" class="md-nav__link">
         
   
   
@@ -2435,7 +2437,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/api/distributions/" class="md-nav__link">
+      <a href="../../api/distributions/" class="md-nav__link">
         
   
   
@@ -2463,7 +2465,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/api/quasi/" class="md-nav__link">
+      <a href="../../api/quasi/" class="md-nav__link">
         
   
   
@@ -2491,7 +2493,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/api/nki/" class="md-nav__link">
+      <a href="../../api/nki/" class="md-nav__link">
         
   
   
@@ -2527,7 +2529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/architecture/" class="md-nav__link">
+      <a href="../../architecture/" class="md-nav__link">
         
   
   
@@ -2552,8 +2554,10 @@
                 
   
   
+    
   
   
+  
     
     
       
@@ -2570,11 +2574,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3_6" checked>
         
           
           <label class="md-nav__link" for="__nav_10_3_6" id="__nav_10_3_6_label" tabindex="0">
@@ -2595,7 +2599,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_3_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_3_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_10_3_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2613,7 +2617,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+      <a href="../sbuf_resident_generator/" class="md-nav__link">
         
   
   
@@ -2638,10 +2642,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Counter-partitioned multi-chip RNG (Phase 4 RFC)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -2657,6 +2688,231 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-trainium-shape-of-the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Trainium shape of the problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-idea" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core idea
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core idea">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#counter-arithmetic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Counter arithmetic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generator-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generator API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generatoradvancen-checkpoint-primitive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generator.advance(n) — checkpoint primitive
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#composition-with-phase-3-sbuf-resident-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Composition with Phase 3 (SBUF-resident streaming)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bit-exactness-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bit-exactness contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bit-exactness contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-partition-equivalence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Partition equivalence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-seed-invariance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Seed invariance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-checkpoint-resumption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Checkpoint resumption
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-gpu-libraries-typically-cant-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What GPU libraries typically can't do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-parallel-vs-model-parallel-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data-parallel vs model-parallel training
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-claims" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation claims
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation claims">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpu-side-validation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CPU-side validation, now
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cross-suite-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-suite alignment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2677,7 +2933,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/roadmap/" class="md-nav__link">
+      <a href="../../roadmap/" class="md-nav__link">
         
   
   
@@ -2705,7 +2961,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/benchmarks/" class="md-nav__link">
+      <a href="../../benchmarks/" class="md-nav__link">
         
   
   
@@ -2789,7 +3045,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/aws_setup/" class="md-nav__link">
+      <a href="../../aws_setup/" class="md-nav__link">
         
   
   
@@ -2825,7 +3081,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/release/" class="md-nav__link">
+      <a href="../../release/" class="md-nav__link">
         
   
   
@@ -2853,7 +3109,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/stability/" class="md-nav__link">
+      <a href="../../stability/" class="md-nav__link">
         
   
   
@@ -2927,7 +3183,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnsolver/" class="md-nav__link ">
+            <a href="../../../trnsolver/" class="md-nav__link ">
               
   
   
@@ -2971,7 +3227,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/installation/" class="md-nav__link">
+      <a href="../../../trnsolver/installation/" class="md-nav__link">
         
   
   
@@ -2999,7 +3255,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/quickstart/" class="md-nav__link">
+      <a href="../../../trnsolver/quickstart/" class="md-nav__link">
         
   
   
@@ -3089,7 +3345,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/api/eigen/" class="md-nav__link">
+      <a href="../../../trnsolver/api/eigen/" class="md-nav__link">
         
   
   
@@ -3117,7 +3373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/api/factor/" class="md-nav__link">
+      <a href="../../../trnsolver/api/factor/" class="md-nav__link">
         
   
   
@@ -3145,7 +3401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/api/iterative/" class="md-nav__link">
+      <a href="../../../trnsolver/api/iterative/" class="md-nav__link">
         
   
   
@@ -3173,7 +3429,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/api/nki/" class="md-nav__link">
+      <a href="../../../trnsolver/api/nki/" class="md-nav__link">
         
   
   
@@ -3209,7 +3465,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/architecture/" class="md-nav__link">
+      <a href="../../../trnsolver/architecture/" class="md-nav__link">
         
   
   
@@ -3237,7 +3493,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/benchmarks/" class="md-nav__link">
+      <a href="../../../trnsolver/benchmarks/" class="md-nav__link">
         
   
   
@@ -3321,7 +3577,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/aws_setup/" class="md-nav__link">
+      <a href="../../../trnsolver/aws_setup/" class="md-nav__link">
         
   
   
@@ -3405,7 +3661,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnsparse/" class="md-nav__link ">
+            <a href="../../../trnsparse/" class="md-nav__link ">
               
   
   
@@ -3449,7 +3705,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/installation/" class="md-nav__link">
+      <a href="../../../trnsparse/installation/" class="md-nav__link">
         
   
   
@@ -3477,7 +3733,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../../../trnsparse/quickstart/" class="md-nav__link">
         
   
   
@@ -3505,7 +3761,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/api/" class="md-nav__link">
+      <a href="../../../trnsparse/api/" class="md-nav__link">
         
   
   
@@ -3533,7 +3789,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/architecture/" class="md-nav__link">
+      <a href="../../../trnsparse/architecture/" class="md-nav__link">
         
   
   
@@ -3561,7 +3817,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../../../trnsparse/migration_scipy/" class="md-nav__link">
         
   
   
@@ -3589,7 +3845,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../../../trnsparse/benchmarks/" class="md-nav__link">
         
   
   
@@ -3673,7 +3929,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../../../trnsparse/aws_setup/" class="md-nav__link">
         
   
   
@@ -3714,8 +3970,6 @@
                 
   
   
-    
-  
   
   
     
@@ -3751,15 +4005,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_6" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_6" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../../trntensor/" class="md-nav__link ">
               
   
   
@@ -3783,7 +4037,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -3803,7 +4057,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../../trntensor/installation/" class="md-nav__link">
         
   
   
@@ -3831,7 +4085,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/" class="md-nav__link">
+      <a href="../../../trntensor/quickstart/" class="md-nav__link">
         
   
   
@@ -3890,7 +4144,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../api/" class="md-nav__link ">
+            <a href="../../../trntensor/api/" class="md-nav__link ">
               
   
   
@@ -3934,7 +4188,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/einsum/" class="md-nav__link">
+      <a href="../../../trntensor/api/einsum/" class="md-nav__link">
         
   
   
@@ -3962,7 +4216,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/plan/" class="md-nav__link">
+      <a href="../../../trntensor/api/plan/" class="md-nav__link">
         
   
   
@@ -3990,7 +4244,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/decompose/" class="md-nav__link">
+      <a href="../../../trntensor/api/decompose/" class="md-nav__link">
         
   
   
@@ -4018,7 +4272,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/nki/" class="md-nav__link">
+      <a href="../../../trntensor/api/nki/" class="md-nav__link">
         
   
   
@@ -4054,7 +4308,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+      <a href="../../../trntensor/architecture/" class="md-nav__link">
         
   
   
@@ -4079,37 +4333,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Benchmarks
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../trntensor/benchmarks/" class="md-nav__link">
         
   
   
@@ -4125,70 +4352,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#reproducing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reproducing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#results-trn12xlarge-neuronxcc-224" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Results (trn1.2xlarge, neuronxcc 2.24)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#size-based-dispatch-threshold" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Size-based dispatch threshold
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#interpretation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interpretation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -4257,7 +4420,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial_df_mp2/" class="md-nav__link">
+      <a href="../../../trntensor/tutorial_df_mp2/" class="md-nav__link">
         
   
   
@@ -4349,7 +4512,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../aws_setup/" class="md-nav__link">
+      <a href="../../../trntensor/aws_setup/" class="md-nav__link">
         
   
   
@@ -4400,7 +4563,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../contributing/" class="md-nav__link">
+      <a href="../../../contributing/" class="md-nav__link">
         
   
   
@@ -4447,10 +4610,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#reproducing" class="md-nav__link">
+  <a href="#the-trainium-shape-of-the-problem" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reproducing
+        The Trainium shape of the problem
       
     </span>
   </a>
@@ -4458,10 +4621,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-trn12xlarge-neuronxcc-224" class="md-nav__link">
+  <a href="#core-idea" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results (trn1.2xlarge, neuronxcc 2.24)
+        Core idea
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core idea">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#counter-arithmetic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Counter arithmetic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generator-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generator API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generatoradvancen-checkpoint-primitive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generator.advance(n) — checkpoint primitive
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#composition-with-phase-3-sbuf-resident-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Composition with Phase 3 (SBUF-resident streaming)
       
     </span>
   </a>
@@ -4469,10 +4682,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#size-based-dispatch-threshold" class="md-nav__link">
+  <a href="#bit-exactness-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Size-based dispatch threshold
+        Bit-exactness contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bit-exactness contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-partition-equivalence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Partition equivalence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-seed-invariance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Seed invariance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-checkpoint-resumption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Checkpoint resumption
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-gpu-libraries-typically-cant-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What GPU libraries typically can't do
       
     </span>
   </a>
@@ -4480,10 +4743,71 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#interpretation" class="md-nav__link">
+  <a href="#data-parallel-vs-model-parallel-training" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interpretation
+        Data-parallel vs model-parallel training
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-claims" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation claims
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation claims">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpu-side-validation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CPU-side validation, now
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cross-suite-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-suite alignment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
       
     </span>
   </a>
@@ -4510,122 +4834,289 @@
   
 
 
-<h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
-<p>Performance results for trntensor — einsum dispatch, contraction planning, and CP / Tucker decompositions — comparing the PyTorch fallback and the NKI Trainium path on the same machine.</p>
-<h2 id="reproducing">Reproducing<a class="headerlink" href="#reproducing" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Local CPU</span>
-pytest<span class="w"> </span>benchmarks/bench_einsum.py<span class="w"> </span>--benchmark-only
-
-<span class="c1"># On-hardware (via SSM orchestration)</span>
-<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_benchmarks.sh<span class="w"> </span>trn1
-
-<span class="c1"># Force the PyTorch path on hardware (apples-to-apples baseline)</span>
-<span class="nv">TRNTENSOR_FORCE_BACKEND</span><span class="o">=</span>pytorch<span class="w"> </span>pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-only
+<h1 id="rfc-counter-partitioned-multi-chip-rng">RFC: Counter-partitioned multi-chip RNG<a class="headerlink" href="#rfc-counter-partitioned-multi-chip-rng" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Design · <strong>Phase:</strong> 4 · <strong>Tracker:</strong> <a href="https://github.com/trnsci/trnrand/issues/20">#20</a></p>
+<p>This RFC describes Phase 4's shape: scaling RNG across NeuronCores /
+chips without sacrificing the property that makes trnrand valuable for
+scientific workloads — <em>bit-exact reproducibility regardless of
+cluster topology</em>.</p>
+<h2 id="the-trainium-shape-of-the-problem">The Trainium shape of the problem<a class="headerlink" href="#the-trainium-shape-of-the-problem" title="Permanent link">&para;</a></h2>
+<p>Scaling an RNG library across chips is usually done one of two ways:</p>
+<ol>
+<li><strong>Per-chip independent seeds</strong> (PyTorch <code>torch.Generator</code> default,
+   NumPy's typical usage) — each chip gets a derived seed, streams
+   are statistically independent. Simple, but a 4-chip run and a
+   1-chip run produce <em>different</em> sample sequences for the same
+   logical seed. Scientifically meaningful reproducibility across
+   cluster reshape is lost.</li>
+<li><strong>Key-splitting protocols</strong> (JAX <code>random.split</code>) — deterministic
+   key derivation, threaded through user code. Reproducible if the
+   user plumbs keys correctly, but cluster-reshape consistency
+   requires the user to preserve the split tree exactly.</li>
+</ol>
+<p>Trainium's Philox kernel (Phase 1) is counter-based: <code>(counter, key) →
+output</code> is a pure function. That enables a third option that neither
+GPU approach supports as a first-class API feature:</p>
+<p><strong>Counter-space partitioning.</strong> The 128-bit Philox counter space
+(<code>2^128</code> tile addresses) is divided across <code>P</code> chips as disjoint
+ranges. Each chip independently emits its subrange. Concatenating in
+rank order produces the same stream as a 1-chip run of the same total
+length. <strong>Zero coordination. Zero synchronization. Bit-exact.</strong></p>
+<p>This is the Phase 4 thesis: a bit-exactness guarantee across chip
+counts, shipped as a first-class API property, tested in CI on CPU
+reference and on-hardware.</p>
+<h2 id="core-idea">Core idea<a class="headerlink" href="#core-idea" title="Permanent link">&para;</a></h2>
+<h3 id="counter-arithmetic">Counter arithmetic<a class="headerlink" href="#counter-arithmetic" title="Permanent link">&para;</a></h3>
+<p>For a user request of <code>N</code> total samples with <code>partition_size = P</code>
+chips, each chip <code>r ∈ [0, P)</code> emits <code>N/P</code> samples from counter range:</p>
+<div class="highlight"><pre><span></span><code>chip r starts at counter = seed_base + r * (N/P) * counters_per_sample
+chip r emits              N/P samples
 </code></pre></div>
-<h2 id="results-trn12xlarge-neuronxcc-224">Results (trn1.2xlarge, neuronxcc 2.24)<a class="headerlink" href="#results-trn12xlarge-neuronxcc-224" title="Permanent link">&para;</a></h2>
-<p>Both columns ran on the same trn1.2xlarge instance — CPU (Intel Xeon 8375C) vs NKI (1 NeuronCore).</p>
+<p>Where <code>counters_per_sample = 1</code> for uniform (one Philox block → 4
+uniforms → 4 samples, counter advances by 1 per 4 samples), and
+proportional for transforms (Box-Muller consumes 2 uniforms per
+normal, so 1 counter increment produces 2 normals).</p>
+<p>The critical invariant: <strong>the mapping from (seed, global_sample_index)
+to sample value is independent of P.</strong> Sample <code>k</code> in the logical
+stream has the same value whether <code>P=1</code> and chip 0 produces it, or
+<code>P=32</code> and chip <code>k mod 32</code> produces it (with appropriate
+partitioning).</p>
+<h3 id="generator-api">Generator API<a class="headerlink" href="#generator-api" title="Permanent link">&para;</a></h3>
+<p>Two new optional kwargs on <code>Generator.__init__</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch_xla.core.xla_model</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">trnrand</span>
+
+<span class="n">gen</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">partition_rank</span><span class="o">=</span><span class="n">xm</span><span class="o">.</span><span class="n">get_ordinal</span><span class="p">(),</span>      <span class="c1"># 0 ≤ rank &lt; size</span>
+    <span class="n">partition_size</span><span class="o">=</span><span class="n">xm</span><span class="o">.</span><span class="n">xrt_world_size</span><span class="p">(),</span>   <span class="c1"># total chips in cluster</span>
+<span class="p">)</span>
+
+<span class="c1"># Subsequent calls take this chip&#39;s subrange of the logical stream:</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>   <span class="c1"># emits N/P samples on chip rank</span>
+</code></pre></div>
+<p>Defaults (<code>rank=0, size=1</code>) preserve the single-chip behavior
+identically. Users who never use multi-chip pay nothing.</p>
+<h3 id="generatoradvancen-checkpoint-primitive"><code>Generator.advance(n)</code> — checkpoint primitive<a class="headerlink" href="#generatoradvancen-checkpoint-primitive" title="Permanent link">&para;</a></h3>
+<p>A cheap way to skip forward in the logical stream:</p>
+<div class="highlight"><pre><span></span><code><span class="n">gen</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>   <span class="c1"># skip 1M samples; counter jumps, no work done</span>
+<span class="n">gen</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1_000</span><span class="p">)</span>       <span class="c1"># emits samples (1M+1) through (1M+1000)</span>
+</code></pre></div>
+<p>This enables:
+- <strong>Warm-starting</strong> an experiment at a specific point in the stream.
+- <strong>Checkpoint/resume</strong> across cluster topology changes — persist the
+  logical sample index, resume at any <code>P</code>.
+- <strong>Deterministic sub-sampling</strong> — draw samples 0..N, advance, draw
+  samples 2N..3N, etc., without materializing the middle.</p>
+<h2 id="composition-with-phase-3-sbuf-resident-streaming">Composition with Phase 3 (SBUF-resident streaming)<a class="headerlink" href="#composition-with-phase-3-sbuf-resident-streaming" title="Permanent link">&para;</a></h2>
+<p>Phase 3's <code>GeneratorProgram</code> / <code>stream_into</code> composes cleanly. What
+changes:</p>
+<ul>
+<li><strong><code>GeneratorProgram</code> construction</strong> — unchanged. The program
+  describes distributions and sizes; counter arithmetic is a
+  <code>Generator</code>-level concern.</li>
+<li><strong>Kernel entry</strong> — the NKI kernel loads the counter from HBM into
+  SBUF, offset by the partition arithmetic. Each chip gets a
+  different starting counter; kernel code is identical.</li>
+<li><strong>NEFF cache</strong> — one NEFF per program shape, shared across all
+  chips. Rank is a runtime argument, not part of the compiled
+  kernel. No per-rank recompilation.</li>
+</ul>
+<p>That last point matters: if every chip needed its own NEFF, Phase 3's
+cache-reuse guarantees would break at multi-chip. Because rank lives
+in HBM arguments, not in the compile unit, the Phase 3 and Phase 4
+wins multiply cleanly.</p>
+<h2 id="bit-exactness-contract">Bit-exactness contract<a class="headerlink" href="#bit-exactness-contract" title="Permanent link">&para;</a></h2>
+<p>Three guarantees, stated as testable properties:</p>
+<h3 id="1-partition-equivalence">1. Partition equivalence<a class="headerlink" href="#1-partition-equivalence" title="Permanent link">&para;</a></h3>
+<p>For any <code>(seed, N, dist, params)</code> and any <code>P</code> dividing cleanly:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1-chip run</span>
+<span class="n">g1</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+<span class="n">ref</span> <span class="o">=</span> <span class="n">g1</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+<span class="c1"># P-chip run, concatenated in rank order</span>
+<span class="n">per_chip</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
+      <span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">multi</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">per_chip</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">multi</span><span class="p">)</span>   <span class="c1"># byte-for-byte</span>
+</code></pre></div>
+<h3 id="2-seed-invariance">2. Seed invariance<a class="headerlink" href="#2-seed-invariance" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">g16</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">g32</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="c1"># Both see the same logical range [6*N/32, 7*N/32) of the seed=42 stream.</span>
+<span class="c1"># g32&#39;s output equals g16.uniform(N/16)[:N/32] for the appropriate N.</span>
+</code></pre></div>
+<p>The same seed produces the same logical stream regardless of
+<code>partition_size</code>. Resharding a cluster from 16 → 32 chips mid-
+experiment gives the user a consistent stream, not a different one.</p>
+<h3 id="3-checkpoint-resumption">3. Checkpoint resumption<a class="headerlink" href="#3-checkpoint-resumption" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Record position</span>
+<span class="n">position</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">position</span><span class="p">()</span>   <span class="c1"># returns the current counter</span>
+
+<span class="c1"># ... run, crash, restart on different chip count ...</span>
+
+<span class="n">new_gen</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="n">P_new</span><span class="p">)</span>
+<span class="n">new_gen</span><span class="o">.</span><span class="n">advance_to</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>   <span class="c1"># resume from the same logical index</span>
+</code></pre></div>
+<p>Position is a single integer (the global counter index), portable
+across cluster topologies.</p>
+<h2 id="what-gpu-libraries-typically-cant-do">What GPU libraries typically can't do<a class="headerlink" href="#what-gpu-libraries-typically-cant-do" title="Permanent link">&para;</a></h2>
+<p>Honest contrast:</p>
 <table>
 <thead>
 <tr>
-<th>Op</th>
-<th>Shape</th>
-<th style="text-align: right;">FLOPs</th>
-<th style="text-align: right;">PyTorch (trn1 CPU)</th>
-<th style="text-align: right;">NKI (trn1)</th>
-<th style="text-align: right;">NKI / CPU</th>
+<th>Library</th>
+<th>Cross-chip bit-exactness</th>
+<th>Reshape consistency</th>
+<th>First-class API?</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>einsum ap,bp-&gt;ab</code></td>
-<td>48×128 × 48×128</td>
-<td style="text-align: right;">295 K</td>
-<td style="text-align: right;"><strong>19.6 µs</strong></td>
-<td style="text-align: right;">1047 µs</td>
-<td style="text-align: right;">53.4×</td>
+<td>cuRAND (default per-thread seeds)</td>
+<td>❌</td>
+<td>❌</td>
+<td>—</td>
 </tr>
 <tr>
-<td><code>einsum mi,mnP-&gt;inP</code> (4-index)</td>
-<td>32×8, 32×32×64</td>
-<td style="text-align: right;">524 K</td>
-<td style="text-align: right;">35.4 µs</td>
-<td style="text-align: right;">35.1 µs</td>
-<td style="text-align: right;">0.99×</td>
+<td>cuRAND (<code>curandSetGeneratorOffset</code>)</td>
+<td>⚠️ manual</td>
+<td>⚠️ manual</td>
+<td>Offset API exists, not cluster-aware</td>
 </tr>
 <tr>
-<td><code>einsum ij,jk-&gt;ik</code></td>
-<td>512³</td>
-<td style="text-align: right;">134 M</td>
-<td style="text-align: right;"><strong>481 µs</strong></td>
-<td style="text-align: right;">1452 µs</td>
-<td style="text-align: right;">3.0×</td>
+<td>JAX <code>random.split</code></td>
+<td>✅ if keys threaded</td>
+<td>⚠️ requires user plumbing</td>
+<td>Key-splitting is the API</td>
 </tr>
 <tr>
-<td><code>tucker_decompose</code></td>
-<td>16³ ranks (4,4,4)</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">875 µs</td>
-<td style="text-align: right;">859 µs</td>
-<td style="text-align: right;">0.98×</td>
+<td>NumPy <code>default_rng</code> (PCG64)</td>
+<td>— (single process)</td>
+<td>—</td>
+<td>No cluster API</td>
 </tr>
 <tr>
-<td><code>einsum bij,bjk-&gt;bik</code></td>
-<td>16×256³</td>
-<td style="text-align: right;">268 M</td>
-<td style="text-align: right;"><strong>953 µs</strong></td>
-<td style="text-align: right;">2162 µs</td>
-<td style="text-align: right;">2.3×</td>
+<td>PyTorch <code>torch.Generator</code> (Mersenne Twister)</td>
+<td>❌</td>
+<td>❌</td>
+<td>Not counter-based</td>
 </tr>
 <tr>
-<td><code>einsum ij,jk-&gt;ik</code></td>
-<td>1024³</td>
-<td style="text-align: right;">1.07 G</td>
-<td style="text-align: right;"><strong>3402 µs</strong></td>
-<td style="text-align: right;">4022 µs</td>
-<td style="text-align: right;">1.2×</td>
-</tr>
-<tr>
-<td><code>cp_decompose</code></td>
-<td>16³ rank 8 (20 iters)</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">21.3 ms</td>
-<td style="text-align: right;">21.9 ms</td>
-<td style="text-align: right;">1.03×</td>
-</tr>
-<tr>
-<td><code>einsum ij,jk-&gt;ik</code></td>
-<td>2048³</td>
-<td style="text-align: right;">8.6 G</td>
-<td style="text-align: right;">27.4 ms</td>
-<td style="text-align: right;"><strong>16.9 ms</strong></td>
-<td style="text-align: right;"><strong>0.62×</strong></td>
-</tr>
-<tr>
-<td><code>einsum bij,bjk-&gt;bik</code></td>
-<td>32×1024³</td>
-<td style="text-align: right;">34.4 G</td>
-<td style="text-align: right;"><strong>126.3 ms</strong></td>
-<td style="text-align: right;">190.8 ms</td>
-<td style="text-align: right;">1.5×</td>
+<td><strong>trnrand (this RFC)</strong></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅ <code>partition_rank</code> / <code>partition_size</code> on <code>Generator.__init__</code></td>
 </tr>
 </tbody>
 </table>
-<p><strong>NKI wins</strong>: 2048×2048 matmul (1.6× faster than CPU). All other sizes still favor CPU on this hardware.</p>
-<h2 id="size-based-dispatch-threshold">Size-based dispatch threshold<a class="headerlink" href="#size-based-dispatch-threshold" title="Permanent link">&para;</a></h2>
-<p>Because per-call NKI dispatch currently carries ~1 ms of XLA launch overhead, <code>nki_matmul</code> and <code>nki_batched_matmul</code> short-circuit to the PyTorch path when the contraction is below <code>TRNTENSOR_MIN_NKI_FLOPS</code> (default <strong>2 GFLOPs</strong>, calibrated at ≈ half the smallest NKI-winning size). The <code>plan.backend</code> field reflects this: it reports <code>"nki"</code> only when the dispatch will actually invoke a kernel, and <code>"pytorch"</code> otherwise.</p>
-<p>Overrides:</p>
+<p>The first-class-ness is what matters: users don't have to choose the
+right option or thread state through their code. The default path in
+a multi-chip context is reproducible.</p>
+<h2 id="data-parallel-vs-model-parallel-training">Data-parallel vs model-parallel training<a class="headerlink" href="#data-parallel-vs-model-parallel-training" title="Permanent link">&para;</a></h2>
+<p>The same API covers both interpretations:</p>
 <ul>
-<li><code>TRNTENSOR_MIN_NKI_FLOPS=0</code> — always attempt NKI (useful for kernel validation).</li>
-<li><code>TRNTENSOR_FORCE_BACKEND=pytorch</code> — always use the PyTorch path (useful for CPU baselines).</li>
-<li><code>trntensor.set_backend("pytorch")</code> — same, via API.</li>
+<li><strong>Data-parallel (per-chip noise).</strong> Each chip sees different input
+  batches and wants independent RNG (e.g., dropout masks, data
+  augmentation). <code>partition_rank</code> / <code>partition_size</code> gives exactly
+  that — each rank sees a disjoint counter range, so samples are
+  iid and uncorrelated across ranks by construction.</li>
+<li><strong>Model-parallel (sharded weight init).</strong> A logically-single RNG
+  draw is sharded across chips for memory reasons (e.g., a 100GB
+  weight tensor). The user wants the chip pieces to combine into
+  the single logical draw the non-sharded version would produce.
+  Partition API gives this too — each chip emits its contiguous slice
+  of the logical stream, concatenation yields the original.</li>
 </ul>
-<h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
-<p>The kernels themselves are <strong>correct</strong> (validated by 9 hardware tests in <code>tests/test_nki_kernels.py</code>) and the 2048×2048 case confirms NKI can beat CPU at large enough workloads. The gap at smaller sizes is dominated by per-call overhead — not by the Tensor Engine itself — and is tracked as follow-up work in <a href="https://github.com/trnsci/trntensor/issues/33">#33</a>.</p>
-<p>Recommendation for users:</p>
+<p>The design elegance is that the library doesn't have to know which
+interpretation the user intends. The bit-exactness contract holds in
+both cases; the user's code context determines the semantics.</p>
+<h2 id="validation-claims">Validation claims<a class="headerlink" href="#validation-claims" title="Permanent link">&para;</a></h2>
+<p>Phase 4 hardware testing must prove:</p>
+<ol>
+<li><strong>Partition equivalence.</strong> For each of the 5 distribution families
+   (uniform, normal, exponential, gamma, beta), 1-chip vs 32-chip run
+   with same seed produces bit-identical concatenated output. Assert
+   via <code>torch.equal</code>, not <code>torch.allclose</code> — exact match is the
+   contract.</li>
+<li><strong>Zero cross-chip coordination.</strong> Neuron profiler trace shows no
+   collective ops during the RNG kernel. Each chip runs independently.</li>
+<li><strong>Near-linear strong scaling</strong> at sample counts above the
+   dispatch-bound regime (~10M samples / chip). 32-chip throughput
+   ≥ 28× 1-chip throughput (≥87% efficiency target; scales with tile
+   size).</li>
+<li><strong>Checkpoint/resume consistency.</strong> Advance on chip 0 to counter
+   <code>N</code>, stop, re-init with new rank/size, resume — the stream from
+   counter <code>N</code> forward is bit-identical to the uninterrupted run.</li>
+<li><strong>Composition with Phase 3.</strong> A <code>GeneratorProgram</code> built once and
+   invoked across chips via <code>stream_into</code> produces the Phase 4
+   bit-exactness contract across all distributions in the program.
+   Validates that the streaming kernel (Phase 3) and the partition
+   API (Phase 4) don't conflict.</li>
+</ol>
+<h3 id="cpu-side-validation-now">CPU-side validation, now<a class="headerlink" href="#cpu-side-validation-now" title="Permanent link">&para;</a></h3>
+<p>Partition equivalence is testable <em>now</em> on CPU, no hardware required.
+<code>philox_uniform_cpu(n, seed, counter_offset)</code> already accepts an
+offset parameter. A future test can assert:</p>
+<div class="highlight"><pre><span></span><code><span class="n">N</span> <span class="o">=</span> <span class="mi">4096</span>
+<span class="n">full</span> <span class="o">=</span> <span class="n">philox_uniform_cpu</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">counter_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">P</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">]:</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">philox_uniform_cpu</span><span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">counter_offset</span><span class="o">=</span><span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">full</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">chunks</span><span class="p">))</span>
+</code></pre></div>
+<p>This isn't in-scope for this RFC (implementation is out-of-scope for
+the RFC), but landing the test before the hardware work starts is
+cheap insurance against spec drift.</p>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">&para;</a></h2>
+<p>Deliberately deferred to implementation:</p>
 <ul>
-<li>Call trntensor normally. The dispatch layer makes the right choice for typical sizes.</li>
-<li>For GEMM-dominant workloads with single contraction sizes ≥ 2 GFLOPs, NKI will be invoked automatically.</li>
-<li>Until #33 lands, tight loops of small contractions (DF-MP2 pair-energy style) see no NKI benefit and are served by the PyTorch path.</li>
+<li><strong>Counter exhaustion.</strong> <code>2^128</code> counter space is vast — a run
+  generating 10^12 samples/sec for 100 years still only uses ~10^22
+  counters, far below <code>2^128 ≈ 3.4×10^38</code>. But the API should have a
+  clear story: wraparound, error, or undefined? Suggestion: error
+  loudly, since exhaustion always indicates a bug (or a truly
+  exceptional workload).</li>
+<li><strong>Dynamic cluster resize.</strong> If <code>partition_size</code> changes mid-run
+  (chip failure, elastic cluster), what's the semantics? Probably
+  user-level — they're responsible for explicit checkpoint/restart
+  with the new <code>size</code>.</li>
+<li><strong>Framework integration.</strong> <code>partition_rank</code> / <code>partition_size</code>
+  plays nicely with PyTorch/XLA's <code>xm.get_ordinal</code> /
+  <code>xm.xrt_world_size</code> but the RFC doesn't commit to an integration
+  wrapper (<code>trnrand.Generator.from_xla(seed)</code>). Defer to
+  implementation once the rough edges are visible.</li>
+<li><strong>Interaction with Generator state mutation.</strong> If a user calls
+  <code>gen.manual_seed(new_seed)</code> mid-run, does that reset the partition
+  context? Suggestion: yes — partition kwargs are structural, not
+  mutable; reseeding is a fresh logical stream.</li>
+</ul>
+<h2 id="cross-suite-alignment">Cross-suite alignment<a class="headerlink" href="#cross-suite-alignment" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Phase 1</strong> (#18): assumes Philox + Box-Muller kernels validated.
+  No changes to the per-block kernel; Phase 4 only changes the
+  counter loaded at entry.</li>
+<li><strong>Phase 3</strong> (#19, <a href="../sbuf_resident_generator/">RFC</a>): <code>GeneratorProgram</code>
+  composes. Partition is a runtime HBM argument, not a compile unit
+  — NEFF caching works unchanged.</li>
+<li><strong>Phase 5</strong> (#21): trn2 wider-PSUM path is orthogonal. The partition
+  API works identically on trn1 and trn2; Phase 5's tuning happens
+  inside the per-chip kernel.</li>
+<li><strong>Umbrella <a href="https://trnsci.dev/nki_validation_status/">nki_validation_status</a></strong>:
+  Phase 4 closure updates trnrand's validation status accordingly.</li>
+</ul>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://trnsci.dev/roadmap/#phase-4-model-parallel-multi-chip">trnsci ROADMAP — Phase 4</a> — suite-wide framing.</li>
+<li><a href="https://github.com/trnsci/trnrand/issues/20">trnrand Phase 4 tracker (#20)</a> — issue-level acceptance criteria.</li>
+<li><a href="../sbuf_resident_generator/">Phase 3 RFC — SBUF-resident streaming Generator</a> — composition target.</li>
+<li><a href="https://www.thesalmons.org/john/random123/papers/random123sc11.pdf">Salmon et al., "Parallel Random Numbers: As Easy as 1, 2, 3" (SC'11)</a> — Philox paper; the counter-based design is exactly what makes this RFC possible.</li>
 </ul>
 
 
@@ -4678,10 +5169,10 @@ pytest<span class="w"> </span>benchmarks/bench_einsum.py<span class="w"> </span>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

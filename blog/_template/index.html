@@ -2204,6 +2204,8 @@
       
         
       
+        
+      
     
     
     
@@ -2530,6 +2532,128 @@
   
   
   
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_3_6" id="__nav_10_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SBUF-resident streaming Generator (Phase 3 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Counter-partitioned multi-chip RNG (Phase 4 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../trnrand/roadmap/" class="md-nav__link">
         
@@ -2604,10 +2728,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3_9" >
         
           
-          <label class="md-nav__link" for="__nav_10_3_8" id="__nav_10_3_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_3_9" id="__nav_10_3_9_label" tabindex="0">
             
   
   
@@ -2625,8 +2749,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_3_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_3_8">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -4210,6 +4334,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-the-architecture-suggests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the architecture suggests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-approach" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4298,17 +4433,22 @@
 <h1 id="trnxxx-short-specific-title-naming-the-library">trnXXX: short, specific title naming the library<a class="headerlink" href="#trnxxx-short-specific-title-naming-the-library" title="Permanent link">&para;</a></h1>
 <!--
 Editorial brief: https://trnsci.dev/blog/AUTHOR_BRIEF/
-Voice: authorless, library-as-subject. No "I", no byline. See brief.
+Voice: authorless, library-as-subject. No "I", no byline.
+Stance: architecture-first (what the hardware affords), transparency-always
+        (what didn't work, honest numbers).
 Required sections below — keep them in this order.
 -->
 
-<p>Lead paragraph — 2–3 sentences. One on what shipped, one on why it's interesting, one on who should care.</p>
+<p>Lead paragraph — 2–3 sentences. One on what shipped, one on why it's interesting architecturally, one on who should care.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>What Trainium lacks or does differently from NVIDIA. Cite the cuX analog by name.</p>
+<p>What workload is this solving, and what's awkward about solving it on Trainium with a naive port of the CUDA approach? Cite the cuX analog by name but don't privilege its design.</p>
+<h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
+<p><strong>Required section.</strong> What does Trainium's hardware actually afford for this problem? Which engines are load-bearing (Tensor / Vector / Scalar / GpSimd)? What tile shape, SBUF layout, PSUM accumulation, DMA pattern, or NEFF cache behavior is the natural fit?</p>
+<p>The native-to-Trainium design, independent of what CUDA does. This section is the heart of the post.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<p>The design. Why this design over alternatives. At least one deliberate tradeoff.</p>
+<p>The design chosen. How it exploits what the previous section identified. At least one deliberate tradeoff. If the design ended up looking like the CUDA approach, say so and say why — but don't default to that framing.</p>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
 <p>Real code from the repo, not pseudocode. At least one snippet showing the key NKI kernel or dispatch pattern.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># excerpt from trnXXX/nki/dispatch.py</span>
@@ -4334,7 +4474,7 @@ Required sections below — keep them in this order.
 </tr>
 </tbody>
 </table>
-<p>Honest numbers, including ones that look bad. Explain the context when a number is surprising.</p>
+<p>Honest numbers, including ones that look bad. Numbers confirm or contextualize the architectural choice above — they don't justify it on their own.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <p>Link the Phase 2/3/4/5 tracker issues for this library. Readers should know where the project goes from here.</p>
 <ul>
@@ -4342,7 +4482,7 @@ Required sections below — keep them in this order.
 <li><a href="https://github.com/trnsci/trnXXX/issues/NN">Phase 3 — ...</a></li>
 </ul>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>3–5 sentences. One idea the reader should leave with.</p>
+<p>3–5 sentences. One architectural idea the reader should leave with.</p>
 
 
 

@@ -189,6 +189,14 @@
          <lastmod>2026-04-13</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/trnrand/design/counter_partitioned_multichip/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trnrand/design/sbuf_resident_generator/</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnsolver/</loc>
          <lastmod>2026-04-13</lastmod>
     </url>

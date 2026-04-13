@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://trnsci.dev/trnrand/roadmap/">
       
       
-        <link rel="prev" href="../architecture/">
+        <link rel="prev" href="../design/counter_partitioned_multichip/">
       
       
         <link rel="next" href="../benchmarks/">
@@ -2225,6 +2225,8 @@
       
         
       
+        
+      
     
     
     
@@ -2552,6 +2554,128 @@
                 
   
   
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_3_6" id="__nav_10_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/sbuf_resident_generator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SBUF-resident streaming Generator (Phase 3 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/counter_partitioned_multichip/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Counter-partitioned multi-chip RNG (Phase 4 RFC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -2752,10 +2876,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3_9" >
         
           
-          <label class="md-nav__link" for="__nav_10_3_8" id="__nav_10_3_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_3_9" id="__nav_10_3_9_label" tabindex="0">
             
   
   
@@ -2773,8 +2897,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_3_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_3_8">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -4511,6 +4635,11 @@ the distributions that close the gap vs cuRAND / NumPy.</p>
 <h2 id="v040-phase-3-single-chip-performance-planned">v0.4.0 — Phase 3: single-chip performance <em>(planned)</em><a class="headerlink" href="#v040-phase-3-single-chip-performance-planned" title="Permanent link">&para;</a></h2>
 <p>Batched-tile RNG streaming, NEFF compile-cache reuse, per-kernel tuning
 so the NKI path is meaningfully faster than the PyTorch fallback.</p>
+<p><strong>Design:</strong> <a href="../design/sbuf_resident_generator/">SBUF-resident streaming Generator RFC</a>
+— pre-compiled streaming kernel that keeps Generator state SBUF-resident
+across multiple distribution calls, pipelining GpSimd / Vector / Scalar
+engines concurrently. This is qualitatively different from cuRAND's
+per-call dispatch model, not a perf tweak.</p>
 <ul>
 <li><a href="https://github.com/trnsci/trnrand/issues/19">#19</a> — Phase 3 tracker:
   <code>trnrand.normal_into(buf)</code> streaming API, Sobol/Halton perf parity,
@@ -4520,6 +4649,12 @@ so the NKI path is meaningfully faster than the PyTorch fallback.</p>
 <p>Philox's counter-based design makes cross-chip sharding trivial — each
 NeuronCore gets a disjoint counter subrange, outputs are bit-exact vs
 single-chip.</p>
+<p><strong>Design:</strong> <a href="../design/counter_partitioned_multichip/">Counter-partitioned multi-chip RNG RFC</a>
+— the bit-exactness thesis: a 1-chip run and a 32-chip run with the
+same seed produce the same combined stream, byte-for-byte. GPU RNG
+libraries typically can't guarantee this; for MCMC / replication
+studies / cluster-reshape debugging, that's a qualitatively different
+property.</p>
 <ul>
 <li><a href="https://github.com/trnsci/trnrand/issues/20">#20</a> — Phase 4 tracker:
   <code>Generator</code> accepts <code>partition_rank</code> / <code>partition_size</code>; near-linear
