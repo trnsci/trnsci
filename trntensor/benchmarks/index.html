@@ -3379,10 +3379,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#status" class="md-nav__link">
+  <a href="#reproducing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Status
+        Reproducing
       
     </span>
   </a>
@@ -3390,10 +3390,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reproducing-locally" class="md-nav__link">
+  <a href="#pytorch-cpu-baseline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reproducing locally
+        PyTorch CPU baseline
       
     </span>
   </a>
@@ -3401,10 +3401,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-table-placeholder" class="md-nav__link">
+  <a href="#nki-trainium-pending" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results table (placeholder)
+        NKI (Trainium) — pending
       
     </span>
   </a>
@@ -3581,10 +3581,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#status" class="md-nav__link">
+  <a href="#reproducing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Status
+        Reproducing
       
     </span>
   </a>
@@ -3592,10 +3592,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reproducing-locally" class="md-nav__link">
+  <a href="#pytorch-cpu-baseline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reproducing locally
+        PyTorch CPU baseline
       
     </span>
   </a>
@@ -3603,10 +3603,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-table-placeholder" class="md-nav__link">
+  <a href="#nki-trainium-pending" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results table (placeholder)
+        NKI (Trainium) — pending
       
     </span>
   </a>
@@ -3634,62 +3634,77 @@
 
 
 <h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
-<p>Performance results for trntensor — einsum dispatch, contraction planning, and CP / Tucker decompositions — comparing the PyTorch CPU fallback and NKI Trainium path.</p>
-<h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
-<p>Baseline PyTorch-fallback numbers run on every CI build. NKI numbers are pending on-hardware validation on trn1 / trn2 — fused-contraction kernels are scaffolded but not yet validated. See <a href="../aws_setup/">AWS Setup</a> for the on-hardware CI flow.</p>
-<h2 id="reproducing-locally">Reproducing locally<a class="headerlink" href="#reproducing-locally" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-only
+<p>Performance results for trntensor — einsum dispatch, contraction planning, and CP / Tucker decompositions — comparing the PyTorch CPU fallback against the NKI Trainium path.</p>
+<h2 id="reproducing">Reproducing<a class="headerlink" href="#reproducing" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># CPU baseline (local)</span>
+pytest<span class="w"> </span>benchmarks/bench_einsum.py<span class="w"> </span>--benchmark-only
+
+<span class="c1"># On-hardware (via SSM orchestration)</span>
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>...<span class="w"> </span>./scripts/run_benchmarks.sh<span class="w"> </span>trn1
 </code></pre></div>
-<h2 id="results-table-placeholder">Results table (placeholder)<a class="headerlink" href="#results-table-placeholder" title="Permanent link">&para;</a></h2>
+<h2 id="pytorch-cpu-baseline">PyTorch CPU baseline<a class="headerlink" href="#pytorch-cpu-baseline" title="Permanent link">&para;</a></h2>
+<p>Runs on a developer laptop. Use these numbers to sanity-check relative costs of different contraction patterns — not as a ceiling for what Trainium can do.</p>
+<p><em>Platform: Darwin arm64, PyTorch CPU, median of ≥5 rounds.</em></p>
 <table>
 <thead>
 <tr>
 <th>Op</th>
 <th>Shape</th>
-<th>PyTorch (CPU)</th>
-<th>NKI (Trainium)</th>
-<th>Speedup</th>
+<th>Median</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>einsum <code>ij,jk-&gt;ik</code></td>
-<td>1024 shared</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
+<td><code>einsum ap,bp-&gt;ab</code> (DF-MP2 pair)</td>
+<td>48×128 × 48×128</td>
+<td>4.5 µs</td>
 </tr>
 <tr>
-<td>einsum <code>iap,ibp-&gt;iab</code> (batched)</td>
-<td>16×32×64, 16×48×64</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
+<td><code>einsum mi,mnP-&gt;inP</code> (4-index)</td>
+<td>32×8, 32×32×64</td>
+<td>10.5 µs</td>
 </tr>
 <tr>
-<td>einsum <code>mhkn,ukvh-&gt;munv</code> (4-index)</td>
-<td>cuTENSOR default</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
+<td><code>einsum ij,jk-&gt;ik</code></td>
+<td>512×512 × 512×512</td>
+<td>104 µs</td>
 </tr>
 <tr>
-<td>cp_decompose</td>
-<td>16³ rank 8</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
-</tr>
-<tr>
-<td>tucker_decompose</td>
+<td><code>tucker_decompose</code></td>
 <td>16³ ranks (4,4,4)</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
+<td>177 µs</td>
+</tr>
+<tr>
+<td><code>einsum bij,bjk-&gt;bik</code></td>
+<td>16×256×256</td>
+<td>337 µs</td>
+</tr>
+<tr>
+<td><code>cp_decompose</code></td>
+<td>16³ rank 8 (20 iters)</td>
+<td>4.6 ms</td>
 </tr>
 </tbody>
 </table>
-<p>Numbers will be populated once the NKI fused-contraction kernels validate on trn1 / trn2.</p>
+<h2 id="nki-trainium-pending">NKI (Trainium) — pending<a class="headerlink" href="#nki-trainium-pending" title="Permanent link">&para;</a></h2>
+<p>Fused-contraction kernels are scaffolded in <code>trntensor/nki/dispatch.py</code> but not yet implemented. Tracked in <a href="https://github.com/trnsci/trntensor/issues/1">#1</a>. The <code>scripts/run_benchmarks.sh</code> SSM orchestration is ready to populate the NKI column once kernels land.</p>
+<table>
+<thead>
+<tr>
+<th>Op</th>
+<th>NKI (Trainium)</th>
+<th>Speedup vs CPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>all</td>
+<td>pending</td>
+<td>pending</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../aws_setup/">AWS Setup</a> for the on-hardware CI flow.</p>
 
 
 

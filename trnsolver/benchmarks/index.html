@@ -2735,10 +2735,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#status" class="md-nav__link">
+  <a href="#vintage-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Status
+        Vintage matching
       
     </span>
   </a>
@@ -2746,10 +2746,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reproducing-locally" class="md-nav__link">
+  <a href="#reproducing-locally-cpu" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reproducing locally
+        Reproducing locally (CPU)
       
     </span>
   </a>
@@ -2757,10 +2757,65 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-table-placeholder" class="md-nav__link">
+  <a href="#reproducing-on-gpu-aws" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results table (placeholder)
+        Reproducing on GPU (AWS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproducing-on-trainium" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducing on Trainium
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpu-results-laptop-reference-n256" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CPU results (laptop reference — n=256)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gpu-results-a10g-g5xlarge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPU results (A10G / g5.xlarge)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trainium-results-trn1-trn2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trainium results (trn1 / trn2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
       
     </span>
   </a>
@@ -3581,10 +3636,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#status" class="md-nav__link">
+  <a href="#vintage-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Status
+        Vintage matching
       
     </span>
   </a>
@@ -3592,10 +3647,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reproducing-locally" class="md-nav__link">
+  <a href="#reproducing-locally-cpu" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reproducing locally
+        Reproducing locally (CPU)
       
     </span>
   </a>
@@ -3603,10 +3658,65 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-table-placeholder" class="md-nav__link">
+  <a href="#reproducing-on-gpu-aws" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results table (placeholder)
+        Reproducing on GPU (AWS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproducing-on-trainium" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducing on Trainium
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpu-results-laptop-reference-n256" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CPU results (laptop reference — n=256)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gpu-results-a10g-g5xlarge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPU results (A10G / g5.xlarge)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trainium-results-trn1-trn2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trainium results (trn1 / trn2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
       
     </span>
   </a>
@@ -3634,69 +3744,128 @@
 
 
 <h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
-<p>Performance results for trnsolver — eigendecomposition, factorizations, and iterative solvers — comparing the PyTorch CPU fallback and NKI Trainium path across canonical workloads.</p>
-<h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
-<p>Baseline PyTorch-fallback numbers run on every CI build. NKI numbers are pending on-hardware validation on trn1 / trn2 — run <code>scripts/run_neuron_tests.sh</code> to generate them locally once a Neuron CI instance is provisioned (see <a href="../aws_setup/">AWS Setup</a>).</p>
-<h2 id="reproducing-locally">Reproducing locally<a class="headerlink" href="#reproducing-locally" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-only
-</code></pre></div>
-<h2 id="results-table-placeholder">Results table (placeholder)<a class="headerlink" href="#results-table-placeholder" title="Permanent link">&para;</a></h2>
+<p>Performance numbers for trnsolver across three axes:</p>
+<ol>
+<li><strong>CPU baselines</strong> — torch.linalg, scipy.linalg (LAPACK), and the trnsolver PyTorch path. Run on every CI build.</li>
+<li><strong>GPU baselines</strong> — <code>torch.linalg</code> on CUDA (cuSOLVER / cuBLAS) on a vintage-matched Nvidia instance.</li>
+<li><strong>Trainium NKI</strong> — the NKI path of trnsolver on trn1 / trn2. Pending hardware validation.</li>
+</ol>
+<h2 id="vintage-matching">Vintage matching<a class="headerlink" href="#vintage-matching" title="Permanent link">&para;</a></h2>
+<p>Comparing a 2022 Trainium chip to a 2024 H100 is not informative — both the arithmetic tier and the price gap distort the result. The benchmark table pairs each Trainium generation with the Nvidia GPU of closest architectural generation and approximate price tier:</p>
 <table>
 <thead>
 <tr>
-<th>Op</th>
-<th>Size</th>
-<th>PyTorch (CPU)</th>
-<th>NKI (Trainium)</th>
-<th>Speedup</th>
+<th>Trainium chip</th>
+<th>Launch</th>
+<th>Nvidia peer</th>
+<th>EC2 instance</th>
+<th>On-demand cost</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>eigh (symmetric)</td>
-<td>256×256</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
+<td>trn1 (NeuronCore v2)</td>
+<td>Oct 2022</td>
+<td>A10G (Ampere, 2021)</td>
+<td><code>g5.xlarge</code></td>
+<td>~$1.01/hr</td>
 </tr>
 <tr>
-<td>eigh (symmetric)</td>
-<td>1024×1024</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
-</tr>
-<tr>
-<td>cholesky</td>
-<td>1024×1024</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
-</tr>
-<tr>
-<td>qr</td>
-<td>1024×1024</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
-</tr>
-<tr>
-<td>cg (10k sparse)</td>
-<td>—</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
-</tr>
-<tr>
-<td>gmres (10k sparse)</td>
-<td>—</td>
-<td>TBD</td>
-<td>TBD</td>
-<td>TBD</td>
+<td>trn2 (NeuronCore v3)</td>
+<td>Dec 2024</td>
+<td>H100 (Hopper, 2022)</td>
+<td><code>p5.4xlarge</code></td>
+<td>~$12/hr</td>
 </tr>
 </tbody>
 </table>
-<p>Numbers will be populated once the NKI Jacobi rotation kernel validates on trn1 / trn2 and the benchmark harness is wired into CI.</p>
+<p>The default GPU baseline is <code>g5.xlarge</code> (A10G) because it's the vintage peer of <code>trn1.2xlarge</code> and within the same price tier. H100 baselines are an opt-in follow-up on <code>p5.4xlarge</code> (1× H100) — roughly 10× the cost of the A10G box, but still far cheaper than <code>p5.48xlarge</code> (8× H100, ~$98/hr).</p>
+<h2 id="reproducing-locally-cpu">Reproducing locally (CPU)<a class="headerlink" href="#reproducing-locally-cpu" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>benchmarks/bench_solver.py<span class="w"> </span>-v<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not neuron and not cuda&quot;</span><span class="w"> </span>--benchmark-only
+</code></pre></div>
+<h2 id="reproducing-on-gpu-aws">Reproducing on GPU (AWS)<a class="headerlink" href="#reproducing-on-gpu-aws" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>infra/terraform
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span>-var<span class="o">=</span><span class="nv">enable_gpu_ci</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="nv">vpc_id</span><span class="o">=</span>vpc-...<span class="w"> </span>-var<span class="o">=</span><span class="nv">subnet_id</span><span class="o">=</span>subnet-...
+
+<span class="c1"># Wait for user-data to finish (~5 min), then stop; scripts will wake it.</span>
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_cuda_tests.sh<span class="w"> </span>g5
+</code></pre></div>
+<h2 id="reproducing-on-trainium">Reproducing on Trainium<a class="headerlink" href="#reproducing-on-trainium" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_neuron_tests.sh<span class="w"> </span>trn1
+</code></pre></div>
+<h2 id="cpu-results-laptop-reference-n256">CPU results (laptop reference — n=256)<a class="headerlink" href="#cpu-results-laptop-reference-n256" title="Permanent link">&para;</a></h2>
+<p>Run on darwin/Apple-silicon CPU, Python 3.14, torch 2.x, scipy 1.17.1, float32 except where noted.</p>
+<table>
+<thead>
+<tr>
+<th>Op</th>
+<th>trnsolver</th>
+<th>torch.linalg</th>
+<th>scipy.linalg</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>eigh</code> (symmetric)</td>
+<td>2,240 µs</td>
+<td>2,251 µs</td>
+<td>4,059 µs</td>
+</tr>
+<tr>
+<td><code>cholesky</code></td>
+<td>69 µs</td>
+<td>68 µs</td>
+<td>100 µs</td>
+</tr>
+<tr>
+<td><code>solve_spd</code></td>
+<td>86 µs</td>
+<td>143 µs (torch.solve)</td>
+<td>21 µs (cho_solve)</td>
+</tr>
+<tr>
+<td><code>qr</code></td>
+<td>863 µs</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inv_sqrt_spd</code> (eig-based)</td>
+<td>2,320 µs</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inv_sqrt_spd_ns</code> (Newton-Schulz)</td>
+<td>4,782 µs</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>cg</code> (no precond)</td>
+<td>161 µs</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>gmres</code></td>
+<td>2,549 µs</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Numbers are for illustration — on the benchmark-target Linux CI hardware scipy.linalg is generally faster than torch.linalg for small dense factorizations, and the trnsolver CPU path should sit between them (thin layer over <code>torch.linalg</code>). Reference values live in <code>results.json</code> artifacts from CI runs.</p>
+<h2 id="gpu-results-a10g-g5xlarge">GPU results (A10G / g5.xlarge)<a class="headerlink" href="#gpu-results-a10g-g5xlarge" title="Permanent link">&para;</a></h2>
+<p><em>Pending — populated by running <code>AWS_PROFILE=aws ./scripts/run_cuda_tests.sh</code>.</em></p>
+<h2 id="trainium-results-trn1-trn2">Trainium results (trn1 / trn2)<a class="headerlink" href="#trainium-results-trn1-trn2" title="Permanent link">&para;</a></h2>
+<p><em>Pending — populated by running <code>AWS_PROFILE=aws ./scripts/run_neuron_tests.sh</code>.</em></p>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>inv_sqrt_spd_ns</code> is Newton-Schulz — all GEMM. On CPU it loses to the eigendecomposition path because eigh is heavily optimized in LAPACK/MKL. The shape of the workload is the important thing: once the trnblas NKI GEMM backend validates on Trainium, the NS path should win on trn1 / trn2.</li>
+<li>cuSOLVER is invoked indirectly via <code>torch.linalg</code> on a CUDA tensor. We don't link cuSOLVER directly.</li>
+</ul>
 
 
 

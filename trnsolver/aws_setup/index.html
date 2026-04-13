@@ -2860,6 +2860,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#gpu-baseline-instance-cusolver-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPU baseline instance (cuSOLVER comparison)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cost" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3650,6 +3661,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#gpu-baseline-instance-cusolver-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPU baseline instance (cuSOLVER comparison)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cost" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3728,6 +3750,23 @@
 <li><strong>Stop the instance in a trap</strong> (even if pytest fails or you Ctrl-C)</li>
 </ol>
 <p>It exits non-zero if any test fails.</p>
+<h2 id="gpu-baseline-instance-cusolver-comparison">GPU baseline instance (cuSOLVER comparison)<a class="headerlink" href="#gpu-baseline-instance-cusolver-comparison" title="Permanent link">&para;</a></h2>
+<p>For vintage-matched cuSOLVER baselines (see <a href="../benchmarks/">Benchmarks</a>), provision the GPU CI instance with:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>infra/terraform
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span>-var<span class="o">=</span><span class="nv">enable_gpu_ci</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;vpc_id=vpc-xxxxxx&quot;</span><span class="w"> </span>-var<span class="o">=</span><span class="s2">&quot;subnet_id=subnet-xxxxxx&quot;</span>
+</code></pre></div>
+<p>Defaults to <code>g5.xlarge</code> (A10G Ampere, the trn1 vintage peer). Run the benchmarks with:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_cuda_tests.sh<span class="w"> </span>g5
+</code></pre></div>
+<p>Same SSM-based pattern as the Neuron runner: starts the instance, runs <code>pytest benchmarks/bench_cuda.py -m cuda --benchmark-only</code>, prints output, stops the instance via trap. Costs ~$0.17 per 10-minute run on <code>g5.xlarge</code>.</p>
+<p>To opt into an H100 comparison for trn2:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span>-var<span class="o">=</span><span class="nv">enable_gpu_ci</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="nv">gpu_instance_type</span><span class="o">=</span>p5.4xlarge<span class="w"> </span>-var<span class="o">=</span><span class="nv">gpu_instance_tag</span><span class="o">=</span>trnsolver-ci-p5<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;vpc_id=...&quot;</span><span class="w"> </span>-var<span class="o">=</span><span class="s2">&quot;subnet_id=...&quot;</span>
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_cuda_tests.sh<span class="w"> </span>p5
+</code></pre></div>
+<p>That's ~$12/hr (single H100) — still pricey, use sparingly.</p>
 <h2 id="cost">Cost<a class="headerlink" href="#cost" title="Permanent link">&para;</a></h2>
 <p>Stopped = EBS only (~$10/mo for 100 GB gp3). Running:</p>
 <table>
@@ -3753,6 +3792,16 @@
 <td>inf2.xlarge</td>
 <td style="text-align: right;">$0.76</td>
 <td style="text-align: right;">$0.13</td>
+</tr>
+<tr>
+<td>g5.xlarge (A10G, CUDA)</td>
+<td style="text-align: right;">$1.01</td>
+<td style="text-align: right;">$0.17</td>
+</tr>
+<tr>
+<td>p5.4xlarge (H100×1, CUDA)</td>
+<td style="text-align: right;">$12.00</td>
+<td style="text-align: right;">$2.00</td>
 </tr>
 </tbody>
 </table>
