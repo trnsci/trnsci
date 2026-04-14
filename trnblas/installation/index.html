@@ -1890,6 +1890,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="With Neuron hardware support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simulator-only-install-cpu-no-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator-only install (CPU, no hardware)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4706,6 +4723,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="With Neuron hardware support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simulator-only-install-cpu-no-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator-only install (CPU, no hardware)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4779,9 +4813,23 @@
 <h2 id="with-neuron-hardware-support">With Neuron hardware support<a class="headerlink" href="#with-neuron-hardware-support" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnblas<span class="o">[</span>neuron<span class="o">]</span>
 </code></pre></div>
-<p>This pulls in <code>neuronxcc</code> and <code>torch-neuronx</code>, which are only needed on
-Trainium/Inferentia instances. On CPU or GPU, trnblas falls back to
-<code>torch.matmul</code> automatically.</p>
+<p>This pulls in <code>nki</code>, <code>neuronxcc</code>, and <code>torch-neuronx</code>, which are only
+needed on Trainium/Inferentia instances. On CPU or GPU, trnblas falls
+back to <code>torch.matmul</code> automatically.</p>
+<p>The <code>nki</code> and <code>neuronxcc</code> wheels ship on the AWS pip index rather than
+PyPI. Pass <code>--extra-index-url</code> to pick them up:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;trnblas[neuron]&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
+</code></pre></div>
+<h3 id="simulator-only-install-cpu-no-hardware">Simulator-only install (CPU, no hardware)<a class="headerlink" href="#simulator-only-install-cpu-no-hardware" title="Permanent link">&para;</a></h3>
+<p>NKI 0.3.0 ships a CPU simulator (<code>nki.simulate(kernel)(numpy_args)</code>)
+that runs kernels without a Neuron device. The GH Actions <code>nki-simulator</code>
+job uses this install line; mirror it locally for fast kernel iteration:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com<span class="w"> </span><span class="s2">&quot;nki&gt;=0.3.0&quot;</span>
+</code></pre></div>
+<p><code>torch-neuronx</code> is <strong>not</strong> required for the simulator path — dispatch
+routes NumPy directly through <code>nki.simulate</code> and bypasses <code>torch_xla</code>.</p>
 <h2 id="with-pyscf-real-molecule-df-mp2-validation">With PySCF (real-molecule DF-MP2 validation)<a class="headerlink" href="#with-pyscf-real-molecule-df-mp2-validation" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnblas<span class="o">[</span>pyscf<span class="o">]</span>
 </code></pre></div>
@@ -4807,6 +4855,10 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <tr>
 <td><code>TRNBLAS_REQUIRE_NKI=1</code></td>
 <td>Re-raise on NKI kernel errors instead of silently falling back to <code>torch.matmul</code>. Useful in the validation suite to surface kernel breakage. Unset (default): kernel exceptions fall back to PyTorch.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_USE_SIMULATOR=1</code></td>
+<td>Route kernel dispatch through <code>nki.simulate(kernel)(numpy_args)</code> on CPU. Bypasses <code>torch_xla</code> + NEFF compile; used for fast correctness iteration. Requires <code>nki&gt;=0.3.0</code>.</td>
 </tr>
 </tbody>
 </table>

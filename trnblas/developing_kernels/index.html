@@ -2214,7 +2214,18 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Simulator workflow">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI coverage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CI coverage">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -4714,7 +4725,18 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Simulator workflow">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI coverage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CI coverage">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -4825,12 +4847,55 @@ that runs kernels without Trainium hardware. It collapses the
 iteration loop from ~8–12 min per attempt (instance start + SSM +
 NEFF compile) to seconds — critical for kernel design where each
 new semantic constraint costs one round-trip to discover.</p>
-<p>Run simulator tests on the existing trn1 CI instance:</p>
+<p>Run simulator tests on GH Actions <code>ubuntu-latest</code> (the <code>nki-simulator</code>
+job — see below), on the existing trn1 CI instance via SSM:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_simulator_tests.sh
 </code></pre></div>
-<p>Or inline on a Linux x86_64 box that has <code>nki&gt;=0.3.0</code> installed:</p>
+<p>Or inline on any Linux x86_64 box that has <code>nki&gt;=0.3.0</code> installed:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">TRNBLAS_USE_SIMULATOR</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-m<span class="w"> </span>nki_simulator<span class="w"> </span>-v
 </code></pre></div>
+<h2 id="ci-coverage">CI coverage<a class="headerlink" href="#ci-coverage" title="Permanent link">&para;</a></h2>
+<p>Three gates, in increasing cost order:</p>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>Runner</th>
+<th>Catches</th>
+<th>Misses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test</code> matrix (py 3.10/3.11/3.12)</td>
+<td><code>ubuntu-latest</code></td>
+<td>Pure-Python correctness against the <code>torch.matmul</code> reference. Fast (~1 s).</td>
+<td>Anything NKI-kernel-specific.</td>
+</tr>
+<tr>
+<td><code>nki-simulator</code></td>
+<td><code>ubuntu-latest</code></td>
+<td>Python trace-level kernel errors: wrong <code>nc_matmul</code> kwargs, dropped ops (<code>nl.divide</code>), shape mismatches, tile-size violations. Seconds per kernel.</td>
+<td>MLIR verifier errors — simulator explicitly skips compile. Perf.</td>
+</tr>
+<tr>
+<td><code>neuron</code> (SSM, manual)</td>
+<td><code>trn1.2xlarge</code></td>
+<td>Full NEFF compile + on-hardware execution. MLIR verification. Real perf numbers.</td>
+<td>Nothing (this is the ground truth).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Of the five NKI 0.3.0 migration breaking-changes trnblas navigated,
+four would surface on the <code>nki-simulator</code> gate.</strong> Only the
+partition-broadcast strictness in <code>_mp2_energy_kernel</code> (MLIR-level
+verification) still requires the hardware round-trip. The gate isn't
+a perfect substitute for hardware, but it catches the 80% that cost
+the most AWS round-trips during design.</p>
+<p>Hardware (<code>scripts/run_neuron_tests.sh</code>, <code>scripts/run_simulator_tests.sh</code>)
+remains the final sign-off — in particular for any kernel that touches
+partition-dim broadcasting, PSUM→SBUF staging, or new <code>nc_matmul</code>
+patterns.</p>
 <h3 id="simulator-limitations">Simulator limitations<a class="headerlink" href="#simulator-limitations" title="Permanent link">&para;</a></h3>
 <p>From <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/nki.simulate.html"><code>nki.simulate</code> API docs</a>:</p>
 <ul>

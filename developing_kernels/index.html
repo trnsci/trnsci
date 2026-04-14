@@ -4575,6 +4575,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#what-the-ci-gate-catches-and-misses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the CI gate catches (and misses)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#simulator-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4763,9 +4774,58 @@ becomes under a minute total.</p>
 </tr>
 </tbody>
 </table>
-<p>Each library exposes a runner: <code>./scripts/run_simulator_tests.sh</code>.
-Trn1 DLAMI today; ubuntu-latest GH Actions runners planned once the
-<code>nki</code> wheel compatibility is confirmed across CI infrastructure.</p>
+<p>Each library exposes a runner: <code>./scripts/run_simulator_tests.sh</code>
+(SSM → trn1 DLAMI) <strong>and</strong> a <code>nki-simulator</code> CI job on
+<code>ubuntu-latest</code> that runs the marked suite on every push + PR.
+Trnblas is the reference implementation; sister libraries adopt the
+job as they land their simulator dispatch.</p>
+<p>The GH Actions install line:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com<span class="w"> </span><span class="s2">&quot;nki&gt;=0.3.0&quot;</span>
+</code></pre></div>
+<p>Verified: <code>nki 0.3.0+23928721754</code> wheel is 15.3 MB, installs on
+<code>ubuntu-latest</code> (py 3.12) in ~3 s; full <code>nki-simulator</code> job runs in
+under a minute. <code>torch-neuronx</code> is <strong>not</strong> needed for the simulator
+path — <code>nki.simulate</code> takes NumPy directly and bypasses <code>torch_xla</code>.</p>
+<h3 id="what-the-ci-gate-catches-and-misses">What the CI gate catches (and misses)<a class="headerlink" href="#what-the-ci-gate-catches-and-misses" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>Runner</th>
+<th>Catches</th>
+<th>Misses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test</code> matrix</td>
+<td><code>ubuntu-latest</code></td>
+<td>Pure-Python correctness against <code>torch.*</code> reference.</td>
+<td>Anything NKI-kernel-specific.</td>
+</tr>
+<tr>
+<td><code>nki-simulator</code></td>
+<td><code>ubuntu-latest</code></td>
+<td>Python trace-level kernel errors: wrong <code>nc_matmul</code> kwargs, dropped ops, shape/tile-size mismatches, PSUM→HBM dma_copy refusals.</td>
+<td>MLIR verifier errors — simulator explicitly skips compile. Perf.</td>
+</tr>
+<tr>
+<td><code>neuron</code> (SSM)</td>
+<td><code>trn1</code>/<code>trn2</code></td>
+<td>Full NEFF compile + on-hardware execution. MLIR verification. Real perf.</td>
+<td>Nothing.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>On the trnblas NKI 0.3.0 migration, four of five breaking-change
+errors would have surfaced on the <code>nki-simulator</code> gate.</strong> The fifth
+(partition-broadcast strictness, MLIR-level) still requires hardware.
+NKI 0.3.0 has <strong>no documented device-free NEFF compile API</strong>:
+<code>nki.baremetal</code> requires a Neuron device; <code>nki.simulate</code> explicitly
+skips compile. So "simulator on ubuntu-latest + hardware on SSM" is
+the full gate set — there is no CPU-side compile-check layer to add
+between them.</p>
 <h3 id="simulator-limitations">Simulator limitations<a class="headerlink" href="#simulator-limitations" title="Permanent link">&para;</a></h3>
 <p>From <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/nki.simulate.html"><code>nki.simulate</code> API docs</a>:</p>
 <ul>
