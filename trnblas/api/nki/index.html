@@ -1745,6 +1745,8 @@
       
         
       
+        
+      
     
     
     
@@ -2084,6 +2086,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#gemm-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2195,7 +2208,7 @@
   <span class="md-ellipsis">
     
   
-    Design
+    Contributing
   
 
     
@@ -2208,6 +2221,98 @@
         
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developing_kernels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developing NKI kernels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_2_7" id="__nav_10_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2305,10 +2410,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_9" >
         
           
-          <label class="md-nav__link" for="__nav_10_2_8" id="__nav_10_2_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_2_9" id="__nav_10_2_9_label" tabindex="0">
             
   
   
@@ -2326,8 +2431,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_2_8">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -4584,6 +4689,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#gemm-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4644,12 +4760,30 @@ Trainium Tensor Engine or fall back to PyTorch.</p>
 
 <span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>     <span class="c1"># NKI on Trainium, PyTorch elsewhere (default)</span>
 <span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;pytorch&quot;</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
-<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># force NKI (requires neuronxcc)</span>
+<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># force NKI (requires nki&gt;=0.3.0)</span>
 </code></pre></div>
-<p><code>trnblas.HAS_NKI</code> is <code>True</code> when <code>neuronxcc</code> is importable.</p>
-<p>Set <code>TRNBLAS_REQUIRE_NKI=1</code> in the environment to re-raise kernel
-exceptions instead of falling back to <code>torch.matmul</code> — useful in
-validation runs to surface silent breakage.</p>
+<p><code>trnblas.HAS_NKI</code> is <code>True</code> when the <code>nki</code> package (NKI 0.3.0+, Neuron
+SDK 2.29+) is importable. trnblas uses the canonical <code>nki.*</code>
+namespace directly; the legacy <code>neuronxcc.nki.*</code> shim is not used.</p>
+<h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TRNBLAS_REQUIRE_NKI=1</code></td>
+<td>Re-raise kernel exceptions instead of falling back to <code>torch.matmul</code> — surfaces silent breakage in validation runs.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_USE_SIMULATOR=1</code></td>
+<td>Route kernel dispatch through <code>nki.simulate(kernel)(numpy_args)</code> on CPU. Bypasses <code>torch_xla</code> + NEFF compile; used for fast correctness iteration. See <a href="../../developing_kernels/">docs/developing_kernels.md</a>.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="gemm-kernel">GEMM kernel<a class="headerlink" href="#gemm-kernel" title="Permanent link">&para;</a></h2>
 <p><code>trnblas.nki.nki_gemm</code> — NKI-dispatched GEMM with stationary tile reuse:</p>
 <ul>

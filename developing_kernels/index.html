@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/roadmap/">
+        <link rel="canonical" href="https://trnsci.dev/developing_kernels/">
       
       
-        <link rel="prev" href="../trainium_positioning/">
-      
-      
-        <link rel="next" href="../nki_validation_status/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>Roadmap - trnsci</title>
+        <title>Developing NKI kernels (suite convention) - trnsci</title>
       
     
     
@@ -76,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#roadmap" class="md-skip">
+        <a href="#developing-nki-kernels-suite-convention" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Roadmap
+              Developing NKI kernels (suite convention)
             
           </span>
         </div>
@@ -269,11 +265,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../roadmap/" class="md-tabs__link">
         
   
   
@@ -579,37 +573,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Roadmap
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
         
   
   
@@ -625,103 +592,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#phase-1-single-chip-correctness" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 1 — Single-chip correctness
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-2-precision-and-numerical-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 2 — Precision and numerical validation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-3-single-chip-performance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 3 — Single-chip performance
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-4-model-parallel-multi-chip" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 4 — Model-parallel multi-chip
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-5-generation-specific-optimization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 5 — Generation-specific optimization
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-each-library-is-today" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where each library is today
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-follow-along" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to follow along
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -4671,10 +4541,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#phase-1-single-chip-correctness" class="md-nav__link">
+  <a href="#three-dispatch-modes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 1 — Single-chip correctness
+        Three dispatch modes
       
     </span>
   </a>
@@ -4682,10 +4552,77 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-2-precision-and-numerical-validation" class="md-nav__link">
+  <a href="#simulator-workflow-the-big-unlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 2 — Precision and numerical validation
+        Simulator workflow (the big unlock)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simulator workflow (the big unlock)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-each-sub-project-enables-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How each sub-project enables it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulator-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dispatch-pattern-boilerplate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch pattern (boilerplate)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dispatch pattern (boilerplate)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#helpers-already-defined-in-every-dispatch-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helpers already defined in every dispatch module
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#namespace-nki-is-canonical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Namespace: nki.* is canonical
       
     </span>
   </a>
@@ -4693,10 +4630,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-3-single-chip-performance" class="md-nav__link">
+  <a href="#nki-030-migration-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 3 — Single-chip performance
+        NKI 0.3.0 migration reference
       
     </span>
   </a>
@@ -4704,10 +4641,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-4-model-parallel-multi-chip" class="md-nav__link">
+  <a href="#design-discipline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 4 — Model-parallel multi-chip
+        Design discipline
       
     </span>
   </a>
@@ -4715,32 +4652,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-5-generation-specific-optimization" class="md-nav__link">
+  <a href="#suite-coordination" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 5 — Generation-specific optimization
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-each-library-is-today" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where each library is today
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-follow-along" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to follow along
+        Suite coordination
       
     </span>
   </a>
@@ -4767,36 +4682,228 @@
   
 
 
-<h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
-<p>trnsci develops in five phases. The ordering is intentional — later phases only pay off when earlier ones are solid. Not every sub-project moves through every phase at the same pace; what matters is that a given sub-project has a credible Phase 1 before anyone starts caring about its Phase 3.</p>
-<p>The detailed version of this roadmap, with tracking labels and cross-project dependencies, lives in <a href="https://github.com/trnsci/trnsci/blob/main/ROADMAP.md"><code>ROADMAP.md</code></a> on the umbrella repo.</p>
-<h2 id="phase-1-single-chip-correctness">Phase 1 — Single-chip correctness<a class="headerlink" href="#phase-1-single-chip-correctness" title="Permanent link">&para;</a></h2>
-<p>Every public API runs through a real NKI kernel on a trn1 or trn2 NeuronCore, matching the PyTorch reference within float tolerance. Today, across the suite, the NKI kernels are scaffolded but dispatch falls back to PyTorch. Phase 1 replaces the stubs with real kernels and validates them against published test vectors and cross-library integration demos.</p>
-<p><strong>Data-parallel multi-chip</strong> (replica per chip, embarrassingly parallel) falls out of Phase 1 automatically. No new code beyond a worker loop.</p>
-<h2 id="phase-2-precision-and-numerical-validation">Phase 2 — Precision and numerical validation<a class="headerlink" href="#phase-2-precision-and-numerical-validation" title="Permanent link">&para;</a></h2>
-<p>Trainium's Tensor Engine is FP32-only. For workloads where that matters — quantum chemistry in particular — Phase 2 delivers double-double FP64 emulation, Kahan / Neumaier compensated summation for long reduction chains, and iterative-refinement variants where they beat the eigendecomposition-based approaches.</p>
-<p>Validation targets include DF-MP2 energies to nanohartree tolerance against PySCF, and long-chain FFT round-trips against scipy.</p>
-<p>Not every library needs Phase 2. <code>trnrand</code> is precision-neutral; <code>trnsparse</code> and <code>trntensor</code> inherit their precision story from <code>trnblas</code>.</p>
-<h2 id="phase-3-single-chip-performance">Phase 3 — Single-chip performance<a class="headerlink" href="#phase-3-single-chip-performance" title="Permanent link">&para;</a></h2>
-<p>The NKI path becomes meaningfully faster than the PyTorch fallback and competitive on a per-dollar basis with NVIDIA on vintage-matched instances (A10G vs trn1, H100 vs trn2).</p>
-<p>Work in this phase is per-kernel: tile-shape sweeps, operand-stationarity choices, multi-engine scheduling, operation fusion, NEFF compile-cache reuse, plan and contraction-plan re-execution. Published benchmarks on each sub-project's docs page provide the CPU baseline, the vintage-matched GPU baseline, and the Trainium numbers side-by-side.</p>
-<h2 id="phase-4-model-parallel-multi-chip">Phase 4 — Model-parallel multi-chip<a class="headerlink" href="#phase-4-model-parallel-multi-chip" title="Permanent link">&para;</a></h2>
-<p>Workloads whose tensors exceed a single chip's HBM — large-basis DF-MP2, N &gt; 2^24 FFTs, sparse systems with &gt;1B nonzeros — are sharded across NeuronCores within a chip and chips within an instance.</p>
-<p>This phase introduces sharded tensor abstractions, collective operations, and the dispatch glue that makes model-parallel operation transparent to the library user.</p>
-<p>Cross-instance (EFA-interconnected) multi-chip is a Phase 4 follow-up if demand warrants it.</p>
-<h2 id="phase-5-generation-specific-optimization">Phase 5 — Generation-specific optimization<a class="headerlink" href="#phase-5-generation-specific-optimization" title="Permanent link">&para;</a></h2>
-<p>trn1 (NeuronCore v2) and trn2 (NeuronCore v3) get fast paths that exploit their respective architectural strengths — trn2's larger SBUF, wider PSUM, and FP16 accumulate are the main levers today — without requiring the maintainer to track two separately tuned code paths.</p>
-<p>The common Phase 3 path stays the default. Generation-specific paths are opt-in via backend selection or automatic based on runtime capability detection.</p>
-<h2 id="where-each-library-is-today">Where each library is today<a class="headerlink" href="#where-each-library-is-today" title="Permanent link">&para;</a></h2>
-<p>As of 2026-04-13, two sub-projects have completed Phase 1 correctness: <strong>trnfft</strong> (butterfly + complex GEMM kernels, hardware-validated on trn1.2xlarge in v0.8.0) and <strong>trnblas</strong> (GEMM, SYRK, and fused MP2 energy reduction, hardware-validated with end-to-end DF-MP2 timings). <strong>trnblas</strong> additionally has PySCF validation against real chemistry at nanohartree tolerance on small molecules, which touches Phase 2 territory. <strong>trnsolver</strong> has published CPU baselines against LAPACK and scipy, which sets up Phase 3.</p>
-<p>The remaining four sub-projects — <strong>trnrand</strong>, <strong>trnsolver</strong>, <strong>trnsparse</strong>, <strong>trntensor</strong> — have Phase 1 NKI code scaffolded in their respective <code>nki/dispatch.py</code> modules but have not yet had a hardware-validation run on trn1 / trn2. Closing the validation gap is the immediate next step across those four; progress is tracked in <a href="https://github.com/trnsci/trnsci/issues/1">trnsci/trnsci#1</a>.</p>
-<p>See each sub-project's docs (<code>trnsci.dev/&lt;name&gt;/</code>) for library-specific status.</p>
-<h2 id="how-to-follow-along">How to follow along<a class="headerlink" href="#how-to-follow-along" title="Permanent link">&para;</a></h2>
+<h1 id="developing-nki-kernels-suite-convention">Developing NKI kernels (suite convention)<a class="headerlink" href="#developing-nki-kernels-suite-convention" title="Permanent link">&para;</a></h1>
+<p>Canonical reference for how every trnsci library (<code>trnblas</code>, <code>trnfft</code>,
+<code>trnrand</code>, <code>trnsolver</code>, <code>trnsparse</code>, <code>trntensor</code>) dispatches NKI
+kernels and iterates on them. Each library re-uses the same pattern
+with a library-specific prefix on its env vars.</p>
+<p>Reference implementation: <a href="https://github.com/trnsci/trnblas/blob/main/trnblas/nki/dispatch.py"><code>trnblas/trnblas/nki/dispatch.py</code></a>.</p>
+<h2 id="three-dispatch-modes">Three dispatch modes<a class="headerlink" href="#three-dispatch-modes" title="Permanent link">&para;</a></h2>
+<p>Every sub-project supports three ways to run its NKI kernels:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Trigger</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PyTorch fallback</strong></td>
+<td><code>HAS_NKI = False</code> (non-Neuron host), or an <code>_nki_*_impl</code> exception gets caught</td>
+<td>Laptops, GPUs, CI's ubuntu-latest — the default for anyone who doesn't have Neuron installed</td>
+</tr>
+<tr>
+<td><strong>NKI hardware</strong></td>
+<td><code>HAS_NKI = True</code> + default env. Kernel runs through <code>torch_xla</code> → NEFF compile → Trainium dispatch</td>
+<td>Real perf numbers, final validation</td>
+</tr>
+<tr>
+<td><strong>NKI simulator</strong></td>
+<td><code>{LIB}_USE_SIMULATOR=1</code> + <code>HAS_NKI = True</code>. Kernel runs through <code>nki.simulate(kernel)(numpy_args)</code> on CPU</td>
+<td>Fast correctness iteration during kernel design</td>
+</tr>
+</tbody>
+</table>
+<p>All three share the same kernel source: <code>@nki.jit</code>-decorated functions
+inside <code>if HAS_NKI:</code> blocks.</p>
+<h2 id="simulator-workflow-the-big-unlock">Simulator workflow (the big unlock)<a class="headerlink" href="#simulator-workflow-the-big-unlock" title="Permanent link">&para;</a></h2>
+<p>NKI 0.3.0 Stable (Neuron SDK 2.29, April 2026) ships a CPU simulator
+that runs kernels without Trainium hardware. It collapses the iteration
+loop from ~8–12 min per attempt (instance start + SSM + NEFF compile)
+to seconds — critical for kernel design where each new semantic
+constraint costs one round-trip to discover.</p>
+<p>trnblas's v0.4.3 silent-fallback correction plus the six #15 M1
+iterations each paid ~8 minutes of AWS time. Under the simulator that
+becomes under a minute total.</p>
+<h3 id="how-each-sub-project-enables-it">How each sub-project enables it<a class="headerlink" href="#how-each-sub-project-enables-it" title="Permanent link">&para;</a></h3>
+<p>Each library carries its own env var mirroring <code>{LIB}_REQUIRE_NKI</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Env var</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>trnblas</td>
+<td><code>TRNBLAS_USE_SIMULATOR=1</code></td>
+</tr>
+<tr>
+<td>trnfft</td>
+<td><code>TRNFFT_USE_SIMULATOR=1</code></td>
+</tr>
+<tr>
+<td>trnrand</td>
+<td><code>TRNRAND_USE_SIMULATOR=1</code></td>
+</tr>
+<tr>
+<td>trnsolver</td>
+<td><code>TRNSOLVER_USE_SIMULATOR=1</code></td>
+</tr>
+<tr>
+<td>trnsparse</td>
+<td><code>TRNSPARSE_USE_SIMULATOR=1</code></td>
+</tr>
+<tr>
+<td>trntensor</td>
+<td><code>TRNTENSOR_USE_SIMULATOR=1</code></td>
+</tr>
+</tbody>
+</table>
+<p>Each library exposes a runner: <code>./scripts/run_simulator_tests.sh</code>.
+Trn1 DLAMI today; ubuntu-latest GH Actions runners planned once the
+<code>nki</code> wheel compatibility is confirmed across CI infrastructure.</p>
+<h3 id="simulator-limitations">Simulator limitations<a class="headerlink" href="#simulator-limitations" title="Permanent link">&para;</a></h3>
+<p>From <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/nki.simulate.html"><code>nki.simulate</code> API docs</a>:</p>
 <ul>
-<li>Suite-wide coordination and cross-project dependencies: <a href="https://github.com/trnsci/trnsci/issues">issues on <code>trnsci/trnsci</code></a>.</li>
-<li>Per-library roadmap tracking: labels <code>phase-1-correctness</code> / <code>phase-2-precision</code> / <code>phase-3-perf</code> / <code>phase-4-multichip</code> / <code>phase-5-generation</code> on each sub-project's issue tracker.</li>
-<li>Releases: each library versions independently. Current PyPI versions at <a href="https://pypi.org/project/trnsci/">pypi.org/project/trnsci/</a>.</li>
+<li><strong>No compile.</strong> NKI compiler errors won't surface — kernels that
+  simulate clean can still fail the NEFF compile on hardware.</li>
+<li><strong>Meta-programming mismatch.</strong> The simulator accepts arbitrary
+  Python; the compiler enforces a restricted subset.</li>
+<li><strong>Memory model is loose.</strong> SBUF / PSUM capacity overflows aren't
+  detected; kernels that simulate clean can still OOM the SBUF at
+  runtime.</li>
+<li><strong>No parallelism / latency.</strong> Multi-engine pipelining (TE + VE +
+  Scalar + GPSIMD running concurrently) isn't modelled. Simulator
+  output gives no perf signal.</li>
+<li><strong>Not-implemented simulator APIs:</strong> <code>nki.collectives</code>,
+  <code>local_gather</code>, <code>nc_stream_shuffle</code> with <code>mask=255</code>, <code>nc_matmul_mx</code>,
+  <code>quantize_mx</code>.</li>
 </ul>
+<p><strong>Use the simulator for correctness + constraint iteration. Use
+hardware for perf numbers and final sign-off.</strong></p>
+<h2 id="dispatch-pattern-boilerplate">Dispatch pattern (boilerplate)<a class="headerlink" href="#dispatch-pattern-boilerplate" title="Permanent link">&para;</a></h2>
+<p>The pattern each <code>_nki_*_impl</code> in any sub-project should follow:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_nki_foo_impl</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_NKI</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;NKI not available&quot;</span><span class="p">)</span>
+    <span class="c1"># ... shape padding, dtype coercion as needed ...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">A_feed</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+        <span class="n">B_feed</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">_use_simulator</span><span class="p">():</span>
+            <span class="c1"># CPU path — NumPy inputs, bypasses torch_xla.</span>
+            <span class="n">out_np</span> <span class="o">=</span> <span class="n">nki</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">_foo_kernel</span><span class="p">)(</span>
+                <span class="n">A_feed</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">B_feed</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">out_np</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Hardware path — torch_xla bridge + @nki.jit dispatch.</span>
+            <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">orig_device</span> <span class="o">=</span> <span class="n">_to_xla</span><span class="p">(</span><span class="n">A_feed</span><span class="p">,</span> <span class="n">B_feed</span><span class="p">)</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">_foo_kernel</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">orig_device</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>  <span class="c1"># slice back to original shape if padded</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_REQUIRE_NKI</span><span class="p">:</span>
+            <span class="k">raise</span>
+        <span class="n">_warn_fallback</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_torch_reference</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="helpers-already-defined-in-every-dispatch-module">Helpers already defined in every dispatch module<a class="headerlink" href="#helpers-already-defined-in-every-dispatch-module" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>_to_xla(*tensors) -&gt; (list, device)</code> — XLA device setup.</li>
+<li><code>_REQUIRE_NKI</code> — env var gate that turns the try/except <code>Exception</code>
+  into a re-raise.</li>
+<li><code>_use_nki()</code> — <code>auto / pytorch / nki</code> backend selection.</li>
+<li><code>_warn_fallback(exc)</code> — warn-once categorized warning on silent
+  fallback (catches PATH / plugin misconfigurations).</li>
+</ul>
+<p>Add to each library:</p>
+<ul>
+<li><code>_USE_SIMULATOR</code> (module constant) from <code>{LIB}_USE_SIMULATOR</code> env.</li>
+<li><code>_use_simulator()</code> — returns <code>_USE_SIMULATOR and HAS_NKI</code>.</li>
+</ul>
+<h2 id="namespace-nki-is-canonical">Namespace: <code>nki.*</code> is canonical<a class="headerlink" href="#namespace-nki-is-canonical" title="Permanent link">&para;</a></h2>
+<p>NKI 0.3.0 promotes <code>nki.*</code> as the official namespace. The legacy
+<code>neuronxcc.nki.*</code> shim still works in 2.29 but is deprecated. Every
+sub-project imports from <code>nki.*</code> exclusively:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">nki</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nki.isa</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nisa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nki.language</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nl</span>
+</code></pre></div>
+<p>Minimum dependency: <code>nki&gt;=0.3.0</code> (Neuron SDK 2.29+) in each library's
+<code>[neuron]</code> extra.</p>
+<h2 id="nki-030-migration-reference">NKI 0.3.0 migration reference<a class="headerlink" href="#nki-030-migration-reference" title="Permanent link">&para;</a></h2>
+<p>Breaking changes trnblas navigated on the migration pass. Every
+sub-project with NKI kernels needs to handle these:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Before (NKI Beta 2)</th>
+<th>After (NKI 0.3.0)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Namespace</td>
+<td><code>neuronxcc.nki.*</code></td>
+<td><code>nki.*</code></td>
+</tr>
+<tr>
+<td><code>nc_matmul</code></td>
+<td><code>psum[...] += nisa.nc_matmul(a, b)</code> returning tile</td>
+<td><code>nisa.nc_matmul(dst=psum, stationary=a, moving=b, accumulate=True)</code> writes in-place</td>
+</tr>
+<tr>
+<td>Kwargs</td>
+<td>Positional accepted</td>
+<td><code>stationary</code> / <code>moving</code> / <code>dst</code> all required keywords</td>
+</tr>
+<tr>
+<td>PSUM → HBM via nl.store</td>
+<td><code>c_sbuf = nl.copy(psum, ...); nl.store(hbm, value=c_sbuf)</code></td>
+<td>Must explicitly allocate SBUF + <code>nisa.tensor_copy(src=psum, dst=sbuf_tile)</code> first</td>
+</tr>
+<tr>
+<td>Tensor-tensor divide</td>
+<td><code>nl.divide(a, b)</code></td>
+<td>Dropped. Use <code>nl.multiply(a, nl.reciprocal(b))</code></td>
+</tr>
+<tr>
+<td>Tensor-tensor broadcast</td>
+<td>Loose broadcasting</td>
+<td>Partition dims must match. <code>(1, 1) ⊕ (P_TILE, 1)</code> rejected by MLIR verifier</td>
+</tr>
+</tbody>
+</table>
+<p>See the <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/migration/nki-0-3-0-update-guide.html">NKI 0.3.0 migration guide</a>
+for the complete list. Trnblas records each change it encountered in its
+CHANGELOG; sister projects should do the same.</p>
+<h2 id="design-discipline">Design discipline<a class="headerlink" href="#design-discipline" title="Permanent link">&para;</a></h2>
+<p>Kernels in the trnsci suite should <strong>exploit Trainium architecture</strong>
+rather than port cuBLAS equivalents. Before designing a new kernel,
+state which of these features it uses:</p>
+<ul>
+<li><strong>Multi-engine pipelining</strong> — Tensor + Vector + Scalar + GPSIMD
+  engines run concurrently.</li>
+<li><strong>Explicit SBUF hierarchy</strong> — keep operands resident across many
+  ops; avoid HBM round-trips.</li>
+<li><strong>Persistent operands</strong> — load once, reuse across many ops.</li>
+<li><strong>PSUM accumulator</strong> — internal <code>accumulate=True</code> path on
+  <code>nc_matmul</code>.</li>
+<li><strong>Fused non-matmul reductions</strong> — patterns with no cuBLAS
+  equivalent.</li>
+</ul>
+<p>If the answer is "this is the NKI version of the cuBLAS call," the
+framing is wrong — rethink what the kernel should be doing.</p>
+<h2 id="suite-coordination">Suite coordination<a class="headerlink" href="#suite-coordination" title="Permanent link">&para;</a></h2>
+<p>trnblas is the first library to land this pattern (Apr 14, 2026).
+Mirror adoption issues tracked in each sister repo. The suite-wide
+coordination issue lives in the umbrella.</p>
 
 
 

@@ -17,6 +17,10 @@
          <lastmod>2026-04-14</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/developing_kernels/</loc>
+         <lastmod>2026-04-14</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/installation/</loc>
          <lastmod>2026-04-14</lastmod>
     </url>
@@ -70,6 +74,10 @@
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/benchmarks/</loc>
+         <lastmod>2026-04-14</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trnblas/developing_kernels/</loc>
          <lastmod>2026-04-14</lastmod>
     </url>
     <url>

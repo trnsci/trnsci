@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/roadmap/">
+        <link rel="canonical" href="https://trnsci.dev/trnblas/developing_kernels/">
       
       
-        <link rel="prev" href="../trainium_positioning/">
+        <link rel="prev" href="../architecture/">
       
       
-        <link rel="next" href="../nki_validation_status/">
+        <link rel="next" href="../design/fused_df_mp2_energy_kernel/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Roadmap - trnsci</title>
+        <title>Developing NKI kernels - trnsci</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#roadmap" class="md-skip">
+        <a href="#developing-nki-kernels" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Roadmap
+              Developing NKI kernels
             
           </span>
         </div>
@@ -195,7 +195,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -214,7 +214,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../why/" class="md-tabs__link">
+      <a href="../../why/" class="md-tabs__link">
         
   
   
@@ -233,7 +233,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../cuda_rosetta/" class="md-tabs__link">
+      <a href="../../cuda_rosetta/" class="md-tabs__link">
         
   
   
@@ -252,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../trainium_positioning/" class="md-tabs__link">
+      <a href="../../trainium_positioning/" class="md-tabs__link">
         
   
   
@@ -269,11 +269,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../../roadmap/" class="md-tabs__link">
         
   
   
@@ -292,7 +290,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../nki_validation_status/" class="md-tabs__link">
+      <a href="../../nki_validation_status/" class="md-tabs__link">
         
   
   
@@ -313,7 +311,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../blog/" class="md-tabs__link">
+        <a href="../../blog/" class="md-tabs__link">
           
   
   
@@ -335,7 +333,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="../../installation/" class="md-tabs__link">
           
   
   
@@ -357,7 +355,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../workflows/integration/" class="md-tabs__link">
+        <a href="../../workflows/integration/" class="md-tabs__link">
           
   
   
@@ -375,6 +373,8 @@
   
   
   
+    
+  
   
     
     
@@ -382,11 +382,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../trnfft/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../trnfft/" class="md-tabs__link">
           
   
   
@@ -409,7 +411,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -444,7 +446,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -474,7 +476,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -501,7 +503,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../why/" class="md-nav__link">
+      <a href="../../why/" class="md-nav__link">
         
   
   
@@ -528,7 +530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../cuda_rosetta/" class="md-nav__link">
+      <a href="../../cuda_rosetta/" class="md-nav__link">
         
   
   
@@ -555,7 +557,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trainium_positioning/" class="md-nav__link">
+      <a href="../../trainium_positioning/" class="md-nav__link">
         
   
   
@@ -579,37 +581,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Roadmap
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
         
   
   
@@ -625,103 +600,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#phase-1-single-chip-correctness" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 1 — Single-chip correctness
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-2-precision-and-numerical-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 2 — Precision and numerical validation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-3-single-chip-performance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 3 — Single-chip performance
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-4-model-parallel-multi-chip" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 4 — Model-parallel multi-chip
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-5-generation-specific-optimization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 5 — Generation-specific optimization
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-each-library-is-today" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where each library is today
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-follow-along" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to follow along
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -733,7 +611,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../nki_validation_status/" class="md-nav__link">
+      <a href="../../nki_validation_status/" class="md-nav__link">
         
   
   
@@ -787,7 +665,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../blog/" class="md-nav__link ">
+            <a href="../../blog/" class="md-nav__link ">
               
   
   
@@ -889,7 +767,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../blog/archive/2026/" class="md-nav__link">
+      <a href="../../blog/archive/2026/" class="md-nav__link">
         
   
   
@@ -983,7 +861,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../blog/category/announcements/" class="md-nav__link">
+      <a href="../../blog/category/announcements/" class="md-nav__link">
         
   
   
@@ -1084,7 +962,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -1112,7 +990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../deployment/" class="md-nav__link">
+      <a href="../../deployment/" class="md-nav__link">
         
   
   
@@ -1207,7 +1085,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../workflows/integration/" class="md-nav__link">
+      <a href="../../workflows/integration/" class="md-nav__link">
         
   
   
@@ -1235,7 +1113,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../workflows/speech_enhancement/" class="md-nav__link">
+      <a href="../../workflows/speech_enhancement/" class="md-nav__link">
         
   
   
@@ -1263,7 +1141,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../workflows/quantum_chemistry/" class="md-nav__link">
+      <a href="../../workflows/quantum_chemistry/" class="md-nav__link">
         
   
   
@@ -1295,8 +1173,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1316,19 +1196,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
         
           
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
             
   
   
@@ -1346,7 +1229,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1388,10 +1271,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -1399,7 +1285,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnfft/" class="md-nav__link ">
+            <a href="../../trnfft/" class="md-nav__link ">
               
   
   
@@ -1417,7 +1303,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -1443,7 +1329,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/installation/" class="md-nav__link">
+      <a href="../../trnfft/installation/" class="md-nav__link">
         
   
   
@@ -1471,7 +1357,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/quickstart/" class="md-nav__link">
+      <a href="../../trnfft/quickstart/" class="md-nav__link">
         
   
   
@@ -1561,7 +1447,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/api/fft/" class="md-nav__link">
+      <a href="../../trnfft/api/fft/" class="md-nav__link">
         
   
   
@@ -1589,7 +1475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/api/complex/" class="md-nav__link">
+      <a href="../../trnfft/api/complex/" class="md-nav__link">
         
   
   
@@ -1617,7 +1503,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/api/nn/" class="md-nav__link">
+      <a href="../../trnfft/api/nn/" class="md-nav__link">
         
   
   
@@ -1645,7 +1531,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/api/nki/" class="md-nav__link">
+      <a href="../../trnfft/api/nki/" class="md-nav__link">
         
   
   
@@ -1681,7 +1567,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/architecture/" class="md-nav__link">
+      <a href="../../trnfft/architecture/" class="md-nav__link">
         
   
   
@@ -1709,7 +1595,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/benchmarks/" class="md-nav__link">
+      <a href="../../trnfft/benchmarks/" class="md-nav__link">
         
   
   
@@ -1793,7 +1679,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/aws_setup/" class="md-nav__link">
+      <a href="../../trnfft/aws_setup/" class="md-nav__link">
         
   
   
@@ -1834,6 +1720,8 @@
                 
   
   
+    
+  
   
   
     
@@ -1865,18 +1753,21 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnblas/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -1894,13 +1785,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_10_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1920,7 +1811,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/installation/" class="md-nav__link">
+      <a href="../installation/" class="md-nav__link">
         
   
   
@@ -1948,7 +1839,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/quickstart/" class="md-nav__link">
+      <a href="../quickstart/" class="md-nav__link">
         
   
   
@@ -2038,7 +1929,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/api/level1/" class="md-nav__link">
+      <a href="../api/level1/" class="md-nav__link">
         
   
   
@@ -2066,7 +1957,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/api/level2/" class="md-nav__link">
+      <a href="../api/level2/" class="md-nav__link">
         
   
   
@@ -2094,7 +1985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/api/level3/" class="md-nav__link">
+      <a href="../api/level3/" class="md-nav__link">
         
   
   
@@ -2122,7 +2013,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/api/nki/" class="md-nav__link">
+      <a href="../api/nki/" class="md-nav__link">
         
   
   
@@ -2158,7 +2049,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/architecture/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
@@ -2183,8 +2074,10 @@
                 
   
   
+    
   
   
+  
     
     
       
@@ -2199,11 +2092,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_6" checked>
         
           
           <label class="md-nav__link" for="__nav_10_2_6" id="__nav_10_2_6_label" tabindex="0">
@@ -2224,7 +2117,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_10_2_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2239,10 +2132,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../trnblas/developing_kernels/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developing NKI kernels
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -2258,6 +2178,98 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#three-dispatch-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three dispatch modes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulator-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simulator workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simulator-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#namespace-nki-is-canonical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Namespace: nki.* is canonical
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#breaking-changes-we-navigated-in-nki-030" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Breaking changes we navigated in NKI 0.3.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-discipline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design discipline
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2334,7 +2346,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+      <a href="../design/fused_df_mp2_energy_kernel/" class="md-nav__link">
         
   
   
@@ -2370,7 +2382,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/benchmarks/" class="md-nav__link">
+      <a href="../benchmarks/" class="md-nav__link">
         
   
   
@@ -2454,7 +2466,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/aws_setup/" class="md-nav__link">
+      <a href="../aws_setup/" class="md-nav__link">
         
   
   
@@ -2530,10 +2542,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -2541,7 +2556,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnrand/" class="md-nav__link ">
+            <a href="../../trnrand/" class="md-nav__link ">
               
   
   
@@ -2559,7 +2574,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -2585,7 +2600,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/installation/" class="md-nav__link">
+      <a href="../../trnrand/installation/" class="md-nav__link">
         
   
   
@@ -2613,7 +2628,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/quickstart/" class="md-nav__link">
+      <a href="../../trnrand/quickstart/" class="md-nav__link">
         
   
   
@@ -2703,7 +2718,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/api/generator/" class="md-nav__link">
+      <a href="../../trnrand/api/generator/" class="md-nav__link">
         
   
   
@@ -2731,7 +2746,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/api/distributions/" class="md-nav__link">
+      <a href="../../trnrand/api/distributions/" class="md-nav__link">
         
   
   
@@ -2759,7 +2774,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/api/quasi/" class="md-nav__link">
+      <a href="../../trnrand/api/quasi/" class="md-nav__link">
         
   
   
@@ -2787,7 +2802,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/api/nki/" class="md-nav__link">
+      <a href="../../trnrand/api/nki/" class="md-nav__link">
         
   
   
@@ -2823,7 +2838,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/architecture/" class="md-nav__link">
+      <a href="../../trnrand/architecture/" class="md-nav__link">
         
   
   
@@ -2909,7 +2924,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+      <a href="../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
         
   
   
@@ -2937,7 +2952,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+      <a href="../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
         
   
   
@@ -2973,7 +2988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/roadmap/" class="md-nav__link">
+      <a href="../../trnrand/roadmap/" class="md-nav__link">
         
   
   
@@ -3001,7 +3016,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/benchmarks/" class="md-nav__link">
+      <a href="../../trnrand/benchmarks/" class="md-nav__link">
         
   
   
@@ -3085,7 +3100,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/aws_setup/" class="md-nav__link">
+      <a href="../../trnrand/aws_setup/" class="md-nav__link">
         
   
   
@@ -3121,7 +3136,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/release/" class="md-nav__link">
+      <a href="../../trnrand/release/" class="md-nav__link">
         
   
   
@@ -3149,7 +3164,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/stability/" class="md-nav__link">
+      <a href="../../trnrand/stability/" class="md-nav__link">
         
   
   
@@ -3209,10 +3224,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -3220,7 +3238,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnsolver/" class="md-nav__link ">
+            <a href="../../trnsolver/" class="md-nav__link ">
               
   
   
@@ -3238,7 +3256,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -3264,7 +3282,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/installation/" class="md-nav__link">
+      <a href="../../trnsolver/installation/" class="md-nav__link">
         
   
   
@@ -3292,7 +3310,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/quickstart/" class="md-nav__link">
+      <a href="../../trnsolver/quickstart/" class="md-nav__link">
         
   
   
@@ -3382,7 +3400,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/api/eigen/" class="md-nav__link">
+      <a href="../../trnsolver/api/eigen/" class="md-nav__link">
         
   
   
@@ -3410,7 +3428,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/api/factor/" class="md-nav__link">
+      <a href="../../trnsolver/api/factor/" class="md-nav__link">
         
   
   
@@ -3438,7 +3456,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/api/iterative/" class="md-nav__link">
+      <a href="../../trnsolver/api/iterative/" class="md-nav__link">
         
   
   
@@ -3466,7 +3484,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/api/nki/" class="md-nav__link">
+      <a href="../../trnsolver/api/nki/" class="md-nav__link">
         
   
   
@@ -3502,7 +3520,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/architecture/" class="md-nav__link">
+      <a href="../../trnsolver/architecture/" class="md-nav__link">
         
   
   
@@ -3530,7 +3548,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/benchmarks/" class="md-nav__link">
+      <a href="../../trnsolver/benchmarks/" class="md-nav__link">
         
   
   
@@ -3614,7 +3632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/aws_setup/" class="md-nav__link">
+      <a href="../../trnsolver/aws_setup/" class="md-nav__link">
         
   
   
@@ -3684,10 +3702,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -3695,7 +3716,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnsparse/" class="md-nav__link ">
+            <a href="../../trnsparse/" class="md-nav__link ">
               
   
   
@@ -3713,7 +3734,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -3739,7 +3760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/installation/" class="md-nav__link">
+      <a href="../../trnsparse/installation/" class="md-nav__link">
         
   
   
@@ -3767,7 +3788,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../../trnsparse/quickstart/" class="md-nav__link">
         
   
   
@@ -3795,7 +3816,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/api/" class="md-nav__link">
+      <a href="../../trnsparse/api/" class="md-nav__link">
         
   
   
@@ -3823,7 +3844,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/architecture/" class="md-nav__link">
+      <a href="../../trnsparse/architecture/" class="md-nav__link">
         
   
   
@@ -3851,7 +3872,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../../trnsparse/migration_scipy/" class="md-nav__link">
         
   
   
@@ -3879,7 +3900,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../../trnsparse/benchmarks/" class="md-nav__link">
         
   
   
@@ -3963,7 +3984,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../../trnsparse/aws_setup/" class="md-nav__link">
         
   
   
@@ -4033,10 +4054,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -4044,7 +4068,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trntensor/" class="md-nav__link ">
+            <a href="../../trntensor/" class="md-nav__link ">
               
   
   
@@ -4062,7 +4086,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -4088,7 +4112,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/installation/" class="md-nav__link">
+      <a href="../../trntensor/installation/" class="md-nav__link">
         
   
   
@@ -4116,7 +4140,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/quickstart/" class="md-nav__link">
+      <a href="../../trntensor/quickstart/" class="md-nav__link">
         
   
   
@@ -4177,7 +4201,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trntensor/api/" class="md-nav__link ">
+            <a href="../../trntensor/api/" class="md-nav__link ">
               
   
   
@@ -4221,7 +4245,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/einsum/" class="md-nav__link">
+      <a href="../../trntensor/api/einsum/" class="md-nav__link">
         
   
   
@@ -4249,7 +4273,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/plan/" class="md-nav__link">
+      <a href="../../trntensor/api/plan/" class="md-nav__link">
         
   
   
@@ -4277,7 +4301,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/decompose/" class="md-nav__link">
+      <a href="../../trntensor/api/decompose/" class="md-nav__link">
         
   
   
@@ -4305,7 +4329,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/quantum/" class="md-nav__link">
+      <a href="../../trntensor/api/quantum/" class="md-nav__link">
         
   
   
@@ -4333,7 +4357,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/nki/" class="md-nav__link">
+      <a href="../../trntensor/api/nki/" class="md-nav__link">
         
   
   
@@ -4369,7 +4393,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/architecture/" class="md-nav__link">
+      <a href="../../trntensor/architecture/" class="md-nav__link">
         
   
   
@@ -4397,7 +4421,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/benchmarks/" class="md-nav__link">
+      <a href="../../trntensor/benchmarks/" class="md-nav__link">
         
   
   
@@ -4481,7 +4505,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/tutorial_df_mp2/" class="md-nav__link">
+      <a href="../../trntensor/tutorial_df_mp2/" class="md-nav__link">
         
   
   
@@ -4573,7 +4597,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/aws_setup/" class="md-nav__link">
+      <a href="../../trntensor/aws_setup/" class="md-nav__link">
         
   
   
@@ -4624,7 +4648,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../contributing/" class="md-nav__link">
+      <a href="../../contributing/" class="md-nav__link">
         
   
   
@@ -4671,10 +4695,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#phase-1-single-chip-correctness" class="md-nav__link">
+  <a href="#three-dispatch-modes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 1 — Single-chip correctness
+        Three dispatch modes
       
     </span>
   </a>
@@ -4682,10 +4706,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-2-precision-and-numerical-validation" class="md-nav__link">
+  <a href="#simulator-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 2 — Precision and numerical validation
+        Simulator workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simulator workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simulator-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#namespace-nki-is-canonical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Namespace: nki.* is canonical
       
     </span>
   </a>
@@ -4693,10 +4745,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-3-single-chip-performance" class="md-nav__link">
+  <a href="#breaking-changes-we-navigated-in-nki-030" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 3 — Single-chip performance
+        Breaking changes we navigated in NKI 0.3.0
       
     </span>
   </a>
@@ -4704,43 +4756,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-4-model-parallel-multi-chip" class="md-nav__link">
+  <a href="#design-discipline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 4 — Model-parallel multi-chip
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#phase-5-generation-specific-optimization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 5 — Generation-specific optimization
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-each-library-is-today" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where each library is today
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-follow-along" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to follow along
+        Design discipline
       
     </span>
   </a>
@@ -4767,36 +4786,141 @@
   
 
 
-<h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
-<p>trnsci develops in five phases. The ordering is intentional — later phases only pay off when earlier ones are solid. Not every sub-project moves through every phase at the same pace; what matters is that a given sub-project has a credible Phase 1 before anyone starts caring about its Phase 3.</p>
-<p>The detailed version of this roadmap, with tracking labels and cross-project dependencies, lives in <a href="https://github.com/trnsci/trnsci/blob/main/ROADMAP.md"><code>ROADMAP.md</code></a> on the umbrella repo.</p>
-<h2 id="phase-1-single-chip-correctness">Phase 1 — Single-chip correctness<a class="headerlink" href="#phase-1-single-chip-correctness" title="Permanent link">&para;</a></h2>
-<p>Every public API runs through a real NKI kernel on a trn1 or trn2 NeuronCore, matching the PyTorch reference within float tolerance. Today, across the suite, the NKI kernels are scaffolded but dispatch falls back to PyTorch. Phase 1 replaces the stubs with real kernels and validates them against published test vectors and cross-library integration demos.</p>
-<p><strong>Data-parallel multi-chip</strong> (replica per chip, embarrassingly parallel) falls out of Phase 1 automatically. No new code beyond a worker loop.</p>
-<h2 id="phase-2-precision-and-numerical-validation">Phase 2 — Precision and numerical validation<a class="headerlink" href="#phase-2-precision-and-numerical-validation" title="Permanent link">&para;</a></h2>
-<p>Trainium's Tensor Engine is FP32-only. For workloads where that matters — quantum chemistry in particular — Phase 2 delivers double-double FP64 emulation, Kahan / Neumaier compensated summation for long reduction chains, and iterative-refinement variants where they beat the eigendecomposition-based approaches.</p>
-<p>Validation targets include DF-MP2 energies to nanohartree tolerance against PySCF, and long-chain FFT round-trips against scipy.</p>
-<p>Not every library needs Phase 2. <code>trnrand</code> is precision-neutral; <code>trnsparse</code> and <code>trntensor</code> inherit their precision story from <code>trnblas</code>.</p>
-<h2 id="phase-3-single-chip-performance">Phase 3 — Single-chip performance<a class="headerlink" href="#phase-3-single-chip-performance" title="Permanent link">&para;</a></h2>
-<p>The NKI path becomes meaningfully faster than the PyTorch fallback and competitive on a per-dollar basis with NVIDIA on vintage-matched instances (A10G vs trn1, H100 vs trn2).</p>
-<p>Work in this phase is per-kernel: tile-shape sweeps, operand-stationarity choices, multi-engine scheduling, operation fusion, NEFF compile-cache reuse, plan and contraction-plan re-execution. Published benchmarks on each sub-project's docs page provide the CPU baseline, the vintage-matched GPU baseline, and the Trainium numbers side-by-side.</p>
-<h2 id="phase-4-model-parallel-multi-chip">Phase 4 — Model-parallel multi-chip<a class="headerlink" href="#phase-4-model-parallel-multi-chip" title="Permanent link">&para;</a></h2>
-<p>Workloads whose tensors exceed a single chip's HBM — large-basis DF-MP2, N &gt; 2^24 FFTs, sparse systems with &gt;1B nonzeros — are sharded across NeuronCores within a chip and chips within an instance.</p>
-<p>This phase introduces sharded tensor abstractions, collective operations, and the dispatch glue that makes model-parallel operation transparent to the library user.</p>
-<p>Cross-instance (EFA-interconnected) multi-chip is a Phase 4 follow-up if demand warrants it.</p>
-<h2 id="phase-5-generation-specific-optimization">Phase 5 — Generation-specific optimization<a class="headerlink" href="#phase-5-generation-specific-optimization" title="Permanent link">&para;</a></h2>
-<p>trn1 (NeuronCore v2) and trn2 (NeuronCore v3) get fast paths that exploit their respective architectural strengths — trn2's larger SBUF, wider PSUM, and FP16 accumulate are the main levers today — without requiring the maintainer to track two separately tuned code paths.</p>
-<p>The common Phase 3 path stays the default. Generation-specific paths are opt-in via backend selection or automatic based on runtime capability detection.</p>
-<h2 id="where-each-library-is-today">Where each library is today<a class="headerlink" href="#where-each-library-is-today" title="Permanent link">&para;</a></h2>
-<p>As of 2026-04-13, two sub-projects have completed Phase 1 correctness: <strong>trnfft</strong> (butterfly + complex GEMM kernels, hardware-validated on trn1.2xlarge in v0.8.0) and <strong>trnblas</strong> (GEMM, SYRK, and fused MP2 energy reduction, hardware-validated with end-to-end DF-MP2 timings). <strong>trnblas</strong> additionally has PySCF validation against real chemistry at nanohartree tolerance on small molecules, which touches Phase 2 territory. <strong>trnsolver</strong> has published CPU baselines against LAPACK and scipy, which sets up Phase 3.</p>
-<p>The remaining four sub-projects — <strong>trnrand</strong>, <strong>trnsolver</strong>, <strong>trnsparse</strong>, <strong>trntensor</strong> — have Phase 1 NKI code scaffolded in their respective <code>nki/dispatch.py</code> modules but have not yet had a hardware-validation run on trn1 / trn2. Closing the validation gap is the immediate next step across those four; progress is tracked in <a href="https://github.com/trnsci/trnsci/issues/1">trnsci/trnsci#1</a>.</p>
-<p>See each sub-project's docs (<code>trnsci.dev/&lt;name&gt;/</code>) for library-specific status.</p>
-<h2 id="how-to-follow-along">How to follow along<a class="headerlink" href="#how-to-follow-along" title="Permanent link">&para;</a></h2>
+<h1 id="developing-nki-kernels">Developing NKI kernels<a class="headerlink" href="#developing-nki-kernels" title="Permanent link">&para;</a></h1>
+<p>trnblas ships five NKI kernels (<code>gemm</code>, <code>batched_gemm</code>, <code>syrk</code>,
+<code>trsm</code>, <code>mp2_energy</code>) in <code>trnblas/nki/dispatch.py</code>. This page is
+for contributors designing / debugging them.</p>
+<h2 id="three-dispatch-modes">Three dispatch modes<a class="headerlink" href="#three-dispatch-modes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Trigger</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PyTorch fallback</strong></td>
+<td><code>HAS_NKI = False</code> (non-Neuron host), or an <code>_nki_*_impl</code> exception gets caught</td>
+<td>Laptops, GPUs, CI's ubuntu-latest — the default for anyone who doesn't have Neuron installed</td>
+</tr>
+<tr>
+<td><strong>NKI hardware</strong></td>
+<td><code>HAS_NKI = True</code> + default env. Kernel runs through <code>torch_xla</code> → NEFF compile → Trainium dispatch</td>
+<td>Real perf numbers, final validation</td>
+</tr>
+<tr>
+<td><strong>NKI simulator</strong></td>
+<td><code>TRNBLAS_USE_SIMULATOR=1</code> + <code>HAS_NKI = True</code>. Kernel runs through <code>nki.simulate(kernel)(numpy_args)</code> on CPU</td>
+<td>Fast correctness iteration during kernel design</td>
+</tr>
+</tbody>
+</table>
+<p>The three modes share the same kernel source: <code>@nki.jit</code>-decorated
+functions inside <code>if HAS_NKI:</code> blocks.</p>
+<h2 id="simulator-workflow">Simulator workflow<a class="headerlink" href="#simulator-workflow" title="Permanent link">&para;</a></h2>
+<p>NKI 0.3.0 Stable (Neuron SDK 2.29, April 2026) ships a CPU simulator
+that runs kernels without Trainium hardware. It collapses the
+iteration loop from ~8–12 min per attempt (instance start + SSM +
+NEFF compile) to seconds — critical for kernel design where each
+new semantic constraint costs one round-trip to discover.</p>
+<p>Run simulator tests on the existing trn1 CI instance:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_simulator_tests.sh
+</code></pre></div>
+<p>Or inline on a Linux x86_64 box that has <code>nki&gt;=0.3.0</code> installed:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">TRNBLAS_USE_SIMULATOR</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-m<span class="w"> </span>nki_simulator<span class="w"> </span>-v
+</code></pre></div>
+<h3 id="simulator-limitations">Simulator limitations<a class="headerlink" href="#simulator-limitations" title="Permanent link">&para;</a></h3>
+<p>From <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/nki.simulate.html"><code>nki.simulate</code> API docs</a>:</p>
 <ul>
-<li>Suite-wide coordination and cross-project dependencies: <a href="https://github.com/trnsci/trnsci/issues">issues on <code>trnsci/trnsci</code></a>.</li>
-<li>Per-library roadmap tracking: labels <code>phase-1-correctness</code> / <code>phase-2-precision</code> / <code>phase-3-perf</code> / <code>phase-4-multichip</code> / <code>phase-5-generation</code> on each sub-project's issue tracker.</li>
-<li>Releases: each library versions independently. Current PyPI versions at <a href="https://pypi.org/project/trnsci/">pypi.org/project/trnsci/</a>.</li>
+<li><strong>No compile.</strong> NKI compiler errors won't surface — kernels that
+  simulate clean can still fail the NEFF compile on hardware.</li>
+<li><strong>Meta-programming mismatch.</strong> The simulator accepts arbitrary
+  Python; the compiler enforces a restricted subset.</li>
+<li><strong>Memory model is loose.</strong> SBUF / PSUM capacity overflows aren't
+  detected; kernels that simulate clean can still OOM the SBUF at
+  runtime.</li>
+<li><strong>No parallelism / latency.</strong> Multi-engine pipelining (TE + VE +
+  Scalar + GPSIMD running concurrently) isn't modelled. Simulator
+  output gives no perf signal.</li>
+<li><strong>Not-implemented simulator APIs:</strong> <code>nki.collectives</code>,
+  <code>local_gather</code>, <code>nc_stream_shuffle</code> with <code>mask=255</code>, <code>nc_matmul_mx</code>,
+  <code>quantize_mx</code>. trnblas uses none of these as of NKI 0.3.0.</li>
 </ul>
+<p><strong>Use the simulator for correctness + constraint iteration. Use
+hardware for perf numbers and final sign-off.</strong></p>
+<h2 id="namespace-nki-is-canonical">Namespace: <code>nki.*</code> is canonical<a class="headerlink" href="#namespace-nki-is-canonical" title="Permanent link">&para;</a></h2>
+<p>NKI 0.3.0 promotes <code>nki.*</code> as the official namespace; the legacy
+<code>neuronxcc.nki.*</code> shim still works in 2.29 but is deprecated.
+trnblas imports exclusively from <code>nki.*</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">nki</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nki.isa</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nisa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nki.language</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nl</span>
+</code></pre></div>
+<p>Minimum dependency: <code>nki&gt;=0.3.0</code> (Neuron SDK 2.29+) — declared in
+the <code>[neuron]</code> extra of <code>pyproject.toml</code>.</p>
+<h2 id="breaking-changes-we-navigated-in-nki-030">Breaking changes we navigated in NKI 0.3.0<a class="headerlink" href="#breaking-changes-we-navigated-in-nki-030" title="Permanent link">&para;</a></h2>
+<p>All kernels migrated. Recorded here so future kernels start correct:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Before (Beta 2)</th>
+<th>After (0.3.0)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Namespace</td>
+<td><code>neuronxcc.nki.*</code></td>
+<td><code>nki.*</code></td>
+</tr>
+<tr>
+<td><code>nc_matmul</code> call</td>
+<td><code>psum[...] += nisa.nc_matmul(a, b)</code> returns tile</td>
+<td><code>nisa.nc_matmul(dst=psum, stationary=a, moving=b, accumulate=True)</code> writes in-place</td>
+</tr>
+<tr>
+<td>Args are keyword-only</td>
+<td>Positional OK</td>
+<td><code>stationary</code> / <code>moving</code> / <code>dst</code> all required kwargs</td>
+</tr>
+<tr>
+<td>PSUM → HBM via nl.store</td>
+<td><code>c_sbuf = nl.copy(psum, ...); nl.store(hbm, value=c_sbuf)</code></td>
+<td><code>dma_copy</code> refuses PSUM source. Use <code>nisa.tensor_copy(src=psum, dst=sbuf_tile)</code> then <code>nl.store(hbm, value=sbuf_tile)</code></td>
+</tr>
+<tr>
+<td>Tensor-tensor <code>nl.divide(a, b)</code></td>
+<td>Supported</td>
+<td>Dropped. Use <code>nl.multiply(a, nl.reciprocal(b))</code></td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/migration/nki-0-3-0-update-guide.html">NKI 0.3.0 migration guide</a>
+for the complete breaking-change list.</p>
+<h2 id="design-discipline">Design discipline<a class="headerlink" href="#design-discipline" title="Permanent link">&para;</a></h2>
+<p>Kernels in trnblas should <strong>exploit Trainium architecture</strong> rather
+than port cuBLAS equivalents. Before designing a new kernel, state
+which of these features it uses:</p>
+<ul>
+<li><strong>Multi-engine pipelining</strong> — Tensor + Vector + Scalar + GPSIMD
+  engines run concurrently. Express dataflow so the compiler can
+  schedule them in parallel.</li>
+<li><strong>Explicit SBUF hierarchy</strong> — 24 MB on-chip, 128 partitions ×
+  192 KB free. Keep operands resident across many ops; avoid HBM
+  round-trips explicitly.</li>
+<li><strong>Persistent operands</strong> — load once, reuse across many ops.</li>
+<li><strong>PSUM accumulator</strong> — 32-bit accumulator tile independent of
+  SBUF, sized for systolic-array output. Use the <code>accumulate=True</code>
+  path on <code>nc_matmul</code> to keep results there.</li>
+<li><strong>Fused non-matmul reductions</strong> — patterns like
+  <code>T * (2T − Tᵀ) / denom .sum()</code> have no cuBLAS equivalent. NKI
+  lets us express them.</li>
+</ul>
+<p>If the answer is "this is the NKI version of the cuBLAS call," the
+framing is wrong — rethink what the kernel should be doing.</p>
 
 
 
@@ -4848,10 +4972,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
