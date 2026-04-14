@@ -45,9 +45,40 @@ Each library carries its own env var mirroring `{LIB}_REQUIRE_NKI`:
 | trnsparse | `TRNSPARSE_USE_SIMULATOR=1` |
 | trntensor | `TRNTENSOR_USE_SIMULATOR=1` |
 
-Each library exposes a runner: `./scripts/run_simulator_tests.sh`.
-Trn1 DLAMI today; ubuntu-latest GH Actions runners planned once the
-`nki` wheel compatibility is confirmed across CI infrastructure.
+Each library exposes a runner: `./scripts/run_simulator_tests.sh`
+(SSM → trn1 DLAMI) **and** a `nki-simulator` CI job on
+`ubuntu-latest` that runs the marked suite on every push + PR.
+Trnblas is the reference implementation; sister libraries adopt the
+job as they land their simulator dispatch.
+
+The GH Actions install line:
+
+```bash
+pip install -e ".[dev]"
+pip install --extra-index-url https://pip.repos.neuron.amazonaws.com "nki>=0.3.0"
+```
+
+Verified: `nki 0.3.0+23928721754` wheel is 15.3 MB, installs on
+`ubuntu-latest` (py 3.12) in ~3 s; full `nki-simulator` job runs in
+under a minute. `torch-neuronx` is **not** needed for the simulator
+path — `nki.simulate` takes NumPy directly and bypasses `torch_xla`.
+
+### What the CI gate catches (and misses)
+
+| Gate | Runner | Catches | Misses |
+|------|--------|---------|--------|
+| `test` matrix | `ubuntu-latest` | Pure-Python correctness against `torch.*` reference. | Anything NKI-kernel-specific. |
+| `nki-simulator` | `ubuntu-latest` | Python trace-level kernel errors: wrong `nc_matmul` kwargs, dropped ops, shape/tile-size mismatches, PSUM→HBM dma_copy refusals. | MLIR verifier errors — simulator explicitly skips compile. Perf. |
+| `neuron` (SSM) | `trn1`/`trn2` | Full NEFF compile + on-hardware execution. MLIR verification. Real perf. | Nothing. |
+
+**On the trnblas NKI 0.3.0 migration, four of five breaking-change
+errors would have surfaced on the `nki-simulator` gate.** The fifth
+(partition-broadcast strictness, MLIR-level) still requires hardware.
+NKI 0.3.0 has **no documented device-free NEFF compile API**:
+`nki.baremetal` requires a Neuron device; `nki.simulate` explicitly
+skips compile. So "simulator on ubuntu-latest + hardware on SSM" is
+the full gate set — there is no CPU-side compile-check layer to add
+between them.
 
 ### Simulator limitations
 
