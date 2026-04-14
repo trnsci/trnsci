@@ -4724,6 +4724,7 @@
 </tbody>
 </table>
 <p>v0.3.0 shipped with the CPU path feature-complete and a stub NKI kernel. v0.4.0 is the Phase 1 ship.</p>
+<p><strong>Phase 1 iteration is no longer hardware-gated.</strong> Neuron SDK 2.29 (April 2026) brought NKI 0.3.0 Stable with a CPU simulator (<code>nki.simulate_kernel</code>); the <code>test-simulator</code> CI job exercises kernel correctness on <code>ubuntu-latest</code> without a trn1 instance. Hardware runs via <code>scripts/run_neuron_tests.sh</code> are now reserved for final real-device validation, not inner-loop iteration.</p>
 <h2 id="package-layout">Package layout<a class="headerlink" href="#package-layout" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>trnsolver/
 ├── eigen.py        # eigh, eigh_generalized

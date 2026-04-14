@@ -4753,20 +4753,27 @@ uniform stream:</p>
 </ul>
 <h2 id="known-gaps">Known gaps<a class="headerlink" href="#known-gaps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>NKI Philox and Box-Muller kernels await on-hardware validation.</strong> Both
-  landed in v0.1.0 with CPU conformance oracles (the three canonical Salmon
-  et al. SC'11 test vectors pass in
-  <code>tests/test_nki_philox.py::TestPhiloxReference::test_spec_vectors</code>). The
-  hardware-gated <code>TestPhiloxNKI</code> suite runs only with <code>neuronxcc</code> available.
-  Tracked on the <a href="https://github.com/trnsci/trnrand/milestone/1">v0.2.0 milestone</a>
-  (#1 Philox, #2 Box-Muller).</li>
-<li><strong>Halton degrades above ~20 dimensions</strong> — known algorithmic limitation.
-  Sobol is preferred for <code>d &gt; 10</code>.</li>
-<li><strong>Quasi-random sequences are host-only.</strong> NKI scrambling for
-  Sobol/Halton is scoped for <a href="../roadmap/">v0.3.0</a> (#11, #12).</li>
-<li><strong>FP32 throughout.</strong> BF16 / FP16 output paths and multi-NeuronCore
-  sharding are v0.4+ candidates (see <a href="../roadmap/">roadmap</a>).</li>
+<li><strong>NKI Philox and Box-Muller kernels await validation.</strong> Both landed in
+  v0.1.0 with CPU conformance oracles (the three canonical Salmon et al.
+  SC'11 test vectors pass in
+  <code>tests/test_nki_philox.py::TestPhiloxReference::test_spec_vectors</code>).
+  Tracked on the <a href="https://github.com/trnsci/trnrand/milestones">v0.3.0 milestone</a>
+  (#1 Philox, #2 Box-Muller, #18 Phase 1).</li>
 </ul>
+<p><strong>Phase 1 iteration is no longer hardware-gated.</strong> Neuron SDK 2.29
+(April 2026) brought NKI 0.3.0 Stable with a CPU simulator
+(<code>nki.simulate_kernel</code>); the <code>test-simulator</code> CI job exercises kernel
+correctness on <code>ubuntu-latest</code> without a trn1 instance. Use
+<code>pytest tests/ -v -m simulator</code> as the <strong>inner loop</strong> for NKI kernel
+development — seconds per iteration, no AWS round-trip. Hardware runs
+via <code>scripts/run_neuron_tests.sh</code> are reserved for final real-device
+validation, not inner-loop iteration.
+- <strong>Halton degrades above ~20 dimensions</strong> — known algorithmic limitation.
+  Sobol is preferred for <code>d &gt; 10</code>.
+- <strong>Quasi-random sequences are host-only.</strong> NKI scrambling for
+  Sobol/Halton is scoped for <a href="../roadmap/">v0.3.0</a> (#11, #12).
+- <strong>FP32 throughout.</strong> BF16 / FP16 output paths and multi-NeuronCore
+  sharding are v0.4+ candidates (see <a href="../roadmap/">roadmap</a>).</p>
 
 
 
