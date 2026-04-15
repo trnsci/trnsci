@@ -108,8 +108,10 @@ Vector Engine primitives, no library calls, no CPU fallback per element.
 
 The scalar `set_backend` API is intentionally minimal — three values
 (`auto`/`pytorch`/`nki`), a global switch, no per-call dispatch overhead.
-The NKI path is not the default and will not be until it is hardware-
-validated.
+A per-call flag would impose a Python-level branch on every sample draw;
+at the sizes where the NKI path pays off, the dispatch decision is made
+once per session, not once per call. The NKI path is not the default and
+will not be until it is hardware-validated.
 
 ## Implementation
 
@@ -179,8 +181,7 @@ reason is in the next section.
 
 ## What didn't work
 
-Three things, two of them algorithmic and one structural. All three are
-the kind of toolchain-feedback content this blog is for.
+Three things, two of them algorithmic and one structural.
 
 **Decomposition attempt #1: 16-bit halves.** Philox needs a 32×32→64
 multiply returning both halves (`hi`, `lo`). NKI 0.3.0 has no int64,
@@ -224,8 +225,9 @@ The concrete failure: for input `a = 0x7FFFFFFF` and multiplier
 (`0x692B6AE8`). The kernel returns `1764265856` (`0x692B6AC0`) — low
 six bits clobbered. For inputs with the MSB set (`0x80000000`,
 `0xFFFFFFFF`, `0xD2511F53`), the output is `0x80000000` outright:
-the NaN-cast sentinel. Distribution mean of the Philox output on
-trn1 is 0.31 vs the expected 0.5.
+the NaN-cast sentinel.
+
+**Distribution mean of the Philox output on trn1 is 0.31 vs the expected 0.5.**
 
 This is tracked upstream as
 [aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308).
