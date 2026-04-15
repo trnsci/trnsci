@@ -5217,6 +5217,15 @@ across three of them:</p>
   consumed by the next stage."</p>
 </li>
 </ul>
+<pre class="mermaid"><code>flowchart LR
+  CTR[("Counter&lt;br/&gt;(P, 1) uint32")]
+  GPS["GpSimd&lt;br/&gt;Philox 4×32-10&lt;br/&gt;10 rounds"]
+  U[("Uniform&lt;br/&gt;uint32 stream")]
+  VE["Vector Engine&lt;br/&gt;Box-Muller&lt;br/&gt;cos / sin / log / sqrt"]
+  N[/"Normals&lt;br/&gt;SBUF-resident"/]
+  DS["Downstream&lt;br/&gt;(trnfft STFT noise,&lt;br/&gt;trnblas stochastic trace)"]
+  CTR --&gt; GPS --&gt; U --&gt; VE --&gt; N
+  N -.no HBM round-trip.-&gt; DS</code></pre>
 <p>Philox was chosen specifically because it is stateless: outputs are a pure
 function of <code>(counter, key)</code>. Partition-axis splitting on Trainium's 128-
 lane tile is then trivially correct — lane <code>i</code> gets counter range <code>[i·N,
@@ -5291,6 +5300,16 @@ validated.</p>
 <p>Every scalar fed into a Vector Engine op (the <code>1e-10</code> clamp, the <code>-2.0</code>,
 the <code>2π</code>) is materialized as a <code>(P, 1)</code> vector-immediate up front. The
 reason is in the next section.</p>
+<div class="admonition info">
+<p class="admonition-title">Why the next section exists</p>
+<p>The full curated NKI test suite runs in <strong>~7 seconds on
+<code>ubuntu-latest</code></strong> via <code>TRNRAND_USE_SIMULATOR=1 pytest -m nki_simulator</code>,
+versus <strong>~2 minutes</strong> for the equivalent hardware path (SSM round-trip
++ cold NEFF compile on trn1.2xlarge) — about <strong>17× faster iteration</strong>.
+Without it, two failed decompositions plus a precision-loss trace
+would have been several hours of hardware time rather than a single
+afternoon.</p>
+</div>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
 <p>Three things, two of them algorithmic and one structural. All three are
 the kind of toolchain-feedback content this blog is for.</p>
@@ -5354,30 +5373,39 @@ the "why every scalar is an <code>nl.full</code>" pattern visible in the snippet
 above. Tracked in
 <a href="https://github.com/trnsci/trnrand/issues/2">trnrand#2</a>.</p>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>There are no hardware speed numbers worth publishing yet, for the
-reason in the section above — the kernel runs, but the output is
-wrong until aws-neuron-sdk#1308 lands. This section inverts the
-usual blog-post ordering and leads with correctness instead. Three
-concrete numbers from 0.3.0:</p>
-<ul>
-<li><strong>CPU reference: Salmon SC'11 test vectors, 3/3 exact.</strong> The
-  <code>philox4x32_reference</code> path in <code>trnrand.nki.dispatch</code> matches all
-  three published test vectors from Salmon et al., SC'11 bit-exactly.
-  This is the oracle the NKI kernel is validated <em>against</em>.</li>
-<li><strong>CPU reference: 100,000-sample mean 0.5000 ± 0.01, variance 1/12
-  ± 0.005.</strong> Distributional tests in
-  <code>tests/test_nki_philox.py::TestPhiloxReference</code>.</li>
-<li><strong>NKI kernel: simulator 4/6 xfail, hardware 3/3 fail.</strong> All
-  attributable to aws-neuron-sdk#1308. No speedup number to report
-  until that lands.</li>
-</ul>
-<p>One cost number worth calling out: the CPU simulator loop
-(<code>TRNRAND_USE_SIMULATOR=1 pytest -m nki_simulator</code>) runs the full
-curated NKI test suite in <strong>~7 seconds on <code>ubuntu-latest</code></strong>. The
-equivalent hardware run via SSM on trn1.2xlarge costs ~2 minutes
-(cold NEFF compile + SSM round-trip) — about 17× slower. That's
-the "seconds per cycle vs minutes on hardware" number, and it's why
-the bug above was trackable at all.</p>
+<p>No hardware speed numbers worth publishing yet — see above for why.
+What's verifiable today:</p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th>Value</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Salmon SC'11 test vectors, CPU reference</td>
+<td>3 / 3 exact</td>
+<td><code>tests/test_nki_philox.py::TestPhiloxReference</code></td>
+</tr>
+<tr>
+<td>100k-sample uniform, CPU reference</td>
+<td>mean 0.5000 ± 0.01, var 1/12 ± 0.005</td>
+<td>same file, distributional tests</td>
+</tr>
+<tr>
+<td>NKI kernel on simulator</td>
+<td>4 / 6 xfail (aws-neuron-sdk#1308)</td>
+<td><code>tests/test_nki_sim.py</code></td>
+</tr>
+<tr>
+<td>NKI kernel on trn1 hardware</td>
+<td>3 / 3 fail (same root cause)</td>
+<td><code>tests/test_nki_philox.py::TestPhiloxNKI</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <p>Two tracks, one external and one internal.</p>
 <ul>
