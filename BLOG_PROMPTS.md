@@ -363,6 +363,65 @@ Categories: [Deep dive, trntensor].
 
 ---
 
+## Revision-pass kickoff template
+
+Use this shape when asking a sub-project agent to take a second editorial pass on an already-published post — e.g., after an editorial-standard update (new cap, new voice directives, new visuals expectation) or after reader feedback.
+
+Instantiate the placeholders for each library from the actual post URL, measured word count, and the specific editorial asks from the most recent review.
+
+```
+Time for an editorial revision pass on the <library> <post-topic> post.
+
+Live: https://trnsci.dev/blog/<slug>/
+
+Current state: <N> words. The brief sets a 2,000-word HARD cap; you're
+<M> over / under. <Trim or split / modest trim / no length work needed>.
+
+What's new in the brief since you drafted (please re-read
+https://trnsci.dev/blog/AUTHOR_BRIEF/):
+
+  - <new-directive-1> (e.g., 'Voice — fair, objective, self-effacing,
+    lightly funny when warranted' section operationalizing the suite
+    voice)
+  - <new-directive-2> (e.g., visuals-as-cap-mechanism reframe —
+    diagrams and tables substitute for trimmed prose, not decorate
+    on top of trimmed prose)
+  - 2,000-word hard cap, measured at editor review.
+
+Visuals are the primary mechanism for absorbing the trim. Before
+deleting sentences, ask 'what diagram or table carries this idea
+instead?' The brief's substitution hierarchy: architecture/dataflow
+→ Mermaid diagram (saves 100-300 words); cross-platform comparison
+→ table (saves 200+); dispatch logic → admonition block; step
+process → numbered list with excerpts.
+
+For <library> specifically, the diagrams likely to carry their weight:
+
+  - <post-specific-diagram-1> (e.g., for trnsparse: CSR-vs-BSR
+    contrast showing why the 128-tile is the native sparse primitive)
+  - <post-specific-diagram-2> (e.g., for trntensor: cuTENSOR
+    per-contraction-plan model vs trntensor fused-DAG-in-one-NKI-
+    program model)
+
+Specific editorial asks from the most recent review:
+
+  - <review-ask-1>
+  - <review-ask-2>
+  - <review-ask-3>
+
+PR only. Open against trnsci/trnsci on a new branch (e.g.
+blog-<library>-revisions). Do not push to main. I review and merge.
+```
+
+**Rules of thumb when instantiating:**
+
+- If the post is under the cap, say so explicitly and skip the trim language — don't invent length work where none is needed.
+- If the post is over the cap by <10%, frame as 'modest trim'. If over by ≥25%, frame as 'trim or split' and suggest a natural seam.
+- Name specific diagram opportunities per post; generic "add diagrams" is weaker than "a Mermaid of <specific architectural contrast> would do the most work here."
+- Keep the specific editorial asks section to 3–5 bullets; more than that and the agent starts missing items.
+
+---
+
 ## Editorial templates (for Scott)
 
 ### Monthly suite digest
