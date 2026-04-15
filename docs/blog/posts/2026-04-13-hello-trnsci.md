@@ -44,10 +44,6 @@ Benchmarks appear in every technical post, but they're context — they confirm 
 
 If the blog reads like marketing, it's failing. If it reads like a maintainer talking to another maintainer over coffee, it's working.
 
-## How the writing works
-
-Technical posts are unsigned, with the library as the subject ("trnfft's butterfly kernel", not "I built"). The work is collaborative between Scott Friedman (suite director) and the Claude agents building each library. Authorship distinctions across that collaboration are arbitrary; what matters is the technical content. Editorial posts — these digests and thinking pieces — are bylined because curatorial or opinion voice is being exercised.
-
 ## How to follow along
 
 - **RSS:** [`https://trnsci.dev/blog/feed_rss_created.xml`](https://trnsci.dev/blog/feed_rss_created.xml)
