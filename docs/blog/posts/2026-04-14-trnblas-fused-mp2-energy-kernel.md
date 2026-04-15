@@ -7,12 +7,12 @@ comments: true
 # trnblas: fusing DF-MP2 energy reduction into one NKI kernel
 
 trnblas v0.4.0 shipped hardware-validated NKI kernels for GEMM, SYRK,
-and a fused MP2 energy reduction on trn1, with end-to-end density-fitted
-MP2 matching PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at
-cc-pVDZ. The interesting story isn't the GEMM. It's the fused energy
-kernel — a single NKI pass that holds the contraction, the orbital-
-denominator division, and the scalar sum-reduction SBUF-resident, and
-how the choice to build it looks nothing like a cuBLAS port.
+and a fused MP2 energy reduction on trn1. End-to-end density-fitted MP2
+matches PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at cc-pVDZ.
+The interesting story isn't the GEMM. It's the fused energy kernel — a
+single NKI pass that holds the contraction, the orbital-denominator
+division, and the scalar sum-reduction SBUF-resident, and how the choice
+to build it looks nothing like a cuBLAS port.
 
 <!-- more -->
 
@@ -103,15 +103,12 @@ is that design made concrete:
   express at all — `Δ` is not a matrix product, just an outer-sum
   of three small vectors.
 - **Free-dim sum reduces each strip.** The result is `(P_TILE, 1)`
-  per strip. Strips across the virtual-orbital range accumulate
-  into an SBUF `(P_TILE, NSTRIP)` tile and reduce to `(P_TILE, 1)`
-  after the strip loop. One HBM store per `(i, j)` pair — not per
-  strip.
-- **Partition-axis reduce happens host-side.** NKI does not support
-  reduction along the partition dim, so the caller does one final
-  `.sum()` on the `(P_TILE, IC, NOCC)` partial. The partial is tiny
-  (≤ 258 KB at the large bench shape), and host-side reduction is
-  noise.
+  per strip. Strips accumulate into an SBUF `(P_TILE, NSTRIP)` tile
+  and reduce to `(P_TILE, 1)` after the strip loop — one HBM store
+  per `(i, j)` pair, not per strip. NKI can't reduce along the
+  partition dim, so the caller does one final `.sum()` on the tiny
+  `(P_TILE, IC, NOCC)` partial (≤ 258 KB at the large bench shape;
+  host-side noise).
 
 ```mermaid
 flowchart LR
@@ -318,12 +315,9 @@ Phase tracker: [trnsci ROADMAP](https://trnsci.dev/roadmap/).
 
 The fused MP2 energy kernel is what happens when a library takes
 Trainium's architecture seriously instead of porting cuBLAS
-primitives one-to-one. The whole `T * (2T − Tᵀ) / Δ + sum`
-expression is one kernel, one NEFF, one dispatch per `(i, j)` pair,
-with every intermediate SBUF-resident. cuBLAS cannot express this
-shape — not because it's hard, but because cuBLAS's primitive is
-matrix products, and this expression isn't one. NKI's whole-program
-DAG compilation is what makes "one kernel per pair" the natural
-unit of work on Trainium. Phase 1's measurable win is smaller than
-the kernel's design target (1.48× vs the 3× minimum), and that gap
-is documented and queued as the Phase 3 concrete next step.
+primitives one-to-one. One kernel, one NEFF, one dispatch per pair,
+every intermediate SBUF-resident. cuBLAS can't express this — not
+because it's hard, but because its primitive is matrix products and
+this expression isn't one. Phase 1's measurable win (1.48×) is
+smaller than the 3× design target; the gap is documented and queued
+as Phase 3 work.
