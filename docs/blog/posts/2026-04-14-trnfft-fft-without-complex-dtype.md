@@ -6,7 +6,7 @@ comments: true
 
 # trnfft: FFT on hardware that doesn't want to be an FFT engine
 
-[trnfft](https://trnsci.dev/trnfft/) shipped its first hardware-validated NKI kernels in v0.8.0, and what landed on trn1.2xlarge looks very little like cuFFT. There is no complex dtype, no thread-per-butterfly, and no bit-reversal permutation in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.
+Between v0.7 and v0.12, [trnfft](https://trnsci.dev/trnfft/)'s NKI story moved from one per-row butterfly dispatch into a batched butterfly + fused DFT-as-GEMM stack with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be. Readers evaluating Trainium for spectral workloads or maintaining sibling NKI libraries will find the architectural framing directly portable.
 
 <!-- more -->
 
@@ -130,11 +130,9 @@ v0.7.0 ran the butterfly kernel in a Python for-loop over batch rows — one ker
 
 The batched/STFT columns are where the architectural thesis paid off. DFT-GEMM at `(B = 32, N = 256)` collapses the entire batch into one `nisa.nc_matmul` — the partition-dim finally saturates, and the per-batch cost drops 12–14× against the butterfly chain. `torch.fft.fft` on the x86 bench host (running MKL) is still faster than Trainium for isolated one-shot FFT calls — 10–80 μs cold, roughly 50–300× lower than the NKI path. The architectural story isn't "beat MKL on cold calls"; it's "keep data on-chip across long operator chains".
 
-The Kahan butterfly compiles on NKI 2.24.5133.0 and agrees with the stock butterfly at FP32 rtol on the full 17-test neuron suite. Whether the 2Prod compensation *actually* reduces FP32 FFT error on Trainium is a measurement question tracked as issue #58.
-
 ## What's next
 
-- **Phase 2 #52 — Kahan / Neumaier summation for long Bluestein chains.** Partial delivery in v0.11.0 (precision-modes API + compensated butterfly). On-silicon characterization of the kahan benefit is tracked as #58.
+- **Phase 2 #52 — Kahan / Neumaier summation for long Bluestein chains.** Partial delivery in v0.11.0 (precision-modes API + compensated butterfly kernel). The Kahan butterfly compiles on NKI 2.24.5133.0 and agrees with the stock kernel at FP32 rtol across the 17-test neuron suite; whether the 2Prod compensation *actually* reduces FP32 FFT error on silicon is the measurement question still open in issue #58.
 - **Thread B — Stockham radix-4 (v0.13 candidate).** A POC kernel shipped this week, CPU reference + NKI port green under the CPU simulator. 5 kernel launches at N = 1024 vs 10 for butterfly, and log₄(N) fp32 accumulation vs the O(N²) ceiling that caps DFT-GEMM at N = 256. Hardware validation pending an AWS DLAMI with Neuron SDK 2.29.
 - **Phase 3 #53 — perf.** Plan reuse across shapes, streaming large FFTs that exceed HBM, NEFF cache hit-rate instrumentation.
 - **Phase 4 #54 — multi-chip FFT for N > 2²⁰** via cross-core collectives.
