@@ -159,7 +159,19 @@ Slug and filename: `docs/blog/posts/<YYYY-MM-DD>-<short-slug>.md`. Keep slugs sh
 
 ## Tables, diagrams, and visual aids
 
-Wall-of-text retrospectives are intimidating. Use visuals where they earn their keep — a 200-word paragraph that becomes a 6-row table is almost always a win for the reader.
+**Visuals are the primary mechanism for staying under the 2,000-word cap without losing architectural content.** They aren't decoration on top of trimmed prose — they substitute for it. When you're tempted to trim a sentence, the right question is usually "what diagram or table carries this idea instead?" The answer is often "one image saves five sentences."
+
+Rough substitution hierarchy:
+
+| Content type | Visual that dominates the prose alternative | Words saved |
+|---|---|---|
+| Architecture / dataflow ("data flows from X to Y to Z") | Mermaid diagram | 100–300 |
+| Cross-platform / cross-shape comparison ("at size N, NKI takes T, scipy takes T'") | Markdown table | 200+ |
+| API surface / dispatch logic ("if shape qualifies, route to N; else fall back to F") | Bullet list or admonition block | 50–150 |
+| Step-by-step process ("first the kernel does X, then Y, then Z") | Numbered list with code excerpts | 100+ |
+| Architectural contrast (cuTENSOR plan model vs trntensor fused-DAG model) | Side-by-side mermaid or two-column table | 200–400 |
+
+A post that comes in at 2,200 words usually has 200 words of "this then this then this" prose where a single Mermaid block would have done the same work in fewer reader-seconds. The cap and the diagram standard are the same standard from two angles.
 
 **Tables.** Standard markdown tables work everywhere. Use them for: benchmark results, per-shape comparisons, NKI-vs-CPU-vs-other-platform numbers, before/after diffs of a tradeoff, mapping a sub-project's APIs to their cuX analogs. Honest tables — including rows where the project loses — are credibility-positive.
 

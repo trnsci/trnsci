@@ -22,12 +22,13 @@ This was buried at the end of earlier prompts and got skipped by three of six ag
 
 Professional and specific, not bitter. Readers evaluating Trainium benefit more from that candor than from a post that pretends everything was smooth. See the brief for the detailed stance on both.
 
-## Voice and length — checked at editorial review
+## Voice, length, and visuals — checked at editorial review
 
-Two non-negotiable constraints on every post:
+Three non-negotiable constraints on every post:
 
 - **Voice:** fair, objective, self-effacing, lightly funny when warranted. Maintainer-talking-to-maintainer-over-coffee, not marketing-speak. Editorial review enforces this; posts that read as triumph-narrative or as point-scoring against alternatives get sent back with specific edits. Full guidance in the [author brief](https://trnsci.dev/blog/AUTHOR_BRIEF/) under "Voice — fair, objective, self-effacing, lightly funny when warranted."
-- **Length:** **2,000 words hard cap.** Working range 1,200–2,000. The editor measures word count at review time. Drafts over 2,000 must split into two posts before merge — the second post is usually stronger than the half-trimmed single post.
+- **Length:** **2,000 words hard cap.** Working range 1,200–2,000. The editor measures word count at review time. Drafts over 2,000 must split into two posts before merge.
+- **Visuals are how you stay under the cap.** They aren't decoration on top of trimmed prose — they substitute for it. A Mermaid diagram replaces 100–300 words of "data flows from X to Y to Z" prose; a markdown table replaces 200+ words of "at size N, A takes T, B takes T'" prose. When you're tempted to trim a sentence, the right question is usually "what diagram or table carries this idea instead?" Brief covers the substitution hierarchy in detail.
 
 ---
 
