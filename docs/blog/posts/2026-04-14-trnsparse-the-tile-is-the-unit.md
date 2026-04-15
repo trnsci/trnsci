@@ -98,7 +98,11 @@ Backward runs at the PyTorch level. The mask (which blocks exist) is non-differe
 
 This is the richest section of the post, because several things went sideways in instructive ways.
 
-**v0.2.0's benchmark numbers were worse than planning assumed.** The expectation was "dense-materialization will be slower at low densities, but the high-N dispatch win narrows the gap." The measured gap at 1024×1024 / density 0.01 / N=128 was scipy at 257 μs against trnsparse NKI at 2212 μs. The reason turned out to be dispatch overhead, not arithmetic — NKI times are roughly constant at 1.3–2.5 ms across all configurations, because the Neuron dispatch + HBM round-trip floor is flat and big. The [full benchmark table](https://trnsci.dev/trnsparse/benchmarks/) ships with all the entries where NKI loses by 100×. None were removed before release.
+**v0.2.0's benchmark numbers were worse than planning assumed.** The expectation going in was "dense-materialization will be slower at low densities, but the high-N dispatch win narrows the gap."
+
+The measured gap at 1024×1024 / density 0.01 / N=128: **scipy at 257 μs, trnsparse NKI at 2212 μs.**
+
+The reason turned out to be dispatch overhead, not arithmetic — NKI times are roughly constant at 1.3–2.5 ms across all configurations tested, because the Neuron dispatch + HBM round-trip floor is flat and big. The [full benchmark table](https://trnsci.dev/trnsparse/benchmarks/) ships with all the entries where NKI loses by 100×. None were removed before release.
 
 **CG-in-kernel isn't buildable on NKI 2.24/0.3.0.** [#24](https://github.com/trnsci/trnsparse/issues/24) was filed early as the v0.4.0 architectural follow-up: a fused Conjugate Gradient kernel with `A` SBUF-resident across all `max_iter` iterations, x/r/p cycled inside the kernel. This was the story. The audit that killed it found three hard walls: `nl.affine_range` has no `break`/`continue`, so no in-kernel convergence exit; no iteration-carried scalar state across `affine_range` levels (documented in the `trnblas _mp2_energy_kernel` source at `dispatch.py:586-588` as "`in-place += across affine_range hits NKI's 'Unexpected output dependencies'`"); and no nested kernel calls, so the BSR matvec would have to be inlined rather than invoked. #24 is closed as not-buildable in current NKI. An honest close comment explains the reframe and leaves the door open for a future NKI release that adds persistent SBUF across calls, at which point the full loop-in-kernel design becomes reachable again. What shipped instead was v0.3.2 `cg_bsr` — Python-loop around the existing `bsr_spmm` matvec, correct and differentiable but without the SBUF-resident win.
 
@@ -108,7 +112,9 @@ This is the richest section of the post, because several things went sideways in
 
 **Simulator coverage is narrower than the headline suggests.** The [NKI 0.3.0 simulator write-up](https://trnsci.dev/blog/the-dev-loop-just-got-a-lot-shorter/) covers this in detail; the trnsparse-specific note is that `nki.simulate` catches Python-layer errors but not MLIR verifier errors, so hardware CI stays load-bearing for anything touching partition-dim broadcasting or shared-memory barriers. A device-free NEFF compile entry point would close this gap; a concrete request for the Neuron team.
 
-**Candid fit-assessment.** Trainium is well-indexed for dense-GEMM-heavy training — its original motivating workload. trnsparse's Fock-build and block-sparse attention cases are a decent fit because they're block-dense at 128×128. Truly irregular sparse matmul (random CSR at density 0.001, highly variable nnz per row) is a shape mismatch with the silicon, not a library limitation. When a workload doesn't fit BSR — graph neural networks over non-uniform adjacency, for instance — the library recommends the `torch.sparse` fallback, not the NKI path. A future silicon generation that exposes indirect DMA gather would unblock a real gather-matmul-scatter path; that's a concrete hardware request.
+## Fit — where BSR works and where it doesn't
+
+Trainium is well-indexed for dense-GEMM-heavy training — its original motivating workload. trnsparse's Fock-build and block-sparse attention cases are a decent fit because they're block-dense at 128×128. Truly irregular sparse matmul (random CSR at density 0.001, highly variable nnz per row) is a shape mismatch with the silicon, not a library limitation. When a workload doesn't fit BSR — graph neural networks over non-uniform adjacency, for instance — the library recommends the `torch.sparse` fallback, not the NKI path. A future silicon generation that exposes indirect DMA gather would unblock a real gather-matmul-scatter path; that's a concrete hardware request.
 
 ## Numbers
 
