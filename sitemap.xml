@@ -65,6 +65,10 @@
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/2026/04/14/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/</loc>
+         <lastmod>2026-04-15</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
@@ -382,6 +386,14 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/ecosystem/</loc>
+         <lastmod>2026-04-15</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/deep-dive/</loc>
+         <lastmod>2026-04-15</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/trnblas/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>

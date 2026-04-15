@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://trnsci.dev/blog/archive/2026/">
       
       
-        <link rel="prev" href="../../category/ecosystem/">
+        <link rel="prev" href="../../category/trnblas/">
       
       
         <link rel="next" href="../../../installation/">
@@ -829,6 +829,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -916,6 +920,36 @@
   
   
     <li class="md-nav__item">
+      <a href="../../category/deep-dive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deep dive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
       <a href="../../category/ecosystem/" class="md-nav__link">
         
   
@@ -924,6 +958,36 @@
     
   
     Ecosystem
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../category/trnblas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    trnblas
   
 
     
@@ -4870,6 +4934,56 @@
     
       <nav class="md-post__action">
         <a href="../../2026/04/14/the-dev-loop-just-got-a-lot-shorter/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../../category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="../../category/trnblas/" class="md-meta__link">trnblas</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              10 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel"><a class="toclink" href="../../2026/04/14/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">trnblas: fusing DF-MP2 energy reduction into one NKI kernel</a></h2>
+<p>trnblas v0.4.0 shipped hardware-validated NKI kernels for GEMM, SYRK,
+and a fused MP2 energy reduction on trn1, with end-to-end density-fitted
+MP2 matching PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at
+cc-pVDZ. The interesting story isn't the GEMM. It's the fused energy
+kernel — a single NKI pass that holds the contraction, the orbital-
+denominator division, and the scalar sum-reduction SBUF-resident, and
+how the choice to build it looks nothing like a cuBLAS port. This post
+is for anyone curious about what Trainium's whole-program compilation
+model affords that per-call GEMM libraries cannot express.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../2026/04/14/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">
           Continue reading
         </a>
       </nav>
