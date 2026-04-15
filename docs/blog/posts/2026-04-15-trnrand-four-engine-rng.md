@@ -230,9 +230,11 @@ above. Tracked in
 
 ## Numbers
 
-Correctness numbers are what matter here, and there are no hardware
-speed numbers worth publishing yet because the hardware output is
-wrong. Three concrete numbers from 0.3.0:
+There are no hardware speed numbers worth publishing yet, for the
+reason in the section above — the kernel runs, but the output is
+wrong until aws-neuron-sdk#1308 lands. This section inverts the
+usual blog-post ordering and leads with correctness instead. Three
+concrete numbers from 0.3.0:
 
 - **CPU reference: Salmon SC'11 test vectors, 3/3 exact.** The
   `philox4x32_reference` path in `trnrand.nki.dispatch` matches all
