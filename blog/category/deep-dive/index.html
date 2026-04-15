@@ -5112,7 +5112,7 @@ gap that stands between the current state and hardware-validated Philox.</p>
           
           <li class="md-meta__item">
             
-              10 min read
+              9 min read
             
           </li>
         
@@ -5129,9 +5129,7 @@ MP2 matching PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at
 cc-pVDZ. The interesting story isn't the GEMM. It's the fused energy
 kernel — a single NKI pass that holds the contraction, the orbital-
 denominator division, and the scalar sum-reduction SBUF-resident, and
-how the choice to build it looks nothing like a cuBLAS port. This post
-is for anyone curious about what Trainium's whole-program compilation
-model affords that per-call GEMM libraries cannot express.</p>
+how the choice to build it looks nothing like a cuBLAS port.</p>
 
     
       <nav class="md-post__action">
@@ -5162,7 +5160,7 @@ model affords that per-call GEMM libraries cannot express.</p>
           
           <li class="md-meta__item">
             
-              10 min read
+              8 min read
             
           </li>
         
@@ -5173,7 +5171,7 @@ model affords that per-call GEMM libraries cannot express.</p>
   </header>
   <div class="md-post__content md-typeset">
     <h2 id="trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine"><a class="toclink" href="../../trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">trnfft: FFT on hardware that doesn't want to be an FFT engine</a></h2>
-<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly + fused DFT-as-GEMM stack with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be. Readers evaluating Trainium for spectral workloads or maintaining sibling NKI libraries will find the architectural framing directly portable.</p>
+<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.</p>
 
     
       <nav class="md-post__action">
@@ -5246,7 +5244,7 @@ model affords that per-call GEMM libraries cannot express.</p>
           
           <li class="md-meta__item">
             
-              11 min read
+              9 min read
             
           </li>
         
@@ -5257,7 +5255,7 @@ model affords that per-call GEMM libraries cannot express.</p>
   </header>
   <div class="md-post__content md-typeset">
     <h2 id="trnsparse-the-tile-is-the-unit-not-the-nonzero"><a class="toclink" href="../../trnsparse-the-tile-is-the-unit-not-the-nonzero/">trnsparse: the tile is the unit, not the nonzero</a></h2>
-<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0 last week, and the benchmark table was publicly worse than scipy across every configuration that was run. That's not a failure — it's the piece of evidence that led to the reframe that v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. This post is the retrospective — what shipped, what the numbers actually said, and why the honest story is that the CUDA sparse playbook is the wrong starting point for this hardware.</p>
+<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0, and the benchmark table was publicly worse than scipy across every configuration. That's not a failure — it's the evidence that led to the reframe v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. The CUDA sparse playbook is the wrong starting point for this hardware.</p>
 
     
       <nav class="md-post__action">

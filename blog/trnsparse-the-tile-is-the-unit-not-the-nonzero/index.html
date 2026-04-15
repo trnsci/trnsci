@@ -5039,50 +5039,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#fit-where-bsr-works-and-where-it-doesnt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fit — where BSR works and where it doesn't
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#numbers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Numbers
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What's next
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#takeaway" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Takeaway
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -5143,7 +5099,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              11 min read
+                              9 min read
                             
                           </span>
                         </div>
@@ -5171,30 +5127,37 @@
 
 
 <h1 id="trnsparse-the-tile-is-the-unit-not-the-nonzero">trnsparse: the tile is the unit, not the nonzero<a class="headerlink" href="#trnsparse-the-tile-is-the-unit-not-the-nonzero" title="Permanent link">&para;</a></h1>
-<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0 last week, and the benchmark table was publicly worse than scipy across every configuration that was run. That's not a failure — it's the piece of evidence that led to the reframe that v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. This post is the retrospective — what shipped, what the numbers actually said, and why the honest story is that the CUDA sparse playbook is the wrong starting point for this hardware.</p>
+<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0, and the benchmark table was publicly worse than scipy across every configuration. That's not a failure — it's the evidence that led to the reframe v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. The CUDA sparse playbook is the wrong starting point for this hardware.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p><a href="https://trnsci.dev/trnsparse/">trnsparse</a> is trnsci's cuSPARSE-equivalent: CSR and COO formats, SpMV, SpMM, integral screening for quantum chemistry. The workloads that motivate it — Schwarz-screened Fock builds, block-structured Hamiltonians, graph Laplacians, block-sparse attention — share an awkward property. They are <em>sparse</em> in a general sense (most entries are zero), but the distribution of those zeros is almost never uniform. Fock matrices after Schwarz screening are dense in diagonal blocks and sparse off-diagonal. FEM stiffness matrices track mesh connectivity. Block-sparse transformer attention is a structured mask.</p>
-<p>cuSPARSE handles all of this with a CSR-native design: row pointers, column indices, scalar values, a bag of kernels tuned for a GPU's ability to do arbitrary-pattern indirect gather cheaply. Thousands of threads each chasing one pointer is what GPU memory hierarchies are built for. A naive port of that design to Trainium is where trnsparse started, and where the numbers told it to stop.</p>
+<p><a href="https://trnsci.dev/trnsparse/">trnsparse</a> is trnsci's cuSPARSE-equivalent: CSR/COO, SpMV, SpMM, integral screening for quantum chemistry. The motivating workloads — Schwarz-screened Fock builds, block-structured Hamiltonians, FEM stiffness, block-sparse attention — are sparse, but the zeros are almost never uniformly distributed. They're structured: dense in blocks, sparse between blocks.</p>
+<p>cuSPARSE handles this with a CSR-native design tuned for a GPU's cheap arbitrary-pattern indirect gather. Thousands of threads each chasing one pointer is what GPU memory hierarchies are built for. A naive port of that design to Trainium is where trnsparse started, and where the numbers told it to stop.</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p>Trainium's Tensor Engine is a 128-partition × 512-moving systolic array. <code>nisa.nc_matmul</code> is the hot op, and it operates on a tile — partition dim ≤ 128 on the stationary operand, free dim ≤ 512 on the moving operand. A single <code>nc_matmul</code> is a dense 128×K×N multiply. The DMA engine handles memory movement between HBM and SBUF, but — and this matters for sparse workloads — <strong>as of NKI 2.24 / 0.3.0, the DMA engine does not expose an indirect-gather primitive at the kernel level</strong>. Scatter-gather is a pattern the silicon supports in principle; the language doesn't expose it yet.</p>
-<p>That combination — tile-shaped compute, no per-element indirect gather — has a specific consequence. The natural unit of sparse work on Trainium is not a single nonzero. It's a 128×128 block.</p>
-<p>A format that stores sparse matrices as 128×128 dense blocks, with a block-level CSR pattern over which blocks are nonzero, maps one-to-one onto the Tensor Engine. Each nonzero block is already in the shape <code>nc_matmul</code> wants — no gather step. The block-level pattern is a much smaller sparse structure that fits cleanly in host-side dispatch. Zero blocks are skipped in the dispatch loop.</p>
-<p>This is Block-Sparse Row (BSR) at <code>block_size = 128</code>. cuSPARSE has a BSR implementation, but it's a secondary format there — a specialization. On Trainium it's not a specialization; it's the format the hardware asks for. cuSPARSE's BSR is a port back. Trainium's BSR is native.</p>
-<p><strong>CSR and COO stop being compute formats</strong> on the NKI path. They're interop — how scipy users hand matrices in, how ERIs come out of a chemistry code, how graph adjacencies arrive from PyTorch Geometric. The compute path converts to BSR at dispatch time, runs at tile granularity, returns dense. And <strong>block density matters much more than element density</strong>: a Fock matrix at 99.5% zero might have 30% of its 128×128 blocks storing something. That's the density BSR cares about, and the one that stays modest for the structured workloads that motivated the library.</p>
+<p>Trainium's Tensor Engine is a 128-partition × 512-moving systolic array; <code>nisa.nc_matmul</code> is a dense 128×K×N tile multiply. The DMA engine handles HBM ↔ SBUF movement, but — the load-bearing detail for sparse — <strong>as of NKI 2.24 / 0.3.0, the DMA engine does not expose an indirect-gather primitive at the kernel level</strong>. The silicon supports the pattern in principle; the language doesn't expose it yet.</p>
+<p>Tile-shaped compute plus no per-element indirect gather has a specific consequence: the natural unit of sparse work on Trainium is not a single nonzero. It's a 128×128 block.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph CSR["cuSPARSE-style CSR"]
+        direction TB
+        c1["one nnz at a time"] --&gt; c2["indirect gather B[col]"] --&gt; c3["scalar FMA"]
+    end
+    subgraph BSR["Trainium BSR-128"]
+        direction TB
+        b1["one 128×128 block"] --&gt; b2["dense tile, Tensor-Engine-aligned"] --&gt; b3["single nc_matmul"]
+    end</code></pre>
+<p>A format that stores sparse matrices as 128×128 dense blocks, with a block-level CSR pattern over <em>which</em> blocks are nonzero, maps one-to-one onto the Tensor Engine. Each nonzero block is already in the shape <code>nc_matmul</code> wants — no gather step. Zero blocks are skipped in the dispatch loop.</p>
+<p>This is Block-Sparse Row (BSR) at <code>block_size = 128</code>. cuSPARSE has a BSR implementation, but it's a specialization there. On Trainium it's not a specialization; it's the format the hardware asks for. cuSPARSE's BSR is a port back. Trainium's BSR is native.</p>
+<p><strong>CSR and COO stop being compute formats</strong> on the NKI path. They're interop — how scipy users hand matrices in, how ERIs come out of a chemistry code. The compute path converts to BSR at dispatch time, runs at tile granularity, returns dense. And <strong>block density matters much more than element density</strong>: a Fock matrix at 99.5% zero at the element level might still have 30% of its 128×128 blocks storing something. That's the density BSR cares about, and the one that stays modest for structured workloads.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
 <p>v0.2.0 shipped as the correctness path. The NKI kernel — <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/nki/kernels.py"><code>_spmm_dense_kernel</code></a> — does the simplest thing that validates the Neuron toolchain: materialize CSR into a dense <code>(M, K)</code> tile on the host, pad to tile multiples, dispatch a stationary-A GEMM. Effectively the <a href="https://github.com/trnsci/trnblas/blob/main/trnblas/nki/dispatch.py">trnblas GEMM pattern</a> with a trivial preamble. No sparsity exploitation.</p>
-<p>The deliberate tradeoff: publicly slow. At 1024×1024 / density 0.001 / N=128, this does roughly 1000× more arithmetic than scipy. The benchmark table in v0.2.0 documents that directly. The reason to ship it: the full toolchain — compile, NEFF cache, XLA dispatch, PyTorch integration, <code>torch.autograd.Function</code>-wrapped backward — had to be wired end-to-end before the project could credibly commit to BSR. v0.2.0 is the evidence that said "the pipeline works; the shape of the work is wrong."</p>
-<p>v0.3.0 introduced <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/formats.py"><code>BSRMatrix</code></a> and <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py"><code>bsr_spmm</code></a> as the headline. CSR stays in the API — users bring CSR from elsewhere, and the vectorized CPU fallback is within 2× of scipy — but the NKI compute story runs through BSR. v0.4.0 layered on <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py"><code>screened_spmm</code></a>: a single <code>@nki.jit</code> kernel fuses Schwarz bounds, mask application, and matmul. The unfused equivalent is four host passes plus a separate CSR construction before the matmul. The fused flow is one dispatch, no mask tensor on HBM, no separate format conversion. That's the second architectural pattern Trainium makes natural and CUDA doesn't reach for.</p>
+<p>The deliberate tradeoff: publicly slow. At 1024×1024 / density 0.001 / N=128, this does roughly 1000× more arithmetic than scipy. The benchmark table in v0.2.0 documents that directly. The reason to ship it anyway: the full toolchain — compile, NEFF cache, XLA dispatch, PyTorch integration, autograd wrapping — had to be wired end-to-end before the project could credibly commit to BSR. v0.2.0 is the evidence that said "the pipeline works; the shape of the work is wrong."</p>
+<p>v0.3.0 introduced <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/formats.py"><code>BSRMatrix</code></a> and <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py"><code>bsr_spmm</code></a> as the headline. CSR stays in the API for interop; the NKI compute path runs through BSR. v0.4.0 added <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py"><code>screened_spmm</code></a>: one <code>@nki.jit</code> kernel fusing Schwarz bounds, mask application, and matmul. The unfused equivalent is four host passes plus a separate CSR build. One dispatch, no mask tensor on HBM — the second architectural pattern Trainium makes natural and CUDA doesn't reach for.</p>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>The BSR kernel, stripped of docstrings and padding:</p>
+<p>The BSR kernel, stripped of docstrings:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_bsr_spmm_kernel</span><span class="p">(</span><span class="n">blocks_pad</span><span class="p">,</span> <span class="n">b_gathered</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Block-sparse × dense matmul via per-block nc_matmul.&quot;&quot;&quot;</span>
     <span class="n">M_tiles</span><span class="p">,</span> <span class="n">K_max</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">blocks_pad</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">b_gathered</span><span class="o">.</span><span class="n">shape</span>
-
     <span class="n">TILE_M</span> <span class="o">=</span> <span class="mi">128</span>  <span class="c1"># fixed by BSR block_size</span>
     <span class="n">TILE_N</span> <span class="o">=</span> <span class="n">N</span> <span class="k">if</span> <span class="n">N</span> <span class="o">&lt;=</span> <span class="mi">512</span> <span class="k">else</span> <span class="mi">512</span>
 
@@ -5215,40 +5178,31 @@
                           <span class="n">n</span> <span class="o">*</span> <span class="n">TILE_N</span><span class="p">:(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">TILE_N</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">c_sbuf</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span>
 </code></pre></div>
-<p>The host-side preamble pads each block-row to the same <code>K_max</code> with zero blocks so the kernel's <code>affine_range</code> bounds are fixed. That padding is the honest admission: block-rows with fewer stored blocks pay for the max. The alternative — row-bucketing by nnz (<a href="https://github.com/trnsci/trnsparse/issues/15">#15</a>) — requires an indirect-DMA primitive that NKI 2.24/0.3.0 does not expose.</p>
-<p>The autograd wrapper, which is the suite's reference pattern for satisfying the cross-project differentiability requirement in <a href="https://github.com/trnsci/trnsci/issues/3">trnsci/trnsci#3</a>:</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">_BSRSpMMFunction</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">A_blocks</span><span class="p">,</span> <span class="n">A_block_col_indices</span><span class="p">,</span> <span class="n">A_block_row_ptrs</span><span class="p">,</span>
-                <span class="n">A_shape</span><span class="p">,</span> <span class="n">A_block_size</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
-        <span class="c1"># Host-side pad + gather + NKI dispatch (or simulator / PyTorch fallback)</span>
-        <span class="o">...</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">save_for_backward</span><span class="p">(</span><span class="n">A_blocks</span><span class="p">,</span> <span class="n">A_block_col_indices</span><span class="p">,</span> <span class="n">A_block_row_ptrs</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">A_shape</span> <span class="o">=</span> <span class="n">A_shape</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">A_block_size</span> <span class="o">=</span> <span class="n">A_block_size</span>
-        <span class="k">return</span> <span class="n">C</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">grad_out</span><span class="p">):</span>
-        <span class="c1"># dA_blocks[k] = grad_out[rowblock*b:(rowblock+1)*b]</span>
-        <span class="c1">#                @ B[col*b:(col+1)*b].T  (pattern stays fixed)</span>
-        <span class="c1"># dB           = A.T @ grad_out   (reconstruct A dense)</span>
-        <span class="o">...</span>
+<p>The host-side preamble pads each block-row to the same <code>K_max</code> with zero blocks so the kernel's <code>affine_range</code> bounds are fixed. Block-rows with fewer stored blocks pay for the max. The alternative — row-bucketing by nnz (<a href="https://github.com/trnsci/trnsparse/issues/15">#15</a>) — requires an indirect-DMA primitive NKI 2.24/0.3.0 does not expose.</p>
+<p>The forward is NKI-dispatched via a <code>torch.autograd.Function</code> wrapper (<a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/nki/dispatch.py"><code>_BSRSpMMFunction</code></a>, the suite's reference pattern for <a href="https://github.com/trnsci/trnsci/issues/3">trnsci/trnsci#3</a>); backward runs at the PyTorch level and projects gradients through the stored blocks only:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># backward sketch — shipped version routes grad_out into stored blocks</span>
+<span class="n">grad_blocks</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad_out</span><span class="p">[</span><span class="n">row</span><span class="o">*</span><span class="n">b</span><span class="p">:(</span><span class="n">row</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">b</span><span class="p">]</span> <span class="o">@</span> <span class="n">B</span><span class="p">[</span><span class="n">col</span><span class="o">*</span><span class="n">b</span><span class="p">:(</span><span class="n">col</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">b</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="n">grad_B</span>         <span class="o">=</span> <span class="n">A_dense</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">grad_out</span>
 </code></pre></div>
-<p>Backward runs at the PyTorch level. The mask (which blocks exist) is non-differentiable by construction. <code>torch.autograd.gradcheck</code> at <code>atol=1e-4</code> passes on hardware; this pattern now ships for three NKI kernels (CSR SpMM in v0.2.0, BSR SpMM in v0.3.0, fused screened SpMM in v0.4.0).</p>
+<p>The block-selection pattern is non-differentiable by construction. <code>torch.autograd.gradcheck</code> at <code>atol=1e-4</code> passes on hardware; the same pattern now ships for three NKI kernels (CSR SpMM v0.2.0, BSR SpMM v0.3.0, fused screened SpMM v0.4.0).</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p>This is the richest section of the post, because several things went sideways in instructive ways.</p>
 <p><strong>v0.2.0's benchmark numbers were worse than planning assumed.</strong> The expectation going in was "dense-materialization will be slower at low densities, but the high-N dispatch win narrows the gap."</p>
-<p>The measured gap at 1024×1024 / density 0.01 / N=128: <strong>scipy at 257 μs, trnsparse NKI at 2212 μs.</strong></p>
-<p>The reason turned out to be dispatch overhead, not arithmetic — NKI times are roughly constant at 1.3–2.5 ms across all configurations tested, because the Neuron dispatch + HBM round-trip floor is flat and big. The <a href="https://trnsci.dev/trnsparse/benchmarks/">full benchmark table</a> ships with all the entries where NKI loses by 100×. None were removed before release.</p>
-<p><strong>CG-in-kernel isn't buildable on NKI 2.24/0.3.0.</strong> <a href="https://github.com/trnsci/trnsparse/issues/24">#24</a> was filed early as the v0.4.0 architectural follow-up: a fused Conjugate Gradient kernel with <code>A</code> SBUF-resident across all <code>max_iter</code> iterations, x/r/p cycled inside the kernel. This was the story. The audit that killed it found three hard walls: <code>nl.affine_range</code> has no <code>break</code>/<code>continue</code>, so no in-kernel convergence exit; no iteration-carried scalar state across <code>affine_range</code> levels (documented in the <code>trnblas _mp2_energy_kernel</code> source at <code>dispatch.py:586-588</code> as "<code>in-place += across affine_range hits NKI's 'Unexpected output dependencies'</code>"); and no nested kernel calls, so the BSR matvec would have to be inlined rather than invoked. #24 is closed as not-buildable in current NKI. An honest close comment explains the reframe and leaves the door open for a future NKI release that adds persistent SBUF across calls, at which point the full loop-in-kernel design becomes reachable again. What shipped instead was v0.3.2 <code>cg_bsr</code> — Python-loop around the existing <code>bsr_spmm</code> matvec, correct and differentiable but without the SBUF-resident win.</p>
-<p><strong>NKI 0.3.0 migration breaking changes are MLIR-level, not Python-level.</strong> The library migrated to the top-level <code>nki.*</code> namespace on 2026-04-14 (<a href="https://github.com/trnsci/trnsci/issues/5">trnsci/trnsci#5</a>). The moves to watch — <code>nc_matmul</code> keyword-only arguments, <code>nl.copy</code> returning a view of PSUM, <code>nl.divide</code> dropped in favor of <code>nl.multiply</code> + <code>nl.reciprocal</code> — manifest at the MLIR verifier layer, not in a Python trace. The trnsparse kernels were already compliant by coincidence (modelled on trnblas, which did the audit first), so no functional change. For kernels written less cautiously, hardware CI stays the gate that catches these.</p>
-<p><strong>The autograd wrapper's block-gradient projection needed care.</strong> The natural first cut — differentiate through <code>BSRMatrix.from_dense</code> — flowed gradients back through the block-selection logic, which is structurally wrong because block selection is non-differentiable. The shipped wrapper stores block-col-indices and block-row-ptrs in <code>ctx</code> and routes <code>grad_out[rowblock*b:(rowblock+1)*b] @ B[col*b:(col+1)*b].T</code> into exactly the stored blocks. <code>torch.autograd.gradcheck</code> on a tiny synthetic system was the only thing that would have caught the first version.</p>
-<p><strong>Simulator coverage is narrower than the headline suggests.</strong> The <a href="https://trnsci.dev/blog/the-dev-loop-just-got-a-lot-shorter/">NKI 0.3.0 simulator write-up</a> covers this in detail; the trnsparse-specific note is that <code>nki.simulate</code> catches Python-layer errors but not MLIR verifier errors, so hardware CI stays load-bearing for anything touching partition-dim broadcasting or shared-memory barriers. A device-free NEFF compile entry point would close this gap; a concrete request for the Neuron team.</p>
+<p>The measured gap at 1024×1024 / density 0.01 / N=128: <strong>scipy at 257 μs, trnsparse NKI at 2212 μs.</strong> The gap didn't narrow.</p>
+<p>The reason turned out to be dispatch overhead, not arithmetic. NKI times are roughly constant at 1.3–2.5 ms across all configurations tested — that's the Neuron dispatch + HBM round-trip floor, not the matmul. The <a href="https://trnsci.dev/trnsparse/benchmarks/">full benchmark table</a> ships with all the entries where NKI loses by 100×. None were removed before release.</p>
+<p><strong>CG-in-kernel isn't buildable on NKI 2.24/0.3.0.</strong> <a href="https://github.com/trnsci/trnsparse/issues/24">#24</a> was filed as the v0.4.0 architectural follow-up: a fused CG kernel with <code>A</code> SBUF-resident across all iterations, x/r/p cycled in-kernel. The audit killed it on three walls, in order:</p>
+<ol>
+<li><code>nl.affine_range</code> has no <code>break</code>/<code>continue</code> — no in-kernel convergence exit.</li>
+<li>No iteration-carried scalar state across <code>affine_range</code> levels (trnblas's <code>_mp2_energy_kernel</code> flags this at <code>dispatch.py:586-588</code>: <em>"in-place += across affine_range hits NKI's 'Unexpected output dependencies'"</em>).</li>
+<li>No nested kernel calls — the BSR matvec would have to be inlined.</li>
+</ol>
+<h1 id="24-closed-as-not-buildable-v032-cg_bsr-shipped-instead-as-a-python-loop-around-the-existing-matvec-the-doors-open-for-a-future-nki-release-that-adds-persistent-sbuf-across-calls">24 closed as not-buildable; v0.3.2 <code>cg_bsr</code> shipped instead as a Python loop around the existing matvec. The door's open for a future NKI release that adds persistent SBUF across calls.<a class="headerlink" href="#24-closed-as-not-buildable-v032-cg_bsr-shipped-instead-as-a-python-loop-around-the-existing-matvec-the-doors-open-for-a-future-nki-release-that-adds-persistent-sbuf-across-calls" title="Permanent link">&para;</a></h1>
+<p><strong>NKI 0.3.0 migration breaking changes are MLIR-level.</strong> The moves to watch on the migration to the top-level <code>nki.*</code> namespace — <code>nc_matmul</code> keyword-only args, <code>nl.copy</code> returning a view, <code>nl.divide</code> dropped in favor of <code>nl.multiply</code> + <code>nl.reciprocal</code> — manifest at the MLIR verifier, not in a Python trace. The trnsparse kernels were compliant by coincidence (modelled on trnblas, which audited first), so no functional change. For kernels written less cautiously, hardware CI stays the gate.</p>
+<p><strong>The autograd wrapper's block-gradient projection needed care.</strong> The natural first cut — differentiate through <code>BSRMatrix.from_dense</code> — flowed gradients back through the block-selection logic, which is structurally wrong because selection is non-differentiable. The shipped wrapper stores block indices in <code>ctx</code> and routes <code>grad_out</code> into exactly the stored blocks. <code>torch.autograd.gradcheck</code> on a tiny synthetic system was the only thing that would have caught the first version.</p>
+<p><strong>Simulator coverage is narrower than the headline.</strong> The <a href="https://trnsci.dev/blog/the-dev-loop-just-got-a-lot-shorter/">NKI 0.3.0 simulator write-up</a> covers this in detail; the trnsparse-specific note is that <code>nki.simulate</code> catches Python-layer errors but not MLIR verifier errors, so hardware CI stays load-bearing for anything touching partition-dim broadcasting. A device-free NEFF compile entry point would close the gap; a concrete request for the Neuron team.</p>
 <h2 id="fit-where-bsr-works-and-where-it-doesnt">Fit — where BSR works and where it doesn't<a class="headerlink" href="#fit-where-bsr-works-and-where-it-doesnt" title="Permanent link">&para;</a></h2>
-<p>Trainium is well-indexed for dense-GEMM-heavy training — its original motivating workload. trnsparse's Fock-build and block-sparse attention cases are a decent fit because they're block-dense at 128×128. Truly irregular sparse matmul (random CSR at density 0.001, highly variable nnz per row) is a shape mismatch with the silicon, not a library limitation. When a workload doesn't fit BSR — graph neural networks over non-uniform adjacency, for instance — the library recommends the <code>torch.sparse</code> fallback, not the NKI path. A future silicon generation that exposes indirect DMA gather would unblock a real gather-matmul-scatter path; that's a concrete hardware request.</p>
+<p>Trainium is well-indexed for dense-GEMM-heavy training — its original motivating workload. trnsparse's Fock-build and block-sparse attention cases are a decent fit because they're block-dense at 128×128. Truly irregular sparse matmul (random CSR at density 0.001, highly variable nnz per row) is a shape mismatch with the silicon, not a library limitation. When a workload doesn't fit BSR — GNNs over non-uniform adjacency, for instance — the library recommends the <code>torch.sparse</code> fallback, not the NKI path. A future silicon generation that exposes indirect DMA gather would unblock a real gather-matmul-scatter path; that's a concrete hardware request.</p>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>All numbers below are on <code>trn1.2xlarge</code> with the DLAMI <code>ami-07f81955eadf5b89c</code> (2026-04-10 build, <code>neuronxcc==2.24.5133</code> alongside <code>nki==0.3.0</code>). CPU baselines run on the same instance's Xeon.</p>
+<p>All numbers on <code>trn1.2xlarge</code> with DLAMI <code>ami-07f81955eadf5b89c</code> (2026-04-10 build, <code>neuronxcc==2.24.5133</code> + <code>nki==0.3.0</code>). CPU baselines run on the same instance's Xeon.</p>
 <p><strong>v0.2.0 CSR SpMM, mean time in μs.</strong> Lower is better. Columns are size <code>M=K</code>, density, <code>N</code> (RHS width).</p>
 <table>
 <thead>
@@ -5373,23 +5327,18 @@
 </tr>
 </tbody>
 </table>
-<p>At every data point, the NKI column is slower than both CPU backends. This is the v0.2.0 shipping posture: correctness first, not speed. Two structural reasons, both honest:</p>
-<ol>
-<li><strong>No sparsity exploitation.</strong> The v0.2.0 kernel materializes the CSR into a dense <code>(M, K)</code> tile before the matmul. At density 0.001 on a 1024×1024 matrix, this is 1000× more work than scipy does. The fused path from v0.3.0 onward operates on BSR, which doesn't pay this cost.</li>
-<li><strong>Dispatch overhead dominates.</strong> The NKI column is roughly constant at 1.3–2.5 ms across densities. That's the Neuron dispatch + HBM round-trip floor, not the arithmetic. At these sizes, a kernel launch is more expensive than the matmul itself.</li>
-</ol>
-<p><strong>v0.3.0 BSR SpMM.</strong> At 10% block density on <code>4 × 4</code> block grids with <code>N=128</code>, BSR-NKI is 1.85 ms vs BSR-PyTorch 0.11 ms — NKI still loses because dispatch overhead dominates at these sizes, but the trend flips with scale: at <code>8 × 8</code> / 50% block density / <code>N=256</code>, NKI is 3.11 ms vs PyTorch 1.05 ms (3× slower), and PyTorch itself is approaching the dense-GEMM ceiling of 0.47 ms. The architectural claim — BSR is Trainium-native — is validated at the level of "runs correctly, differentiable, on the Tensor Engine." The performance win against CPU is still ahead of the library; that's Phase 3 work.</p>
-<p>Phase 1 (correctness) landed. Phase 3 (performance) has a clear architectural shape and is not shipped.</p>
+<p>At every data point, the NKI column is slower than both CPU backends. Two structural reasons: no sparsity exploitation (v0.2.0 materializes CSR to dense before the matmul), and dispatch overhead dominates (NKI times constant ~1.3–2.5 ms because kernel-launch + HBM round-trip is the flat floor at these sizes).</p>
+<p><strong>v0.3.0 BSR SpMM.</strong> At <code>4×4</code> blocks / 10% density / <code>N=128</code>: BSR-NKI 1.85 ms vs BSR-PyTorch 0.11 ms. At <code>8×8</code> / 50% / <code>N=256</code>: NKI 3.11 ms vs PyTorch 1.05 ms. BSR is validated as Trainium-native at the level of "runs correctly, differentiable, on the Tensor Engine." The performance win against CPU is Phase 3 work.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/15">Phase 3 — #15</a></strong> was originally scoped as row-bucketing CSR + gather-matmul-scatter. Under the BSR reframe it's backlog: CSR row-bucketing requires an indirect-DMA primitive that NKI doesn't expose. BSR at 128×128 covers the structured-sparse workloads without needing it. If NKI later exposes per-row DMA gather, #15 reopens.</li>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/22">#22 — on-chip iterative solvers</a></strong> is half-shipped: the Python-loop plumbing (<code>cg_bsr</code>, <code>power_iteration_bsr</code>) is in v0.3.2. The architectural-win half (CG loop fused inside one NKI kernel, A SBUF-resident across iterations) is parked on <a href="https://github.com/trnsci/trnsparse/issues/24">#24</a> pending NKI capability additions — closed honestly as not-buildable under current constraints.</li>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/16">Phase 4 — #16</a></strong> is sharded BSR across multiple NeuronCores. Gated on suite-level multi-chip collective primitives that don't exist in any trnsci library yet; this is pioneering territory.</li>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/17">Phase 5 — #17</a></strong> is trn2-specific DMA bandwidth exploitation. Blocked on trn2 silicon being more widely available and on the indirect-DMA story from Phase 3 reopening.</li>
-<li><strong>Block-sparse attention as a primitive</strong> — BSR at 128×128 is architecturally identical to a local-attention mask in a sparse transformer. Tracked in <a href="https://github.com/trnsci/trnsparse/issues/21">#21</a>; the writeup is an unshipped doc task.</li>
+<li><a href="https://github.com/trnsci/trnsparse/issues/15">#15</a> Phase 3 row-bucketing / gather-matmul-scatter — backlog under the BSR reframe; reopens if NKI exposes per-row DMA gather.</li>
+<li><a href="https://github.com/trnsci/trnsparse/issues/22">#22</a> on-chip iterative solvers — v0.3.2 plumbing shipped; fused kernel (<a href="https://github.com/trnsci/trnsparse/issues/24">#24</a>) parked on NKI capability.</li>
+<li><a href="https://github.com/trnsci/trnsparse/issues/16">#16</a> Phase 4 sharded BSR across NeuronCores; gated on suite-level multi-chip collectives.</li>
+<li><a href="https://github.com/trnsci/trnsparse/issues/17">#17</a> Phase 5 trn2-specific DMA bandwidth exploitation.</li>
+<li><a href="https://github.com/trnsci/trnsparse/issues/21">#21</a> block-sparse attention writeup — BSR-128 IS a local-attention mask.</li>
 </ul>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>The v0.2.0 benchmark table is the most important thing trnsparse has published so far. Not because the numbers are good — they're not — but because they're the evidence that anchored the reframe. The CUDA sparse playbook assumes a memory hierarchy where arbitrary-pattern gather is cheap; Trainium has a tile-shaped compute unit and a DMA engine that doesn't yet expose indirect gather at the kernel level. Under those constraints, the native sparse representation isn't a list of nonzeros; it's a list of 128×128 blocks. BSR isn't a cuSPARSE port. It's what the hardware asks for. And the honest way to find that out was to ship the naive port, publish the numbers it produced, and let the shape of the failure tell the story.</p>
+<p>The v0.2.0 benchmark table is the most important thing trnsparse has published so far. Not because the numbers are good — they're not — but because they're the evidence that anchored the reframe. The CUDA sparse playbook assumes a memory hierarchy where arbitrary-pattern gather is cheap; Trainium has a tile-shaped compute unit and a DMA engine that doesn't yet expose indirect gather at the kernel level. Under those constraints, the native sparse representation isn't a list of nonzeros; it's a list of 128×128 blocks. BSR isn't a cuSPARSE port. It's what the hardware asks for. The honest way to find that out was to ship the naive port, publish the numbers it produced, and let the shape of the failure tell the story.</p>
 
 
 

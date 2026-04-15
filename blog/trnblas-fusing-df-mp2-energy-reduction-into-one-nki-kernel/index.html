@@ -5132,7 +5132,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              10 min read
+                              9 min read
                             
                           </span>
                         </div>
@@ -5166,9 +5166,7 @@ MP2 matching PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at
 cc-pVDZ. The interesting story isn't the GEMM. It's the fused energy
 kernel — a single NKI pass that holds the contraction, the orbital-
 denominator division, and the scalar sum-reduction SBUF-resident, and
-how the choice to build it looks nothing like a cuBLAS port. This post
-is for anyone curious about what Trainium's whole-program compilation
-model affords that per-call GEMM libraries cannot express.</p>
+how the choice to build it looks nothing like a cuBLAS port.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
@@ -5224,11 +5222,9 @@ dispatch + execution. For a pair-energy loop invoking the same
 kernel <code>nocc²</code> times (4 096 to 9 216 pairs at the bench shapes),
 the compile cost divides across thousands of calls. The NEFF cache
 is what makes "one kernel per pair" cheap in the first place.</p>
-<p>These three combined suggest the shape: a single kernel that takes
-<code>T_chunk</code> plus the three ε vectors, iterates <code>(i, j)</code> internally,
-materializes each tile's chunk of the expression SBUF-resident,
-reduces along the free dim, and returns per-partition partials that
-the caller sums host-side.</p>
+<p>These three point at the same design: one kernel, SBUF-resident
+intermediates through the full expression chain, and a tiny host-
+side sum at the end.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
 <p>trnblas's fused MP2 kernel —
 <a href="https://github.com/trnsci/trnblas/blob/main/trnblas/nki/dispatch.py"><code>_mp2_energy_kernel</code></a> —
@@ -5256,14 +5252,25 @@ is that design made concrete:</p>
   (≤ 258 KB at the large bench shape), and host-side reduction is
   noise.</li>
 </ul>
-<p>A deliberate tradeoff: a true 3D-batched NKI kernel for the three-
-center contraction is deferred to Phase 3. v0.4.0's <code>batched_gemm</code>
-is a host-side loop around the 2D NKI GEMM, one slice per iteration.
-Every slice after the first hits the NEFF cache, so per-slice cost
-is HBM transfer plus dispatch. Tradeoff stated explicitly: the
-Phase 1 scope focuses on single-call kernels with measurable
-correctness; cross-call kernel fusion lands where a measured
-benchmark justifies it.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph HBM
+      T["T_flat"]
+      E["ε_occ, ε_vir"]
+      P["e_partial&lt;br/&gt;(P_TILE, IC, NOCC)"]
+    end
+    subgraph SBUF["One NKI pass · per (i, j) pair"]
+      L["load T tile +&lt;br/&gt;load_transpose2d T.T"]
+      D["build Δ SBUF-resident&lt;br/&gt;from ε via broadcast_to"]
+      M["T · (2T − Tᵀ) · 1/Δ&lt;br/&gt;Vector Engine"]
+      R["nl.sum axis=1&lt;br/&gt;free-dim reduce"]
+    end
+    T --&gt; L
+    E --&gt; D
+    L --&gt; M
+    D --&gt; M
+    M --&gt; R
+    R --&gt;|one store per pair| P
+    P --&gt; S["host .sum()&lt;br/&gt;→ scalar E_MP2"]</code></pre>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
 <p>The core shape, simplified (full source linked above):</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
@@ -5319,12 +5326,6 @@ benchmark justifies it.</p>
 
     <span class="k">return</span> <span class="n">e_partial</span>
 </code></pre></div>
-<p>Four architectural moves sit in those lines: the <code>(P_TILE, NVIR)</code>
-tile as the unit of work, <code>Δ</code> materialized SBUF-resident from three
-loads rather than passed in from HBM, the full multiply-subtract-
-multiply-reciprocal-multiply chain running before any HBM traffic,
-and the per-pair HBM store at the end — one write for the whole
-pair's contribution rather than three intermediates and a result.</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
 <p>Four items.</p>
 <p><strong>The <code>examples/df_mp2.py</code> revert.</strong> The first attempt to make
@@ -5394,18 +5395,8 @@ v0.4.3-measured under real NKI dispatch.</p>
 <tbody>
 <tr>
 <td>NKI GEMM</td>
-<td>512 × 512 × 512</td>
-<td style="text-align: right;">1.3 ms</td>
-</tr>
-<tr>
-<td>NKI GEMM</td>
 <td>1024 × 1024 × 1024</td>
 <td style="text-align: right;">2.3 ms</td>
-</tr>
-<tr>
-<td>NKI SYRK</td>
-<td>1024 × 1024</td>
-<td style="text-align: right;">5.71 ms</td>
 </tr>
 <tr>
 <td>NKI TRSM (DF-MP2)</td>
@@ -5461,24 +5452,18 @@ v0.4.3-measured under real NKI dispatch.</p>
 </tr>
 </tbody>
 </table>
-<p>A10G's cuBLAS is ~37× faster per-call on medium. Ampere's tensor
-cores are further along their per-watt optimization curve for dense
-GEMM than trn1's first-generation NeuronCores at the sizes these
-benches touch; the cost story (trn1.2xlarge at $1.34/hr vs g5.xlarge
-at $1.006/hr) only shifts at scales where memory bandwidth and
-multi-chip topology matter more than single-GPU throughput.</p>
+<p>A10G is 37× faster at the medium bench; the cost story shifts only
+at scales where memory bandwidth and multi-chip topology matter
+more than single-GPU throughput.</p>
 <p><strong>Chemistry validation</strong> (via
 <a href="https://github.com/trnsci/trnblas/blob/main/tests/test_df_mp2_pyscf.py"><code>test_df_mp2_pyscf.py</code></a>):
 H₂O/STO-3G matches PySCF's <code>mp.dfmp2.DFMP2</code> to 1 µHa
 (1×10⁻⁶ Ha). H₂O/cc-pVDZ, CH₄/cc-pVDZ, and NH₃/cc-pVDZ match to
-10 µHa (1×10⁻⁵ Ha). These tolerances come from the accumulated
-rounding of FP32 accumulation in the Tensor Engine against PySCF's
-FP64 reference. For closed-shell correlation energies in the
-~10⁻¹ to 10⁻⁰ Ha range, 10⁻⁵ Ha relative error sits comfortably
-above chemical-accuracy thresholds (~1 mHa ≈ 2.6 kJ/mol). The
-FP32-vs-FP64 question is real and open — Phase 2 tracks
-double-double GEMM for workloads where the relative error floor
-matters more than these benches exercise.</p>
+10 µHa (1×10⁻⁵ Ha). These tolerances come from FP32 accumulation
+in the Tensor Engine against PySCF's FP64 reference. For closed-
+shell correlation energies in the ~10⁻¹ to 10⁻⁰ Ha range,
+10⁻⁵ Ha relative error sits comfortably above chemical-accuracy
+thresholds (~1 mHa ≈ 2.6 kJ/mol).</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><a href="https://github.com/trnsci/trnblas/issues/35">#35</a> — cross-pair
@@ -5491,13 +5476,11 @@ matters more than these benches exercise.</p>
   current fixed <code>(128, 128, 512)</code>.</li>
 <li><strong>Phase 2 — <a href="https://github.com/trnsci/trnblas/issues/22">double-double FP64
   GEMM</a>.</strong> Emulated
-  FP64 via two FP32 values in the Tensor Engine. Opens the door
-  to chemistry workloads where 10⁻⁵ Ha relative error is not
-  enough — coupled-cluster correlation, geometry optimizations
-  near stationary points.</li>
-<li><strong>Phase 4 — tensor-parallel GEMM across
-  NeuronCores.</strong> trn1.32xlarge has 16 chips. A single DF-MP2 chunk
-  sharded across chips is the obvious next architectural exercise.</li>
+  FP64 via two FP32 values. Opens the door to workloads where
+  10⁻⁵ Ha relative error is not enough.</li>
+<li><strong>Phase 4 — tensor-parallel GEMM across NeuronCores.</strong>
+  trn1.32xlarge has 16 chips; sharding a DF-MP2 chunk across them
+  is the next architectural exercise.</li>
 </ul>
 <p>Phase tracker: <a href="https://trnsci.dev/roadmap/">trnsci ROADMAP</a>.</p>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
@@ -5511,9 +5494,7 @@ matrix products, and this expression isn't one. NKI's whole-program
 DAG compilation is what makes "one kernel per pair" the natural
 unit of work on Trainium. Phase 1's measurable win is smaller than
 the kernel's design target (1.48× vs the 3× minimum), and that gap
-is documented and queued as the Phase 3 concrete next step. But the architectural
-shape of the kernel is the thing to notice — a shape cuBLAS doesn't
-suggest and a whole-program compilation model does.</p>
+is documented and queued as the Phase 3 concrete next step.</p>
 
 
 

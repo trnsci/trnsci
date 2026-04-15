@@ -5019,7 +5019,7 @@
           
           <li class="md-meta__item">
             
-              11 min read
+              9 min read
             
           </li>
         
@@ -5030,7 +5030,7 @@
   </header>
   <div class="md-post__content md-typeset">
     <h2 id="trnsparse-the-tile-is-the-unit-not-the-nonzero"><a class="toclink" href="../../trnsparse-the-tile-is-the-unit-not-the-nonzero/">trnsparse: the tile is the unit, not the nonzero</a></h2>
-<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0 last week, and the benchmark table was publicly worse than scipy across every configuration that was run. That's not a failure — it's the piece of evidence that led to the reframe that v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. This post is the retrospective — what shipped, what the numbers actually said, and why the honest story is that the CUDA sparse playbook is the wrong starting point for this hardware.</p>
+<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0, and the benchmark table was publicly worse than scipy across every configuration. That's not a failure — it's the evidence that led to the reframe v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. The CUDA sparse playbook is the wrong starting point for this hardware.</p>
 
     
       <nav class="md-post__action">
