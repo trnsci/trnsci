@@ -5037,10 +5037,9 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="What didn&#39;t work">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fit-assessment" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5048,11 +5047,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -5149,7 +5143,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              10 min read
+                              9 min read
                             
                           </span>
                         </div>
@@ -5177,41 +5171,42 @@
 
 
 <h1 id="trntensor-when-the-kernel-boundary-is-the-api">trntensor: when the kernel boundary is the API<a class="headerlink" href="#trntensor-when-the-kernel-boundary-is-the-api" title="Permanent link">&para;</a></h1>
-<p>trntensor Phase 1 landed this week: the 2-index and batched <code>nc_matmul</code> NKI kernels validate on trn1, <code>ContractionPlan.backend</code> now reports <code>"nki"</code> when shapes qualify, and two fused multi-step primitives — the DF-MP2 correlation-energy kernel and the 4-index AO→MO integral transform — run the full contract → elementwise → reduce and contract → SBUF-resident → contract patterns in single NKI programs. The architectural point isn't "we implemented einsum on Trainium." It's that on Trainium the kernel boundary is the design surface: what cuTENSOR encapsulates behind a <code>Plan</code> object, NKI asks you to lay out in source. That's more work, but it's also where a tensor library can become a cuTENSOR superset rather than a cuTENSOR port.</p>
+<p>trntensor Phase 1 landed: the 2-index and batched <code>nc_matmul</code> NKI kernels validate on trn1, <code>ContractionPlan.backend</code> reports <code>"nki"</code> when shapes qualify, and two fused multi-step primitives — a DF-MP2 correlation-energy kernel and a 4-index AO→MO integral transform — run the contract → elementwise → reduce and contract → SBUF-resident → contract patterns as single NKI programs. The architectural point isn't "einsum on Trainium." It's that the kernel boundary is the design surface: what cuTENSOR hides behind a <code>Plan</code> object, NKI asks you to lay out in source. More work, but also where a tensor library can become a cuTENSOR superset rather than a port.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>Einstein summation generalizes matrix multiplication to arbitrary tensor contractions. A quantum-chemistry workload like density-fitted MP2 is five or six contractions in sequence — auxiliary-basis 4-index transform to go from AO to MO, pair-energy contractions over occupied-occupied indices, elementwise denominators, reductions. Every post-Hartree-Fock method has the same shape.</p>
-<p>cuTENSOR's model for this is one plan per contraction: <code>cutensorInitContractionDescriptor</code>, then <code>cutensorContractionExecute</code>. Each plan becomes a CUDA kernel. Multiple contractions compose in Python (or host C) between plans, with intermediate tensors landing in HBM between calls. The programmer rarely thinks about where the plan ends and the next one starts — cuTENSOR hides the kernel boundary.</p>
-<p>The naive port of that shape to Trainium produces correct results and leaves most of the performance on the floor. DF-MP2 with 25 pair contractions compiles to 25 NKI dispatches; each dispatch pays a fixed XLA overhead. Profiling a 2048² matmul on trn1 (reported in <a href="https://github.com/trnsci/trntensor/issues/33#issuecomment-4239594619">#33</a>) measured 4,081 µs host→XLA transfer, 2,994 µs XLA→host transfer, and only 568 µs of actual kernel time — the wrapper is doing an order of magnitude more work than the Tensor Engine. The per-kernel compile is fine. The per-dispatch surrounding work is not.</p>
+<p>Einstein summation generalizes matrix multiplication to arbitrary tensor contractions. A quantum-chemistry workload like density-fitted MP2 is five or six contractions in sequence — a 4-index AO→MO transform, pair-energy contractions over occupied-occupied indices, elementwise denominators, reductions. Every post-Hartree-Fock method has the same shape.</p>
+<p>cuTENSOR's model is one plan per contraction (<code>cutensorInitContractionDescriptor</code>, then <code>cutensorContractionExecute</code>). Each plan becomes a CUDA kernel; multiple contractions compose in Python between plans, with intermediates landing in HBM between calls. The programmer rarely thinks about where one plan ends and the next begins — cuTENSOR hides the kernel boundary.</p>
+<p>The naive port of that shape to Trainium produces correct results and leaves most of the performance on the floor. DF-MP2 with 25 pair contractions compiles to 25 NKI dispatches, each paying a fixed XLA overhead. Profiling a 2048² matmul on trn1 (<a href="https://github.com/trnsci/trntensor/issues/33#issuecomment-4239594619">#33</a>) measured 4,081 µs host→XLA transfer, 2,994 µs XLA→host, and 568 µs of actual kernel time — the wrapper does an order of magnitude more work than the Tensor Engine. The per-kernel compile is fine. The per-dispatch surrounding work is not.</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p>The NKI programming model exposes four engines (Tensor, Vector, Scalar, GpSimd), two partitioned memory regions (PSUM for accumulation, SBUF for staging), and a compile-once-run-many NEFF cache. A single <code>@nki.jit</code> program can span arbitrary control flow over those resources. That's what matters for a tensor library: one NKI program can contain multiple <code>nisa.nc_matmul</code> calls, interleaved Vector Engine elementwise ops, and a scalar reduction at the end, all without intermediate tensors ever touching HBM.</p>
-<p>cuTENSOR's <code>Plan</code> is an opaque object that maps to one kernel. NKI's equivalent is the source of the <code>@nki.jit</code>-decorated function — and that function can encapsulate a DAG of contractions rather than a single one. Two concrete patterns:</p>
-<ul>
-<li>
-<p><strong>Contract → elementwise → reduce.</strong> Compute a contraction in PSUM. Copy to SBUF. Apply element-wise math (multiply, subtract, reciprocal). Fold via <code>nl.sum</code> into a scalar accumulator tile. Store one HBM value per outer iteration. This is the DF-MP2 energy pattern.</p>
-</li>
-<li>
-<p><strong>Contract → SBUF intermediate → contract.</strong> Compute a first matmul whose PSUM output copies to SBUF. Use that SBUF tile as the stationary operand of a second matmul. Store the second matmul's PSUM output. The intermediate tensor never exists in the user's Python or in HBM. This is the 4-index AO→MO transform pattern.</p>
-</li>
-</ul>
-<p>Neither pattern is new to HPC — fused GEMMs and fused reductions exist on GPUs too. The difference is who writes them. cuTENSOR hands you a planner and hides the code; NKI hands you the code and expects you to plan. When the workload matches one of these patterns, the NKI version is a cuTENSOR superset — a primitive that cuTENSOR's plan abstraction doesn't name.</p>
+<p>NKI exposes four engines (Tensor, Vector, Scalar, GpSimd), two partitioned memory regions (PSUM for accumulation, SBUF for staging), and a compile-once-run-many NEFF cache. A single <code>@nki.jit</code> program spans arbitrary control flow over those resources. For a tensor library: one program can hold multiple <code>nisa.nc_matmul</code> calls, interleaved Vector Engine elementwise ops, and a scalar reduction, without intermediates touching HBM.</p>
+<p>cuTENSOR's <code>Plan</code> is an opaque object that maps to one kernel. NKI's equivalent is the source of the <code>@nki.jit</code>-decorated function — and that function can encapsulate a DAG of contractions rather than a single one:</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph cT["cuTENSOR — one plan per contraction"]
+        direction LR
+        ct_A[A, B] --&gt; ct_P1[Plan · kernel]
+        ct_P1 --&gt; ct_H["HBM&lt;br/&gt;intermediate"]
+        ct_H --&gt; ct_P2[Plan · kernel]
+        ct_C[C] --&gt; ct_P2
+        ct_P2 --&gt; ct_O[Output]
+    end
+    subgraph tT["trntensor — fused DAG, one NKI program"]
+        direction LR
+        tt_In[A, B, C] --&gt; tt_K["@nki.jit&lt;br/&gt;contract → SBUF → contract"]
+        tt_K --&gt; tt_O[Output]
+    end</code></pre>
+<p>Two concrete patterns: <strong>contract → elementwise → reduce</strong> (PSUM, copied to SBUF, Vector Engine elementwise, <code>nl.sum</code> into a scalar accumulator, one HBM store — the DF-MP2 energy shape); and <strong>contract → SBUF intermediate → contract</strong> (first matmul's PSUM copies to SBUF, becomes the stationary operand of a second matmul, intermediate never materializes — the 4-index AO→MO transform shape).</p>
+<p>Neither pattern is new to HPC. cuTENSOR hands you a planner and hides the code; NKI hands you the code and expects you to plan. When the workload matches one of these patterns, the NKI version is a primitive the plan abstraction doesn't name.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<p>trntensor has three public-API layers that correspond to three levels of user engagement with this kernel-boundary discipline:</p>
-<ol>
-<li>
-<p><strong>Generic <code>einsum(subscripts, *operands)</code></strong> — an opinionated router. <code>ContractionPlan</code> analyzes the subscript, classifies the contraction (<code>matmul</code>, <code>bmm</code>, <code>torch</code>), computes a FLOP estimate, and chooses a dispatch target. Small shapes skip NKI entirely via a 2-GFLOP threshold — the per-call dispatch overhead rules out NKI at sizes where the Tensor Engine couldn't earn it back. Subscripts that don't match a known pattern (3+ operands, broadcasting, patterns not yet specialized) fall through to <code>torch.einsum</code>.</p>
-</li>
-<li>
-<p><strong>Named fused primitives</strong> — <code>trntensor.mp2_energy(B, eps_occ, eps_vir)</code> and <code>trntensor.ao_to_mo_transform(eri, C_occ, C_vir)</code>. These aren't generic; they're named chemistry-domain operations that compile to one fused NKI program each. Users who know what they want reach for these; users who don't stay with <code>einsum</code>.</p>
-</li>
-<li>
-<p><strong>Operand residency</strong> — <code>trntensor.to_xla(tensor)</code> and <code>trntensor.from_xla(tensor)</code>. The kernel-boundary discipline applies between trntensor calls too: XLA-resident operands skip the per-dispatch transfer. The DF-MP2 pipeline becomes "transfer once, compute, pull back the scalar," matching at the program level what the kernels do at the intra-kernel level.</p>
-</li>
-</ol>
-<p>The deliberate tradeoff: trntensor doesn't try to detect fusion opportunities automatically. A generic multi-<code>einsum</code> detector that compiles arbitrary contraction DAGs to fused NKI programs is tracked for v0.3.0 and would be genuinely useful, but building it now means building the abstractions before they've been validated against enough concrete kernels. Two named primitives and a routed generic surface is a cleaner starting point than a one-shot DAG compiler.</p>
+<p>trntensor has three public-API layers, corresponding to three levels of engagement with the kernel boundary:</p>
+<ul>
+<li><strong>Generic <code>einsum(subscripts, *operands)</code></strong> — an opinionated router. <code>ContractionPlan</code> classifies the contraction (<code>matmul</code>, <code>bmm</code>, <code>torch</code>), estimates FLOPs, and picks a dispatch target. Shapes under a 2-GFLOP threshold skip NKI entirely — dispatch overhead rules it out at sizes where the Tensor Engine can't earn it back. 3+ operand and broadcasting patterns fall through to <code>torch.einsum</code>.</li>
+<li><strong>Named fused primitives</strong> — <code>trntensor.mp2_energy(...)</code> and <code>trntensor.ao_to_mo_transform(...)</code>. Chemistry-domain operations that compile to one fused NKI program each. Users who know what they want reach for these; others stay with <code>einsum</code>.</li>
+<li><strong>Operand residency</strong> — <code>to_xla(tensor)</code> and <code>from_xla(tensor)</code>. The same discipline between calls: XLA-resident operands skip the per-dispatch transfer. The DF-MP2 pipeline becomes "transfer once, compute, pull back the scalar" — at the program level, what the kernels do inside a single dispatch.</li>
+</ul>
+<p>The deliberate tradeoff: trntensor doesn't try to detect fusion opportunities automatically. A generic multi-<code>einsum</code> detector is tracked for v0.3.0, but building that abstraction before it's validated against enough concrete kernels is a good way to ship a framework that's worse at two things than two libraries would be at one each.</p>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>The <code>mp2_energy_kernel</code> is the most complete demonstration. For each <code>(i, j)</code> orbital pair:</p>
+<p>The <code>mp2_energy_kernel</code>, per <code>(i, j)</code> orbital pair:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># trntensor/nki/_kernels.py</span>
 <span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">mp2_energy_kernel</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">eps_occ</span><span class="p">,</span> <span class="n">eps_vir</span><span class="p">):</span>
@@ -5255,8 +5250,8 @@
 
     <span class="k">return</span> <span class="n">partial</span>
 </code></pre></div>
-<p>One program. Two <code>nc_matmul</code> per pair, reusing SBUF tiles. All elementwise math on the Vector Engine. Reduction into a <code>(1, 1)</code> SBUF accumulator. One HBM store per <code>(i, j)</code>. A cuTENSOR port would package this as three plans — contract, elementwise, reduce — with intermediates <code>T</code> and <code>term</code> materialized between them. Here nothing between <code>nl.load</code> and <code>nl.store</code> appears as a tensor in Python or HBM.</p>
-<p>The <code>ContractionPlan.backend</code> report threads through:</p>
+<p>One program. Two <code>nc_matmul</code> per pair, SBUF-resident tiles, Vector Engine elementwise, one HBM store per <code>(i, j)</code>. A cuTENSOR port would package this as three plans with intermediates materialized between them; here nothing between <code>nl.load</code> and <code>nl.store</code> appears as a tensor in Python or HBM.</p>
+<p><code>ContractionPlan.backend</code> routing:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># trntensor/plan.py</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_backend_for</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">operands</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;matmul&quot;</span><span class="p">,</span> <span class="s2">&quot;bmm&quot;</span><span class="p">):</span>
@@ -5267,19 +5262,19 @@
     <span class="n">flops</span> <span class="o">=</span> <span class="n">operand_flops</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">operands</span><span class="p">)</span>
     <span class="k">return</span> <span class="s2">&quot;nki&quot;</span> <span class="k">if</span> <span class="n">flops</span> <span class="o">&gt;=</span> <span class="n">_MIN_NKI_FLOPS</span> <span class="k">else</span> <span class="s2">&quot;pytorch&quot;</span>
 </code></pre></div>
-<p><code>plan.backend</code> reflects what will actually run, not what the algorithm classification says. A 64×64 matmul is matmul-strategy but pytorch-backend; a 2048×2048 matmul is matmul-strategy and nki-backend. Plan-time transparency about where work will land.</p>
+<p><code>plan.backend</code> reflects what will actually run, not how the algorithm classifies. A 64×64 matmul is matmul-strategy but pytorch-backend; 2048×2048 is matmul-strategy and nki-backend.</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p>Several paths that looked reasonable didn't survive contact with the NKI compiler.</p>
-<p><strong>0-D SBUF allocation.</strong> The first version of <code>mp2_energy_kernel</code> wrote <code>e_ij = nl.sum(term, axis=(0, 1))</code> and stored <code>e_ij</code> directly. NKI 0.3.0 rejects this with <code>SBUF and PSUM tensors must have at least 2 dimensions (partition-dim and free-dim)</code>. The fix is the <code>acc = nl.zeros((1, 1), ...)</code> pattern above — broadcast the 0-D sum into an explicit <code>(1, 1)</code> tile via <code>nl.add</code>. The trnblas reference had this pattern; we didn't discover why until the assertion fired.</p>
-<p><strong><code>nl.copy</code> returns a view in 0.3.0.</strong> In 2.24, <code>c_sbuf = nl.copy(psum, dtype=...)</code> allocated a fresh SBUF tile. In 0.3.0 it returns a view and the subsequent <code>nl.store</code> produces silently wrong results. The fix is explicit: allocate with <code>nl.ndarray(..., buffer=nl.sbuf)</code> and copy with <code>nisa.tensor_copy(src=psum, dst=...)</code>. This is mentioned in the release notes but easy to miss.</p>
-<p><strong>1D tensor loads and partition-dim inference.</strong> <code>mp2_energy_kernel</code> originally loaded <code>eps_vir</code> with a 1D slice <code>nl.load(eps_vir[0:NVIR])</code>. That compiled and ran when <code>eps_vir</code> arrived freshly transferred from CPU. It compile-failed when the same tensor arrived pre-pinned on XLA via <code>to_xla</code>. The 1D slice leaves partition-dim inference ambiguous, and the two residency states presented different tensor metadata to the compiler. Reshaping to <code>(N, 1)</code> at the dispatch boundary — what trnblas already does — fixed it.</p>
-<p><strong>Cross-kernel XLA graph fusion.</strong> The full DF-MP2 pipeline with everything pre-pinned (<code>ao_to_mo_transform → mp2_energy</code> without a <code>from_xla</code> between them) triggers an NKI compiler bug: the combined XLA lazy graph spanning both kernels generates <code>Shared memory is only supported on trn2, but inst__I-9-0:_mem_0_0_set is using Shared memory on an unsupported target</code> on trn1. Inserting <code>xm.mark_step()</code> between calls didn't resolve it — the flush itself is what produces the trn2-only code. Tracked in <a href="https://github.com/trnsci/trntensor/issues/39">#39</a> for upstream escalation; users currently <code>from_xla(B)</code> between the two calls. This is the one place Phase 1's residency story has a hole.</p>
-<h3 id="fit-assessment">Fit assessment<a class="headerlink" href="#fit-assessment" title="Permanent link">&para;</a></h3>
+<p>A few paths that looked reasonable didn't survive the NKI compiler.</p>
+<p><strong>0-D SBUF allocation.</strong> The first <code>mp2_energy_kernel</code> wrote <code>e_ij = nl.sum(term, axis=(0, 1))</code> and stored <code>e_ij</code> directly. NKI 0.3.0 rejects this: <code>SBUF and PSUM tensors must have at least 2 dimensions (partition-dim and free-dim)</code>. Fix: the <code>acc = nl.zeros((1, 1), ...)</code> pattern above — broadcast the 0-D sum into an explicit <code>(1, 1)</code> tile via <code>nl.add</code>. trnblas has this pattern; we didn't learn why until the assertion fired.</p>
+<p><strong><code>nl.copy</code> returns a view in 0.3.0.</strong> In 2.24, <code>c_sbuf = nl.copy(psum, dtype=...)</code> allocated a fresh SBUF tile. In 0.3.0 it returns a view and the subsequent <code>nl.store</code> silently produces wrong results. Fix: allocate with <code>nl.ndarray(..., buffer=nl.sbuf)</code> and copy with <code>nisa.tensor_copy</code>. In the release notes, but easy to miss.</p>
+<p><strong>1D loads and partition-dim inference.</strong> The kernel originally loaded <code>eps_vir</code> as a 1D slice <code>nl.load(eps_vir[0:NVIR])</code>. That compiled fine when <code>eps_vir</code> arrived freshly transferred from CPU. It compile-failed when the same tensor arrived pre-pinned on XLA. The 1D slice leaves partition-dim inference ambiguous, and the two residency states present different tensor metadata to the compiler. Reshaping to <code>(N, 1)</code> at the dispatch boundary fixed it.</p>
+<p><strong>Cross-kernel XLA graph fusion.</strong> The full DF-MP2 pipeline with everything pre-pinned (<code>ao_to_mo_transform → mp2_energy</code> without a <code>from_xla</code> between) triggers a compiler bug: the combined XLA lazy graph emits <code>Shared memory is only supported on trn2, but inst__I-9-0:_mem_0_0_set is using Shared memory on an unsupported target</code> — on trn1. <code>xm.mark_step()</code> between calls doesn't help; the flush itself produces the trn2-only code. The compiler is targeting trn2 because our instance is a trn1, which is either an impressive feat of optimism or a missing guard somewhere. Tracked in <a href="https://github.com/trnsci/trntensor/issues/39">#39</a> for upstream; users currently <code>from_xla(B)</code> between calls. This is the one hole in Phase 1's residency story.</p>
+<p><strong>The planner isn't a path-search engine yet.</strong> <code>ContractionPlan</code> handles one contraction at a time. 3+ operand einsums fall back to <code>torch.einsum</code>, losing both the optimal-order choice and the fused-DAG opportunity. Phase 3 adds path search; Phase 1 admits it doesn't have one.</p>
+<p><strong>Documentation gaps we discovered empirically.</strong> The NKI 0.3.0 transition notes cover <code>nc_matmul</code> signature changes and <code>nl.copy</code>'s new view semantics, but not the partition-dim strictness of 1D loads. The <code>SBUF and PSUM tensors must have at least 2 dimensions</code> assertion doesn't hint at which allocation is 0-D — you walk the trace to <code>nki/language/core.py:51</code>. These fill in once a few projects have tripped over them.</p>
+<h2 id="fit-assessment">Fit assessment<a class="headerlink" href="#fit-assessment" title="Permanent link">&para;</a></h2>
 <p>Small contractions are not what Trainium wants. DF-MP2 pair contractions are 200–300 kilo-FLOP per call; the dispatch wrapper spends longer than that moving data before the kernel starts. cuBLAS has the same problem at similar sizes on NVIDIA — it's not a Trainium defect — but on Trainium the absolute overhead is higher because the device transfer crosses a less tightly-integrated boundary than a GPU's PCIe path. Trainium is over-indexed for large GEMMs and under-indexed for tight loops of small contractions. The practical answer is residency + fusion, not doing more per-call work.</p>
-<p><strong>The planner isn't a path-search engine yet.</strong> <code>ContractionPlan</code> handles one contraction at a time. For a 3+ operand einsum, the current fallback is <code>torch.einsum</code>, which loses the chance to pick a better contraction order and loses the fused-DAG opportunity entirely. Phase 3 adds the path search; Phase 1 admits it doesn't have one.</p>
-<p><strong>Documentation gaps we discovered empirically.</strong> The NKI 0.3.0 transition notes list <code>nc_matmul</code> signature changes and <code>nl.copy</code>'s new view semantics, but the partition-dim strictness of 1D loads wasn't called out. The <code>SBUF and PSUM tensors must have at least 2 dimensions</code> assertion error is accurate but doesn't hint at which SBUF allocation is 0-D — you have to walk the trace to <code>nki/language/core.py:51</code>. These are the kinds of gaps that get filled in once a few projects have tripped over them; documenting them here is part of that.</p>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>trn1.2xlarge, neuronxcc 2.29 / NKI 0.3.0. Same machine for both columns (<code>TRNTENSOR_FORCE_BACKEND=pytorch</code> for the CPU baseline).</p>
+<p>trn1.2xlarge, NKI 0.3.0. Same machine both columns (<code>TRNTENSOR_FORCE_BACKEND=pytorch</code> for the CPU baseline).</p>
 <table>
 <thead>
 <tr>
@@ -5296,7 +5291,7 @@
 <td><code>einsum ap,bp-&gt;ab</code> (DF-MP2 pair)</td>
 <td>48×128 × 48×128</td>
 <td style="text-align: right;">295 K</td>
-<td style="text-align: right;"><strong>19.6 µs</strong></td>
+<td style="text-align: right;">19.6 µs</td>
 <td style="text-align: right;">1047 µs</td>
 <td>CPU 53× — dispatch overhead dominates</td>
 </tr>
@@ -5305,14 +5300,14 @@
 <td>32×8, 32×32×64</td>
 <td style="text-align: right;">524 K</td>
 <td style="text-align: right;">35.4 µs</td>
-<td style="text-align: right;"><strong>35.1 µs</strong></td>
+<td style="text-align: right;">35.1 µs</td>
 <td>break-even</td>
 </tr>
 <tr>
 <td><code>einsum ij,jk-&gt;ik</code></td>
 <td>512³</td>
 <td style="text-align: right;">134 M</td>
-<td style="text-align: right;"><strong>481 µs</strong></td>
+<td style="text-align: right;">481 µs</td>
 <td style="text-align: right;">1452 µs</td>
 <td>CPU 3.0×</td>
 </tr>
@@ -5320,7 +5315,7 @@
 <td><code>einsum bij,bjk-&gt;bik</code></td>
 <td>16×256³</td>
 <td style="text-align: right;">268 M</td>
-<td style="text-align: right;"><strong>953 µs</strong></td>
+<td style="text-align: right;">953 µs</td>
 <td style="text-align: right;">2162 µs</td>
 <td>CPU 2.3×</td>
 </tr>
@@ -5328,7 +5323,7 @@
 <td><code>einsum ij,jk-&gt;ik</code></td>
 <td>1024³</td>
 <td style="text-align: right;">1.07 G</td>
-<td style="text-align: right;"><strong>3402 µs</strong></td>
+<td style="text-align: right;">3402 µs</td>
 <td style="text-align: right;">4022 µs</td>
 <td>CPU 1.2×</td>
 </tr>
@@ -5344,7 +5339,7 @@
 <td><code>einsum bij,bjk-&gt;bik</code></td>
 <td>32×1024³</td>
 <td style="text-align: right;">34.4 G</td>
-<td style="text-align: right;"><strong>126.3 ms</strong></td>
+<td style="text-align: right;">126.3 ms</td>
 <td style="text-align: right;">190.8 ms</td>
 <td>CPU 1.5×</td>
 </tr>
@@ -5352,7 +5347,7 @@
 <td><code>mp2_energy</code> fused vs Python loop</td>
 <td>5×19×72</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;"><strong>1.5 ms</strong></td>
+<td style="text-align: right;">1.5 ms</td>
 <td style="text-align: right;">16 ms</td>
 <td>loop 10× — same overhead story</td>
 </tr>
@@ -5360,7 +5355,7 @@
 <td><code>mp2_energy</code> fused vs Python loop</td>
 <td>16×128×128</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;"><strong>25.5 ms</strong></td>
+<td style="text-align: right;">25.5 ms</td>
 <td style="text-align: right;">41 ms</td>
 <td>loop 1.6× — gap closing</td>
 </tr>
@@ -5374,19 +5369,13 @@
 </tr>
 </tbody>
 </table>
-<p>NKI wins one benchmark outright (2048² matmul, 1.6× faster). The residency test is where the story becomes interesting: pre-pinning operands eliminates the dispatch overhead that dominates every other number on this table. The fused kernels are architecturally correct; the residency API is what lets them earn their keep.</p>
+<p>NKI wins one benchmark outright (2048² matmul, 1.6×). Residency is where the story becomes interesting: pre-pinning eliminates the dispatch overhead that dominates every other row. The fused kernels are architecturally correct; <code>to_xla</code> is what lets them earn their keep.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
-<p>Phase trackers for the library, in order:</p>
-<ul>
-<li><a href="https://github.com/trnsci/trntensor/issues/28">Phase 2 — precision-aware contraction path selection</a></li>
-<li><a href="https://github.com/trnsci/trntensor/issues/29">Phase 3 — opt_einsum-style path planner + plan cache reuse</a></li>
-<li><a href="https://github.com/trnsci/trntensor/issues/30">Phase 4 — sharded tensor contractions across chips</a></li>
-<li><a href="https://github.com/trnsci/trntensor/issues/31">Phase 5 — trn2 fused multi-contraction paths</a></li>
-</ul>
-<p>Concrete v0.3.0 follow-ups already filed: <a href="https://github.com/trnsci/trntensor/issues/37">K-tiling for <code>ao_to_mo_transform</code> when nbasis &gt; 128</a>, <a href="https://github.com/trnsci/trntensor/issues/19">generic <code>multi_einsum</code> shared-operand detection</a>, <a href="https://github.com/trnsci/trntensor/issues/20">α/β scaling to match cuTENSOR's interface</a>, <a href="https://github.com/trnsci/trntensor/issues/39">the cross-kernel NKI compiler bug</a> pending upstream.</p>
+<p>Phase trackers: <a href="https://github.com/trnsci/trntensor/issues/28">Phase 2 — precision-aware path selection</a>, <a href="https://github.com/trnsci/trntensor/issues/29">Phase 3 — opt_einsum-style planner + plan-cache reuse</a>, <a href="https://github.com/trnsci/trntensor/issues/30">Phase 4 — sharded contractions across chips</a>, <a href="https://github.com/trnsci/trntensor/issues/31">Phase 5 — trn2 fused multi-contraction paths</a>.</p>
+<p>v0.3.0 follow-ups filed: <a href="https://github.com/trnsci/trntensor/issues/37">K-tiling for <code>ao_to_mo_transform</code></a>, <a href="https://github.com/trnsci/trntensor/issues/19">generic <code>multi_einsum</code> shared-operand detection</a>, <a href="https://github.com/trnsci/trntensor/issues/20">α/β scaling</a>, <a href="https://github.com/trnsci/trntensor/issues/39">the cross-kernel compiler bug</a>.</p>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>A tensor contraction library on Trainium looks different from one on a GPU because the kernel boundary is writable. cuTENSOR's <code>Plan</code> encapsulates one contraction behind an opaque handle and lets the runtime pick a kernel; trntensor's named fused primitives (<code>mp2_energy</code>, <code>ao_to_mo_transform</code>) span multiple contractions in one NKI program and expose the composition. That's a cuTENSOR superset when the workload matches a named pattern and a cuTENSOR-equivalent generic path for everything else.</p>
-<p>The design lesson Phase 1 delivers: fused, pattern-specific kernels are a normal mode of operation on Trainium, not an optimization pass. The library should name them as first-class primitives rather than try to detect them at dispatch time.</p>
+<p>A tensor contraction library on Trainium looks different from one on a GPU because the kernel boundary is writable. cuTENSOR's <code>Plan</code> encapsulates one contraction behind an opaque handle; trntensor's named fused primitives span multiple contractions in one NKI program and expose the composition. That's a cuTENSOR superset when the workload matches a named pattern and a cuTENSOR-equivalent generic path for everything else.</p>
+<p>The design lesson: fused, pattern-specific kernels are a normal mode of operation on Trainium, not an optimization pass. The library should name them as first-class primitives rather than try to detect them at dispatch time.</p>
 
 
 

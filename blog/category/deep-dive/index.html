@@ -5070,7 +5070,7 @@ gap that stands between the current state and hardware-validated Philox.</p>
           
           <li class="md-meta__item">
             
-              10 min read
+              9 min read
             
           </li>
         
@@ -5081,7 +5081,7 @@ gap that stands between the current state and hardware-validated Philox.</p>
   </header>
   <div class="md-post__content md-typeset">
     <h2 id="trntensor-when-the-kernel-boundary-is-the-api"><a class="toclink" href="../../trntensor-when-the-kernel-boundary-is-the-api/">trntensor: when the kernel boundary is the API</a></h2>
-<p>trntensor Phase 1 landed this week: the 2-index and batched <code>nc_matmul</code> NKI kernels validate on trn1, <code>ContractionPlan.backend</code> now reports <code>"nki"</code> when shapes qualify, and two fused multi-step primitives — the DF-MP2 correlation-energy kernel and the 4-index AO→MO integral transform — run the full contract → elementwise → reduce and contract → SBUF-resident → contract patterns in single NKI programs. The architectural point isn't "we implemented einsum on Trainium." It's that on Trainium the kernel boundary is the design surface: what cuTENSOR encapsulates behind a <code>Plan</code> object, NKI asks you to lay out in source. That's more work, but it's also where a tensor library can become a cuTENSOR superset rather than a cuTENSOR port.</p>
+<p>trntensor Phase 1 landed: the 2-index and batched <code>nc_matmul</code> NKI kernels validate on trn1, <code>ContractionPlan.backend</code> reports <code>"nki"</code> when shapes qualify, and two fused multi-step primitives — a DF-MP2 correlation-energy kernel and a 4-index AO→MO integral transform — run the contract → elementwise → reduce and contract → SBUF-resident → contract patterns as single NKI programs. The architectural point isn't "einsum on Trainium." It's that the kernel boundary is the design surface: what cuTENSOR hides behind a <code>Plan</code> object, NKI asks you to lay out in source. More work, but also where a tensor library can become a cuTENSOR superset rather than a port.</p>
 
     
       <nav class="md-post__action">
