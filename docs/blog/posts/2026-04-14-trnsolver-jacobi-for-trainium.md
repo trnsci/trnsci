@@ -6,7 +6,7 @@ comments: true
 
 # trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice
 
-Symmetric `eigh` on Trainium wants **Jacobi**, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in. This post is how trnsolver got there, what the hardware kept telling it, and which blind alleys it walked first.
+Symmetric `eigh` on Trainium wants **Jacobi**, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in.
 
 <!-- more -->
 
@@ -138,9 +138,17 @@ A handful of smaller items from the iteration:
 
 Simulator parity, `nki-simulator` CI job on `ubuntu-latest`, NKI 0.3.0 / neuronxcc 2.24.5133 from the AWS pip index:
 
-Eigenvalue relative error vs `torch.linalg.eigh`, reconstruction error `‖V·diag(w)·Vᵀ − A‖`, and orthonormality `‖VᵀV − I‖` all hold at **rtol=1e-3** across n ∈ {8, 16, 32, 64, 128} on random symmetric inputs. Full simulator suite — 18 tests, including tridiag-specific cases from the Householder pivot-and-back — runs in **2.67 seconds wall-clock** per CI run.
+Eigenvalue relative error vs `torch.linalg.eigh`, reconstruction error `‖V·diag(w)·Vᵀ − A‖`, and orthonormality `‖VᵀV − I‖`, across n ∈ {8, 16, 32, 64, 128} on random symmetric inputs:
 
-Hardware `@pytest.mark.neuron` numbers up to n=512 are the next gate. The simulator isn't a substitute for hardware on perf: it skips NEFF compile, tile-capacity checks, and PSUM/SBUF latency modelling. What's measured so far is the math, not the wall-clock-on-silicon.
+| n   | eigenvalue rtol | reconstruction rtol | orthonormality rtol |
+|----:|:---:|:---:|:---:|
+|   8 | 1e-3 | 1e-3 | 1e-3 |
+|  16 | 1e-3 | 1e-3 | 1e-3 |
+|  32 | 1e-3 | 1e-3 | 1e-3 |
+|  64 | 1e-3 | 1e-3 | 1e-3 |
+| 128 | 1e-3 | 1e-3 | 1e-3 |
+
+Full simulator suite — 18 tests, including tridiag-specific cases from the Householder pivot-and-back — runs in **2.67 seconds wall-clock** per CI run. Hardware perf lands in Phase 3.
 
 The disappointing number, to the extent Phase 1 has one: **per-sweep kernel-dispatch count is 3**, not 1 (D rows, D columns, V columns). That's 3× the dispatch overhead of a "one kernel per round" design. Collapsing those three calls into one kernel, plus reformulating the rotation as a stationary 2×2-matmul on the Tensor Engine, is the Phase 3 perf headline.
 
@@ -160,4 +168,4 @@ The trnsolver phase trackers:
 
 The 128-partition Tensor Engine tile's preferences invert at the kernel-dispatch layer. Householder's rank-1 outer products look like the right hardware-native move until the serial dataflow between reflectors collides with NKI's per-traced-graph compile model. Jacobi's batched-sweep form — n/2 rotations commuting on disjoint pairs, mapping to one kernel dispatch per round — trades asymptotic FLOP count for kernel-boundary efficiency, and wins on Trainium.
 
-The concrete lesson for anyone building a dense-linear-algebra library on NKI 0.3.0: the simulator validates kernel math; only hardware validates host-integration shape. A kernel that compiles per call on the simulator will compile per call on hardware too, and on hardware the compile cost is an order of magnitude higher. Design for a stable traced graph from the first commit.
+The concrete lesson for anyone building a dense-linear-algebra library on NKI 0.3.0: the simulator validates kernel math; only hardware validates host-integration shape. A kernel that compiles per call on the simulator will compile per call on hardware too, and on hardware the compile cost is an order of magnitude higher. Phase 1's lesson, internalized: plan the traced graph before the kernel, not after.
