@@ -6,40 +6,47 @@ comments: true
 
 # trnfft: FFT on hardware that doesn't want to be an FFT engine
 
-Between v0.7 and v0.12, [trnfft](https://trnsci.dev/trnfft/)'s NKI story moved from one per-row butterfly dispatch into a batched butterfly + fused DFT-as-GEMM stack with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be. Readers evaluating Trainium for spectral workloads or maintaining sibling NKI libraries will find the architectural framing directly portable.
+Between v0.7 and v0.12, [trnfft](https://trnsci.dev/trnfft/)'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.
 
 <!-- more -->
 
 ## The problem
 
-FFT is load-bearing for spectral PDE solvers, speech enhancement, radar, convolutional nets, Ewald sums. `torch.fft` and `cuFFT` are the reference APIs; both assume a native complex dtype and a massively threaded SIMT unit — a radix-2 Cooley-Tukey butterfly in that model is "one warp per butterfly, thousands in flight, one complex register per element, bit-reverse the input index".
+FFT is load-bearing for spectral PDE solvers, speech enhancement, radar, convolutional nets, Ewald sums. `torch.fft` and `cuFFT` are the reference APIs; both assume a native complex dtype and a massively threaded SIMT unit — a radix-2 Cooley-Tukey butterfly in that model is "one warp per butterfly, thousands in flight, one complex register, bit-reverse the input index".
 
-Trainium has neither assumption. There is no hardware complex dtype — every complex tensor must be paired real tensors. The execution model isn't SIMT; it's four cooperating engines (Tensor, Vector, Scalar, DMA) with a fixed tile shape of 128 partitions × up to 512 free elements, and a whole-program NKI compiler that schedules their dependencies. A naive "one thread per butterfly" port runs headfirst into partition underutilization: filling 128 partitions with radix-2 pairs requires reaching across 64 simultaneous butterfly groups, not across threads within one. "Port cuFFT" is a bad starting point. The interesting question is what the architecture suggests if cuFFT didn't exist.
+Trainium has neither assumption. There is no hardware complex dtype — every complex tensor must be paired real tensors. The execution model isn't SIMT; it's four cooperating engines (Tensor, Vector, Scalar, DMA) with a fixed tile shape of 128 partitions × up to 512 free elements, and a whole-program NKI compiler that schedules their dependencies. A naive "one thread per butterfly" port runs into partition underutilization: filling 128 partitions with radix-2 pairs means reaching across 64 simultaneous butterfly groups, not across threads inside one. Porting cuFFT is a bad starting point; the interesting question is what the architecture suggests if cuFFT didn't exist.
 
 ## What the architecture suggests
 
-**No complex dtype.** Every complex tensor becomes two real tensors side by side — the `ComplexTensor(real, imag)` wrapper is a split-real/imag holder, not a new primitive. Complex multiply is four real multiplies and two real adds. Complex matmul is four real matmuls and two real matrix adds. On Trainium this is the native shape, because the real Tensor Engine op (stationary `nisa.nc_matmul` with PSUM accumulation) has no complex-typed equivalent and would unpack to four real matmuls in the compiler anyway.
+**No complex dtype.** Every complex tensor becomes two real tensors side by side. The `ComplexTensor(real, imag)` wrapper is a split-real/imag holder, not a new primitive. Complex multiply decomposes to four real multiplies and two real adds; complex matmul to four real matmuls and two real matrix adds. This isn't a workaround — stationary `nisa.nc_matmul` has no complex-typed equivalent and would unpack to four real matmuls in the compiler either way.
 
-**The 128-partition tile prefers many independent small operations.** A radix-2 butterfly acts on pairs, so filling the partition dim means *flattening across butterfly groups*. An FFT of size N at stage s has `N / 2^(s+1)` independent butterfly groups; all of them run in parallel along the partition dim. For batched FFT (`(B, N)` input) the math compounds: `B × num_groups` lands in the partition slot, naturally saturating the tile at reasonable B. The kernel runs once per stage, vectorized across every group in every batch row. What looks like a radix-2 algorithm on paper is really "one big elementwise-per-stage over a tall partition-dim".
+**The 128-partition tile prefers many independent small operations.** A radix-2 butterfly acts on pairs, so filling the partition dim means *flattening across butterfly groups*. An FFT of size N at stage s has `N / 2^(s+1)` independent groups; all of them run in parallel along the partition dim. For batched FFT (`(B, N)` input) the math compounds: `B × num_groups` lands in the partition slot, saturating the tile at reasonable B.
 
-**Four engines mean a butterfly stage issues two ops in parallel.** The Tensor Engine does the twiddle × odd-element multiply. The Vector Engine does the `e + prod` / `e - prod` butterfly combination. These aren't sequential the way they are on a GPU warp — the NKI compiler schedules them on separate engines with DMA prefetch overlapping from HBM. The architectural primitive isn't "one butterfly"; it's "fill the Tensor Engine pipeline with twiddle multiplies while the Vector Engine consumes their outputs".
+```mermaid
+flowchart LR
+    A["Input (B=2, N=8)"] -->|reshape| B["(B × num_groups, m) = (8, 2)"]
+    B --> C["Partition dim = 8<br/>batch 0: 4 groups<br/>batch 1: 4 groups"]
+    B --> D["Free dim = m<br/>intra-group elements"]
+    C --> E["Kernel runs once per stage<br/>across every group in every batch row"]
+    D --> E
+```
 
-**PSUM is fp32 and has a ceiling.** The Tensor Engine accumulates products in PSUM in fp32. Generous for one matmul, but a long dependency chain — three power-of-2 FFTs composed in Bluestein's chirp-z decomposition — compounds rounding error. At N ≥ 500 the default Bluestein path in fp32 accumulates roughly 2 × 10⁻² relative error against a scipy fp64 reference. That's a hardware-sizing observation as much as an algorithm choice, and it's what motivated the Kahan-compensated butterfly shipped in the `"kahan"` precision mode: the Vector Engine folds a 2Prod compensation step into the butterfly kernel cheaply, because the extra adds land on the engine that would otherwise be idle while the Tensor Engine is busy. Compensation is architecturally-free in a way it wouldn't be on a GPU.
+**Four engines mean a butterfly stage issues two ops in parallel.** The Tensor Engine does the twiddle × odd-element multiply; the Vector Engine does the `e + prod` / `e - prod` butterfly combination. These aren't sequential the way they are on a GPU warp — the NKI compiler schedules them on separate engines, with DMA prefetch overlapping from HBM. The primitive isn't "one butterfly"; it's "fill the Tensor Engine pipeline with twiddle multiplies while the Vector Engine consumes their outputs".
 
-**NEFF cache makes the first call expensive.** Every distinct kernel signature compiles to a NEFF binary on first invocation; subsequent calls are cache hits. This favors plan-based execution (FFTW/cuFFT-style) over kernel-per-call — `trnfft.plan` caches plans keyed on `(N, inverse)`.
+**PSUM is fp32 and has a ceiling.** The Tensor Engine accumulates products in PSUM in fp32 — generous for one matmul, but a long dependency chain (three power-of-2 FFTs in Bluestein's chirp-z decomposition) compounds rounding error. At N ≥ 500 the default Bluestein path accumulates roughly 2 × 10⁻² relative error against a scipy fp64 reference. That's as much a hardware-sizing observation as an algorithm choice, and it motivated the Kahan-compensated butterfly in the `"kahan"` precision mode: the Vector Engine folds a 2Prod compensation step in cheaply because the extra adds land on the engine that would otherwise sit idle while the Tensor Engine is busy — compensation is architecturally cheap in a way it isn't on a GPU.
 
 ## The approach
 
 v0.8.0 landed four NKI kernels built on the above:
 
-1. `_complex_gemm_kernel` — 4 real `nisa.nc_matmul` calls into 2 fp32 PSUM accumulators with stationary-tile reuse: A_real stays in the stationary slot while B_real and B_imag stream through as moving operands, then A_imag stationary while -B_imag and B_real stream. Four SBUF loads become two per PSUM pair, saving HBM traffic.
-2. `_complex_mul_kernel` — fused elementwise complex multiply, single kernel, one SBUF round-trip instead of six for the naive implementation.
-3. `butterfly_stage_kernel` — batched radix-2 DIT stage. Input `(B, N)` flattens to `(B * num_groups, m)`; partition dim is the combined batch-and-group axis, free dim is the intra-group element. Twiddles are host-broadcast across partition rows so partition dims match when the Vector Engine fires the complex-multiply + butterfly.
-4. `butterfly_stage_kernel_kahan` — compensated variant. Dekker 2Prod split of each `t × o`, then adds the rounded-off low-order part back into the complex sum. Doubles the butterfly op count, runs mostly on the Vector Engine. Opt-in via `trnfft.set_precision("kahan")`.
+1. `_complex_gemm_kernel` — four real `nisa.nc_matmul` calls into two fp32 PSUM accumulators, with stationary-tile reuse: A_real stationary while B_real and B_imag stream, then A_imag stationary with -B_imag and B_real. Halves SBUF loads per PSUM pair.
+2. `_complex_mul_kernel` — fused elementwise complex multiply, one SBUF round-trip instead of six.
+3. `butterfly_stage_kernel` — batched radix-2 DIT stage. Input `(B, N)` flattens to `(B × num_groups, m)`; partition dim is the combined batch-and-group axis, free dim is the intra-group element. Twiddles are host-broadcast across partition rows so partition dims match when the Vector Engine fires.
+4. `butterfly_stage_kernel_kahan` — compensated variant. Dekker 2Prod split of each `t × o`, adding the rounded-off low-order part back into the complex sum. Doubles the butterfly op count, runs mostly on the Vector Engine. Opt-in via `trnfft.set_precision("kahan")`.
 
-STFT, batched FFT, and fft2/fftn all run through a single `_cooley_tukey_nki` dispatcher that flattens any leading batch dims into the partition slot and calls the kernel once per stage.
+STFT, batched FFT, and fft2/fftn all flow through one `_cooley_tukey_nki` dispatcher that flattens leading batch dims into the partition slot and calls the kernel once per stage.
 
-The deliberate tradeoff: radix-2, not radix-4 or larger. Radix-2 is simpler and fills the Vector Engine cleanly, but at large N the per-stage launch count is `log₂(N)` and each launch pays NKI dispatch overhead. For N ≥ 1024 this starts to dominate — which motivates Thread B (Stockham radix-4) under active development.
+Deliberate tradeoff: radix-2 fills the Vector Engine cleanly but pays `log₂(N)` kernel launches, each carrying NKI dispatch overhead. At N ≥ 1024 that starts to dominate — which motivates Thread B (radix-4 Stockham) under active development.
 
 ## Implementation
 
@@ -47,67 +54,46 @@ The butterfly stage kernel is the load-bearing piece. Stripped to its essential 
 
 ```python
 @nki.jit
-def butterfly_stage_kernel(x_re, x_im, tw_re_bcast, tw_im_bcast, n, stage):
-    B, _ = x_re.shape
+def butterfly_stage_kernel(x_re, x_im, tw_re, tw_im, n, stage):
     m = 1 << (stage + 1)
     half = m >> 1
-    num_groups = n // m
-    total_groups = B * num_groups
-
-    out_re = nl.ndarray((B, n), dtype=x_re.dtype, buffer=nl.shared_hbm)
-    out_im = nl.ndarray((B, n), dtype=x_im.dtype, buffer=nl.shared_hbm)
+    total_groups = x_re.shape[0] * (n // m)
 
     # Flatten (B, n) -> (total_groups, m). Partition dim = total_groups;
     # every partition row is one independent butterfly group.
-    x_re_2d = x_re.reshape((total_groups, m))
-    # ... same for x_im_2d, out_re_2d, out_im_2d ...
+    x_re_2d = x_re.reshape((total_groups, m))  # x_im, outputs likewise
 
-    groups_chunk = total_groups if total_groups <= PMAX else PMAX
-    n_partition_tiles = total_groups // groups_chunk
-
-    for p in nl.affine_range(n_partition_tiles):
+    groups_chunk = min(total_groups, PMAX)
+    for p in nl.affine_range(total_groups // groups_chunk):
         p_off = p * groups_chunk
-        p_end = p_off + groups_chunk
         for k in nl.affine_range(half):
-            t_re_col = nl.load(tw_re_bcast[p_off:p_end, k:k+1])
-            t_im_col = nl.load(tw_im_bcast[p_off:p_end, k:k+1])
-            e_re = nl.load(x_re_2d[p_off:p_end, k:k+1])
-            e_im = nl.load(x_im_2d[p_off:p_end, k:k+1])
-            o_re = nl.load(x_re_2d[p_off:p_end, k+half:k+half+1])
-            o_im = nl.load(x_im_2d[p_off:p_end, k+half:k+half+1])
-
-            # Complex multiply, one butterfly column at a time.
-            prod_re = nl.subtract(
-                nl.multiply(t_re_col, o_re), nl.multiply(t_im_col, o_im))
-            prod_im = nl.add(
-                nl.multiply(t_re_col, o_im), nl.multiply(t_im_col, o_re))
-
-            # Even = e + prod, odd = e - prod.
-            nl.store(out_re_2d[p_off:p_end, k:k+1],
-                     value=nl.add(e_re, prod_re))
-            # ... three more stores for out_im even, out_re odd, out_im odd ...
+            # Load t_re, t_im and the even/odd pair at column k for this tile.
+            # ...
+            prod_re = nl.subtract(nl.multiply(t_re, o_re),
+                                  nl.multiply(t_im, o_im))
+            # prod_im symmetric; then even = e + prod, odd = e - prod.
     return out_re, out_im
 ```
 
 (Apache 2.0, full source: [`trnfft/nki/butterfly.py`](https://github.com/trnsci/trnfft/blob/main/trnfft/nki/butterfly.py).)
 
-The partition-dim-is-total_groups pattern is the Trainium-native bit. A GPU would nest `k` as the outer loop and thread-parallelize over groups; here the partition dim *is* the group dim, and `k` iterates through butterfly positions within each group. For non-power-of-2 `B` (STFT's 33-frame case), the host pads to the next multiple of 128 — zero-padding is cheaper than supporting irregular partition counts in NKI 2.24, and the padding is discarded after the stage.
+A GPU would nest `k` as the outer loop and thread-parallelize over groups. Here the partition dim *is* the group dim, and `k` iterates through butterfly positions inside each group. For non-power-of-2 `B` (STFT's 33 frames), the host pads to the next multiple of 128 — cheaper than irregular-partition support in NKI 2.24, and discarded after the stage.
 
 ## What didn't work
 
-**FP32 Bluestein precision.** The single largest surprise. Bluestein chains three power-of-2 FFTs and a pair of chirp multiplies to handle arbitrary-N FFT; composed in fp32 the relative error grows roughly as O(N). At N = 500 error reaches ~1.4 × 10⁻²; at N = 8193 ~2.2 × 10⁻³. The test suite had silently papered over this with `tol = 2e-2` for N ≥ 500 — a gap marked "expected fp32 degradation" rather than fixed. v0.11.0 shipped three precision modes in response: `"fast"` keeps the fp32 path, `"double"` promotes Bluestein host math to fp64 (~5 × 10⁻¹³ at any N, 10 orders of magnitude tighter, but host-side only — NKI stays fp32), and `"kahan"` uses the compensated butterfly. `"kahan"` on CPU is equivalent to `"fast"` because the chirp multiplies aren't where the error lives — the butterfly chain is — and only on NKI does the compensation actually engage.
+**FP32 Bluestein precision.** Bluestein chains three power-of-2 FFTs with chirp multiplies to handle arbitrary-N; in fp32 the relative error grows roughly as O(N) — ~1.4 × 10⁻² at N = 500 against a scipy fp64 reference. The test suite had silently papered over this with `tol = 2e-2` for N ≥ 500, marked "expected fp32 degradation" rather than fixed. v0.11.0 shipped `"fast"` / `"double"` / `"kahan"` precision modes: `"double"` promotes host math to fp64 (~5 × 10⁻¹³, host-side only), and `"kahan"` uses the compensated butterfly. `"kahan"` on CPU is equivalent to `"fast"` because the chirp multiplies aren't where the error lives — the butterfly chain is — and only on NKI does the compensation actually engage.
 
-**NKI kernels silently detached autograd.** Every `@nki.jit` kernel returns a tensor from `nl.shared_hbm` with no registered `grad_fn`. Forward passes work fine; `loss.backward()` raises `element 0 of tensors does not require grad and does not have a grad_fn` on the first backward call (issue #56). Invisible for inference-only users. v0.10.1 wrapped every kernel in a `torch.autograd.Function` subclass with analytic adjoints (`dA = dC @ conj(B)ᵀ` for GEMM, `dx = ifft(dy) × n` for FFT).
+**NKI kernels silently detached autograd.** Every `@nki.jit` kernel returns a tensor from `nl.shared_hbm` with no registered `grad_fn`. Forward works fine; `loss.backward()` raises `element 0 of tensors does not require grad and does not have a grad_fn` on the first backward call (issue #56). Invisible for inference-only users. v0.10.1 wrapped every kernel in a `torch.autograd.Function` subclass with analytic adjoints.
 
-**`torch.Tensor.unfold` has no XLA backend.** `trnfft.stft` originally used `x.unfold(dim, size, step)` for frame extraction; that raised `aten::unfold not implemented for XLA` the moment anyone set `set_backend("nki")`. Replaced with explicit `torch.arange`-based frame-index construction in PR #44.
+**`torch.Tensor.unfold` has no XLA backend.** `trnfft.stft` originally used `x.unfold(dim, size, step)` for frame extraction; that raised `aten::unfold not implemented for XLA` the moment anyone set `set_backend("nki")`. Replaced with `torch.arange`-based frame indexing in PR #44.
 
-**The NKI 0.3.0 migration surfaced three API deltas that broke our kernels.** `nisa.nc_matmul` went kwargs-only with in-place accumulation (`dst=, stationary=, moving=, accumulate=True`). `nl.copy` now returns a view, so PSUM → SBUF materialization requires `nisa.tensor_copy(dst=, src=)` with a pre-allocated SBUF destination. Python `*` / `+` / `-` operators are no longer defined on `NkiTensor` — every complex multiply and butterfly expression rewrote with explicit `nl.multiply` / `nl.add` / `nl.subtract`. All three were surfaced by the CPU simulator (`NKI_SIMULATOR=1`) in minutes. AWS Neuron team: migration release notes calling out operator-overload changes would save downstream libraries a CI iteration each.
+**Three NKI 0.3.0 API deltas broke our kernels.** `nisa.nc_matmul` went kwargs-only with in-place accumulation (`dst=, stationary=, moving=, accumulate=True`). `nl.copy` now returns a view, so PSUM → SBUF materialization requires `nisa.tensor_copy(dst=, src=)` with a pre-allocated SBUF destination. Python `*`/`+`/`-` are no longer defined on `NkiTensor` — every complex-multiply and butterfly expression rewrote with explicit `nl.multiply` / `nl.add` / `nl.subtract`. All three were surfaced by the CPU simulator (`NKI_SIMULATOR=1`) in under two CI minutes. Release notes calling out operator-overload removal and `nl.copy` becoming a view would save downstream libraries a CI iteration each.
 
-**Full-size DFT-as-GEMM capped at N = 256.** v0.12.0 introduced a DFT-as-GEMM fast path (`x @ W` where `W` is the `N × N` DFT matrix) that beats butterfly by 2.2–5.7× for N ∈ {8..128} and still wins 5.3× at N = 1024 — but fp32 `nisa.nc_matmul` accumulation at N = 1024 reaches ~2.2% relative error, breaking the 1e-3 test tolerance. The win is perf-real and precision-blocked. Routing past the 256 ceiling is what motivates Stockham radix-4 (Thread B), where a `log₄(N)` chain accumulates only O(r²) error per stage.
+**Full-size DFT-as-GEMM capped at N = 256.** v0.12.0's DFT-as-GEMM fast path beats butterfly by 2.2–5.7× at N ∈ {8..128} and 5.3× at N = 1024 — but fp32 `nisa.nc_matmul` accumulation at N = 1024 reaches ~2.2% relative error, breaking the 1e-3 test tolerance. Real perf win, precision-blocked. Routing past 256 is what motivates Thread B (Stockham radix-4), where a `log₄(N)` chain accumulates only O(r²) error per stage.
 
 ## Numbers
 
-Steady-state on trn1.2xlarge, `neuronxcc 2.24.5133.0`, Deep Learning AMI Neuron PyTorch 2.9. All numbers after warmup — first call pays NEFF compile, these are mean of subsequent steady-state invocations.
+Steady-state on trn1.2xlarge, `neuronxcc 2.24.5133.0`, Deep Learning AMI Neuron PyTorch 2.9. All numbers after warmup — the first call pays NEFF compile, subsequent calls are cache hits, and these are the means of the warm side.
 
 ### v0.7.0 → v0.8.0 — batched kernel landing
 
@@ -118,7 +104,7 @@ Steady-state on trn1.2xlarge, `neuronxcc 2.24.5133.0`, Deep Learning AMI Neuron 
 | batched FFT (128×1024) | 2.07 s | 52 ms | 39× |
 | STFT (16 000 samples) | 765 ms | 28 ms | 27× |
 
-v0.7.0 ran the butterfly kernel in a Python for-loop over batch rows — one kernel dispatch per (row, stage) pair. v0.8.0's batched kernel removes that loop; what looks like a 27× STFT speedup is "fix the dispatch pattern so the kernel sees the batch".
+v0.7.0 dispatched the butterfly once per (row, stage) pair in Python. v0.8.0 removes that loop; the 27× STFT delta is "fix the dispatch pattern so the kernel sees the batch", not a kernel-level win.
 
 ### v0.12.0 — DFT-as-GEMM for small N
 
@@ -128,21 +114,16 @@ v0.7.0 ran the butterfly kernel in a Python for-loop over batch rows — one ker
 | B = 32, N = 256 | 2 049 μs | 29 210 μs | 14.3× |
 | STFT (n_fft = 256, 16 k samples) | 2 445 μs | 30 514 μs | 12.5× |
 
-The batched/STFT columns are where the architectural thesis paid off. DFT-GEMM at `(B = 32, N = 256)` collapses the entire batch into one `nisa.nc_matmul` — the partition-dim finally saturates, and the per-batch cost drops 12–14× against the butterfly chain. `torch.fft.fft` on the x86 bench host (running MKL) is still faster than Trainium for isolated one-shot FFT calls — 10–80 μs cold, roughly 50–300× lower than the NKI path. The architectural story isn't "beat MKL on cold calls"; it's "keep data on-chip across long operator chains".
+The batched and STFT rows are where the architectural thesis pays off — DFT-GEMM at `(B = 32, N = 256)` collapses the whole batch into one `nisa.nc_matmul` and the partition dim saturates. For context, `torch.fft.fft` on an x86 bench host with MKL is faster than Trainium for isolated cold calls (10–80 μs); the story isn't "beat MKL on cold calls", it's "keep data on-chip across long operator chains".
 
 ## What's next
 
-- **Phase 2 #52 — Kahan / Neumaier summation for long Bluestein chains.** Partial delivery in v0.11.0 (precision-modes API + compensated butterfly kernel). The Kahan butterfly compiles on NKI 2.24.5133.0 and agrees with the stock kernel at FP32 rtol across the 17-test neuron suite; whether the 2Prod compensation *actually* reduces FP32 FFT error on silicon is the measurement question still open in issue #58.
-- **Thread B — Stockham radix-4 (v0.13 candidate).** A POC kernel shipped this week, CPU reference + NKI port green under the CPU simulator. 5 kernel launches at N = 1024 vs 10 for butterfly, and log₄(N) fp32 accumulation vs the O(N²) ceiling that caps DFT-GEMM at N = 256. Hardware validation pending an AWS DLAMI with Neuron SDK 2.29.
+- **Phase 2 #52 — Kahan / Neumaier summation.** Partial delivery in v0.11.0 (precision-modes API + compensated butterfly). The Kahan butterfly compiles on NKI 2.24.5133.0 and matches the stock kernel at fp32 rtol across the 17-test neuron suite; whether the 2Prod compensation *actually* reduces fp32 FFT error on silicon is the measurement question open in #58.
+- **Thread B — Stockham radix-4 (v0.13 candidate).** POC shipped this week, CPU reference + NKI port green under the simulator. 5 kernel launches at N = 1024 vs 10 for butterfly, and `log₄(N)` fp32 accumulation vs the O(N²) ceiling that caps DFT-GEMM. Hardware validation pending an AWS DLAMI with Neuron SDK 2.29.
 - **Phase 3 #53 — perf.** Plan reuse across shapes, streaming large FFTs that exceed HBM, NEFF cache hit-rate instrumentation.
 - **Phase 4 #54 — multi-chip FFT for N > 2²⁰** via cross-core collectives.
-- **Phase 5 #55 — trn2.** Larger SBUF, different systolic array sizing; some constraints loosen.
-
-## Toolchain observations worth flagging
-
-- **The CPU simulator (`NKI_SIMULATOR=1`) is the biggest DX change since NKI 0.3.0 shipped.** It runs kernels on CPU without NEFF compile or hardware dispatch. Kernel iteration that used to need a 5–10 min SSM round-trip to trn1 now takes seconds locally; GitHub Actions can run simulator-backed correctness tests on `ubuntu-latest` with no AWS access. It surfaced every one of the NKI 0.3.0 API deltas that broke trnfft's kernels in a CI run lasting under two minutes. If you're shipping a library that depends on NKI, add a simulator job before you ship anything else.
-- **`nisa.tensor_copy` signature.** The switch from `nl.copy(psum, dtype=...)` to `nisa.tensor_copy(dst=sbuf, src=psum)` is a meaningful behavioral change — `nl.copy` now returns a view — and the migration guide didn't call it out. Downstream libraries with PSUM → SBUF materialization patterns will hit the same issue.
+- **Phase 5 #55 — trn2.** Larger SBUF, different systolic sizing; some current constraints loosen.
 
 ## Takeaway
 
-Trainium was designed for large-model training and inference; FFT is not the workload it was built for. A CUDA-style radix-2 butterfly with one thread per butterfly and thousands in flight maps badly onto a 128-partition systolic array with a fixed engine hierarchy. What works instead is treating the partition dim as "total independent butterfly groups across every batch row, vectorized", the four engines as a scheduling substrate that fires multiply and add in parallel, and the fp32 PSUM as a real ceiling that constrains algorithm choice. Every trnfft kernel shipped so far is a variation on that theme — split real/imag, flatten across groups, route compute between engines, and respect the precision ceiling. The rest of the roadmap is about pushing that thesis into medium and large N where it's not obvious the butterfly is still the right decomposition.
+Trainium was built for large-model training and inference; FFT isn't the workload it was indexed for. A warp-per-butterfly port maps badly onto 128 partitions and a fixed engine hierarchy. What works instead is treating the partition dim as "total independent butterfly groups across every batch row", the four engines as a scheduling substrate, and fp32 PSUM as a real ceiling on algorithm choice. Every trnfft kernel so far is a variation on that theme; the roadmap is about pushing the thesis into medium and large N where the butterfly isn't obviously the right decomposition.
