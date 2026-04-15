@@ -835,6 +835,8 @@
       
         
       
+        
+      
     
     
     
@@ -990,6 +992,36 @@
     
   
     trnblas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../category/trnsparse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    trnsparse
   
 
     
@@ -5058,6 +5090,48 @@ model affords that per-call GEMM libraries cannot express.</p>
     
       <nav class="md-post__action">
         <a href="../../2026/04/14/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../../category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="../../category/trnsparse/" class="md-meta__link">trnsparse</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              11 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsparse-the-tile-is-the-unit-not-the-nonzero"><a class="toclink" href="../../2026/04/14/trnsparse-the-tile-is-the-unit-not-the-nonzero/">trnsparse: the tile is the unit, not the nonzero</a></h2>
+<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0 last week, and the benchmark table was publicly worse than scipy across every configuration that was run. That's not a failure — it's the piece of evidence that led to the reframe that v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. This post is the retrospective — what shipped, what the numbers actually said, and why the honest story is that the CUDA sparse playbook is the wrong starting point for this hardware.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../2026/04/14/trnsparse-the-tile-is-the-unit-not-the-nonzero/">
           Continue reading
         </a>
       </nav>
