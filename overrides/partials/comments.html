@@ -1,28 +1,13 @@
-{#-
-  Giscus comments (GitHub Discussions backend).
-
-  Enabled per-page via frontmatter `comments: true`.
-
-  Setup required before this is live:
-    1. Enable Discussions on trnsci/trnsci (Settings → Features).
-    2. Install the giscus GitHub App: https://github.com/apps/giscus
-    3. Pick or create a discussion category (suggest: "Blog comments").
-    4. Visit https://giscus.app, configure for trnsci/trnsci, copy the four
-       generated values, and replace the placeholders below.
-
-  Until the four data-* attributes are filled in with real IDs, the widget
-  will fail silently and the page will just render without comments. No
-  visible breakage.
-#}
+{#- Giscus comments — backed by GitHub Discussions on trnsci/trnsci. Enabled per-page via frontmatter `comments: true`. #}
 
 {% if page.meta.comments %}
   <h2 id="__comments">{{ lang.t("meta.comments") }}</h2>
 
   <script src="https://giscus.app/client.js"
           data-repo="trnsci/trnsci"
-          data-repo-id="REPO_ID_PLACEHOLDER"
-          data-category="Blog comments"
-          data-category-id="CATEGORY_ID_PLACEHOLDER"
+          data-repo-id="R_kgDOSA365w"
+          data-category="General"
+          data-category-id="DIC_kwDOSA36584C66kJ"
           data-mapping="pathname"
           data-strict="0"
           data-reactions-enabled="1"
