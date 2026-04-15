@@ -16,7 +16,7 @@ Einstein summation generalizes matrix multiplication to arbitrary tensor contrac
 
 cuTENSOR's model for this is one plan per contraction: `cutensorInitContractionDescriptor`, then `cutensorContractionExecute`. Each plan becomes a CUDA kernel. Multiple contractions compose in Python (or host C) between plans, with intermediate tensors landing in HBM between calls. The programmer rarely thinks about where the plan ends and the next one starts — cuTENSOR hides the kernel boundary.
 
-The naive port of that shape to Trainium produces correct results and leaves most of the performance on the floor. DF-MP2 with 25 pair contractions compiles to 25 NKI dispatches; each dispatch pays a fixed XLA overhead — measured here at about 7 ms for host↔XLA transfer plus ~1 ms for kernel launch — before the kernel does 500 µs of actual work. The per-kernel compile is fine. The per-dispatch surrounding work is not.
+The naive port of that shape to Trainium produces correct results and leaves most of the performance on the floor. DF-MP2 with 25 pair contractions compiles to 25 NKI dispatches; each dispatch pays a fixed XLA overhead. Profiling a 2048² matmul on trn1 (reported in [#33](https://github.com/trnsci/trntensor/issues/33#issuecomment-4239594619)) measured 4,081 µs host→XLA transfer, 2,994 µs XLA→host transfer, and only 568 µs of actual kernel time — the wrapper is doing an order of magnitude more work than the Tensor Engine. The per-kernel compile is fine. The per-dispatch surrounding work is not.
 
 ## What the architecture suggests
 
@@ -121,7 +121,9 @@ Several paths that looked reasonable didn't survive contact with the NKI compile
 
 **Cross-kernel XLA graph fusion.** The full DF-MP2 pipeline with everything pre-pinned (`ao_to_mo_transform → mp2_energy` without a `from_xla` between them) triggers an NKI compiler bug: the combined XLA lazy graph spanning both kernels generates `Shared memory is only supported on trn2, but inst__I-9-0:_mem_0_0_set is using Shared memory on an unsupported target` on trn1. Inserting `xm.mark_step()` between calls didn't resolve it — the flush itself is what produces the trn2-only code. Tracked in [#39](https://github.com/trnsci/trntensor/issues/39) for upstream escalation; users currently `from_xla(B)` between the two calls. This is the one place Phase 1's residency story has a hole.
 
-**Fit assessment: small contractions are not what Trainium wants.** The benchmarks are candid about this. DF-MP2 pair contractions are 200–300 kilo-FLOP per call; the dispatch wrapper spends longer than that moving data before the kernel starts. cuBLAS has the same problem at similar sizes on NVIDIA — it's not a Trainium defect — but on Trainium the absolute overhead is higher because the device transfer crosses a less tightly-integrated boundary than a GPU's PCIe path. Trainium is over-indexed for large GEMMs and under-indexed for tight loops of small contractions. The practical answer is residency + fusion, not doing more per-call work.
+### Fit assessment
+
+Small contractions are not what Trainium wants. DF-MP2 pair contractions are 200–300 kilo-FLOP per call; the dispatch wrapper spends longer than that moving data before the kernel starts. cuBLAS has the same problem at similar sizes on NVIDIA — it's not a Trainium defect — but on Trainium the absolute overhead is higher because the device transfer crosses a less tightly-integrated boundary than a GPU's PCIe path. Trainium is over-indexed for large GEMMs and under-indexed for tight loops of small contractions. The practical answer is residency + fusion, not doing more per-call work.
 
 **The planner isn't a path-search engine yet.** `ContractionPlan` handles one contraction at a time. For a 3+ operand einsum, the current fallback is `torch.einsum`, which loses the chance to pick a better contraction order and loses the fused-DAG opportunity entirely. Phase 3 adds the path search; Phase 1 admits it doesn't have one.
 
@@ -134,15 +136,15 @@ trn1.2xlarge, neuronxcc 2.29 / NKI 0.3.0. Same machine for both columns (`TRNTEN
 | Op | Shape | FLOPs | PyTorch (trn1) | NKI (trn1) | Notes |
 |---|---|---:|---:|---:|---|
 | `einsum ap,bp->ab` (DF-MP2 pair) | 48×128 × 48×128 | 295 K | **19.6 µs** | 1047 µs | CPU 53× — dispatch overhead dominates |
-| `einsum mi,mnP->inP` (4-index) | 32×8, 32×32×64 | 524 K | 35.4 µs | 35.1 µs | break-even |
+| `einsum mi,mnP->inP` (4-index) | 32×8, 32×32×64 | 524 K | 35.4 µs | **35.1 µs** | break-even |
 | `einsum ij,jk->ik` | 512³ | 134 M | **481 µs** | 1452 µs | CPU 3.0× |
 | `einsum bij,bjk->bik` | 16×256³ | 268 M | **953 µs** | 2162 µs | CPU 2.3× |
 | `einsum ij,jk->ik` | 1024³ | 1.07 G | **3402 µs** | 4022 µs | CPU 1.2× |
-| `einsum ij,jk->ik` | **2048³** | **8.6 G** | 27.4 ms | **16.9 ms** | **NKI 1.6×** |
+| `einsum ij,jk->ik` | 2048³ | 8.6 G | 27.4 ms | **16.9 ms** | NKI 1.6× |
 | `einsum bij,bjk->bik` | 32×1024³ | 34.4 G | **126.3 ms** | 190.8 ms | CPU 1.5× |
 | `mp2_energy` fused vs Python loop | 5×19×72 | — | **1.5 ms** | 16 ms | loop 10× — same overhead story |
 | `mp2_energy` fused vs Python loop | 16×128×128 | — | **25.5 ms** | 41 ms | loop 1.6× — gap closing |
-| 5-iter matmul_2048 **with residency** | 2048³ | 8.6 G | cold loop | **≥ 3× faster** | `to_xla` pre-pin — v0.3.0 baseline |
+| 5-iter matmul_2048 with residency | 2048³ | 8.6 G | cold loop | **≥ 3× faster** | `to_xla` pre-pin — v0.3.0 baseline |
 
 NKI wins one benchmark outright (2048² matmul, 1.6× faster). The residency test is where the story becomes interesting: pre-pinning operands eliminates the dispatch overhead that dominates every other number on this table. The fused kernels are architecturally correct; the residency API is what lets them earn their keep.
 
@@ -159,4 +161,6 @@ Concrete v0.3.0 follow-ups already filed: [K-tiling for `ao_to_mo_transform` whe
 
 ## Takeaway
 
-A tensor contraction library on Trainium looks different from one on a GPU because the kernel boundary is writable. cuTENSOR's `Plan` encapsulates one contraction behind an opaque handle and lets the runtime pick a kernel; trntensor's named fused primitives (`mp2_energy`, `ao_to_mo_transform`) span multiple contractions in one NKI program and expose the composition. That's a cuTENSOR superset when the workload matches a named pattern and a cuTENSOR-equivalent generic path for everything else. The design lesson Phase 1 delivers is that fused, pattern-specific kernels are a normal mode of operation on Trainium, not an optimization pass — and the library should name them as first-class primitives rather than try to detect them.
+A tensor contraction library on Trainium looks different from one on a GPU because the kernel boundary is writable. cuTENSOR's `Plan` encapsulates one contraction behind an opaque handle and lets the runtime pick a kernel; trntensor's named fused primitives (`mp2_energy`, `ao_to_mo_transform`) span multiple contractions in one NKI program and expose the composition. That's a cuTENSOR superset when the workload matches a named pattern and a cuTENSOR-equivalent generic path for everything else.
+
+The design lesson Phase 1 delivers: fused, pattern-specific kernels are a normal mode of operation on Trainium, not an optimization pass. The library should name them as first-class primitives rather than try to detect them at dispatch time.
