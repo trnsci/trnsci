@@ -6,7 +6,7 @@ comments: true
 
 # trnfft: FFT on hardware that doesn't want to be an FFT engine
 
-Between v0.7 and v0.12, [trnfft](https://trnsci.dev/trnfft/)'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.
+Between v0.7 and v0.12, [trnfft](https://trnsci.dev/trnfft/)'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision. All of it is hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.
 
 <!-- more -->
 
@@ -32,6 +32,18 @@ flowchart LR
 ```
 
 **Four engines mean a butterfly stage issues two ops in parallel.** The Tensor Engine does the twiddle × odd-element multiply; the Vector Engine does the `e + prod` / `e - prod` butterfly combination. These aren't sequential the way they are on a GPU warp — the NKI compiler schedules them on separate engines, with DMA prefetch overlapping from HBM. The primitive isn't "one butterfly"; it's "fill the Tensor Engine pipeline with twiddle multiplies while the Vector Engine consumes their outputs".
+
+```mermaid
+flowchart LR
+    subgraph "One butterfly stage"
+        direction TB
+        DMA["DMA Engine\nprefetch twiddles k+1\nHBM → SBUF"]
+        TE["Tensor Engine\nt × o_re,  t × o_im\n(current k)"]
+        VE["Vector Engine\ne ± prod → output\n(current k)"]
+        DMA -. overlaps .-> TE
+        TE -- prod_re, prod_im --> VE
+    end
+```
 
 **PSUM is fp32 and has a ceiling.** The Tensor Engine accumulates products in PSUM in fp32 — generous for one matmul, but a long dependency chain (three power-of-2 FFTs in Bluestein's chirp-z decomposition) compounds rounding error. At N ≥ 500 the default Bluestein path accumulates roughly 2 × 10⁻² relative error against a scipy fp64 reference. That's as much a hardware-sizing observation as an algorithm choice, and it motivated the Kahan-compensated butterfly in the `"kahan"` precision mode: the Vector Engine folds a 2Prod compensation step in cheaply because the extra adds land on the engine that would otherwise sit idle while the Tensor Engine is busy — compensation is architecturally cheap in a way it isn't on a GPU.
 
@@ -87,7 +99,13 @@ A GPU would nest `k` as the outer loop and thread-parallelize over groups. Here 
 
 **`torch.Tensor.unfold` has no XLA backend.** `trnfft.stft` originally used `x.unfold(dim, size, step)` for frame extraction; that raised `aten::unfold not implemented for XLA` the moment anyone set `set_backend("nki")`. Replaced with `torch.arange`-based frame indexing in PR #44.
 
-**Three NKI 0.3.0 API deltas broke our kernels.** `nisa.nc_matmul` went kwargs-only with in-place accumulation (`dst=, stationary=, moving=, accumulate=True`). `nl.copy` now returns a view, so PSUM → SBUF materialization requires `nisa.tensor_copy(dst=, src=)` with a pre-allocated SBUF destination. Python `*`/`+`/`-` are no longer defined on `NkiTensor` — every complex-multiply and butterfly expression rewrote with explicit `nl.multiply` / `nl.add` / `nl.subtract`. All three were surfaced by the CPU simulator (`NKI_SIMULATOR=1`) in under two CI minutes. Release notes calling out operator-overload removal and `nl.copy` becoming a view would save downstream libraries a CI iteration each.
+**Three NKI 0.3.0 API deltas broke our kernels:**
+
+- `nisa.nc_matmul` is kwargs-only with in-place accumulation (`dst=, stationary=, moving=, accumulate=True`).
+- `nl.copy` now returns a view; PSUM → SBUF materialization requires `nisa.tensor_copy(dst=, src=)` with a pre-allocated SBUF destination.
+- Python `*`/`+`/`-` are no longer defined on `NkiTensor` — every complex-multiply and butterfly expression rewrote with explicit `nl.multiply` / `nl.add` / `nl.subtract`.
+
+All three were surfaced by the CPU simulator (`NKI_SIMULATOR=1`) in under two CI minutes. Release notes calling out operator-overload removal and `nl.copy` becoming a view would save downstream libraries a CI iteration each.
 
 **Full-size DFT-as-GEMM capped at N = 256.** v0.12.0's DFT-as-GEMM fast path beats butterfly by 2.2–5.7× at N ∈ {8..128} and 5.3× at N = 1024 — but fp32 `nisa.nc_matmul` accumulation at N = 1024 reaches ~2.2% relative error, breaking the 1e-3 test tolerance. Real perf win, precision-blocked. Routing past 256 is what motivates Thread B (Stockham radix-4), where a `log₄(N)` chain accumulates only O(r²) error per stage.
 
