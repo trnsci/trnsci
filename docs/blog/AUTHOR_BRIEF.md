@@ -195,7 +195,27 @@ Don't over-do it. One or two diagrams in a post that genuinely benefit from visu
 
 **Code samples** stay short. One representative kernel snippet is much better than three near-identical ones. Link to the full source on GitHub for readers who want depth.
 
-**Admonitions** (`!!! note`, `!!! warning`, `!!! info`) work via the `admonition` extension and are useful for sidebar-style content — version compatibility caveats, "if you're skimming, here's the takeaway", links to deeper reading. Use sparingly so they retain visual weight.
+**Admonitions** (`!!! note`, `!!! warning`, `!!! info`) work via the `admonition` extension and are useful for sidebar-style content — version compatibility caveats, "if you're skimming, here's the takeaway", links to deeper reading. Use sparingly so they retain visual weight. **Admonitions drift toward marketing voice** faster than prose does — they're visually emphasized, so any tonal wobble is amplified. If the content is a maintainer-voice aside, prefer a short prose paragraph. Reserve admonitions for genuinely side-channel information that the main prose shouldn't carry.
+
+## Patterns that held across the Phase 1 batch
+
+Carry these forward. They surfaced from reviewing the six Phase 1 retrospectives together and are the concrete shape of what "A-grade" looked like at the collection level.
+
+**Open with thesis-as-concession, not thesis-as-claim.** The strongest ledes paired the architectural point with something the library *gave up* or *got wrong* to find it — "our v0.2.0 benchmark table was worse than scipy across every configuration, and that's the evidence that led to the reframe"; "what cuTENSOR hides behind a Plan, NKI asks you to lay out in source — more work, but…". A lede that concedes something earns the reader's trust for the rest of the post. A lede that only claims has to earn it twice.
+
+**End "What didn't work" with a named, trackable upstream ask.** Every Phase 1 post produced at least one concrete request the AWS Neuron team can act on: a filed GitHub issue, a missing primitive described with a reproducer, a documented compiler behavior, a specific doc gap. The collection across six posts produced six actionable asks. Future posts: if the work ran into anything the toolchain made harder than it needed to be, name it with enough specificity that an upstream engineer could pick it up cold. Vague complaints get cut; specific asks are the point.
+
+**Contrast diagrams carry the most weight.** Mermaid diagrams that put *two approaches side by side* did more work than diagrams that illustrated one approach. CSR-vs-BSR, cuTENSOR-plan-vs-trntensor-fused-DAG, Householder-fresh-trace-vs-Jacobi-NEFF-cache-hit, cuFFT-warp-vs-partition-flatten. When the post's architectural thesis is "X vs Y on this hardware," lead the visual with both halves.
+
+**Cross-link to sibling libraries explicitly.** Phase 1 posts started building a cross-post arc — trnsparse referenced trnblas's dispatch pattern, trntensor referenced the MP2 kernel, trnblas referenced the simulator post. Keep doing this. A future reader stumbling on one post should be one click from the sibling work that motivates or consumes it. The blog reads as a project narrative because the posts are linked like chapters, not because we hope they do.
+
+**Self-effacement is concrete or it's cut.** "We had some issues" is not self-effacing — it's hedging. "303 separate NEFF compile workdirs logged in a single test run before it was cancelled" is self-effacing. "We reverted the default and rewrote the CHANGELOG with the measured numbers" is self-effacing. The rule: a self-effacing moment should name the specific mistake in enough detail that another maintainer could avoid it. Vague humility gets cut; specific admissions stay.
+
+**Light humor is observational, not inserted.** The funny lines that landed were observations about absurd hardware-software situations — "the compiler is targeting trn2 because our instance is a trn1, which is either an impressive feat of optimism or a missing guard somewhere"; "the silicon just needs one more op to let the library say it out loud." These work because the situation was genuinely funny. Jokes inserted for tone get cut on first pass. If the draft has a line that reads like it's trying, try the truth instead.
+
+**If every cell of a table would carry the same value, make it prose.** A Numbers table where every cell is `1e-3` carries less signal than one sentence stating that all five sizes hit the same tolerance. Tables are for contrast. Reserve them for data where rows differ in informative ways.
+
+**Fit assessment is a section, not a sentence.** The "where this workload is well-indexed for Trainium and where it isn't" content landed best as a dedicated paragraph or short section, not as a one-line concession buried in the takeaway. Readers evaluating Trainium for their own workload need the fit verdict in findable form — dedicate space to it.
 
 ## Submitting — PR only, no direct commits
 
