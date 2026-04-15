@@ -11,9 +11,24 @@ Template file: [`docs/blog/_template.md`](docs/blog/_template.md).
 
 Every prompt below opens and closes with the same delivery instruction. **Do not paraphrase it away** when forwarding — repetition is deliberate:
 
-> **PR only, no direct-to-main.** Draft on a branch named `blog-<library>-<short-slug>` in `trnsci/trnsci`, commit the post to `docs/blog/posts/<YYYY-MM-DD>-<slug>.md`, push, open a PR with `gh pr create --repo trnsci/trnsci --base main --head <branch>`, and do not merge it — Scott reviews and merges. Posts that land on `main` without review may be reverted and replayed through PR.
+> **Work in your own isolated clone of `trnsci/trnsci`. Do not edit any umbrella checkout you may already see on disk** — the coordinator and the other five sub-project agents are operating in separate checkouts, and shared-tree edits have caused branch collisions in past rounds. Clone fresh into your project's workspace, branch, commit, push, open a PR, then discard the clone:
+>
+> ```bash
+> # from inside your sub-project workspace (NOT inside an existing trnsci checkout)
+> git clone https://github.com/trnsci/trnsci.git _umbrella-blog
+> cd _umbrella-blog
+> git checkout -b blog-<library>-<short-slug>
+> # edit docs/blog/posts/<YYYY-MM-DD>-<slug>.md
+> git add docs/blog/posts/<YYYY-MM-DD>-<slug>.md
+> git commit -m "blog(<library>): <summary>"
+> git push -u origin blog-<library>-<short-slug>
+> gh pr create --repo trnsci/trnsci --base main --head blog-<library>-<short-slug>
+> cd .. && rm -rf _umbrella-blog
+> ```
+>
+> **PR only, no direct-to-main**, and do not merge — Scott reviews and merges. Posts that land on `main` without review may be reverted and replayed through PR.
 
-This was buried at the end of earlier prompts and got skipped by three of six agents in the first round. Hardened now.
+Isolated-clone discipline matters because six agents plus the coordinator all touch the same repo; a shared working tree means one agent's branch checkout clobbers another's staged edits. A fresh clone per post is cheap (~1 MB) and eliminates the class of collision entirely. This rule was tightened after Round 2, when agents branching off a shared umbrella checkout caused repeated stale-branch / wrong-base PRs.
 
 **A standing editorial note for every post:** the brief's "What didn't work" section also covers two axes of candor beyond internal project decisions.
 
@@ -27,7 +42,7 @@ Professional and specific, not bitter. Readers evaluating Trainium benefit more 
 Three non-negotiable constraints on every post:
 
 - **Voice:** fair, objective, self-effacing, lightly funny when warranted. Maintainer-talking-to-maintainer-over-coffee, not marketing-speak. Editorial review enforces this; posts that read as triumph-narrative or as point-scoring against alternatives get sent back with specific edits. Full guidance in the [author brief](https://trnsci.dev/blog/AUTHOR_BRIEF/) under "Voice — fair, objective, self-effacing, lightly funny when warranted."
-- **Length:** **2,000 words hard cap.** Working range 1,200–2,000. The editor measures word count at review time. Drafts over 2,000 must split into two posts before merge.
+- **Length:** **2,000 words hard cap, prose only.** Working range 1,200–2,000. **Only prose counts** — frontmatter, code blocks, tables, Mermaid diagrams, captions, and footnotes are excluded. The editor measures prose word count at review time. Drafts whose prose exceeds 2,000 must split into two posts before merge. Moving content into a table or diagram is the intended way to stay under the cap.
 - **Visuals are how you stay under the cap.** They aren't decoration on top of trimmed prose — they substitute for it. A Mermaid diagram replaces 100–300 words of "data flows from X to Y to Z" prose; a markdown table replaces 200+ words of "at size N, A takes T, B takes T'" prose. When you're tempted to trim a sentence, the right question is usually "what diagram or table carries this idea instead?" Brief covers the substitution hierarchy in detail.
 
 ---
@@ -45,7 +60,7 @@ When asked to draft a blog post for this library for the [trnsci blog](https://t
 
 2. Find the prompt block for this library in [`BLOG_PROMPTS.md`](https://github.com/trnsci/trnsci/blob/main/BLOG_PROMPTS.md) at the umbrella repo root. It carries library-specific context and suggested architectural angles.
 
-3. Draft the post following the brief. Open a PR against `trnsci/trnsci` at `docs/blog/posts/<YYYY-MM-DD>-<slug>.md`. Scott (suite director) reviews before merge.
+3. Draft the post following the brief. **Clone `trnsci/trnsci` fresh into a throwaway directory inside this sub-project workspace** (e.g. `./_umbrella-blog`) — do NOT edit any existing umbrella checkout you may see on disk. Shared-tree edits collide with the coordinator and with the other five sub-project agents. Branch, commit, push, open a PR against `trnsci/trnsci` at `docs/blog/posts/<YYYY-MM-DD>-<slug>.md`, then delete the throwaway clone. Scott (suite director) reviews before merge.
 
 The umbrella repo — not this one — owns the blog. Per-library retrospective posts are unsigned; library is the subject, no byline. See the brief for the full set of rules.
 ```
@@ -374,8 +389,10 @@ Time for an editorial revision pass on the <library> <post-topic> post.
 
 Live: https://trnsci.dev/blog/<slug>/
 
-Current state: <N> words. The brief sets a 2,000-word HARD cap; you're
-<M> over / under. <Trim or split / modest trim / no length work needed>.
+Current state: <N> prose words (code blocks, tables, diagrams, frontmatter,
+and captions are excluded from the count). The brief sets a 2,000-word HARD
+cap on prose only; you're <M> over / under. <Trim or split / modest trim /
+no length work needed>.
 
 What's new in the brief since you drafted (please re-read
 https://trnsci.dev/blog/AUTHOR_BRIEF/):
@@ -386,7 +403,8 @@ https://trnsci.dev/blog/AUTHOR_BRIEF/):
   - <new-directive-2> (e.g., visuals-as-cap-mechanism reframe —
     diagrams and tables substitute for trimmed prose, not decorate
     on top of trimmed prose)
-  - 2,000-word hard cap, measured at editor review.
+  - 2,000-word hard cap on PROSE ONLY, measured at editor review
+    (code blocks, tables, diagrams, frontmatter, captions excluded).
 
 Visuals are the primary mechanism for absorbing the trim. Before
 deleting sentences, ask 'what diagram or table carries this idea

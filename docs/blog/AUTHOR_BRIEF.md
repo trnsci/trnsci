@@ -137,7 +137,7 @@ Use these section headings in this order. The `posts/_template.md` file has them
 - Link back to the suite: [trnsci.dev](https://trnsci.dev), the [roadmap](https://trnsci.dev/roadmap/), the [suite-wide tracker](https://github.com/trnsci/trnsci/issues/1). Act like part of a suite.
 - No emoji unless the post is explicitly about emoji. (It isn't.)
 - Apache 2.0 code samples only. If borrowed, cite.
-- **Length: 2,000 words hard cap.** 1,200–2,000 is the working range. Posts that exceed 2,000 must split into two posts before merge — the editor will measure at review time and bounce overlong drafts. The cap is to protect the reader, not to constrain the writer; the second post is usually stronger than the half-trimmed single post.
+- **Length: 2,000 words hard cap, prose only.** 1,200–2,000 is the working range. **Only prose counts toward the cap.** Frontmatter, code blocks (fenced ```), tables, Mermaid / diagrams, image captions, and footnotes are excluded. Inline code spans inside prose sentences count as the sentence they're in. The editor measures prose word count at review time and bounces drafts whose running prose exceeds 2,000. Moving content from prose into a table, diagram, or code block is the intended way to stay under the cap — not a loophole. Posts whose *prose* genuinely needs more than 2,000 words must split into two posts before merge.
 
 ## Frontmatter
 
