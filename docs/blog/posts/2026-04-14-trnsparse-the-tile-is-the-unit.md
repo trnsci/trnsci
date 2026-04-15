@@ -88,8 +88,6 @@ grad_blocks[k] = grad_out[row*b:(row+1)*b] @ B[col*b:(col+1)*b].T
 grad_B         = A_dense.T @ grad_out
 ```
 
-The block-selection pattern is non-differentiable by construction. `torch.autograd.gradcheck` at `atol=1e-4` passes on hardware; the same pattern now ships for three NKI kernels (CSR SpMM v0.2.0, BSR SpMM v0.3.0, fused screened SpMM v0.4.0).
-
 ## What didn't work
 
 **v0.2.0's benchmark numbers were worse than planning assumed.** The expectation going in was "dense-materialization will be slower at low densities, but the high-N dispatch win narrows the gap."
@@ -114,7 +112,7 @@ The reason turned out to be dispatch overhead, not arithmetic. NKI times are rou
 
 ## Fit — where BSR works and where it doesn't
 
-Trainium is well-indexed for dense-GEMM-heavy training — its original motivating workload. trnsparse's Fock-build and block-sparse attention cases are a decent fit because they're block-dense at 128×128. Truly irregular sparse matmul (random CSR at density 0.001, highly variable nnz per row) is a shape mismatch with the silicon, not a library limitation. When a workload doesn't fit BSR — GNNs over non-uniform adjacency, for instance — the library recommends the `torch.sparse` fallback, not the NKI path. A future silicon generation that exposes indirect DMA gather would unblock a real gather-matmul-scatter path; that's a concrete hardware request.
+BSR at 128×128 fits block-structured workloads naturally. It does not fit everything. trnsparse's Fock-build and block-sparse attention cases work well because they're block-dense at 128×128. Truly irregular sparse matmul (random CSR at density 0.001, highly variable nnz per row) is a shape mismatch with the silicon, not a library limitation. When a workload doesn't fit BSR — GNNs over non-uniform adjacency, for instance — the library recommends the `torch.sparse` fallback, not the NKI path. A future silicon generation that exposes indirect DMA gather would unblock a real gather-matmul-scatter path; that's a concrete hardware request.
 
 ## Numbers
 
