@@ -194,24 +194,27 @@ pair's contribution rather than three intermediates and a result.
 
 ## What didn't work
 
-The honest record, in four parts.
+Four items.
 
-**The `examples/df_mp2.py` revert.** The first post-M2 attempt
+**The `examples/df_mp2.py` revert.** The first attempt to make
+`nki_mp2_energy` the default
 ([#15](https://github.com/trnsci/trnblas/issues/15)) flipped the
-DF-MP2 example's default to `nki_mp2_energy`. The 1.48× speedup on
-the energy step was real but below the RFC's 3× minimum target,
-and the post-flip CHANGELOG framing over-claimed. The example's
-default was reverted back to the torch reduction, `--fused-energy`
-added as an opt-in flag, and the CHANGELOG rewritten with the
-measured numbers honestly. The kernel works; the speedup isn't yet
-large enough to justify being the default.
+DF-MP2 example's energy-reduction call to the fused kernel. The
+1.48× speedup on the energy step was real but below the 3× minimum
+target laid out in the kernel's
+[design RFC](https://github.com/trnsci/trnblas/blob/main/docs/design/fused_df_mp2_energy_kernel.md),
+and the CHANGELOG framing accompanying the flip over-claimed. The
+example's default was reverted back to the torch reduction,
+`--fused-energy` added as an opt-in flag, and the CHANGELOG
+rewritten with the measured numbers honestly. The kernel works;
+the speedup isn't yet large enough to justify being the default.
 
 **NKI 0.3.0 partition-broadcast strictness.** Neuron SDK 2.29's
 MLIR verifier is stricter than 2.28 on tensor-tensor arithmetic
-with mismatched partition dims. The M1 kernel built `Δ` with two
-subtracts of shape `(1,1) − (P_TILE, 1)` — rejected wholesale in
-0.3.0. The 5 MP2 test cases were re-skipped for a release before
-the fix landed (commit
+with mismatched partition dims. An earlier version of the kernel
+built `Δ` with two subtracts of shape `(1,1) − (P_TILE, 1)` —
+rejected wholesale in 0.3.0. The 5 MP2 test cases were re-skipped
+for a release before the fix landed (commit
 [`c1769c6`](https://github.com/trnsci/trnblas/commit/c1769c6)):
 lift all three eps operands to `(P_TILE, NVIR)` via
 `nl.broadcast_to` before subtracting. The simulator gate catches
@@ -272,10 +275,10 @@ v0.4.3-measured under real NKI dispatch.
 
 **Cross-platform DF-MP2 medium end-to-end:**
 
-| Platform      | Warm wall | Flops rate   |
-|---------------|----------:|-------------:|
-| trn1.2xlarge  | 9.91 s    | 0.28 TFLOPS  |
-| A10G g5.xlarge | 0.266 s   | 10.3 TFLOPS  |
+| Platform       | Warm wall | TFLOPS |
+|----------------|----------:|-------:|
+| trn1.2xlarge   | 9.91 s    | 0.28   |
+| A10G g5.xlarge | 0.266 s   | 10.3   |
 
 A10G's cuBLAS is ~37× faster per-call on medium. Ampere's tensor
 cores are further along their per-watt optimization curve for dense
@@ -330,7 +333,7 @@ shape — not because it's hard, but because cuBLAS's primitive is
 matrix products, and this expression isn't one. NKI's whole-program
 DAG compilation is what makes "one kernel per pair" the natural
 unit of work on Trainium. Phase 1's measurable win is smaller than
-the RFC predicted (1.48× vs 3×), and that gap is documented and
-queued as the Phase 3 concrete next step. But the architectural
+the kernel's design target (1.48× vs the 3× minimum), and that gap
+is documented and queued as the Phase 3 concrete next step. But the architectural
 shape of the kernel is the thing to notice — a shape cuBLAS doesn't
 suggest and a whole-program compilation model does.
