@@ -4982,6 +4982,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#voice-fair-objective-self-effacing-lightly-funny-when-warranted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Voice — fair, objective, self-effacing, lightly funny when warranted
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#voice-authorless-by-default-library-as-subject" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5157,6 +5168,13 @@
 <h2 id="what-youre-writing">What you're writing<a class="headerlink" href="#what-youre-writing" title="Permanent link">&para;</a></h2>
 <p>A technical retrospective on a piece of work that just shipped in one of the trnsci libraries — trnfft, trnblas, trnrand, trnsolver, trnsparse, or trntensor.</p>
 <p><strong>Audience:</strong> CUDA programmers evaluating Trainium. Neuron SDK users looking for scientific computing code. Maintainers of the sibling libraries in the trnsci suite. Assume readers know Trainium exists but not what NKI is — link out for NKI, don't redefine it each post.</p>
+<h2 id="voice-fair-objective-self-effacing-lightly-funny-when-warranted">Voice — fair, objective, self-effacing, lightly funny when warranted<a class="headerlink" href="#voice-fair-objective-self-effacing-lightly-funny-when-warranted" title="Permanent link">&para;</a></h2>
+<p>The blog has a consistent voice across posts and across libraries. Editorial review enforces it. Four notes per axis:</p>
+<p><strong>Fair.</strong> Don't pick favorites or stack the deck. If a CUDA library or a CPU-only baseline does the workload better at the sizes you tested, say so. Don't bash alternatives to make trnsci look better — let the architectural argument carry the difference. If a post argues "Trainium is well-fitted for X," the same post should be willing to say "and badly fitted for Y."</p>
+<p><strong>Objective.</strong> Claims grounded in evidence: specific numbers with units, version-pinned compiler behavior, reproducible commits, named test cases. Replace "fast" with the microsecond figure. Replace "we improved" with the before/after numbers. If a claim can't be backed with evidence, soften it ("appears to" / "in our testing on these shapes") or omit it.</p>
+<p><strong>Self-effacing.</strong> When the project does well, state it plainly without victory-lapping. When it falls short, name the shortfall in concrete terms. When the team got something wrong before getting it right, walk through the error in enough detail that someone else can avoid it. The project's track record will sell itself; the post doesn't need to.</p>
+<p><strong>Lightly funny when warranted.</strong> Dry observational humor about the working conditions of low-level systems work — NKI compiler surprises, the gap between "the kernel compiles" and "the kernel does what you want," the moment the fix turned out to be simpler / dumber / more frustrating than expected — lands well in small doses. Don't manufacture humor. Let it surface when the truth is genuinely funny. Comedy that's trying gets cut.</p>
+<p>The combined effect: the blog should read like a maintainer talking to another maintainer over coffee. Detail-rich, fair-minded, willing to admit what didn't work, willing to make a wry observation about the toolchain. Marketing voice and triumph-narrative voice are both out of bounds.</p>
 <h2 id="voice-authorless-by-default-library-as-subject">Voice — authorless by default, library as subject<a class="headerlink" href="#voice-authorless-by-default-library-as-subject" title="Permanent link">&para;</a></h2>
 <p><strong>Technical deep-dives are unsigned.</strong> No byline. No "I". No named maintainer.</p>
 <p>The library itself is the subject:</p>
@@ -5244,7 +5262,7 @@ We built a butterfly kernel…</p>
 <li>Link back to the suite: <a href="https://trnsci.dev">trnsci.dev</a>, the <a href="https://trnsci.dev/roadmap/">roadmap</a>, the <a href="https://github.com/trnsci/trnsci/issues/1">suite-wide tracker</a>. Act like part of a suite.</li>
 <li>No emoji unless the post is explicitly about emoji. (It isn't.)</li>
 <li>Apache 2.0 code samples only. If borrowed, cite.</li>
-<li>Length: 1,200–2,500 words. Longer splits into two posts.</li>
+<li><strong>Length: 2,000 words hard cap.</strong> 1,200–2,000 is the working range. Posts that exceed 2,000 must split into two posts before merge — the editor will measure at review time and bounce overlong drafts. The cap is to protect the reader, not to constrain the writer; the second post is usually stronger than the half-trimmed single post.</li>
 </ul>
 <h2 id="frontmatter">Frontmatter<a class="headerlink" href="#frontmatter" title="Permanent link">&para;</a></h2>
 <p>Copy verbatim into the top of the post; change date / slug / categories:</p>
