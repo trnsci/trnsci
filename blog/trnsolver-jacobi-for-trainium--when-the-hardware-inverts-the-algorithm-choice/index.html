@@ -5160,7 +5160,7 @@
 
 
 <h1 id="trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice">trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice<a class="headerlink" href="#trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice" title="Permanent link">&para;</a></h1>
-<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count and is what every numerical-linear-algebra textbook reaches for. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. This post is how trnsolver's Phase 1 got there, what the hardware kept telling it, and which blind alleys it walked first.</p>
+<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in. This post is how trnsolver got there, what the hardware kept telling it, and which blind alleys it walked first.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
@@ -5168,7 +5168,7 @@
 <p>The problem with that path isn't that it's slow. Every architecturally-tempting move the textbook implies runs into friction with NKI 0.3.0 at the kernel-dispatch layer. The rest of this post is what trnsolver learned trying.</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
 <p>Start from the 128×128 partition tile, set aside all existing algorithms, and ask: what dense-eigendecomposition moves does this hardware actually make cheap?</p>
-<p>The Tensor Engine is a systolic array with a stationary operand and a streaming operand. It's built to reuse one matrix across many applications of another. Its natural operation is a GEMM with at least one operand resident in SBUF across many invocations. Its partition dim tops out at 128 (<code>PMAX</code>), so anything expressing parallelism on that axis has to fit that budget. PSUM accumulates in FP32 regardless of input precision — mixed precision is free at the matmul boundary.</p>
+<p>The Tensor Engine is a systolic array with a stationary operand and a streaming operand. It reuses one matrix across many applications of another. Its natural operation is a GEMM with an operand resident in SBUF across invocations. Its partition dim tops out at 128 (<code>PMAX</code>), so parallelism on that axis has to fit the budget. PSUM accumulates in FP32 regardless of input precision — mixed precision is free at the matmul boundary.</p>
 <p>Two eigendecomposition primitives look attractive against that shape:</p>
 <ol>
 <li>
@@ -5178,10 +5178,23 @@
 <p><strong>Givens rotation</strong> on a disjoint pair of rows/columns <code>(p, q)</code>. The update is a 2×2 rotation matrix applied to two n-element rows. In a batched Jacobi sweep, n/2 rotations on disjoint pairs commute; they can apply in parallel. A single sweep round maps to one NKI kernel call that rotates n/2 pairs at strided positions.</p>
 </li>
 </ol>
-<p>Naively, Householder wins: rank-1 matches the systolic array's dataflow, and asymptotic FLOPs for symmetric eigh via Householder-QR beat Jacobi's O(n³) per sweep × O(n) sweeps.</p>
-<p>The inversion happens at the kernel-boundary layer. Householder-QR for a symmetric matrix is inherently <strong>serial</strong>: each reflector <code>v_k</code> is computed from <code>A</code>'s state after <code>v_{k-1}</code> has been applied. The scalar quantities — the Householder norm, β = 2/(vᵀv), γ for the rank-2 update — are tiny values that feed back into big tensor operations. On NKI 0.3.0 that scalar dataflow has to traverse the kernel boundary, and every such traversal is a new traced graph for the XLA layer underneath NKI. Every new traced graph is a new NEFF compile.</p>
-<p>Jacobi's sweep round, by contrast, is <strong>data-parallel at the granularity of a single kernel call</strong>. Compute all n/2 rotation angles from <code>D</code>'s current state in one pass. Apply all n/2 rotations in a second kernel call. No per-rotation scalar dataflow across the kernel boundary. The Brent–Luk round-robin schedule fixes the pairing for each of the n-1 rounds per sweep; those permutations are pure combinatorics — int64 tables computed once on the host and reused forever.</p>
-<p>The 128-partition tile doesn't care about rank-1 vs rank-2 FLOP arithmetic at this scale. It cares about <strong>dispatch granularity</strong>. Jacobi fits the dispatch budget. Householder, applied step by step, doesn't.</p>
+<p>Naively, Householder wins: rank-1 matches the systolic array, and asymptotic FLOPs beat Jacobi's O(n³) per sweep × O(n) sweeps.</p>
+<p>The inversion happens at the kernel-boundary layer. Householder-QR for a symmetric matrix is inherently <strong>serial</strong>: each reflector <code>v_k</code> is computed from <code>A</code>'s state after <code>v_{k-1}</code> has been applied. The scalar quantities — the Householder norm, β = 2/(vᵀv), γ for the rank-2 update — are tiny values that feed back into big tensor operations. On NKI 0.3.0 that scalar dataflow has to traverse the kernel boundary, and every such traversal is a new traced graph for the XLA layer underneath NKI.</p>
+<p>Jacobi's sweep round, by contrast, is <strong>data-parallel at the granularity of a single kernel call</strong>. Compute all n/2 rotation angles from <code>D</code>'s current state in one pass. Apply all n/2 rotations in a second kernel call. The Brent–Luk round-robin schedule fixes the pairing for each of the n-1 rounds per sweep; those permutations are pure combinatorics — int64 tables computed once on the host and reused forever.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph H["Householder-QR · per step k"]
+        direction TB
+        H1["kernel: A ← A − 2·v·(vᵀA)"] --&gt; H2["host: v_{k+1}, β, γ&lt;br/&gt;from mutated A"]
+        H2 --&gt; H3["fresh XLA trace"]
+        H3 --&gt;|new NEFF compile| H1
+    end
+    subgraph J["Jacobi · per sweep round r"]
+        direction TB
+        J1["kernel: rotate n/2 pairs&lt;br/&gt;at strided positions"] --&gt; J2["host: perm r+1,&lt;br/&gt;(c, s) from diagonals"]
+        J2 --&gt; J3["same kernel signature;&lt;br/&gt;same traced graph"]
+        J3 --&gt;|NEFF cache hit| J1
+    end</code></pre>
+<p>The 128-partition tile doesn't care about rank-1 vs rank-2 FLOP arithmetic. It cares about <strong>dispatch granularity</strong>. Jacobi fits the dispatch budget. Householder, applied step by step, doesn't.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
 <p>trnsolver's Phase 1 <code>eigh</code> is batched-sweep parallel Jacobi driven from the host:</p>
 <ul>
@@ -5189,13 +5202,13 @@
 <p><strong>Brent–Luk round schedule</strong> computed once on the host (<code>trnsolver/_brent_luk.py</code>). For even matrix size n, this returns <code>(n-1, n)</code> int64 permutations. Applying permutation <code>perms[r]</code> to D's rows and columns lands the pair set for round r at strided positions <code>(0,1), (2,3), …, (n-2, n-1)</code>.</p>
 </li>
 <li>
-<p><strong><code>rotate_pairs_kernel</code></strong> in <code>trnsolver/nki/dispatch.py</code> — one NKI kernel that rotates n/2 disjoint row pairs at strided positions. Signature <code>(even, odd, c, s) → (new_even, new_odd)</code>, with <code>even, odd : (n/2, n)</code> and <code>c, s : (n/2, 1)</code>. Partition dim is n/2, free dim is n. For n ≤ 256 the whole thing fits a single partition tile; NKI's compile graph is stable per <code>(n/2, n, dtype)</code>.</p>
+<p><strong><code>rotate_pairs_kernel</code></strong> in <code>trnsolver/nki/dispatch.py</code> — one NKI kernel that rotates n/2 disjoint row pairs. Signature <code>(even, odd, c, s) → (new_even, new_odd)</code>, with <code>even, odd : (n/2, n)</code> and <code>c, s : (n/2, 1)</code>. Partition dim is n/2, free dim is n. For n ≤ 256 the whole thing fits a single partition tile; NKI's compile graph is stable per <code>(n/2, n, dtype)</code>.</p>
 </li>
 <li>
-<p><strong>Host driver</strong> <code>_jacobi_eigh_nki</code> in <code>trnsolver/eigen.py</code>. Per round: permute D and V into strided-pair layout, compute per-pair (c, s) from the current D diagonals and off-diagonals via a host helper (<code>_rotation_angles_strided</code>), call the kernel three times (D rows, D columns, V columns), apply a small diagonal-block fixup where row-and-column rotations double-touch the 2×2 block on the diagonal.</p>
+<p><strong>Host driver</strong> <code>_jacobi_eigh_nki</code> in <code>trnsolver/eigen.py</code>. Per round: permute D and V into strided-pair layout, compute per-pair (c, s) from the current D diagonals (<code>_rotation_angles_strided</code>), call the kernel three times (D rows, D columns, V columns), apply a small fixup where row-and-column rotations double-touch the 2×2 block on the diagonal.</p>
 </li>
 <li>
-<p><strong>Simulator-first development</strong>. <code>nki.simulate(rotate_pairs_kernel)(numpy_args)</code> runs the kernel on CPU with no NEFF compile and no XLA tracing. Seconds per iteration on <code>ubuntu-latest</code> CI — the inner loop for kernel design.</p>
+<p><strong>Simulator-first development</strong>. <code>nki.simulate(rotate_pairs_kernel)(numpy_args)</code> runs the kernel on CPU with no NEFF compile and no XLA tracing. Seconds per iteration on <code>ubuntu-latest</code> CI.</p>
 </li>
 </ul>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
@@ -5225,7 +5238,7 @@
     <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">new_odd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">],</span>  <span class="n">value</span><span class="o">=</span><span class="n">no</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">new_even</span><span class="p">,</span> <span class="n">new_odd</span>
 </code></pre></div>
-<p>Two loads, four Vector-Engine element-wise ops, two stores. <code>(c, s)</code> broadcasts across the free dim. The Vector Engine is doing all the math in Phase 1 — the Tensor Engine reformulation where the 2×2 rotation block is stationary for a <code>nisa.nc_matmul</code> is the obvious next lever, and the one that finally justifies calling this "a rank-2 matmul" at the hardware layer. Phase 1's simpler form validates correctness first.</p>
+<p>Two loads, four Vector-Engine element-wise ops, two stores. <code>(c, s)</code> broadcasts across the free dim. The Vector Engine does all the math in Phase 1 — the Tensor Engine reformulation with the 2×2 rotation block stationary for a <code>nisa.nc_matmul</code> is the obvious next lever, and the one that finally justifies calling this "a rank-2 matmul" at the hardware layer. Phase 1's simpler form validates correctness first.</p>
 <p>The host driver's inner loop:</p>
 <div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
     <span class="n">perm</span> <span class="o">=</span> <span class="n">perms</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>                              <span class="c1"># precomputed int64</span>
@@ -5240,29 +5253,29 @@
     <span class="n">D_even</span><span class="p">,</span> <span class="n">D_odd</span> <span class="o">=</span> <span class="n">rotate_pairs_kernel</span><span class="p">(</span><span class="n">D_even</span><span class="p">,</span> <span class="n">D_odd</span><span class="p">,</span> <span class="n">c_col</span><span class="p">,</span> <span class="n">s_col</span><span class="p">)</span>
     <span class="c1"># store back, repeat for D columns and V columns</span>
 </code></pre></div>
-<p><code>_rotation_angles_strided</code> is a host function: five element-wise torch ops on the strided pair diagonals. It could live in the kernel, but keeping it on the host removes a would-be scalar-intermediate dataflow from the NKI-side traced graph. Same reasoning that sank Householder.</p>
+<p><code>_rotation_angles_strided</code> is a host function: five element-wise torch ops on the strided pair diagonals. Keeping it on the host removes a would-be scalar-intermediate dataflow from the NKI-side traced graph. Same reasoning that sank Householder.</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
 <p>Householder-QR was the first path attempted. The simulator-side implementation landed cleanly and passed 18 correctness tests against <code>torch.linalg.eigh</code> at rtol=1e-3 for n ∈ {8, 16, 32, 64, 128}. On <code>ubuntu-latest</code>, the full suite ran in 2.67 seconds.</p>
 <p>The same code running against real trn1 hardware logged <strong>303 separate NEFF compile workdirs</strong> inside <code>/tmp/ubuntu/neuroncc_compile_workdir/</code> during a single test run before the run was cancelled. The traced XLA graph changed on every outer-loop iteration because <code>A_work</code> had a different computation history per Householder step — it had been mutated by the previous rank-2 update — and NKI compiles per traced graph, not per kernel signature. The simulator didn't surface this: <code>nki.simulate(kernel)(np_args)</code> runs the kernel logic directly on numpy, with no XLA layer and no trace cache, so the host-integration failure mode was invisible until hardware.</p>
-<p>That recompile behavior is a hard architectural statement from the compiler. A solver that wants to live inside a Python loop has to present a fixed traced graph to NKI. Householder's scalar-intermediate dataflow fights that requirement head-on. Jacobi's batched-sweep form doesn't.</p>
+<p>That recompile count is an architectural statement from the compiler: a Python-loop-driven solver has to present a fixed traced graph to NKI. Householder's scalar-intermediate dataflow fights that; Jacobi's batched-sweep form doesn't.</p>
 <p>A handful of smaller items from the iteration:</p>
 <ul>
 <li>
-<p><strong>Single-rotation kernel dispatch.</strong> Before the batched-round design landed, an earlier kernel took <code>(p, q, c, s)</code> as scalar arguments and applied one Givens rotation per call. Same per-call-recompile pathology as Householder — the slicing indices <code>A[p:p+1, :]</code> changed per call, so every rotation was a fresh graph. A full Jacobi sweep of n²/2 rotations, each needing its own compile, is worse than unviable. The Brent–Luk permutation is the fix: indices become strided constants <code>(0,1), (2,3), …</code>, and the permutation is applied on the host.</p>
+<p><strong>Single-rotation kernel dispatch.</strong> An earlier design took <code>(p, q, c, s)</code> as scalar arguments and applied one Givens rotation per call. Same per-call-recompile pathology — the slicing indices <code>A[p:p+1, :]</code> changed per call, so every rotation was a fresh graph. A full Jacobi sweep of n²/2 rotations, each needing its own compile, is unviable. Brent–Luk is the fix: indices become strided constants <code>(0,1), (2,3), …</code>, applied on the host.</p>
 </li>
 <li>
-<p><strong>Newton–Schulz convergence criterion.</strong> The matrix-square-root-inverse <code>inv_sqrt_spd_ns</code> that shipped alongside eigh uses a coupled <code>Y, Z</code> iteration. The first convergence test asserted <code>‖Y − I‖_F &lt; tol</code>, which is wrong — <code>Y</code> converges to <code>(A/s)^(1/2)</code>, not to <code>I</code>. The correct test is <code>‖Y·Z − I‖_F &lt; tol</code>. Twenty minutes of confusion before the identity clicked.</p>
+<p><strong>Newton–Schulz convergence criterion.</strong> The coupled <code>Y, Z</code> iteration in <code>inv_sqrt_spd_ns</code> has <code>Y → (A/s)^(1/2)</code>, not <code>Y → I</code>. The first convergence test asserted <code>‖Y − I‖_F &lt; tol</code>, which is wrong; the correct test is <code>‖Y·Z − I‖_F &lt; tol</code>. Twenty minutes of confusion before the identity clicked.</p>
 </li>
 <li>
-<p><strong>NKI 0.3.0 migration specifics.</strong> The <code>neuronxcc.nki.*</code> shim was dropped in favor of the top-level <code>nki</code> package. <code>nl.store(dest, expr)</code> needs the keyword form <code>nl.store(dest, value=expr)</code>. Python unary minus on an <code>InstTile</code> raises <code>TypeError</code>; use <code>nl.negative(t)</code>. Output tensors need explicit <code>buffer=nl.shared_hbm</code>. None of these are surprising once documented, but the failure surfaces are at kernel-compile time on hardware — only partly at simulator time.</p>
+<p><strong>NKI 0.3.0 migration specifics.</strong> <code>neuronxcc.nki.*</code> is dropped in favor of the top-level <code>nki</code>. <code>nl.store(dest, value=expr)</code> requires the keyword form. Python unary minus on an <code>InstTile</code> raises <code>TypeError</code>; use <code>nl.negative(t)</code>. Output tensors need explicit <code>buffer=nl.shared_hbm</code>. Documented migrations, but they surface at kernel-compile time on hardware — only partly at simulator time.</p>
 </li>
 <li>
-<p><strong>Dynamic path composition inside the SSM test runner.</strong> The runner shell-quotes a bash-in-JSON payload handed to <code>aws ssm send-command</code>. A first attempt used <code>NEURON_VENV=\\\$(ls -d /opt/aws_neuronx_venv_pytorch_* …)</code> for deferred expansion; that rendered as <code>\$</code> in the JSON, which isn't a valid JSON escape, and the command failed parameter validation before it reached the instance. The current runner hardcodes the venv path. Not a kernel story, but a toolchain-integration tax that shows up whenever automation crosses the shell/JSON/remote-shell boundary.</p>
+<p><strong>SSM runner JSON-escape tax.</strong> The runner shell-quotes bash into JSON for <code>aws ssm send-command</code>. A deferred-expansion <code>NEURON_VENV=\$(ls -d /opt/aws_neuronx_venv_pytorch_* …)</code> renders as the invalid JSON escape <code>\$</code> and fails parameter validation before reaching the instance. The runner hardcodes the venv path now.</p>
 </li>
 </ul>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
 <p>Simulator parity, <code>nki-simulator</code> CI job on <code>ubuntu-latest</code>, NKI 0.3.0 / neuronxcc 2.24.5133 from the AWS pip index:</p>
-<p>Eigenvalue relative error vs <code>torch.linalg.eigh</code>, reconstruction error <code>‖V·diag(w)·Vᵀ − A‖</code>, and orthonormality <code>‖VᵀV − I‖</code> all hold at <strong>rtol=1e-3</strong> across n ∈ {8, 16, 32, 64, 128} on random symmetric inputs. Full simulator suite — 18 tests including the cases above plus the tridiag-specific correctness tests carried through the Householder pivot-and-back work — runs in <strong>2.67 seconds wall-clock</strong> per CI run.</p>
+<p>Eigenvalue relative error vs <code>torch.linalg.eigh</code>, reconstruction error <code>‖V·diag(w)·Vᵀ − A‖</code>, and orthonormality <code>‖VᵀV − I‖</code> all hold at <strong>rtol=1e-3</strong> across n ∈ {8, 16, 32, 64, 128} on random symmetric inputs. Full simulator suite — 18 tests, including tridiag-specific cases from the Householder pivot-and-back — runs in <strong>2.67 seconds wall-clock</strong> per CI run.</p>
 <p>Hardware <code>@pytest.mark.neuron</code> numbers up to n=512 are the next gate. The simulator isn't a substitute for hardware on perf: it skips NEFF compile, tile-capacity checks, and PSUM/SBUF latency modelling. What's measured so far is the math, not the wall-clock-on-silicon.</p>
 <p>The disappointing number, to the extent Phase 1 has one: <strong>per-sweep kernel-dispatch count is 3</strong>, not 1 (D rows, D columns, V columns). That's 3× the dispatch overhead of a "one kernel per round" design. Collapsing those three calls into one kernel, plus reformulating the rotation as a stationary 2×2-matmul on the Tensor Engine, is the Phase 3 perf headline.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
@@ -5283,7 +5296,7 @@
 </ul>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
 <p>The 128-partition Tensor Engine tile's preferences invert at the kernel-dispatch layer. Householder's rank-1 outer products look like the right hardware-native move until the serial dataflow between reflectors collides with NKI's per-traced-graph compile model. Jacobi's batched-sweep form — n/2 rotations commuting on disjoint pairs, mapping to one kernel dispatch per round — trades asymptotic FLOP count for kernel-boundary efficiency, and wins on Trainium.</p>
-<p>The concrete lesson for anyone building a dense-linear-algebra library on NKI 0.3.0: the simulator validates kernel math; only hardware validates host-integration shape. A kernel that compiles per call on the simulator will compile per call on hardware too, and on hardware the compile cost is an order of magnitude higher. Design for a stable traced graph from the first commit, not as a later optimization.</p>
+<p>The concrete lesson for anyone building a dense-linear-algebra library on NKI 0.3.0: the simulator validates kernel math; only hardware validates host-integration shape. A kernel that compiles per call on the simulator will compile per call on hardware too, and on hardware the compile cost is an order of magnitude higher. Design for a stable traced graph from the first commit.</p>
 
 
 
