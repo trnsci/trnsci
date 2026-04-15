@@ -12,15 +12,15 @@ trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0, and th
 
 ## The problem
 
-[trnsparse](https://trnsci.dev/trnsparse/) is trnsci's cuSPARSE-equivalent: CSR and COO formats, SpMV, SpMM, integral screening for quantum chemistry. The workloads that motivate it — Schwarz-screened Fock builds, block-structured Hamiltonians, graph Laplacians, block-sparse attention — share an awkward property. They are sparse in the usual sense (most entries are zero), but the distribution of those zeros is almost never uniform. Fock matrices after screening are dense in diagonal blocks and sparse off-diagonal. FEM stiffness tracks mesh connectivity. Block-sparse attention is a structured mask.
+[trnsparse](https://trnsci.dev/trnsparse/) is trnsci's cuSPARSE-equivalent: CSR/COO, SpMV, SpMM, integral screening for quantum chemistry. The motivating workloads — Schwarz-screened Fock builds, block-structured Hamiltonians, FEM stiffness, block-sparse attention — are sparse, but the zeros are almost never uniformly distributed. They're structured: dense in blocks, sparse between blocks.
 
-cuSPARSE handles this with a CSR-native design: row pointers, column indices, scalar values, kernels tuned for a GPU's ability to do arbitrary-pattern indirect gather cheaply. Thousands of threads each chasing one pointer is what GPU memory hierarchies are built for. A naive port of that design to Trainium is where trnsparse started, and where the numbers told it to stop.
+cuSPARSE handles this with a CSR-native design tuned for a GPU's cheap arbitrary-pattern indirect gather. Thousands of threads each chasing one pointer is what GPU memory hierarchies are built for. A naive port of that design to Trainium is where trnsparse started, and where the numbers told it to stop.
 
 ## What the architecture suggests
 
-Trainium's Tensor Engine is a 128-partition × 512-moving systolic array. `nisa.nc_matmul` is the hot op, and it operates on a tile — partition dim ≤ 128 on the stationary operand, free dim ≤ 512 on the moving operand. A single `nc_matmul` is a dense 128×K×N multiply. The DMA engine handles HBM ↔ SBUF movement, but — and this is the load-bearing detail for sparse — **as of NKI 2.24 / 0.3.0, the DMA engine does not expose an indirect-gather primitive at the kernel level**. Scatter-gather is a pattern the silicon supports in principle; the language doesn't expose it yet.
+Trainium's Tensor Engine is a 128-partition × 512-moving systolic array; `nisa.nc_matmul` is a dense 128×K×N tile multiply. The DMA engine handles HBM ↔ SBUF movement, but — the load-bearing detail for sparse — **as of NKI 2.24 / 0.3.0, the DMA engine does not expose an indirect-gather primitive at the kernel level**. The silicon supports the pattern in principle; the language doesn't expose it yet.
 
-That combination — tile-shaped compute, no per-element indirect gather — has a specific consequence. The natural unit of sparse work on Trainium is not a single nonzero. It's a 128×128 block.
+Tile-shaped compute plus no per-element indirect gather has a specific consequence: the natural unit of sparse work on Trainium is not a single nonzero. It's a 128×128 block.
 
 ```mermaid
 flowchart LR
@@ -46,7 +46,7 @@ v0.2.0 shipped as the correctness path. The NKI kernel — [`_spmm_dense_kernel`
 
 The deliberate tradeoff: publicly slow. At 1024×1024 / density 0.001 / N=128, this does roughly 1000× more arithmetic than scipy. The benchmark table in v0.2.0 documents that directly. The reason to ship it anyway: the full toolchain — compile, NEFF cache, XLA dispatch, PyTorch integration, autograd wrapping — had to be wired end-to-end before the project could credibly commit to BSR. v0.2.0 is the evidence that said "the pipeline works; the shape of the work is wrong."
 
-v0.3.0 introduced [`BSRMatrix`](https://github.com/trnsci/trnsparse/blob/main/trnsparse/formats.py) and [`bsr_spmm`](https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py) as the headline. CSR stays in the API — users bring CSR from elsewhere, and the vectorized CPU fallback is within 2× of scipy — but the NKI compute story runs through BSR. v0.4.0 layered on [`screened_spmm`](https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py): a single `@nki.jit` kernel fuses Schwarz bounds, mask application, and matmul. The unfused equivalent is four host passes plus a separate CSR construction. The fused flow is one dispatch, no mask tensor on HBM. That's the second architectural pattern Trainium makes natural and CUDA doesn't reach for.
+v0.3.0 introduced [`BSRMatrix`](https://github.com/trnsci/trnsparse/blob/main/trnsparse/formats.py) and [`bsr_spmm`](https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py) as the headline. CSR stays in the API for interop; the NKI compute path runs through BSR. v0.4.0 added [`screened_spmm`](https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py): one `@nki.jit` kernel fusing Schwarz bounds, mask application, and matmul. The unfused equivalent is four host passes plus a separate CSR build. One dispatch, no mask tensor on HBM — the second architectural pattern Trainium makes natural and CUDA doesn't reach for.
 
 ## Implementation
 
@@ -137,17 +137,17 @@ All numbers on `trn1.2xlarge` with DLAMI `ami-07f81955eadf5b89c` (2026-04-10 bui
 | 1024 | 0.1 | 32 | 609 | 75.0 | 95.5 | 2151 |
 | 1024 | 0.1 | 128 | 2475 | 248 | 274 | 2479 |
 
-At every data point, the NKI column is slower than both CPU backends. Two structural reasons: no sparsity exploitation (v0.2.0's kernel materializes CSR to dense before the matmul), and dispatch overhead dominates (NKI times are roughly constant ~1.3–2.5 ms because kernel-launch + HBM round-trip is the flat floor at these sizes).
+At every data point, the NKI column is slower than both CPU backends. Two structural reasons: no sparsity exploitation (v0.2.0 materializes CSR to dense before the matmul), and dispatch overhead dominates (NKI times constant ~1.3–2.5 ms because kernel-launch + HBM round-trip is the flat floor at these sizes).
 
-**v0.3.0 BSR SpMM.** At 10% block density on `4×4` block grids with `N=128`, BSR-NKI is 1.85 ms vs BSR-PyTorch 0.11 ms — NKI still loses because dispatch dominates at these sizes. At `8×8` / 50% block density / `N=256`, NKI is 3.11 ms vs PyTorch 1.05 ms (3× slower), with PyTorch itself approaching the dense-GEMM ceiling of 0.47 ms. BSR is validated as Trainium-native at the level of "runs correctly, differentiable, on the Tensor Engine." The performance win against CPU is Phase 3 work.
+**v0.3.0 BSR SpMM.** At `4×4` blocks / 10% density / `N=128`: BSR-NKI 1.85 ms vs BSR-PyTorch 0.11 ms. At `8×8` / 50% / `N=256`: NKI 3.11 ms vs PyTorch 1.05 ms. BSR is validated as Trainium-native at the level of "runs correctly, differentiable, on the Tensor Engine." The performance win against CPU is Phase 3 work.
 
 ## What's next
 
-- [#15 — Phase 3](https://github.com/trnsci/trnsparse/issues/15): row-bucketing + gather-matmul-scatter. Backlog under BSR reframe; reopens if NKI exposes per-row DMA gather.
-- [#22 — on-chip iterative solvers](https://github.com/trnsci/trnsparse/issues/22): v0.3.2 plumbing shipped; fused kernel ([#24](https://github.com/trnsci/trnsparse/issues/24)) parked on NKI capability.
-- [#16 — Phase 4](https://github.com/trnsci/trnsparse/issues/16): sharded BSR across NeuronCores. Gated on suite-level multi-chip collectives.
-- [#17 — Phase 5](https://github.com/trnsci/trnsparse/issues/17): trn2-specific DMA bandwidth exploitation.
-- [#21](https://github.com/trnsci/trnsparse/issues/21): block-sparse attention writeup — BSR at 128×128 IS a local-attention mask. Docs task.
+- [#15](https://github.com/trnsci/trnsparse/issues/15) Phase 3 row-bucketing / gather-matmul-scatter — backlog under the BSR reframe; reopens if NKI exposes per-row DMA gather.
+- [#22](https://github.com/trnsci/trnsparse/issues/22) on-chip iterative solvers — v0.3.2 plumbing shipped; fused kernel ([#24](https://github.com/trnsci/trnsparse/issues/24)) parked on NKI capability.
+- [#16](https://github.com/trnsci/trnsparse/issues/16) Phase 4 sharded BSR across NeuronCores; gated on suite-level multi-chip collectives.
+- [#17](https://github.com/trnsci/trnsparse/issues/17) Phase 5 trn2-specific DMA bandwidth exploitation.
+- [#21](https://github.com/trnsci/trnsparse/issues/21) block-sparse attention writeup — BSR-128 IS a local-attention mask.
 
 ## Takeaway
 
