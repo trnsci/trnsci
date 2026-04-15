@@ -5276,7 +5276,45 @@ We built a butterfly kernel…</p>
 <p>No <code>authors:</code> line for technical deep-dives.</p>
 <p>Slug and filename: <code>docs/blog/posts/&lt;YYYY-MM-DD&gt;-&lt;short-slug&gt;.md</code>. Keep slugs short — <code>2026-04-13-fft-without-complex-dtype.md</code>, not the full title.</p>
 <h2 id="tables-diagrams-and-visual-aids">Tables, diagrams, and visual aids<a class="headerlink" href="#tables-diagrams-and-visual-aids" title="Permanent link">&para;</a></h2>
-<p>Wall-of-text retrospectives are intimidating. Use visuals where they earn their keep — a 200-word paragraph that becomes a 6-row table is almost always a win for the reader.</p>
+<p><strong>Visuals are the primary mechanism for staying under the 2,000-word cap without losing architectural content.</strong> They aren't decoration on top of trimmed prose — they substitute for it. When you're tempted to trim a sentence, the right question is usually "what diagram or table carries this idea instead?" The answer is often "one image saves five sentences."</p>
+<p>Rough substitution hierarchy:</p>
+<table>
+<thead>
+<tr>
+<th>Content type</th>
+<th>Visual that dominates the prose alternative</th>
+<th>Words saved</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Architecture / dataflow ("data flows from X to Y to Z")</td>
+<td>Mermaid diagram</td>
+<td>100–300</td>
+</tr>
+<tr>
+<td>Cross-platform / cross-shape comparison ("at size N, NKI takes T, scipy takes T'")</td>
+<td>Markdown table</td>
+<td>200+</td>
+</tr>
+<tr>
+<td>API surface / dispatch logic ("if shape qualifies, route to N; else fall back to F")</td>
+<td>Bullet list or admonition block</td>
+<td>50–150</td>
+</tr>
+<tr>
+<td>Step-by-step process ("first the kernel does X, then Y, then Z")</td>
+<td>Numbered list with code excerpts</td>
+<td>100+</td>
+</tr>
+<tr>
+<td>Architectural contrast (cuTENSOR plan model vs trntensor fused-DAG model)</td>
+<td>Side-by-side mermaid or two-column table</td>
+<td>200–400</td>
+</tr>
+</tbody>
+</table>
+<p>A post that comes in at 2,200 words usually has 200 words of "this then this then this" prose where a single Mermaid block would have done the same work in fewer reader-seconds. The cap and the diagram standard are the same standard from two angles.</p>
 <p><strong>Tables.</strong> Standard markdown tables work everywhere. Use them for: benchmark results, per-shape comparisons, NKI-vs-CPU-vs-other-platform numbers, before/after diffs of a tradeoff, mapping a sub-project's APIs to their cuX analogs. Honest tables — including rows where the project loses — are credibility-positive.</p>
 <p><strong>Mermaid diagrams.</strong> Lightweight architecture sketches, dataflow diagrams, kernel pipeline shapes, and decision flowcharts render cleanly via fenced code blocks:</p>
 <div class="highlight"><pre><span></span><code>```mermaid
