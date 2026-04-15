@@ -53,6 +53,8 @@
       
     
     
+      <link rel="stylesheet" href="../../../stylesheets/blog.css">
+    
     <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -665,8 +667,6 @@
       
         
       
-        
-      
     
     
     
@@ -728,103 +728,6 @@
                 
   
   
-  
-  
-    
-    
-      
-        
-      
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Archive
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Archive
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-    
-  
-  
-    <li class="md-nav__item">
-      <a href="../../archive/2026/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    2026
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -866,10 +769,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="">
             
   
   
@@ -887,8 +790,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_7_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_2">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -5133,13 +5036,13 @@
     </div>
   </header>
   <div class="md-post__content md-typeset">
-    <h2 id="the-dev-loop-just-got-a-lot-shorter"><a class="toclink" href="../../2026/04/14/the-dev-loop-just-got-a-lot-shorter/">The dev loop just got a lot shorter</a></h2>
+    <h2 id="the-dev-loop-just-got-a-lot-shorter"><a class="toclink" href="../../the-dev-loop-just-got-a-lot-shorter/">The dev loop just got a lot shorter</a></h2>
 <p>Until this week, working on an NKI kernel inside any trnsci library looked roughly like this: edit the kernel, push to a branch, wait for the GitHub Actions runner to start a trn1.2xlarge instance over SSM, wait for user-data to finish, wait for the NEFF compile, finally run <code>pytest -m neuron</code>, read the result, stop the instance. Eight to twelve minutes per iteration in the best case. Longer when anything went sideways.</p>
 <p>AWS's Neuron SDK 2.29 shipped a month ago with NKI 0.3.0 Stable. The change that matters most isn't in the SDK itself — it's in the fact that the full stack now installs cleanly on <code>ubuntu-latest</code> GitHub runners via AWS's pip index, and the CPU simulator exposed by <code>nki.simulate(kernel)(numpy_args)</code> runs the same kernels device-free. The dev loop dropped from minutes to seconds, and the cost-of-iteration barrier for contributing to a trnsci library just collapsed.</p>
 
     
       <nav class="md-post__action">
-        <a href="../../2026/04/14/the-dev-loop-just-got-a-lot-shorter/">
+        <a href="../../the-dev-loop-just-got-a-lot-shorter/">
           Continue reading
         </a>
       </nav>

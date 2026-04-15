@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/2026/04/15/trntensor-when-the-kernel-boundary-is-the-api/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">
       
       
-        <link rel="prev" href="../../14/the-dev-loop-just-got-a-lot-shorter/">
+        <link rel="prev" href="../trnsparse-the-tile-is-the-unit-not-the-nonzero/">
       
       
-        <link rel="next" href="../trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">
+        <link rel="next" href="../trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">
       
       
         
       
       
-      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>trntensor: when the kernel boundary is the API - trnsci</title>
+        <title>trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice - trnsci</title>
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +53,9 @@
       
     
     
-    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+      <link rel="stylesheet" href="../../stylesheets/blog.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trntensor-when-the-kernel-boundary-is-the-api" class="md-skip">
+        <a href="#trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +92,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../../../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trntensor: when the kernel boundary is the API
+              trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice
             
           </span>
         </div>
@@ -195,7 +197,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../.." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -214,7 +216,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../why/" class="md-tabs__link">
+      <a href="../../why/" class="md-tabs__link">
         
   
   
@@ -233,7 +235,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../cuda_rosetta/" class="md-tabs__link">
+      <a href="../../cuda_rosetta/" class="md-tabs__link">
         
   
   
@@ -252,7 +254,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../trainium_positioning/" class="md-tabs__link">
+      <a href="../../trainium_positioning/" class="md-tabs__link">
         
   
   
@@ -271,7 +273,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../roadmap/" class="md-tabs__link">
+      <a href="../../roadmap/" class="md-tabs__link">
         
   
   
@@ -290,7 +292,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../nki_validation_status/" class="md-tabs__link">
+      <a href="../../nki_validation_status/" class="md-tabs__link">
         
   
   
@@ -313,7 +315,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../../../" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -335,7 +337,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../installation/" class="md-tabs__link">
+        <a href="../../installation/" class="md-tabs__link">
           
   
   
@@ -357,7 +359,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../workflows/integration/" class="md-tabs__link">
+        <a href="../../workflows/integration/" class="md-tabs__link">
           
   
   
@@ -386,7 +388,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../trnfft/" class="md-tabs__link">
+        <a href="../../trnfft/" class="md-tabs__link">
           
   
   
@@ -409,7 +411,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../contributing/" class="md-tabs__link">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -428,7 +430,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../disclaimer/" class="md-tabs__link">
+      <a href="../../disclaimer/" class="md-tabs__link">
         
   
   
@@ -465,7 +467,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../../../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -495,7 +497,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../.." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -522,7 +524,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../why/" class="md-nav__link">
+      <a href="../../why/" class="md-nav__link">
         
   
   
@@ -549,7 +551,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../cuda_rosetta/" class="md-nav__link">
+      <a href="../../cuda_rosetta/" class="md-nav__link">
         
   
   
@@ -576,7 +578,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trainium_positioning/" class="md-nav__link">
+      <a href="../../trainium_positioning/" class="md-nav__link">
         
   
   
@@ -603,7 +605,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../roadmap/" class="md-nav__link">
+      <a href="../../roadmap/" class="md-nav__link">
         
   
   
@@ -630,7 +632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../nki_validation_status/" class="md-nav__link">
+      <a href="../../nki_validation_status/" class="md-nav__link">
         
   
   
@@ -667,8 +669,6 @@
       
         
       
-        
-      
     
     
     
@@ -689,7 +689,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -737,6 +737,22 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -763,7 +779,7 @@
   <span class="md-ellipsis">
     
   
-    Archive
+    Categories
   
 
     
@@ -779,119 +795,6 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Archive
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-    
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../archive/2026/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    2026
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Categories
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
     Categories
   
 
@@ -907,7 +810,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/announcements/" class="md-nav__link">
+      <a href="../category/announcements/" class="md-nav__link">
         
   
   
@@ -937,7 +840,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/deep-dive/" class="md-nav__link">
+      <a href="../category/deep-dive/" class="md-nav__link">
         
   
   
@@ -967,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/ecosystem/" class="md-nav__link">
+      <a href="../category/ecosystem/" class="md-nav__link">
         
   
   
@@ -997,7 +900,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnblas/" class="md-nav__link">
+      <a href="../category/trnblas/" class="md-nav__link">
         
   
   
@@ -1027,7 +930,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnfft/" class="md-nav__link">
+      <a href="../category/trnfft/" class="md-nav__link">
         
   
   
@@ -1057,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnrand/" class="md-nav__link">
+      <a href="../category/trnrand/" class="md-nav__link">
         
   
   
@@ -1087,7 +990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnsolver/" class="md-nav__link">
+      <a href="../category/trnsolver/" class="md-nav__link">
         
   
   
@@ -1117,7 +1020,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnsparse/" class="md-nav__link">
+      <a href="../category/trnsparse/" class="md-nav__link">
         
   
   
@@ -1147,7 +1050,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trntensor/" class="md-nav__link">
+      <a href="../category/trntensor/" class="md-nav__link">
         
   
   
@@ -1248,7 +1151,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -1276,7 +1179,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../deployment/" class="md-nav__link">
+      <a href="../../deployment/" class="md-nav__link">
         
   
   
@@ -1371,7 +1274,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/integration/" class="md-nav__link">
+      <a href="../../workflows/integration/" class="md-nav__link">
         
   
   
@@ -1399,7 +1302,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/speech_enhancement/" class="md-nav__link">
+      <a href="../../workflows/speech_enhancement/" class="md-nav__link">
         
   
   
@@ -1427,7 +1330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/quantum_chemistry/" class="md-nav__link">
+      <a href="../../workflows/quantum_chemistry/" class="md-nav__link">
         
   
   
@@ -1563,7 +1466,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnfft/" class="md-nav__link ">
+            <a href="../../trnfft/" class="md-nav__link ">
               
   
   
@@ -1607,7 +1510,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/installation/" class="md-nav__link">
+      <a href="../../trnfft/installation/" class="md-nav__link">
         
   
   
@@ -1635,7 +1538,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/quickstart/" class="md-nav__link">
+      <a href="../../trnfft/quickstart/" class="md-nav__link">
         
   
   
@@ -1725,7 +1628,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/fft/" class="md-nav__link">
+      <a href="../../trnfft/api/fft/" class="md-nav__link">
         
   
   
@@ -1753,7 +1656,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/complex/" class="md-nav__link">
+      <a href="../../trnfft/api/complex/" class="md-nav__link">
         
   
   
@@ -1781,7 +1684,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/nn/" class="md-nav__link">
+      <a href="../../trnfft/api/nn/" class="md-nav__link">
         
   
   
@@ -1809,7 +1712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/nki/" class="md-nav__link">
+      <a href="../../trnfft/api/nki/" class="md-nav__link">
         
   
   
@@ -1845,7 +1748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/architecture/" class="md-nav__link">
+      <a href="../../trnfft/architecture/" class="md-nav__link">
         
   
   
@@ -1873,7 +1776,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/benchmarks/" class="md-nav__link">
+      <a href="../../trnfft/benchmarks/" class="md-nav__link">
         
   
   
@@ -1957,7 +1860,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/aws_setup/" class="md-nav__link">
+      <a href="../../trnfft/aws_setup/" class="md-nav__link">
         
   
   
@@ -2040,7 +1943,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnblas/" class="md-nav__link ">
+            <a href="../../trnblas/" class="md-nav__link ">
               
   
   
@@ -2084,7 +1987,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/installation/" class="md-nav__link">
+      <a href="../../trnblas/installation/" class="md-nav__link">
         
   
   
@@ -2112,7 +2015,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/quickstart/" class="md-nav__link">
+      <a href="../../trnblas/quickstart/" class="md-nav__link">
         
   
   
@@ -2202,7 +2105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level1/" class="md-nav__link">
+      <a href="../../trnblas/api/level1/" class="md-nav__link">
         
   
   
@@ -2230,7 +2133,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level2/" class="md-nav__link">
+      <a href="../../trnblas/api/level2/" class="md-nav__link">
         
   
   
@@ -2258,7 +2161,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level3/" class="md-nav__link">
+      <a href="../../trnblas/api/level3/" class="md-nav__link">
         
   
   
@@ -2286,7 +2189,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/nki/" class="md-nav__link">
+      <a href="../../trnblas/api/nki/" class="md-nav__link">
         
   
   
@@ -2322,7 +2225,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/architecture/" class="md-nav__link">
+      <a href="../../trnblas/architecture/" class="md-nav__link">
         
   
   
@@ -2406,7 +2309,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/developing_kernels/" class="md-nav__link">
+      <a href="../../trnblas/developing_kernels/" class="md-nav__link">
         
   
   
@@ -2500,7 +2403,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
         
   
   
@@ -2528,7 +2431,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
+      <a href="../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
         
   
   
@@ -2564,7 +2467,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/benchmarks/" class="md-nav__link">
+      <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
   
   
@@ -2648,7 +2551,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/aws_setup/" class="md-nav__link">
+      <a href="../../trnblas/aws_setup/" class="md-nav__link">
         
   
   
@@ -2737,7 +2640,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnrand/" class="md-nav__link ">
+            <a href="../../trnrand/" class="md-nav__link ">
               
   
   
@@ -2781,7 +2684,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/installation/" class="md-nav__link">
+      <a href="../../trnrand/installation/" class="md-nav__link">
         
   
   
@@ -2809,7 +2712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/quickstart/" class="md-nav__link">
+      <a href="../../trnrand/quickstart/" class="md-nav__link">
         
   
   
@@ -2899,7 +2802,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/generator/" class="md-nav__link">
+      <a href="../../trnrand/api/generator/" class="md-nav__link">
         
   
   
@@ -2927,7 +2830,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/distributions/" class="md-nav__link">
+      <a href="../../trnrand/api/distributions/" class="md-nav__link">
         
   
   
@@ -2955,7 +2858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/quasi/" class="md-nav__link">
+      <a href="../../trnrand/api/quasi/" class="md-nav__link">
         
   
   
@@ -2983,7 +2886,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/nki/" class="md-nav__link">
+      <a href="../../trnrand/api/nki/" class="md-nav__link">
         
   
   
@@ -3019,7 +2922,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/architecture/" class="md-nav__link">
+      <a href="../../trnrand/architecture/" class="md-nav__link">
         
   
   
@@ -3103,7 +3006,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/developing_kernels/" class="md-nav__link">
+      <a href="../../trnrand/developing_kernels/" class="md-nav__link">
         
   
   
@@ -3197,7 +3100,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+      <a href="../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
         
   
   
@@ -3225,7 +3128,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+      <a href="../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
         
   
   
@@ -3261,7 +3164,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/roadmap/" class="md-nav__link">
+      <a href="../../trnrand/roadmap/" class="md-nav__link">
         
   
   
@@ -3289,7 +3192,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/benchmarks/" class="md-nav__link">
+      <a href="../../trnrand/benchmarks/" class="md-nav__link">
         
   
   
@@ -3373,7 +3276,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/aws_setup/" class="md-nav__link">
+      <a href="../../trnrand/aws_setup/" class="md-nav__link">
         
   
   
@@ -3409,7 +3312,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/release/" class="md-nav__link">
+      <a href="../../trnrand/release/" class="md-nav__link">
         
   
   
@@ -3437,7 +3340,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/stability/" class="md-nav__link">
+      <a href="../../trnrand/stability/" class="md-nav__link">
         
   
   
@@ -3510,7 +3413,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnsolver/" class="md-nav__link ">
+            <a href="../../trnsolver/" class="md-nav__link ">
               
   
   
@@ -3554,7 +3457,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/installation/" class="md-nav__link">
+      <a href="../../trnsolver/installation/" class="md-nav__link">
         
   
   
@@ -3582,7 +3485,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/quickstart/" class="md-nav__link">
+      <a href="../../trnsolver/quickstart/" class="md-nav__link">
         
   
   
@@ -3672,7 +3575,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/eigen/" class="md-nav__link">
+      <a href="../../trnsolver/api/eigen/" class="md-nav__link">
         
   
   
@@ -3700,7 +3603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/factor/" class="md-nav__link">
+      <a href="../../trnsolver/api/factor/" class="md-nav__link">
         
   
   
@@ -3728,7 +3631,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/iterative/" class="md-nav__link">
+      <a href="../../trnsolver/api/iterative/" class="md-nav__link">
         
   
   
@@ -3756,7 +3659,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/nki/" class="md-nav__link">
+      <a href="../../trnsolver/api/nki/" class="md-nav__link">
         
   
   
@@ -3792,7 +3695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/architecture/" class="md-nav__link">
+      <a href="../../trnsolver/architecture/" class="md-nav__link">
         
   
   
@@ -3820,7 +3723,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/benchmarks/" class="md-nav__link">
+      <a href="../../trnsolver/benchmarks/" class="md-nav__link">
         
   
   
@@ -3904,7 +3807,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/aws_setup/" class="md-nav__link">
+      <a href="../../trnsolver/aws_setup/" class="md-nav__link">
         
   
   
@@ -3996,7 +3899,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/developing_kernels/" class="md-nav__link">
+      <a href="../../trnsolver/developing_kernels/" class="md-nav__link">
         
   
   
@@ -4077,7 +3980,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnsparse/" class="md-nav__link ">
+            <a href="../../trnsparse/" class="md-nav__link ">
               
   
   
@@ -4121,7 +4024,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/installation/" class="md-nav__link">
+      <a href="../../trnsparse/installation/" class="md-nav__link">
         
   
   
@@ -4149,7 +4052,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../../trnsparse/quickstart/" class="md-nav__link">
         
   
   
@@ -4177,7 +4080,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/api/" class="md-nav__link">
+      <a href="../../trnsparse/api/" class="md-nav__link">
         
   
   
@@ -4205,7 +4108,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/architecture/" class="md-nav__link">
+      <a href="../../trnsparse/architecture/" class="md-nav__link">
         
   
   
@@ -4233,7 +4136,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../../trnsparse/migration_scipy/" class="md-nav__link">
         
   
   
@@ -4261,7 +4164,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../../trnsparse/benchmarks/" class="md-nav__link">
         
   
   
@@ -4345,7 +4248,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../../trnsparse/aws_setup/" class="md-nav__link">
         
   
   
@@ -4426,7 +4329,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trntensor/" class="md-nav__link ">
+            <a href="../../trntensor/" class="md-nav__link ">
               
   
   
@@ -4470,7 +4373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/installation/" class="md-nav__link">
+      <a href="../../trntensor/installation/" class="md-nav__link">
         
   
   
@@ -4498,7 +4401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/quickstart/" class="md-nav__link">
+      <a href="../../trntensor/quickstart/" class="md-nav__link">
         
   
   
@@ -4559,7 +4462,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trntensor/api/" class="md-nav__link ">
+            <a href="../../trntensor/api/" class="md-nav__link ">
               
   
   
@@ -4603,7 +4506,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/einsum/" class="md-nav__link">
+      <a href="../../trntensor/api/einsum/" class="md-nav__link">
         
   
   
@@ -4631,7 +4534,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/plan/" class="md-nav__link">
+      <a href="../../trntensor/api/plan/" class="md-nav__link">
         
   
   
@@ -4659,7 +4562,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/decompose/" class="md-nav__link">
+      <a href="../../trntensor/api/decompose/" class="md-nav__link">
         
   
   
@@ -4687,7 +4590,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/quantum/" class="md-nav__link">
+      <a href="../../trntensor/api/quantum/" class="md-nav__link">
         
   
   
@@ -4715,7 +4618,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/nki/" class="md-nav__link">
+      <a href="../../trntensor/api/nki/" class="md-nav__link">
         
   
   
@@ -4751,7 +4654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/architecture/" class="md-nav__link">
+      <a href="../../trntensor/architecture/" class="md-nav__link">
         
   
   
@@ -4779,7 +4682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/benchmarks/" class="md-nav__link">
+      <a href="../../trntensor/benchmarks/" class="md-nav__link">
         
   
   
@@ -4863,7 +4766,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/tutorial_df_mp2/" class="md-nav__link">
+      <a href="../../trntensor/tutorial_df_mp2/" class="md-nav__link">
         
   
   
@@ -4955,7 +4858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/aws_setup/" class="md-nav__link">
+      <a href="../../trntensor/aws_setup/" class="md-nav__link">
         
   
   
@@ -5006,7 +4909,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../contributing/" class="md-nav__link">
+      <a href="../../contributing/" class="md-nav__link">
         
   
   
@@ -5033,7 +4936,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../disclaimer/" class="md-nav__link">
+      <a href="../../disclaimer/" class="md-nav__link">
         
   
   
@@ -5134,23 +5037,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="What didn&#39;t work">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#fit-assessment" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fit assessment
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -5202,7 +5088,7 @@
           <nav class="md-nav md-nav--primary">
             <div class="md-post__back">
               <div class="md-nav__title md-nav__container">
-                <a href="../../../../" class="md-nav__link">
+                <a href="../" class="md-nav__link">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
                   <span class="md-ellipsis">
                     Back to index
@@ -5223,7 +5109,7 @@
                     <li class="md-nav__item">
                       <div class="md-nav__link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
-                        <time datetime="2026-04-15 00:00:00+00:00" class="md-ellipsis">April 15, 2026</time>
+                        <time datetime="2026-04-14 00:00:00+00:00" class="md-ellipsis">April 14, 2026</time>
                       </div>
                     </li>
                     
@@ -5234,8 +5120,8 @@
                           <span class="md-ellipsis">
                             in
                             
-                              <a href="../../../../category/deep-dive/">Deep dive</a>, 
-                              <a href="../../../../category/trntensor/">trntensor</a></span>
+                              <a href="../category/deep-dive/">Deep dive</a>, 
+                              <a href="../category/trnsolver/">trnsolver</a></span>
                         </div>
                       </li>
                     
@@ -5246,7 +5132,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              10 min read
+                              9 min read
                             
                           </span>
                         </div>
@@ -5273,217 +5159,131 @@
   
 
 
-<h1 id="trntensor-when-the-kernel-boundary-is-the-api">trntensor: when the kernel boundary is the API<a class="headerlink" href="#trntensor-when-the-kernel-boundary-is-the-api" title="Permanent link">&para;</a></h1>
-<p>trntensor Phase 1 landed this week: the 2-index and batched <code>nc_matmul</code> NKI kernels validate on trn1, <code>ContractionPlan.backend</code> now reports <code>"nki"</code> when shapes qualify, and two fused multi-step primitives — the DF-MP2 correlation-energy kernel and the 4-index AO→MO integral transform — run the full contract → elementwise → reduce and contract → SBUF-resident → contract patterns in single NKI programs. The architectural point isn't "we implemented einsum on Trainium." It's that on Trainium the kernel boundary is the design surface: what cuTENSOR encapsulates behind a <code>Plan</code> object, NKI asks you to lay out in source. That's more work, but it's also where a tensor library can become a cuTENSOR superset rather than a cuTENSOR port.</p>
+<h1 id="trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice">trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice<a class="headerlink" href="#trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice" title="Permanent link">&para;</a></h1>
+<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count and is what every numerical-linear-algebra textbook reaches for. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. This post is how trnsolver's Phase 1 got there, what the hardware kept telling it, and which blind alleys it walked first.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>Einstein summation generalizes matrix multiplication to arbitrary tensor contractions. A quantum-chemistry workload like density-fitted MP2 is five or six contractions in sequence — auxiliary-basis 4-index transform to go from AO to MO, pair-energy contractions over occupied-occupied indices, elementwise denominators, reductions. Every post-Hartree-Fock method has the same shape.</p>
-<p>cuTENSOR's model for this is one plan per contraction: <code>cutensorInitContractionDescriptor</code>, then <code>cutensorContractionExecute</code>. Each plan becomes a CUDA kernel. Multiple contractions compose in Python (or host C) between plans, with intermediate tensors landing in HBM between calls. The programmer rarely thinks about where the plan ends and the next one starts — cuTENSOR hides the kernel boundary.</p>
-<p>The naive port of that shape to Trainium produces correct results and leaves most of the performance on the floor. DF-MP2 with 25 pair contractions compiles to 25 NKI dispatches; each dispatch pays a fixed XLA overhead. Profiling a 2048² matmul on trn1 (reported in <a href="https://github.com/trnsci/trntensor/issues/33#issuecomment-4239594619">#33</a>) measured 4,081 µs host→XLA transfer, 2,994 µs XLA→host transfer, and only 568 µs of actual kernel time — the wrapper is doing an order of magnitude more work than the Tensor Engine. The per-kernel compile is fine. The per-dispatch surrounding work is not.</p>
+<p>Symmetric eigendecomposition is the hot loop inside <code>FC = SCε</code> — the SCF step in quantum chemistry — and the first place trnsolver has to own the NKI backend end-to-end. Trainium ships no LAPACK. The naive port would grab a Householder-based symmetric eigensolver from scipy or from a textbook, wire it through NKI kernels, tune for tile sizes, and ship it. That matches cuSOLVER's shape: Householder tridiagonalization followed by implicit-shift QR on the tridiagonal.</p>
+<p>The problem with that path isn't that it's slow. Every architecturally-tempting move the textbook implies runs into friction with NKI 0.3.0 at the kernel-dispatch layer. The rest of this post is what trnsolver learned trying.</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p>The NKI programming model exposes four engines (Tensor, Vector, Scalar, GpSimd), two partitioned memory regions (PSUM for accumulation, SBUF for staging), and a compile-once-run-many NEFF cache. A single <code>@nki.jit</code> program can span arbitrary control flow over those resources. That's what matters for a tensor library: one NKI program can contain multiple <code>nisa.nc_matmul</code> calls, interleaved Vector Engine elementwise ops, and a scalar reduction at the end, all without intermediate tensors ever touching HBM.</p>
-<p>cuTENSOR's <code>Plan</code> is an opaque object that maps to one kernel. NKI's equivalent is the source of the <code>@nki.jit</code>-decorated function — and that function can encapsulate a DAG of contractions rather than a single one. Two concrete patterns:</p>
-<ul>
-<li>
-<p><strong>Contract → elementwise → reduce.</strong> Compute a contraction in PSUM. Copy to SBUF. Apply element-wise math (multiply, subtract, reciprocal). Fold via <code>nl.sum</code> into a scalar accumulator tile. Store one HBM value per outer iteration. This is the DF-MP2 energy pattern.</p>
-</li>
-<li>
-<p><strong>Contract → SBUF intermediate → contract.</strong> Compute a first matmul whose PSUM output copies to SBUF. Use that SBUF tile as the stationary operand of a second matmul. Store the second matmul's PSUM output. The intermediate tensor never exists in the user's Python or in HBM. This is the 4-index AO→MO transform pattern.</p>
-</li>
-</ul>
-<p>Neither pattern is new to HPC — fused GEMMs and fused reductions exist on GPUs too. The difference is who writes them. cuTENSOR hands you a planner and hides the code; NKI hands you the code and expects you to plan. When the workload matches one of these patterns, the NKI version is a cuTENSOR superset — a primitive that cuTENSOR's plan abstraction doesn't name.</p>
-<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<p>trntensor has three public-API layers that correspond to three levels of user engagement with this kernel-boundary discipline:</p>
+<p>Start from the 128×128 partition tile, set aside all existing algorithms, and ask: what dense-eigendecomposition moves does this hardware actually make cheap?</p>
+<p>The Tensor Engine is a systolic array with a stationary operand and a streaming operand. It's built to reuse one matrix across many applications of another. Its natural operation is a GEMM with at least one operand resident in SBUF across many invocations. Its partition dim tops out at 128 (<code>PMAX</code>), so anything expressing parallelism on that axis has to fit that budget. PSUM accumulates in FP32 regardless of input precision — mixed precision is free at the matmul boundary.</p>
+<p>Two eigendecomposition primitives look attractive against that shape:</p>
 <ol>
 <li>
-<p><strong>Generic <code>einsum(subscripts, *operands)</code></strong> — an opinionated router. <code>ContractionPlan</code> analyzes the subscript, classifies the contraction (<code>matmul</code>, <code>bmm</code>, <code>torch</code>), computes a FLOP estimate, and chooses a dispatch target. Small shapes skip NKI entirely via a 2-GFLOP threshold — the per-call dispatch overhead rules out NKI at sizes where the Tensor Engine couldn't earn it back. Subscripts that don't match a known pattern (3+ operands, broadcasting, patterns not yet specialized) fall through to <code>torch.einsum</code>.</p>
+<p><strong>Householder reflector</strong> <code>I − 2 v vᵀ</code>. The update <code>A ← A − 2 v (vᵀA)</code> is a rank-1 outer product. Stationary v, streaming A. PSUM accumulates the sum. This looks like exactly what the Tensor Engine was built for.</p>
 </li>
 <li>
-<p><strong>Named fused primitives</strong> — <code>trntensor.mp2_energy(B, eps_occ, eps_vir)</code> and <code>trntensor.ao_to_mo_transform(eri, C_occ, C_vir)</code>. These aren't generic; they're named chemistry-domain operations that compile to one fused NKI program each. Users who know what they want reach for these; users who don't stay with <code>einsum</code>.</p>
-</li>
-<li>
-<p><strong>Operand residency</strong> — <code>trntensor.to_xla(tensor)</code> and <code>trntensor.from_xla(tensor)</code>. The kernel-boundary discipline applies between trntensor calls too: XLA-resident operands skip the per-dispatch transfer. The DF-MP2 pipeline becomes "transfer once, compute, pull back the scalar," matching at the program level what the kernels do at the intra-kernel level.</p>
+<p><strong>Givens rotation</strong> on a disjoint pair of rows/columns <code>(p, q)</code>. The update is a 2×2 rotation matrix applied to two n-element rows. In a batched Jacobi sweep, n/2 rotations on disjoint pairs commute; they can apply in parallel. A single sweep round maps to one NKI kernel call that rotates n/2 pairs at strided positions.</p>
 </li>
 </ol>
-<p>The deliberate tradeoff: trntensor doesn't try to detect fusion opportunities automatically. A generic multi-<code>einsum</code> detector that compiles arbitrary contraction DAGs to fused NKI programs is tracked for v0.3.0 and would be genuinely useful, but building it now means building the abstractions before they've been validated against enough concrete kernels. Two named primitives and a routed generic surface is a cleaner starting point than a one-shot DAG compiler.</p>
-<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>The <code>mp2_energy_kernel</code> is the most complete demonstration. For each <code>(i, j)</code> orbital pair:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># trntensor/nki/_kernels.py</span>
-<span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">mp2_energy_kernel</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">eps_occ</span><span class="p">,</span> <span class="n">eps_vir</span><span class="p">):</span>
-    <span class="n">NOCC</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">,</span> <span class="n">NAUX</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">partial</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">NOCC</span><span class="p">,</span> <span class="n">NOCC</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
-    <span class="n">ev</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eps_vir</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">NVIR</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># 2D for unambiguous partition dim</span>
-
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">NOCC</span><span class="p">):</span>
-        <span class="n">Bi_t</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load_transpose2d</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">NVIR</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">NAUX</span><span class="p">])</span>
-        <span class="n">eo_i</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eps_occ</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span>
-
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">NOCC</span><span class="p">):</span>
-            <span class="n">Bj_t</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load_transpose2d</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">NVIR</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">NAUX</span><span class="p">])</span>
-            <span class="n">eo_sum</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">eo_i</span><span class="p">,</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eps_occ</span><span class="p">[</span><span class="n">j</span> <span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]))</span>
-
-            <span class="c1"># Two nc_matmul in PSUM: T = Bi @ Bj.T and T^T = Bj @ Bi.T</span>
-            <span class="n">psum_T</span>  <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">NVIR</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">psum</span><span class="p">)</span>
-            <span class="n">psum_Tt</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">NVIR</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">psum</span><span class="p">)</span>
-            <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_T</span><span class="p">,</span>  <span class="n">stationary</span><span class="o">=</span><span class="n">Bi_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">Bj_t</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_Tt</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">Bj_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">Bi_t</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-            <span class="c1"># PSUM → SBUF (NKI 0.3.0 requires explicit copy)</span>
-            <span class="n">t</span>   <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">NVIR</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">B</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">sbuf</span><span class="p">)</span>
-            <span class="n">t_T</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">NVIR</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">B</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">sbuf</span><span class="p">)</span>
-            <span class="n">nisa</span><span class="o">.</span><span class="n">tensor_copy</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">psum_T</span><span class="p">,</span>  <span class="n">dst</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
-            <span class="n">nisa</span><span class="o">.</span><span class="n">tensor_copy</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">psum_Tt</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="n">t_T</span><span class="p">)</span>
-
-            <span class="c1"># Vector Engine: Δ_ab = (ε_i+ε_j) - ε_a - ε_b</span>
-            <span class="n">denom</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">eo_sum</span><span class="p">,</span> <span class="n">ev</span><span class="p">),</span> <span class="n">ev</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">)))</span>
-
-            <span class="c1"># term = T * (2T - T^T) / Δ  (divide-as-reciprocal for 0.3.0)</span>
-            <span class="n">term</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
-                <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span> <span class="n">t_T</span><span class="p">)),</span>
-                <span class="n">nl</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">(</span><span class="n">denom</span><span class="p">),</span>
-            <span class="p">)</span>
-
-            <span class="c1"># Scalar accumulator — avoids 0-D SBUF allocation</span>
-            <span class="n">acc</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">sbuf</span><span class="p">)</span>
-            <span class="n">acc</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">nl</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
-            <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">partial</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span> <span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">partial</span>
-</code></pre></div>
-<p>One program. Two <code>nc_matmul</code> per pair, reusing SBUF tiles. All elementwise math on the Vector Engine. Reduction into a <code>(1, 1)</code> SBUF accumulator. One HBM store per <code>(i, j)</code>. A cuTENSOR port would package this as three plans — contract, elementwise, reduce — with intermediates <code>T</code> and <code>term</code> materialized between them. Here nothing between <code>nl.load</code> and <code>nl.store</code> appears as a tensor in Python or HBM.</p>
-<p>The <code>ContractionPlan.backend</code> report threads through:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># trntensor/plan.py</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_backend_for</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">operands</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;matmul&quot;</span><span class="p">,</span> <span class="s2">&quot;bmm&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;pytorch&quot;</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">.nki.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">HAS_NKI</span><span class="p">,</span> <span class="n">_MIN_NKI_FLOPS</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_NKI</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;pytorch&quot;</span>
-    <span class="n">flops</span> <span class="o">=</span> <span class="n">operand_flops</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">operands</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s2">&quot;nki&quot;</span> <span class="k">if</span> <span class="n">flops</span> <span class="o">&gt;=</span> <span class="n">_MIN_NKI_FLOPS</span> <span class="k">else</span> <span class="s2">&quot;pytorch&quot;</span>
-</code></pre></div>
-<p><code>plan.backend</code> reflects what will actually run, not what the algorithm classification says. A 64×64 matmul is matmul-strategy but pytorch-backend; a 2048×2048 matmul is matmul-strategy and nki-backend. Plan-time transparency about where work will land.</p>
-<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p>Several paths that looked reasonable didn't survive contact with the NKI compiler.</p>
-<p><strong>0-D SBUF allocation.</strong> The first version of <code>mp2_energy_kernel</code> wrote <code>e_ij = nl.sum(term, axis=(0, 1))</code> and stored <code>e_ij</code> directly. NKI 0.3.0 rejects this with <code>SBUF and PSUM tensors must have at least 2 dimensions (partition-dim and free-dim)</code>. The fix is the <code>acc = nl.zeros((1, 1), ...)</code> pattern above — broadcast the 0-D sum into an explicit <code>(1, 1)</code> tile via <code>nl.add</code>. The trnblas reference had this pattern; we didn't discover why until the assertion fired.</p>
-<p><strong><code>nl.copy</code> returns a view in 0.3.0.</strong> In 2.24, <code>c_sbuf = nl.copy(psum, dtype=...)</code> allocated a fresh SBUF tile. In 0.3.0 it returns a view and the subsequent <code>nl.store</code> produces silently wrong results. The fix is explicit: allocate with <code>nl.ndarray(..., buffer=nl.sbuf)</code> and copy with <code>nisa.tensor_copy(src=psum, dst=...)</code>. This is mentioned in the release notes but easy to miss.</p>
-<p><strong>1D tensor loads and partition-dim inference.</strong> <code>mp2_energy_kernel</code> originally loaded <code>eps_vir</code> with a 1D slice <code>nl.load(eps_vir[0:NVIR])</code>. That compiled and ran when <code>eps_vir</code> arrived freshly transferred from CPU. It compile-failed when the same tensor arrived pre-pinned on XLA via <code>to_xla</code>. The 1D slice leaves partition-dim inference ambiguous, and the two residency states presented different tensor metadata to the compiler. Reshaping to <code>(N, 1)</code> at the dispatch boundary — what trnblas already does — fixed it.</p>
-<p><strong>Cross-kernel XLA graph fusion.</strong> The full DF-MP2 pipeline with everything pre-pinned (<code>ao_to_mo_transform → mp2_energy</code> without a <code>from_xla</code> between them) triggers an NKI compiler bug: the combined XLA lazy graph spanning both kernels generates <code>Shared memory is only supported on trn2, but inst__I-9-0:_mem_0_0_set is using Shared memory on an unsupported target</code> on trn1. Inserting <code>xm.mark_step()</code> between calls didn't resolve it — the flush itself is what produces the trn2-only code. Tracked in <a href="https://github.com/trnsci/trntensor/issues/39">#39</a> for upstream escalation; users currently <code>from_xla(B)</code> between the two calls. This is the one place Phase 1's residency story has a hole.</p>
-<h3 id="fit-assessment">Fit assessment<a class="headerlink" href="#fit-assessment" title="Permanent link">&para;</a></h3>
-<p>Small contractions are not what Trainium wants. DF-MP2 pair contractions are 200–300 kilo-FLOP per call; the dispatch wrapper spends longer than that moving data before the kernel starts. cuBLAS has the same problem at similar sizes on NVIDIA — it's not a Trainium defect — but on Trainium the absolute overhead is higher because the device transfer crosses a less tightly-integrated boundary than a GPU's PCIe path. Trainium is over-indexed for large GEMMs and under-indexed for tight loops of small contractions. The practical answer is residency + fusion, not doing more per-call work.</p>
-<p><strong>The planner isn't a path-search engine yet.</strong> <code>ContractionPlan</code> handles one contraction at a time. For a 3+ operand einsum, the current fallback is <code>torch.einsum</code>, which loses the chance to pick a better contraction order and loses the fused-DAG opportunity entirely. Phase 3 adds the path search; Phase 1 admits it doesn't have one.</p>
-<p><strong>Documentation gaps we discovered empirically.</strong> The NKI 0.3.0 transition notes list <code>nc_matmul</code> signature changes and <code>nl.copy</code>'s new view semantics, but the partition-dim strictness of 1D loads wasn't called out. The <code>SBUF and PSUM tensors must have at least 2 dimensions</code> assertion error is accurate but doesn't hint at which SBUF allocation is 0-D — you have to walk the trace to <code>nki/language/core.py:51</code>. These are the kinds of gaps that get filled in once a few projects have tripped over them; documenting them here is part of that.</p>
-<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>trn1.2xlarge, neuronxcc 2.29 / NKI 0.3.0. Same machine for both columns (<code>TRNTENSOR_FORCE_BACKEND=pytorch</code> for the CPU baseline).</p>
-<table>
-<thead>
-<tr>
-<th>Op</th>
-<th>Shape</th>
-<th style="text-align: right;">FLOPs</th>
-<th style="text-align: right;">PyTorch (trn1)</th>
-<th style="text-align: right;">NKI (trn1)</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>einsum ap,bp-&gt;ab</code> (DF-MP2 pair)</td>
-<td>48×128 × 48×128</td>
-<td style="text-align: right;">295 K</td>
-<td style="text-align: right;"><strong>19.6 µs</strong></td>
-<td style="text-align: right;">1047 µs</td>
-<td>CPU 53× — dispatch overhead dominates</td>
-</tr>
-<tr>
-<td><code>einsum mi,mnP-&gt;inP</code> (4-index)</td>
-<td>32×8, 32×32×64</td>
-<td style="text-align: right;">524 K</td>
-<td style="text-align: right;">35.4 µs</td>
-<td style="text-align: right;"><strong>35.1 µs</strong></td>
-<td>break-even</td>
-</tr>
-<tr>
-<td><code>einsum ij,jk-&gt;ik</code></td>
-<td>512³</td>
-<td style="text-align: right;">134 M</td>
-<td style="text-align: right;"><strong>481 µs</strong></td>
-<td style="text-align: right;">1452 µs</td>
-<td>CPU 3.0×</td>
-</tr>
-<tr>
-<td><code>einsum bij,bjk-&gt;bik</code></td>
-<td>16×256³</td>
-<td style="text-align: right;">268 M</td>
-<td style="text-align: right;"><strong>953 µs</strong></td>
-<td style="text-align: right;">2162 µs</td>
-<td>CPU 2.3×</td>
-</tr>
-<tr>
-<td><code>einsum ij,jk-&gt;ik</code></td>
-<td>1024³</td>
-<td style="text-align: right;">1.07 G</td>
-<td style="text-align: right;"><strong>3402 µs</strong></td>
-<td style="text-align: right;">4022 µs</td>
-<td>CPU 1.2×</td>
-</tr>
-<tr>
-<td><code>einsum ij,jk-&gt;ik</code></td>
-<td>2048³</td>
-<td style="text-align: right;">8.6 G</td>
-<td style="text-align: right;">27.4 ms</td>
-<td style="text-align: right;"><strong>16.9 ms</strong></td>
-<td>NKI 1.6×</td>
-</tr>
-<tr>
-<td><code>einsum bij,bjk-&gt;bik</code></td>
-<td>32×1024³</td>
-<td style="text-align: right;">34.4 G</td>
-<td style="text-align: right;"><strong>126.3 ms</strong></td>
-<td style="text-align: right;">190.8 ms</td>
-<td>CPU 1.5×</td>
-</tr>
-<tr>
-<td><code>mp2_energy</code> fused vs Python loop</td>
-<td>5×19×72</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;"><strong>1.5 ms</strong></td>
-<td style="text-align: right;">16 ms</td>
-<td>loop 10× — same overhead story</td>
-</tr>
-<tr>
-<td><code>mp2_energy</code> fused vs Python loop</td>
-<td>16×128×128</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;"><strong>25.5 ms</strong></td>
-<td style="text-align: right;">41 ms</td>
-<td>loop 1.6× — gap closing</td>
-</tr>
-<tr>
-<td>5-iter matmul_2048 with residency</td>
-<td>2048³</td>
-<td style="text-align: right;">8.6 G</td>
-<td style="text-align: right;">cold loop</td>
-<td style="text-align: right;"><strong>≥ 3× faster</strong></td>
-<td><code>to_xla</code> pre-pin — v0.3.0 baseline</td>
-</tr>
-</tbody>
-</table>
-<p>NKI wins one benchmark outright (2048² matmul, 1.6× faster). The residency test is where the story becomes interesting: pre-pinning operands eliminates the dispatch overhead that dominates every other number on this table. The fused kernels are architecturally correct; the residency API is what lets them earn their keep.</p>
-<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
-<p>Phase trackers for the library, in order:</p>
+<p>Naively, Householder wins: rank-1 matches the systolic array's dataflow, and asymptotic FLOPs for symmetric eigh via Householder-QR beat Jacobi's O(n³) per sweep × O(n) sweeps.</p>
+<p>The inversion happens at the kernel-boundary layer. Householder-QR for a symmetric matrix is inherently <strong>serial</strong>: each reflector <code>v_k</code> is computed from <code>A</code>'s state after <code>v_{k-1}</code> has been applied. The scalar quantities — the Householder norm, β = 2/(vᵀv), γ for the rank-2 update — are tiny values that feed back into big tensor operations. On NKI 0.3.0 that scalar dataflow has to traverse the kernel boundary, and every such traversal is a new traced graph for the XLA layer underneath NKI. Every new traced graph is a new NEFF compile.</p>
+<p>Jacobi's sweep round, by contrast, is <strong>data-parallel at the granularity of a single kernel call</strong>. Compute all n/2 rotation angles from <code>D</code>'s current state in one pass. Apply all n/2 rotations in a second kernel call. No per-rotation scalar dataflow across the kernel boundary. The Brent–Luk round-robin schedule fixes the pairing for each of the n-1 rounds per sweep; those permutations are pure combinatorics — int64 tables computed once on the host and reused forever.</p>
+<p>The 128-partition tile doesn't care about rank-1 vs rank-2 FLOP arithmetic at this scale. It cares about <strong>dispatch granularity</strong>. Jacobi fits the dispatch budget. Householder, applied step by step, doesn't.</p>
+<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
+<p>trnsolver's Phase 1 <code>eigh</code> is batched-sweep parallel Jacobi driven from the host:</p>
 <ul>
-<li><a href="https://github.com/trnsci/trntensor/issues/28">Phase 2 — precision-aware contraction path selection</a></li>
-<li><a href="https://github.com/trnsci/trntensor/issues/29">Phase 3 — opt_einsum-style path planner + plan cache reuse</a></li>
-<li><a href="https://github.com/trnsci/trntensor/issues/30">Phase 4 — sharded tensor contractions across chips</a></li>
-<li><a href="https://github.com/trnsci/trntensor/issues/31">Phase 5 — trn2 fused multi-contraction paths</a></li>
+<li>
+<p><strong>Brent–Luk round schedule</strong> computed once on the host (<code>trnsolver/_brent_luk.py</code>). For even matrix size n, this returns <code>(n-1, n)</code> int64 permutations. Applying permutation <code>perms[r]</code> to D's rows and columns lands the pair set for round r at strided positions <code>(0,1), (2,3), …, (n-2, n-1)</code>.</p>
+</li>
+<li>
+<p><strong><code>rotate_pairs_kernel</code></strong> in <code>trnsolver/nki/dispatch.py</code> — one NKI kernel that rotates n/2 disjoint row pairs at strided positions. Signature <code>(even, odd, c, s) → (new_even, new_odd)</code>, with <code>even, odd : (n/2, n)</code> and <code>c, s : (n/2, 1)</code>. Partition dim is n/2, free dim is n. For n ≤ 256 the whole thing fits a single partition tile; NKI's compile graph is stable per <code>(n/2, n, dtype)</code>.</p>
+</li>
+<li>
+<p><strong>Host driver</strong> <code>_jacobi_eigh_nki</code> in <code>trnsolver/eigen.py</code>. Per round: permute D and V into strided-pair layout, compute per-pair (c, s) from the current D diagonals and off-diagonals via a host helper (<code>_rotation_angles_strided</code>), call the kernel three times (D rows, D columns, V columns), apply a small diagonal-block fixup where row-and-column rotations double-touch the 2×2 block on the diagonal.</p>
+</li>
+<li>
+<p><strong>Simulator-first development</strong>. <code>nki.simulate(rotate_pairs_kernel)(numpy_args)</code> runs the kernel on CPU with no NEFF compile and no XLA tracing. Seconds per iteration on <code>ubuntu-latest</code> CI — the inner loop for kernel design.</p>
+</li>
 </ul>
-<p>Concrete v0.3.0 follow-ups already filed: <a href="https://github.com/trnsci/trntensor/issues/37">K-tiling for <code>ao_to_mo_transform</code> when nbasis &gt; 128</a>, <a href="https://github.com/trnsci/trntensor/issues/19">generic <code>multi_einsum</code> shared-operand detection</a>, <a href="https://github.com/trnsci/trntensor/issues/20">α/β scaling to match cuTENSOR's interface</a>, <a href="https://github.com/trnsci/trntensor/issues/39">the cross-kernel NKI compiler bug</a> pending upstream.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p>The kernel is short enough to inline:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rotate_pairs_kernel</span><span class="p">(</span><span class="n">even</span><span class="p">,</span> <span class="n">odd</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rotate two stacked tiles by a per-row Givens rotation.</span>
+
+<span class="sd">    even, odd : (half, n)  — the two rows of each pair</span>
+<span class="sd">    c, s      : (half, 1)  — per-pair cosine, sine</span>
+<span class="sd">    returns new_even, new_odd — both (half, n)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">half</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">even</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">new_even</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">half</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">even</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+    <span class="n">new_odd</span>  <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">half</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">even</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+
+    <span class="n">e</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">even</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">])</span>
+    <span class="n">o</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">odd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">])</span>
+    <span class="n">c_tile</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">s_tile</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">neg_s</span>  <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">negative</span><span class="p">(</span><span class="n">s_tile</span><span class="p">)</span>
+
+    <span class="n">ne</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">c_tile</span><span class="p">),</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">neg_s</span><span class="p">))</span>
+    <span class="n">no</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">s_tile</span><span class="p">),</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">c_tile</span><span class="p">))</span>
+
+    <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">new_even</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">ne</span><span class="p">)</span>
+    <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">new_odd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">],</span>  <span class="n">value</span><span class="o">=</span><span class="n">no</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_even</span><span class="p">,</span> <span class="n">new_odd</span>
+</code></pre></div>
+<p>Two loads, four Vector-Engine element-wise ops, two stores. <code>(c, s)</code> broadcasts across the free dim. The Vector Engine is doing all the math in Phase 1 — the Tensor Engine reformulation where the 2×2 rotation block is stationary for a <code>nisa.nc_matmul</code> is the obvious next lever, and the one that finally justifies calling this "a rank-2 matmul" at the hardware layer. Phase 1's simpler form validates correctness first.</p>
+<p>The host driver's inner loop:</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">perm</span> <span class="o">=</span> <span class="n">perms</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>                              <span class="c1"># precomputed int64</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">perm</span><span class="p">][:,</span> <span class="n">perm</span><span class="p">]</span>                         <span class="c1"># row+col permute</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">V</span><span class="p">[:,</span> <span class="n">perm</span><span class="p">]</span>
+
+    <span class="n">cs</span> <span class="o">=</span> <span class="n">_rotation_angles_strided</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>             <span class="c1"># (n/2, 2)</span>
+    <span class="n">c_col</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+    <span class="n">s_col</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+
+    <span class="n">D_even</span><span class="p">,</span> <span class="n">D_odd</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">idx_p</span><span class="p">,</span> <span class="p">:],</span> <span class="n">D</span><span class="p">[</span><span class="n">idx_q</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">D_even</span><span class="p">,</span> <span class="n">D_odd</span> <span class="o">=</span> <span class="n">rotate_pairs_kernel</span><span class="p">(</span><span class="n">D_even</span><span class="p">,</span> <span class="n">D_odd</span><span class="p">,</span> <span class="n">c_col</span><span class="p">,</span> <span class="n">s_col</span><span class="p">)</span>
+    <span class="c1"># store back, repeat for D columns and V columns</span>
+</code></pre></div>
+<p><code>_rotation_angles_strided</code> is a host function: five element-wise torch ops on the strided pair diagonals. It could live in the kernel, but keeping it on the host removes a would-be scalar-intermediate dataflow from the NKI-side traced graph. Same reasoning that sank Householder.</p>
+<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
+<p>Householder-QR was the first path attempted. The simulator-side implementation landed cleanly and passed 18 correctness tests against <code>torch.linalg.eigh</code> at rtol=1e-3 for n ∈ {8, 16, 32, 64, 128}. On <code>ubuntu-latest</code>, the full suite ran in 2.67 seconds.</p>
+<p>The same code running against real trn1 hardware logged <strong>303 separate NEFF compile workdirs</strong> inside <code>/tmp/ubuntu/neuroncc_compile_workdir/</code> during a single test run before the run was cancelled. The traced XLA graph changed on every outer-loop iteration because <code>A_work</code> had a different computation history per Householder step — it had been mutated by the previous rank-2 update — and NKI compiles per traced graph, not per kernel signature. The simulator didn't surface this: <code>nki.simulate(kernel)(np_args)</code> runs the kernel logic directly on numpy, with no XLA layer and no trace cache, so the host-integration failure mode was invisible until hardware.</p>
+<p>That recompile behavior is a hard architectural statement from the compiler. A solver that wants to live inside a Python loop has to present a fixed traced graph to NKI. Householder's scalar-intermediate dataflow fights that requirement head-on. Jacobi's batched-sweep form doesn't.</p>
+<p>A handful of smaller items from the iteration:</p>
+<ul>
+<li>
+<p><strong>Single-rotation kernel dispatch.</strong> Before the batched-round design landed, an earlier kernel took <code>(p, q, c, s)</code> as scalar arguments and applied one Givens rotation per call. Same per-call-recompile pathology as Householder — the slicing indices <code>A[p:p+1, :]</code> changed per call, so every rotation was a fresh graph. A full Jacobi sweep of n²/2 rotations, each needing its own compile, is worse than unviable. The Brent–Luk permutation is the fix: indices become strided constants <code>(0,1), (2,3), …</code>, and the permutation is applied on the host.</p>
+</li>
+<li>
+<p><strong>Newton–Schulz convergence criterion.</strong> The matrix-square-root-inverse <code>inv_sqrt_spd_ns</code> that shipped alongside eigh uses a coupled <code>Y, Z</code> iteration. The first convergence test asserted <code>‖Y − I‖_F &lt; tol</code>, which is wrong — <code>Y</code> converges to <code>(A/s)^(1/2)</code>, not to <code>I</code>. The correct test is <code>‖Y·Z − I‖_F &lt; tol</code>. Twenty minutes of confusion before the identity clicked.</p>
+</li>
+<li>
+<p><strong>NKI 0.3.0 migration specifics.</strong> The <code>neuronxcc.nki.*</code> shim was dropped in favor of the top-level <code>nki</code> package. <code>nl.store(dest, expr)</code> needs the keyword form <code>nl.store(dest, value=expr)</code>. Python unary minus on an <code>InstTile</code> raises <code>TypeError</code>; use <code>nl.negative(t)</code>. Output tensors need explicit <code>buffer=nl.shared_hbm</code>. None of these are surprising once documented, but the failure surfaces are at kernel-compile time on hardware — only partly at simulator time.</p>
+</li>
+<li>
+<p><strong>Dynamic path composition inside the SSM test runner.</strong> The runner shell-quotes a bash-in-JSON payload handed to <code>aws ssm send-command</code>. A first attempt used <code>NEURON_VENV=\\\$(ls -d /opt/aws_neuronx_venv_pytorch_* …)</code> for deferred expansion; that rendered as <code>\$</code> in the JSON, which isn't a valid JSON escape, and the command failed parameter validation before it reached the instance. The current runner hardcodes the venv path. Not a kernel story, but a toolchain-integration tax that shows up whenever automation crosses the shell/JSON/remote-shell boundary.</p>
+</li>
+</ul>
+<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
+<p>Simulator parity, <code>nki-simulator</code> CI job on <code>ubuntu-latest</code>, NKI 0.3.0 / neuronxcc 2.24.5133 from the AWS pip index:</p>
+<p>Eigenvalue relative error vs <code>torch.linalg.eigh</code>, reconstruction error <code>‖V·diag(w)·Vᵀ − A‖</code>, and orthonormality <code>‖VᵀV − I‖</code> all hold at <strong>rtol=1e-3</strong> across n ∈ {8, 16, 32, 64, 128} on random symmetric inputs. Full simulator suite — 18 tests including the cases above plus the tridiag-specific correctness tests carried through the Householder pivot-and-back work — runs in <strong>2.67 seconds wall-clock</strong> per CI run.</p>
+<p>Hardware <code>@pytest.mark.neuron</code> numbers up to n=512 are the next gate. The simulator isn't a substitute for hardware on perf: it skips NEFF compile, tile-capacity checks, and PSUM/SBUF latency modelling. What's measured so far is the math, not the wall-clock-on-silicon.</p>
+<p>The disappointing number, to the extent Phase 1 has one: <strong>per-sweep kernel-dispatch count is 3</strong>, not 1 (D rows, D columns, V columns). That's 3× the dispatch overhead of a "one kernel per round" design. Collapsing those three calls into one kernel, plus reformulating the rotation as a stationary 2×2-matmul on the Tensor Engine, is the Phase 3 perf headline.</p>
+<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
+<p>The trnsolver phase trackers:</p>
+<ul>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/27">Phase 2 — iterative refinement + Newton-Schulz variants</a>. FP32 Jacobi eigendecomposition isn't accurate enough for nanohartree-level chemistry; iterative refinement on top of the Jacobi result, using trnblas's double-double GEMM, restores precision where the motivating workloads demand it. Gated by trnblas Phase 2.</p>
+</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/28">Phase 3 — preconditioned iterative solvers + NEFF cache reuse</a>. Jacobi preconditioner for CG already landed; IC0 and SSOR are the next primitives. NEFF cache reuse in examples and benchmarks pays back across the whole suite.</p>
+</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/29">Phase 4 — parallel Jacobi sweeps across NeuronCores</a>. The disjoint rotations of a sweep round commute; they shard trivially across NeuronCores. Large-n SCF eigh is Phase 4's headline.</p>
+</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/30">Phase 5 — trn2 rotation-block tuning</a>. Trn2's larger SBUF changes the rotation-block tile size. Generation-specific kernels live here.</p>
+</li>
+</ul>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>A tensor contraction library on Trainium looks different from one on a GPU because the kernel boundary is writable. cuTENSOR's <code>Plan</code> encapsulates one contraction behind an opaque handle and lets the runtime pick a kernel; trntensor's named fused primitives (<code>mp2_energy</code>, <code>ao_to_mo_transform</code>) span multiple contractions in one NKI program and expose the composition. That's a cuTENSOR superset when the workload matches a named pattern and a cuTENSOR-equivalent generic path for everything else.</p>
-<p>The design lesson Phase 1 delivers: fused, pattern-specific kernels are a normal mode of operation on Trainium, not an optimization pass. The library should name them as first-class primitives rather than try to detect them at dispatch time.</p>
+<p>The 128-partition Tensor Engine tile's preferences invert at the kernel-dispatch layer. Householder's rank-1 outer products look like the right hardware-native move until the serial dataflow between reflectors collides with NKI's per-traced-graph compile model. Jacobi's batched-sweep form — n/2 rotations commuting on disjoint pairs, mapping to one kernel dispatch per round — trades asymptotic FLOP count for kernel-boundary efficiency, and wins on Trainium.</p>
+<p>The concrete lesson for anyone building a dense-linear-algebra library on NKI 0.3.0: the simulator validates kernel math; only hardware validates host-integration shape. A kernel that compiles per call on the simulator will compile per call on hardware too, and on hardware the compile cost is an order of magnitude higher. Design for a stable traced graph from the first commit, not as a later optimization.</p>
 
 
 
@@ -5578,10 +5378,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

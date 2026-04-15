@@ -49,6 +49,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/blog.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -659,8 +661,6 @@
       
         
       
-        
-      
     
     
     
@@ -726,6 +726,22 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -749,7 +765,7 @@
   <span class="md-ellipsis">
     
   
-    Archive
+    Categories
   
 
     
@@ -762,116 +778,6 @@
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Archive
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-    
-  
-  
-    <li class="md-nav__item">
-      <a href="../archive/2026/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    2026
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Categories
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -5181,6 +5087,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tables-diagrams-and-visual-aids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tables, diagrams, and visual aids
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#submitting-pr-only-no-direct-commits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5337,8 +5254,28 @@ We built a butterfly kernel…</p>
 <span class="nt">comments</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="nn">---</span>
 </code></pre></div>
+<p>The <code>date</code> field is required for blog ordering and RSS metadata, but <strong>the date is not displayed on the rendered page or in the URL</strong> (the URL is <code>/blog/&lt;slug&gt;/</code>). Don't reference the date inline as if it'll be visible to the reader.</p>
 <p>No <code>authors:</code> line for technical deep-dives.</p>
 <p>Slug and filename: <code>docs/blog/posts/&lt;YYYY-MM-DD&gt;-&lt;short-slug&gt;.md</code>. Keep slugs short — <code>2026-04-13-fft-without-complex-dtype.md</code>, not the full title.</p>
+<h2 id="tables-diagrams-and-visual-aids">Tables, diagrams, and visual aids<a class="headerlink" href="#tables-diagrams-and-visual-aids" title="Permanent link">&para;</a></h2>
+<p>Wall-of-text retrospectives are intimidating. Use visuals where they earn their keep — a 200-word paragraph that becomes a 6-row table is almost always a win for the reader.</p>
+<p><strong>Tables.</strong> Standard markdown tables work everywhere. Use them for: benchmark results, per-shape comparisons, NKI-vs-CPU-vs-other-platform numbers, before/after diffs of a tradeoff, mapping a sub-project's APIs to their cuX analogs. Honest tables — including rows where the project loses — are credibility-positive.</p>
+<p><strong>Mermaid diagrams.</strong> Lightweight architecture sketches, dataflow diagrams, kernel pipeline shapes, and decision flowcharts render cleanly via fenced code blocks:</p>
+<div class="highlight"><pre><span></span><code>```mermaid
+flowchart LR
+  HBM[(&quot;HBM\n(eri tensor)&quot;)]
+  SBUF[/&quot;SBUF\n(stationary)&quot;/]
+  TE[&quot;Tensor Engine\n(nc_matmul)&quot;]
+  PSUM[(&quot;PSUM\n(fp32 accumulator)&quot;)]
+  HBM --&gt;|DMA load| SBUF
+  SBUF --&gt; TE
+  TE --&gt;|accumulate| PSUM
+  PSUM --&gt;|DMA store| HBM
+```
+</code></pre></div>
+<p>Don't over-do it. One or two diagrams in a post that genuinely benefit from visual structure beats five decorative ones. Diagram-as-recap (a single picture summarizing what the prose just explained) is usually a win.</p>
+<p><strong>Code samples</strong> stay short. One representative kernel snippet is much better than three near-identical ones. Link to the full source on GitHub for readers who want depth.</p>
+<p><strong>Admonitions</strong> (<code>!!! note</code>, <code>!!! warning</code>, <code>!!! info</code>) work via the <code>admonition</code> extension and are useful for sidebar-style content — version compatibility caveats, "if you're skimming, here's the takeaway", links to deeper reading. Use sparingly so they retain visual weight.</p>
 <h2 id="submitting-pr-only-no-direct-commits">Submitting — PR only, no direct commits<a class="headerlink" href="#submitting-pr-only-no-direct-commits" title="Permanent link">&para;</a></h2>
 <p><strong>Do not commit the post directly to <code>main</code>. Do not push only to a branch. The PR is how editorial review happens; skipping it is an editorial failure, not a speed win.</strong></p>
 <p>Exact steps, in order:</p>

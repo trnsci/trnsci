@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/2026/04/14/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">
       
       
-        <link rel="prev" href="../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">
+        <link rel="prev" href="../trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">
       
       
-        <link rel="next" href="../trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">
+        <link rel="next" href="../the-dev-loop-just-got-a-lot-shorter/">
       
       
         
       
       
-      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>trnfft: FFT on hardware that doesn't want to be an FFT engine - trnsci</title>
+        <title>trnblas: fusing DF-MP2 energy reduction into one NKI kernel - trnsci</title>
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +53,9 @@
       
     
     
-    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+      <link rel="stylesheet" href="../../stylesheets/blog.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine" class="md-skip">
+        <a href="#trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +92,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../../../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trnfft: FFT on hardware that doesn't want to be an FFT engine
+              trnblas: fusing DF-MP2 energy reduction into one NKI kernel
             
           </span>
         </div>
@@ -195,7 +197,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../.." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -214,7 +216,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../why/" class="md-tabs__link">
+      <a href="../../why/" class="md-tabs__link">
         
   
   
@@ -233,7 +235,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../cuda_rosetta/" class="md-tabs__link">
+      <a href="../../cuda_rosetta/" class="md-tabs__link">
         
   
   
@@ -252,7 +254,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../trainium_positioning/" class="md-tabs__link">
+      <a href="../../trainium_positioning/" class="md-tabs__link">
         
   
   
@@ -271,7 +273,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../roadmap/" class="md-tabs__link">
+      <a href="../../roadmap/" class="md-tabs__link">
         
   
   
@@ -290,7 +292,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../nki_validation_status/" class="md-tabs__link">
+      <a href="../../nki_validation_status/" class="md-tabs__link">
         
   
   
@@ -313,7 +315,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../../../" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -335,7 +337,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../installation/" class="md-tabs__link">
+        <a href="../../installation/" class="md-tabs__link">
           
   
   
@@ -357,7 +359,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../workflows/integration/" class="md-tabs__link">
+        <a href="../../workflows/integration/" class="md-tabs__link">
           
   
   
@@ -386,7 +388,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../trnfft/" class="md-tabs__link">
+        <a href="../../trnfft/" class="md-tabs__link">
           
   
   
@@ -409,7 +411,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../contributing/" class="md-tabs__link">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -428,7 +430,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../disclaimer/" class="md-tabs__link">
+      <a href="../../disclaimer/" class="md-tabs__link">
         
   
   
@@ -465,7 +467,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../../../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -495,7 +497,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../.." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -522,7 +524,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../why/" class="md-nav__link">
+      <a href="../../why/" class="md-nav__link">
         
   
   
@@ -549,7 +551,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../cuda_rosetta/" class="md-nav__link">
+      <a href="../../cuda_rosetta/" class="md-nav__link">
         
   
   
@@ -576,7 +578,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trainium_positioning/" class="md-nav__link">
+      <a href="../../trainium_positioning/" class="md-nav__link">
         
   
   
@@ -603,7 +605,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../roadmap/" class="md-nav__link">
+      <a href="../../roadmap/" class="md-nav__link">
         
   
   
@@ -630,7 +632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../nki_validation_status/" class="md-nav__link">
+      <a href="../../nki_validation_status/" class="md-nav__link">
         
   
   
@@ -667,8 +669,6 @@
       
         
       
-        
-      
     
     
     
@@ -689,7 +689,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -737,6 +737,22 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -763,7 +779,7 @@
   <span class="md-ellipsis">
     
   
-    Archive
+    Categories
   
 
     
@@ -779,119 +795,6 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Archive
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-    
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../archive/2026/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    2026
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Categories
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
     Categories
   
 
@@ -907,7 +810,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/announcements/" class="md-nav__link">
+      <a href="../category/announcements/" class="md-nav__link">
         
   
   
@@ -937,7 +840,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/deep-dive/" class="md-nav__link">
+      <a href="../category/deep-dive/" class="md-nav__link">
         
   
   
@@ -967,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/ecosystem/" class="md-nav__link">
+      <a href="../category/ecosystem/" class="md-nav__link">
         
   
   
@@ -997,7 +900,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnblas/" class="md-nav__link">
+      <a href="../category/trnblas/" class="md-nav__link">
         
   
   
@@ -1027,7 +930,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnfft/" class="md-nav__link">
+      <a href="../category/trnfft/" class="md-nav__link">
         
   
   
@@ -1057,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnrand/" class="md-nav__link">
+      <a href="../category/trnrand/" class="md-nav__link">
         
   
   
@@ -1087,7 +990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnsolver/" class="md-nav__link">
+      <a href="../category/trnsolver/" class="md-nav__link">
         
   
   
@@ -1117,7 +1020,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trnsparse/" class="md-nav__link">
+      <a href="../category/trnsparse/" class="md-nav__link">
         
   
   
@@ -1147,7 +1050,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../category/trntensor/" class="md-nav__link">
+      <a href="../category/trntensor/" class="md-nav__link">
         
   
   
@@ -1248,7 +1151,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -1276,7 +1179,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../deployment/" class="md-nav__link">
+      <a href="../../deployment/" class="md-nav__link">
         
   
   
@@ -1371,7 +1274,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/integration/" class="md-nav__link">
+      <a href="../../workflows/integration/" class="md-nav__link">
         
   
   
@@ -1399,7 +1302,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/speech_enhancement/" class="md-nav__link">
+      <a href="../../workflows/speech_enhancement/" class="md-nav__link">
         
   
   
@@ -1427,7 +1330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/quantum_chemistry/" class="md-nav__link">
+      <a href="../../workflows/quantum_chemistry/" class="md-nav__link">
         
   
   
@@ -1563,7 +1466,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnfft/" class="md-nav__link ">
+            <a href="../../trnfft/" class="md-nav__link ">
               
   
   
@@ -1607,7 +1510,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/installation/" class="md-nav__link">
+      <a href="../../trnfft/installation/" class="md-nav__link">
         
   
   
@@ -1635,7 +1538,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/quickstart/" class="md-nav__link">
+      <a href="../../trnfft/quickstart/" class="md-nav__link">
         
   
   
@@ -1725,7 +1628,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/fft/" class="md-nav__link">
+      <a href="../../trnfft/api/fft/" class="md-nav__link">
         
   
   
@@ -1753,7 +1656,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/complex/" class="md-nav__link">
+      <a href="../../trnfft/api/complex/" class="md-nav__link">
         
   
   
@@ -1781,7 +1684,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/nn/" class="md-nav__link">
+      <a href="../../trnfft/api/nn/" class="md-nav__link">
         
   
   
@@ -1809,7 +1712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/nki/" class="md-nav__link">
+      <a href="../../trnfft/api/nki/" class="md-nav__link">
         
   
   
@@ -1845,7 +1748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/architecture/" class="md-nav__link">
+      <a href="../../trnfft/architecture/" class="md-nav__link">
         
   
   
@@ -1873,7 +1776,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/benchmarks/" class="md-nav__link">
+      <a href="../../trnfft/benchmarks/" class="md-nav__link">
         
   
   
@@ -1957,7 +1860,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/aws_setup/" class="md-nav__link">
+      <a href="../../trnfft/aws_setup/" class="md-nav__link">
         
   
   
@@ -2040,7 +1943,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnblas/" class="md-nav__link ">
+            <a href="../../trnblas/" class="md-nav__link ">
               
   
   
@@ -2084,7 +1987,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/installation/" class="md-nav__link">
+      <a href="../../trnblas/installation/" class="md-nav__link">
         
   
   
@@ -2112,7 +2015,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/quickstart/" class="md-nav__link">
+      <a href="../../trnblas/quickstart/" class="md-nav__link">
         
   
   
@@ -2202,7 +2105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level1/" class="md-nav__link">
+      <a href="../../trnblas/api/level1/" class="md-nav__link">
         
   
   
@@ -2230,7 +2133,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level2/" class="md-nav__link">
+      <a href="../../trnblas/api/level2/" class="md-nav__link">
         
   
   
@@ -2258,7 +2161,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level3/" class="md-nav__link">
+      <a href="../../trnblas/api/level3/" class="md-nav__link">
         
   
   
@@ -2286,7 +2189,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/nki/" class="md-nav__link">
+      <a href="../../trnblas/api/nki/" class="md-nav__link">
         
   
   
@@ -2322,7 +2225,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/architecture/" class="md-nav__link">
+      <a href="../../trnblas/architecture/" class="md-nav__link">
         
   
   
@@ -2406,7 +2309,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/developing_kernels/" class="md-nav__link">
+      <a href="../../trnblas/developing_kernels/" class="md-nav__link">
         
   
   
@@ -2500,7 +2403,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
         
   
   
@@ -2528,7 +2431,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
+      <a href="../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
         
   
   
@@ -2564,7 +2467,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/benchmarks/" class="md-nav__link">
+      <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
   
   
@@ -2648,7 +2551,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/aws_setup/" class="md-nav__link">
+      <a href="../../trnblas/aws_setup/" class="md-nav__link">
         
   
   
@@ -2737,7 +2640,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnrand/" class="md-nav__link ">
+            <a href="../../trnrand/" class="md-nav__link ">
               
   
   
@@ -2781,7 +2684,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/installation/" class="md-nav__link">
+      <a href="../../trnrand/installation/" class="md-nav__link">
         
   
   
@@ -2809,7 +2712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/quickstart/" class="md-nav__link">
+      <a href="../../trnrand/quickstart/" class="md-nav__link">
         
   
   
@@ -2899,7 +2802,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/generator/" class="md-nav__link">
+      <a href="../../trnrand/api/generator/" class="md-nav__link">
         
   
   
@@ -2927,7 +2830,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/distributions/" class="md-nav__link">
+      <a href="../../trnrand/api/distributions/" class="md-nav__link">
         
   
   
@@ -2955,7 +2858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/quasi/" class="md-nav__link">
+      <a href="../../trnrand/api/quasi/" class="md-nav__link">
         
   
   
@@ -2983,7 +2886,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/nki/" class="md-nav__link">
+      <a href="../../trnrand/api/nki/" class="md-nav__link">
         
   
   
@@ -3019,7 +2922,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/architecture/" class="md-nav__link">
+      <a href="../../trnrand/architecture/" class="md-nav__link">
         
   
   
@@ -3103,7 +3006,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/developing_kernels/" class="md-nav__link">
+      <a href="../../trnrand/developing_kernels/" class="md-nav__link">
         
   
   
@@ -3197,7 +3100,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+      <a href="../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
         
   
   
@@ -3225,7 +3128,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+      <a href="../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
         
   
   
@@ -3261,7 +3164,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/roadmap/" class="md-nav__link">
+      <a href="../../trnrand/roadmap/" class="md-nav__link">
         
   
   
@@ -3289,7 +3192,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/benchmarks/" class="md-nav__link">
+      <a href="../../trnrand/benchmarks/" class="md-nav__link">
         
   
   
@@ -3373,7 +3276,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/aws_setup/" class="md-nav__link">
+      <a href="../../trnrand/aws_setup/" class="md-nav__link">
         
   
   
@@ -3409,7 +3312,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/release/" class="md-nav__link">
+      <a href="../../trnrand/release/" class="md-nav__link">
         
   
   
@@ -3437,7 +3340,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/stability/" class="md-nav__link">
+      <a href="../../trnrand/stability/" class="md-nav__link">
         
   
   
@@ -3510,7 +3413,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnsolver/" class="md-nav__link ">
+            <a href="../../trnsolver/" class="md-nav__link ">
               
   
   
@@ -3554,7 +3457,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/installation/" class="md-nav__link">
+      <a href="../../trnsolver/installation/" class="md-nav__link">
         
   
   
@@ -3582,7 +3485,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/quickstart/" class="md-nav__link">
+      <a href="../../trnsolver/quickstart/" class="md-nav__link">
         
   
   
@@ -3672,7 +3575,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/eigen/" class="md-nav__link">
+      <a href="../../trnsolver/api/eigen/" class="md-nav__link">
         
   
   
@@ -3700,7 +3603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/factor/" class="md-nav__link">
+      <a href="../../trnsolver/api/factor/" class="md-nav__link">
         
   
   
@@ -3728,7 +3631,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/iterative/" class="md-nav__link">
+      <a href="../../trnsolver/api/iterative/" class="md-nav__link">
         
   
   
@@ -3756,7 +3659,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/nki/" class="md-nav__link">
+      <a href="../../trnsolver/api/nki/" class="md-nav__link">
         
   
   
@@ -3792,7 +3695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/architecture/" class="md-nav__link">
+      <a href="../../trnsolver/architecture/" class="md-nav__link">
         
   
   
@@ -3820,7 +3723,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/benchmarks/" class="md-nav__link">
+      <a href="../../trnsolver/benchmarks/" class="md-nav__link">
         
   
   
@@ -3904,7 +3807,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/aws_setup/" class="md-nav__link">
+      <a href="../../trnsolver/aws_setup/" class="md-nav__link">
         
   
   
@@ -3996,7 +3899,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/developing_kernels/" class="md-nav__link">
+      <a href="../../trnsolver/developing_kernels/" class="md-nav__link">
         
   
   
@@ -4077,7 +3980,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnsparse/" class="md-nav__link ">
+            <a href="../../trnsparse/" class="md-nav__link ">
               
   
   
@@ -4121,7 +4024,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/installation/" class="md-nav__link">
+      <a href="../../trnsparse/installation/" class="md-nav__link">
         
   
   
@@ -4149,7 +4052,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../../trnsparse/quickstart/" class="md-nav__link">
         
   
   
@@ -4177,7 +4080,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/api/" class="md-nav__link">
+      <a href="../../trnsparse/api/" class="md-nav__link">
         
   
   
@@ -4205,7 +4108,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/architecture/" class="md-nav__link">
+      <a href="../../trnsparse/architecture/" class="md-nav__link">
         
   
   
@@ -4233,7 +4136,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../../trnsparse/migration_scipy/" class="md-nav__link">
         
   
   
@@ -4261,7 +4164,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../../trnsparse/benchmarks/" class="md-nav__link">
         
   
   
@@ -4345,7 +4248,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../../trnsparse/aws_setup/" class="md-nav__link">
         
   
   
@@ -4426,7 +4329,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trntensor/" class="md-nav__link ">
+            <a href="../../trntensor/" class="md-nav__link ">
               
   
   
@@ -4470,7 +4373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/installation/" class="md-nav__link">
+      <a href="../../trntensor/installation/" class="md-nav__link">
         
   
   
@@ -4498,7 +4401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/quickstart/" class="md-nav__link">
+      <a href="../../trntensor/quickstart/" class="md-nav__link">
         
   
   
@@ -4559,7 +4462,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trntensor/api/" class="md-nav__link ">
+            <a href="../../trntensor/api/" class="md-nav__link ">
               
   
   
@@ -4603,7 +4506,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/einsum/" class="md-nav__link">
+      <a href="../../trntensor/api/einsum/" class="md-nav__link">
         
   
   
@@ -4631,7 +4534,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/plan/" class="md-nav__link">
+      <a href="../../trntensor/api/plan/" class="md-nav__link">
         
   
   
@@ -4659,7 +4562,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/decompose/" class="md-nav__link">
+      <a href="../../trntensor/api/decompose/" class="md-nav__link">
         
   
   
@@ -4687,7 +4590,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/quantum/" class="md-nav__link">
+      <a href="../../trntensor/api/quantum/" class="md-nav__link">
         
   
   
@@ -4715,7 +4618,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/nki/" class="md-nav__link">
+      <a href="../../trntensor/api/nki/" class="md-nav__link">
         
   
   
@@ -4751,7 +4654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/architecture/" class="md-nav__link">
+      <a href="../../trntensor/architecture/" class="md-nav__link">
         
   
   
@@ -4779,7 +4682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/benchmarks/" class="md-nav__link">
+      <a href="../../trntensor/benchmarks/" class="md-nav__link">
         
   
   
@@ -4863,7 +4766,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/tutorial_df_mp2/" class="md-nav__link">
+      <a href="../../trntensor/tutorial_df_mp2/" class="md-nav__link">
         
   
   
@@ -4955,7 +4858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/aws_setup/" class="md-nav__link">
+      <a href="../../trntensor/aws_setup/" class="md-nav__link">
         
   
   
@@ -5006,7 +4909,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../contributing/" class="md-nav__link">
+      <a href="../../contributing/" class="md-nav__link">
         
   
   
@@ -5033,7 +4936,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../disclaimer/" class="md-nav__link">
+      <a href="../../disclaimer/" class="md-nav__link">
         
   
   
@@ -5145,34 +5048,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Numbers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#v070-v080-batched-kernel-landing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.7.0 → v0.8.0 — batched kernel landing
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#v0120-dft-as-gemm-for-small-n" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.12.0 — DFT-as-GEMM for small N
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -5180,17 +5055,6 @@
     <span class="md-ellipsis">
       
         What's next
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#toolchain-observations-worth-flagging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Toolchain observations worth flagging
       
     </span>
   </a>
@@ -5224,7 +5088,7 @@
           <nav class="md-nav md-nav--primary">
             <div class="md-post__back">
               <div class="md-nav__title md-nav__container">
-                <a href="../../../../" class="md-nav__link">
+                <a href="../" class="md-nav__link">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
                   <span class="md-ellipsis">
                     Back to index
@@ -5256,8 +5120,8 @@
                           <span class="md-ellipsis">
                             in
                             
-                              <a href="../../../../category/deep-dive/">Deep dive</a>, 
-                              <a href="../../../../category/trnfft/">trnfft</a></span>
+                              <a href="../category/deep-dive/">Deep dive</a>, 
+                              <a href="../category/trnblas/">trnblas</a></span>
                         </div>
                       </li>
                     
@@ -5295,168 +5159,361 @@
   
 
 
-<h1 id="trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine">trnfft: FFT on hardware that doesn't want to be an FFT engine<a class="headerlink" href="#trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine" title="Permanent link">&para;</a></h1>
-<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly + fused DFT-as-GEMM stack with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be. Readers evaluating Trainium for spectral workloads or maintaining sibling NKI libraries will find the architectural framing directly portable.</p>
+<h1 id="trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel">trnblas: fusing DF-MP2 energy reduction into one NKI kernel<a class="headerlink" href="#trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel" title="Permanent link">&para;</a></h1>
+<p>trnblas v0.4.0 shipped hardware-validated NKI kernels for GEMM, SYRK,
+and a fused MP2 energy reduction on trn1, with end-to-end density-fitted
+MP2 matching PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at
+cc-pVDZ. The interesting story isn't the GEMM. It's the fused energy
+kernel — a single NKI pass that holds the contraction, the orbital-
+denominator division, and the scalar sum-reduction SBUF-resident, and
+how the choice to build it looks nothing like a cuBLAS port. This post
+is for anyone curious about what Trainium's whole-program compilation
+model affords that per-call GEMM libraries cannot express.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>FFT is load-bearing for spectral PDE solvers, speech enhancement, radar, convolutional nets, Ewald sums. <code>torch.fft</code> and <code>cuFFT</code> are the reference APIs; both assume a native complex dtype and a massively threaded SIMT unit — a radix-2 Cooley-Tukey butterfly in that model is "one warp per butterfly, thousands in flight, one complex register per element, bit-reverse the input index".</p>
-<p>Trainium has neither assumption. There is no hardware complex dtype — every complex tensor must be paired real tensors. The execution model isn't SIMT; it's four cooperating engines (Tensor, Vector, Scalar, DMA) with a fixed tile shape of 128 partitions × up to 512 free elements, and a whole-program NKI compiler that schedules their dependencies. A naive "one thread per butterfly" port runs headfirst into partition underutilization: filling 128 partitions with radix-2 pairs requires reaching across 64 simultaneous butterfly groups, not across threads within one. "Port cuFFT" is a bad starting point. The interesting question is what the architecture suggests if cuFFT didn't exist.</p>
-<h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p><strong>No complex dtype.</strong> Every complex tensor becomes two real tensors side by side — the <code>ComplexTensor(real, imag)</code> wrapper is a split-real/imag holder, not a new primitive. Complex multiply is four real multiplies and two real adds. Complex matmul is four real matmuls and two real matrix adds. On Trainium this is the native shape, because the real Tensor Engine op (stationary <code>nisa.nc_matmul</code> with PSUM accumulation) has no complex-typed equivalent and would unpack to four real matmuls in the compiler anyway.</p>
-<p><strong>The 128-partition tile prefers many independent small operations.</strong> A radix-2 butterfly acts on pairs, so filling the partition dim means <em>flattening across butterfly groups</em>. An FFT of size N at stage s has <code>N / 2^(s+1)</code> independent butterfly groups; all of them run in parallel along the partition dim. For batched FFT (<code>(B, N)</code> input) the math compounds: <code>B × num_groups</code> lands in the partition slot, naturally saturating the tile at reasonable B. The kernel runs once per stage, vectorized across every group in every batch row. What looks like a radix-2 algorithm on paper is really "one big elementwise-per-stage over a tall partition-dim".</p>
-<p><strong>Four engines mean a butterfly stage issues two ops in parallel.</strong> The Tensor Engine does the twiddle × odd-element multiply. The Vector Engine does the <code>e + prod</code> / <code>e - prod</code> butterfly combination. These aren't sequential the way they are on a GPU warp — the NKI compiler schedules them on separate engines with DMA prefetch overlapping from HBM. The architectural primitive isn't "one butterfly"; it's "fill the Tensor Engine pipeline with twiddle multiplies while the Vector Engine consumes their outputs".</p>
-<p><strong>PSUM is fp32 and has a ceiling.</strong> The Tensor Engine accumulates products in PSUM in fp32. Generous for one matmul, but a long dependency chain — three power-of-2 FFTs composed in Bluestein's chirp-z decomposition — compounds rounding error. At N ≥ 500 the default Bluestein path in fp32 accumulates roughly 2 × 10⁻² relative error against a scipy fp64 reference. That's a hardware-sizing observation as much as an algorithm choice, and it's what motivated the Kahan-compensated butterfly shipped in the <code>"kahan"</code> precision mode: the Vector Engine folds a 2Prod compensation step into the butterfly kernel cheaply, because the extra adds land on the engine that would otherwise be idle while the Tensor Engine is busy. Compensation is architecturally-free in a way it wouldn't be on a GPU.</p>
-<p><strong>NEFF cache makes the first call expensive.</strong> Every distinct kernel signature compiles to a NEFF binary on first invocation; subsequent calls are cache hits. This favors plan-based execution (FFTW/cuFFT-style) over kernel-per-call — <code>trnfft.plan</code> caches plans keyed on <code>(N, inverse)</code>.</p>
-<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<p>v0.8.0 landed four NKI kernels built on the above:</p>
-<ol>
-<li><code>_complex_gemm_kernel</code> — 4 real <code>nisa.nc_matmul</code> calls into 2 fp32 PSUM accumulators with stationary-tile reuse: A_real stays in the stationary slot while B_real and B_imag stream through as moving operands, then A_imag stationary while -B_imag and B_real stream. Four SBUF loads become two per PSUM pair, saving HBM traffic.</li>
-<li><code>_complex_mul_kernel</code> — fused elementwise complex multiply, single kernel, one SBUF round-trip instead of six for the naive implementation.</li>
-<li><code>butterfly_stage_kernel</code> — batched radix-2 DIT stage. Input <code>(B, N)</code> flattens to <code>(B * num_groups, m)</code>; partition dim is the combined batch-and-group axis, free dim is the intra-group element. Twiddles are host-broadcast across partition rows so partition dims match when the Vector Engine fires the complex-multiply + butterfly.</li>
-<li><code>butterfly_stage_kernel_kahan</code> — compensated variant. Dekker 2Prod split of each <code>t × o</code>, then adds the rounded-off low-order part back into the complex sum. Doubles the butterfly op count, runs mostly on the Vector Engine. Opt-in via <code>trnfft.set_precision("kahan")</code>.</li>
-</ol>
-<p>STFT, batched FFT, and fft2/fftn all run through a single <code>_cooley_tukey_nki</code> dispatcher that flattens any leading batch dims into the partition slot and calls the kernel once per stage.</p>
-<p>The deliberate tradeoff: radix-2, not radix-4 or larger. Radix-2 is simpler and fills the Vector Engine cleanly, but at large N the per-stage launch count is <code>log₂(N)</code> and each launch pays NKI dispatch overhead. For N ≥ 1024 this starts to dominate — which motivates Thread B (Stockham radix-4) under active development.</p>
-<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>The butterfly stage kernel is the load-bearing piece. Stripped to its essential shape:</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">butterfly_stage_kernel</span><span class="p">(</span><span class="n">x_re</span><span class="p">,</span> <span class="n">x_im</span><span class="p">,</span> <span class="n">tw_re_bcast</span><span class="p">,</span> <span class="n">tw_im_bcast</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">stage</span><span class="p">):</span>
-    <span class="n">B</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">x_re</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">stage</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">half</span> <span class="o">=</span> <span class="n">m</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
-    <span class="n">num_groups</span> <span class="o">=</span> <span class="n">n</span> <span class="o">//</span> <span class="n">m</span>
-    <span class="n">total_groups</span> <span class="o">=</span> <span class="n">B</span> <span class="o">*</span> <span class="n">num_groups</span>
-
-    <span class="n">out_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x_re</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
-    <span class="n">out_im</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x_im</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
-
-    <span class="c1"># Flatten (B, n) -&gt; (total_groups, m). Partition dim = total_groups;</span>
-    <span class="c1"># every partition row is one independent butterfly group.</span>
-    <span class="n">x_re_2d</span> <span class="o">=</span> <span class="n">x_re</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">total_groups</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
-    <span class="c1"># ... same for x_im_2d, out_re_2d, out_im_2d ...</span>
-
-    <span class="n">groups_chunk</span> <span class="o">=</span> <span class="n">total_groups</span> <span class="k">if</span> <span class="n">total_groups</span> <span class="o">&lt;=</span> <span class="n">PMAX</span> <span class="k">else</span> <span class="n">PMAX</span>
-    <span class="n">n_partition_tiles</span> <span class="o">=</span> <span class="n">total_groups</span> <span class="o">//</span> <span class="n">groups_chunk</span>
-
-    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">n_partition_tiles</span><span class="p">):</span>
-        <span class="n">p_off</span> <span class="o">=</span> <span class="n">p</span> <span class="o">*</span> <span class="n">groups_chunk</span>
-        <span class="n">p_end</span> <span class="o">=</span> <span class="n">p_off</span> <span class="o">+</span> <span class="n">groups_chunk</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">half</span><span class="p">):</span>
-            <span class="n">t_re_col</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tw_re_bcast</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">t_im_col</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tw_im_bcast</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">e_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">x_re_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">e_im</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">x_im_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">o_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">x_re_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="o">+</span><span class="n">half</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="n">half</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">o_im</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">x_im_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="o">+</span><span class="n">half</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="n">half</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
-
-            <span class="c1"># Complex multiply, one butterfly column at a time.</span>
-            <span class="n">prod_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span>
-                <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_re_col</span><span class="p">,</span> <span class="n">o_re</span><span class="p">),</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_im_col</span><span class="p">,</span> <span class="n">o_im</span><span class="p">))</span>
-            <span class="n">prod_im</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_re_col</span><span class="p">,</span> <span class="n">o_im</span><span class="p">),</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_im_col</span><span class="p">,</span> <span class="n">o_re</span><span class="p">))</span>
-
-            <span class="c1"># Even = e + prod, odd = e - prod.</span>
-            <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">out_re_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span>
-                     <span class="n">value</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">e_re</span><span class="p">,</span> <span class="n">prod_re</span><span class="p">))</span>
-            <span class="c1"># ... three more stores for out_im even, out_re odd, out_im odd ...</span>
-    <span class="k">return</span> <span class="n">out_re</span><span class="p">,</span> <span class="n">out_im</span>
+<p>Density-fitted MP2 is a second-order perturbation-theory method used
+across quantum chemistry for computing correlation energies on systems
+too large for coupled-cluster. Its computational signature is dominated
+by a single expression, evaluated per pair of occupied orbitals <code>(i, j)</code>
+and summed over the virtual orbital pair <code>(a, b)</code>:</p>
+<div class="highlight"><pre><span></span><code>E_MP2 = Σ_{i,j,a,b} T[i,j,a,b] · (2·T[i,j,a,b] − T[i,j,b,a]) / Δ[i,j,a,b]
 </code></pre></div>
-<p>(Apache 2.0, full source: <a href="https://github.com/trnsci/trnfft/blob/main/trnfft/nki/butterfly.py"><code>trnfft/nki/butterfly.py</code></a>.)</p>
-<p>The partition-dim-is-total_groups pattern is the Trainium-native bit. A GPU would nest <code>k</code> as the outer loop and thread-parallelize over groups; here the partition dim <em>is</em> the group dim, and <code>k</code> iterates through butterfly positions within each group. For non-power-of-2 <code>B</code> (STFT's 33-frame case), the host pads to the next multiple of 128 — zero-padding is cheaper than supporting irregular partition counts in NKI 2.24, and the padding is discarded after the stage.</p>
+<p>where <code>T[i,j,a,b] = Σ_P B[i,a,P]·B[j,b,P]</code> (a three-center tensor
+contraction over the auxiliary basis) and <code>Δ[i,j,a,b] = ε_i + ε_j − ε_a
+− ε_b</code> is the orbital-energy denominator. The tensor <code>T</code> at realistic
+basis sizes is dense and large — for a medium benchmark shape
+(nocc=64, nvir=448), the full per-chunk <code>T</code> is 16.6 GB in fp32.</p>
+<p>The cuBLAS / PyTorch-on-GPU mental model for this pattern is a chain
+of per-op kernel calls: one GEMM to produce <code>T</code>, three elementwise
+kernels for <code>2T − Tᵀ</code> and the division, one reduction. Each call
+writes its intermediate to HBM before the next one reads it back.
+For the medium shape, that's ~50 GB of intermediate HBM traffic per
+chunk — dominated not by arithmetic but by memory round-trips.
+Profiled on trn1 before any fusion, the energy-reduction step takes
+8.03 s of a 9.79 s total wall time, ~82 % of the workload.</p>
+<p>cuBLAS cannot collapse this into one call. Its primitive is
+<code>gemmStridedBatched</code> and similar — matrix products. The multiply-
+subtract-divide-sum chain sits <em>between</em> cuBLAS calls, in a
+separately written CUDA reduction kernel a user ships alongside. A
+cuBLAS-shaped library has no natural place for it.</p>
+<h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
+<p>NKI kernels compile to NEFF — Neuron Executable File Format —
+which expresses the whole kernel as a single scheduled program
+across four engines (Tensor, Vector, Scalar, GpSimd), with explicit
+SBUF (on-chip 128-partition scratchpad) and PSUM (32-bit tensor
+accumulator) as named memories. Three properties of this model
+point at a different design than cuBLAS+reduction:</p>
+<p><strong>SBUF-resident intermediates cost nothing extra.</strong> Once a tile
+lands in SBUF, every engine that reads it reads from on-chip memory
+at orders of magnitude higher bandwidth than HBM. An expression
+chain <code>T * (2T − Tᵀ) / Δ</code> that would ping-pong through HBM on a
+per-op model sits inside one SBUF tile for its entire lifetime if
+the kernel is written as one <code>@nki.jit</code> function.</p>
+<p><strong>Partition dim is the native parallel axis, not a thread block.</strong>
+NKI's partition dim is 128 physical lanes. A single <code>nl.subtract(a,
+b)</code> on a <code>(128, N)</code> tile runs across all 128 partitions
+simultaneously; there is no intra-tile thread-block boundary to
+cross. Reductions have an asymmetry: the free dim is reducible,
+the partition dim is not (directly). This shapes the tile layout
+more than anything else.</p>
+<p><strong>NEFF cache amortizes compile across invocations.</strong> Every
+<code>@nki.jit</code> function with the same trace-time shape compiles once,
+then every subsequent invocation hits the cache and pays only
+dispatch + execution. For a pair-energy loop invoking the same
+kernel <code>nocc²</code> times (4 096 to 9 216 pairs at the bench shapes),
+the compile cost divides across thousands of calls. The NEFF cache
+is what makes "one kernel per pair" cheap in the first place.</p>
+<p>These three combined suggest the shape: a single kernel that takes
+<code>T_chunk</code> plus the three ε vectors, iterates <code>(i, j)</code> internally,
+materializes each tile's chunk of the expression SBUF-resident,
+reduces along the free dim, and returns per-partition partials that
+the caller sums host-side.</p>
+<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
+<p>trnblas's fused MP2 kernel —
+<a href="https://github.com/trnsci/trnblas/blob/main/trnblas/nki/dispatch.py"><code>_mp2_energy_kernel</code></a> —
+is that design made concrete:</p>
+<ul>
+<li><strong>One <code>@nki.jit</code> function, one NEFF.</strong> Signature takes <code>T_flat</code>,
+  the three ε vectors, returns a <code>(P_TILE, IC, NOCC)</code> partial.</li>
+<li><strong>Tile layout fixes partition-dim alignment through the whole
+  computation.</strong> The virtual-orbital index <code>a</code> sits on the partition
+  dim; <code>b</code> sits on the free dim. <code>T</code> and its transpose both load
+  with the same partition semantics. Nothing reshapes across
+  partition axes mid-kernel.</li>
+<li><strong><code>Δ</code> is built SBUF-resident per strip</strong> from the three ε vectors,
+  never materialized in HBM. This is the step that cuBLAS can't
+  express at all — <code>Δ</code> is not a matrix product, just an outer-sum
+  of three small vectors.</li>
+<li><strong>Free-dim sum reduces each strip.</strong> The result is <code>(P_TILE, 1)</code>
+  per strip. Strips across the virtual-orbital range accumulate
+  into an SBUF <code>(P_TILE, NSTRIP)</code> tile and reduce to <code>(P_TILE, 1)</code>
+  after the strip loop. One HBM store per <code>(i, j)</code> pair — not per
+  strip.</li>
+<li><strong>Partition-axis reduce happens host-side.</strong> NKI does not support
+  reduction along the partition dim, so the caller does one final
+  <code>.sum()</code> on the <code>(P_TILE, IC, NOCC)</code> partial. The partial is tiny
+  (≤ 258 KB at the large bench shape), and host-side reduction is
+  noise.</li>
+</ul>
+<p>A deliberate tradeoff: a true 3D-batched NKI kernel for the three-
+center contraction is deferred to Phase 3. v0.4.0's <code>batched_gemm</code>
+is a host-side loop around the 2D NKI GEMM, one slice per iteration.
+Every slice after the first hits the NEFF cache, so per-slice cost
+is HBM transfer plus dispatch. Tradeoff stated explicitly: the
+Phase 1 scope focuses on single-call kernels with measurable
+correctness; cross-call kernel fusion lands where a measured
+benchmark justifies it.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p>The core shape, simplified (full source linked above):</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_mp2_energy_kernel</span><span class="p">(</span><span class="n">T_flat</span><span class="p">,</span> <span class="n">eps_occ_chunk</span><span class="p">,</span> <span class="n">eps_occ_full</span><span class="p">,</span>
+                       <span class="n">eps_vir_col</span><span class="p">,</span> <span class="n">eps_vir_row</span><span class="p">):</span>
+    <span class="n">NVIR</span> <span class="o">=</span> <span class="n">eps_vir_row</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">IC</span> <span class="o">=</span> <span class="n">eps_occ_chunk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">NOCC</span> <span class="o">=</span> <span class="n">eps_occ_full</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">P_TILE</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">NVIR</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">NVIR</span> <span class="o">%</span> <span class="n">P_TILE</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">P_TILE</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="n">NSTRIP</span> <span class="o">=</span> <span class="n">NVIR</span> <span class="o">//</span> <span class="n">P_TILE</span>
+
+    <span class="n">e_partial</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">P_TILE</span><span class="p">,</span> <span class="n">IC</span><span class="p">,</span> <span class="n">NOCC</span><span class="p">),</span>
+                           <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+                           <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+    <span class="n">ev_row</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eps_vir_row</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">NVIR</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">IC</span><span class="p">):</span>
+        <span class="n">eo_i</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eps_occ_chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">NOCC</span><span class="p">):</span>
+            <span class="n">eo_j</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eps_occ_full</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">eo_sum</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">eo_i</span><span class="p">,</span> <span class="n">eo_j</span><span class="p">)</span>
+            <span class="n">acc_rows</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">P_TILE</span><span class="p">,</span> <span class="n">NSTRIP</span><span class="p">),</span>
+                                <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">sbuf</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">NSTRIP</span><span class="p">):</span>
+                <span class="n">a_off</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="n">P_TILE</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">T_flat</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">NVIR</span> <span class="o">+</span> <span class="n">a_off</span> <span class="p">:</span> <span class="n">i</span><span class="o">*</span><span class="n">NVIR</span> <span class="o">+</span> <span class="n">a_off</span> <span class="o">+</span> <span class="n">P_TILE</span><span class="p">,</span>
+                                    <span class="n">j</span><span class="o">*</span><span class="n">NVIR</span> <span class="p">:</span> <span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">NVIR</span><span class="p">])</span>
+                <span class="n">t_T</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load_transpose2d</span><span class="p">(</span><span class="n">T_flat</span><span class="p">[</span>
+                    <span class="n">i</span><span class="o">*</span><span class="n">NVIR</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">NVIR</span><span class="p">,</span>
+                    <span class="n">j</span><span class="o">*</span><span class="n">NVIR</span> <span class="o">+</span> <span class="n">a_off</span> <span class="p">:</span> <span class="n">j</span><span class="o">*</span><span class="n">NVIR</span> <span class="o">+</span> <span class="n">a_off</span> <span class="o">+</span> <span class="n">P_TILE</span><span class="p">])</span>
+                <span class="n">ev_col</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eps_vir_col</span><span class="p">[</span><span class="n">a_off</span><span class="p">:</span><span class="n">a_off</span><span class="o">+</span><span class="n">P_TILE</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span>
+
+                <span class="c1"># Δ built SBUF-resident: all three eps operands</span>
+                <span class="c1"># lifted to (P_TILE, NVIR) for partition-matched arith.</span>
+                <span class="n">eo_sum_bc</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">eo_sum</span><span class="p">,</span> <span class="p">(</span><span class="n">P_TILE</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">))</span>
+                <span class="n">ev_col_bc</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">ev_col</span><span class="p">,</span> <span class="p">(</span><span class="n">P_TILE</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">))</span>
+                <span class="n">ev_row_bc</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">ev_row</span><span class="p">,</span> <span class="p">(</span><span class="n">P_TILE</span><span class="p">,</span> <span class="n">NVIR</span><span class="p">))</span>
+                <span class="n">denom</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">eo_sum_bc</span><span class="p">,</span> <span class="n">ev_col_bc</span><span class="p">),</span>
+                                    <span class="n">ev_row_bc</span><span class="p">)</span>
+
+                <span class="c1"># The whole expression chain, SBUF-resident.</span>
+                <span class="n">term</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
+                    <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span> <span class="n">t_T</span><span class="p">)),</span>
+                    <span class="n">nl</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">(</span><span class="n">denom</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="n">strip_partial</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">acc_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">P_TILE</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">strip_partial</span>
+
+            <span class="n">acc_row</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">acc_rows</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">e_partial</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">P_TILE</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">acc_row</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">e_partial</span>
+</code></pre></div>
+<p>Four architectural moves sit in those lines: the <code>(P_TILE, NVIR)</code>
+tile as the unit of work, <code>Δ</code> materialized SBUF-resident from three
+loads rather than passed in from HBM, the full multiply-subtract-
+multiply-reciprocal-multiply chain running before any HBM traffic,
+and the per-pair HBM store at the end — one write for the whole
+pair's contribution rather than three intermediates and a result.</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p><strong>FP32 Bluestein precision.</strong> The single largest surprise. Bluestein chains three power-of-2 FFTs and a pair of chirp multiplies to handle arbitrary-N FFT; composed in fp32 the relative error grows roughly as O(N). At N = 500 error reaches ~1.4 × 10⁻²; at N = 8193 ~2.2 × 10⁻³. The test suite had silently papered over this with <code>tol = 2e-2</code> for N ≥ 500 — a gap marked "expected fp32 degradation" rather than fixed. v0.11.0 shipped three precision modes in response: <code>"fast"</code> keeps the fp32 path, <code>"double"</code> promotes Bluestein host math to fp64 (~5 × 10⁻¹³ at any N, 10 orders of magnitude tighter, but host-side only — NKI stays fp32), and <code>"kahan"</code> uses the compensated butterfly. <code>"kahan"</code> on CPU is equivalent to <code>"fast"</code> because the chirp multiplies aren't where the error lives — the butterfly chain is — and only on NKI does the compensation actually engage.</p>
-<p><strong>NKI kernels silently detached autograd.</strong> Every <code>@nki.jit</code> kernel returns a tensor from <code>nl.shared_hbm</code> with no registered <code>grad_fn</code>. Forward passes work fine; <code>loss.backward()</code> raises <code>element 0 of tensors does not require grad and does not have a grad_fn</code> on the first backward call (issue #56). Invisible for inference-only users. v0.10.1 wrapped every kernel in a <code>torch.autograd.Function</code> subclass with analytic adjoints (<code>dA = dC @ conj(B)ᵀ</code> for GEMM, <code>dx = ifft(dy) × n</code> for FFT).</p>
-<p><strong><code>torch.Tensor.unfold</code> has no XLA backend.</strong> <code>trnfft.stft</code> originally used <code>x.unfold(dim, size, step)</code> for frame extraction; that raised <code>aten::unfold not implemented for XLA</code> the moment anyone set <code>set_backend("nki")</code>. Replaced with explicit <code>torch.arange</code>-based frame-index construction in PR #44.</p>
-<p><strong>The NKI 0.3.0 migration surfaced three API deltas that broke our kernels.</strong> <code>nisa.nc_matmul</code> went kwargs-only with in-place accumulation (<code>dst=, stationary=, moving=, accumulate=True</code>). <code>nl.copy</code> now returns a view, so PSUM → SBUF materialization requires <code>nisa.tensor_copy(dst=, src=)</code> with a pre-allocated SBUF destination. Python <code>*</code> / <code>+</code> / <code>-</code> operators are no longer defined on <code>NkiTensor</code> — every complex multiply and butterfly expression rewrote with explicit <code>nl.multiply</code> / <code>nl.add</code> / <code>nl.subtract</code>. All three were surfaced by the CPU simulator (<code>NKI_SIMULATOR=1</code>) in minutes. AWS Neuron team: migration release notes calling out operator-overload changes would save downstream libraries a CI iteration each.</p>
-<p><strong>Full-size DFT-as-GEMM capped at N = 256.</strong> v0.12.0 introduced a DFT-as-GEMM fast path (<code>x @ W</code> where <code>W</code> is the <code>N × N</code> DFT matrix) that beats butterfly by 2.2–5.7× for N ∈ {8..128} and still wins 5.3× at N = 1024 — but fp32 <code>nisa.nc_matmul</code> accumulation at N = 1024 reaches ~2.2% relative error, breaking the 1e-3 test tolerance. The win is perf-real and precision-blocked. Routing past the 256 ceiling is what motivates Stockham radix-4 (Thread B), where a <code>log₄(N)</code> chain accumulates only O(r²) error per stage.</p>
+<p>Four items.</p>
+<p><strong>The <code>examples/df_mp2.py</code> revert.</strong> The first attempt to make
+<code>nki_mp2_energy</code> the default
+(<a href="https://github.com/trnsci/trnblas/issues/15">#15</a>) flipped the
+DF-MP2 example's energy-reduction call to the fused kernel. The
+1.48× speedup on the energy step was real but below the 3× minimum
+target laid out in the kernel's
+<a href="https://github.com/trnsci/trnblas/blob/main/docs/design/fused_df_mp2_energy_kernel.md">design RFC</a>,
+and the CHANGELOG framing accompanying the flip over-claimed. The
+example's default was reverted back to the torch reduction,
+<code>--fused-energy</code> added as an opt-in flag, and the CHANGELOG
+rewritten with the measured numbers honestly. The kernel works;
+the speedup isn't yet large enough to justify being the default.</p>
+<p><strong>NKI 0.3.0 partition-broadcast strictness.</strong> Neuron SDK 2.29's
+MLIR verifier is stricter than 2.28 on tensor-tensor arithmetic
+with mismatched partition dims. An earlier version of the kernel
+built <code>Δ</code> with two subtracts of shape <code>(1,1) − (P_TILE, 1)</code> —
+rejected wholesale in 0.3.0. The 5 MP2 test cases were re-skipped
+for a release before the fix landed (commit
+<a href="https://github.com/trnsci/trnblas/commit/c1769c6"><code>c1769c6</code></a>):
+lift all three eps operands to <code>(P_TILE, NVIR)</code> via
+<code>nl.broadcast_to</code> before subtracting. The simulator gate catches
+four of the five 0.3.0 breaking-change classes; this one is MLIR-
+verifier-level and still requires hardware.</p>
+<p><strong>The v0.4.x "NKI" numbers were silent torch.matmul fallback.</strong>
+The SSM runners in v0.4.0 through v0.4.2 invoked the Neuron venv's
+python without prepending its <code>bin/</code> to <code>$PATH</code>. <code>torch_neuronx</code>
+calls <code>libneuronpjrt-path</code> at import to locate the PJRT plugin;
+that binary lives in the venv's <code>bin/</code>, so it failed with
+<code>FileNotFoundError</code>, the <code>_nki_*_impl</code> try/except wrappers swallowed
+it, and every reported "trn1 NKI" warm number was actually trn1's
+8-vCPU Xeon running <code>torch.matmul</code>. Correctness tests still passed
+— torch gives the same answer as the kernel — but perf attribution
+was wrong for three releases. v0.4.3 published the full retraction,
+added <code>NkiFallbackWarning</code> so future regressions surface without
+requiring <code>TRNBLAS_REQUIRE_NKI=1</code>, and added
+<code>tests/test_nki_really_runs.py</code> as an anti-regression gate.</p>
+<p><strong>The post-M2 perf-tuning rewrite didn't help.</strong> A follow-up PR
+(<a href="https://github.com/trnsci/trnblas/pull/32">#32</a>) hoisted the
+pair-invariant part of <code>Δ</code> out of the <code>(i, j)</code> loop, collapsing
+denom construction from 5 scheduled ops per iteration to 1 plus a
+pre-loop precompute. Measured result: 1.48× → 1.50× at medium,
+1.47× → 1.49× at large. Within noise. The NEFF compiler was
+already doing this work on trnblas's behalf; the explicit hoist was
+a no-op. The profiler investigation
+(<a href="https://github.com/trnsci/trnblas/issues/33">#33</a>) meant to
+diagnose the remaining gap hit its own blocker: the 2.29 DLAMI's
+<code>neuron-profile show-session</code> tool rejects the trace format its
+own <code>inspect</code> command produces, and <code>view --disable-ui</code> requires
+InfluxDB the DLAMI doesn't pre-install. The remaining hypothesis
+(a cross-pair HBM-store fence) is queued as
+<a href="https://github.com/trnsci/trnblas/issues/35">#35</a>; until it's
+tested, the gap is documented, not solved.</p>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>Steady-state on trn1.2xlarge, <code>neuronxcc 2.24.5133.0</code>, Deep Learning AMI Neuron PyTorch 2.9. All numbers after warmup — first call pays NEFF compile, these are mean of subsequent steady-state invocations.</p>
-<h3 id="v070-v080-batched-kernel-landing">v0.7.0 → v0.8.0 — batched kernel landing<a class="headerlink" href="#v070-v080-batched-kernel-landing" title="Permanent link">&para;</a></h3>
+<p>All on <code>trn1.2xlarge</code>, <code>neuronxcc 2.24.5133</code>, warm NEFF cache,
+v0.4.3-measured under real NKI dispatch.</p>
+<p><strong>Per-call kernel timings:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Operation</th>
-<th style="text-align: right;">v0.7.0</th>
-<th style="text-align: right;">v0.8.0</th>
-<th style="text-align: right;">Speedup</th>
+<th>Op</th>
+<th>Shape</th>
+<th style="text-align: right;">Warm</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>fftn 32×64×64</td>
-<td style="text-align: right;">52.3 s</td>
-<td style="text-align: right;">70.8 ms</td>
-<td style="text-align: right;">738×</td>
+<td>NKI GEMM</td>
+<td>512 × 512 × 512</td>
+<td style="text-align: right;">1.3 ms</td>
 </tr>
 <tr>
-<td>fft2 1024×1024</td>
-<td style="text-align: right;">32.4 s</td>
-<td style="text-align: right;">545 ms</td>
-<td style="text-align: right;">59×</td>
+<td>NKI GEMM</td>
+<td>1024 × 1024 × 1024</td>
+<td style="text-align: right;">2.3 ms</td>
 </tr>
 <tr>
-<td>batched FFT (128×1024)</td>
-<td style="text-align: right;">2.07 s</td>
-<td style="text-align: right;">52 ms</td>
-<td style="text-align: right;">39×</td>
+<td>NKI SYRK</td>
+<td>1024 × 1024</td>
+<td style="text-align: right;">5.71 ms</td>
 </tr>
 <tr>
-<td>STFT (16 000 samples)</td>
-<td style="text-align: right;">765 ms</td>
-<td style="text-align: right;">28 ms</td>
-<td style="text-align: right;">27×</td>
+<td>NKI TRSM (DF-MP2)</td>
+<td>2048 × 512</td>
+<td style="text-align: right;">35.82 ms</td>
 </tr>
 </tbody>
 </table>
-<p>v0.7.0 ran the butterfly kernel in a Python for-loop over batch rows — one kernel dispatch per (row, stage) pair. v0.8.0's batched kernel removes that loop; what looks like a 27× STFT speedup is "fix the dispatch pattern so the kernel sees the batch".</p>
-<h3 id="v0120-dft-as-gemm-for-small-n">v0.12.0 — DFT-as-GEMM for small N<a class="headerlink" href="#v0120-dft-as-gemm-for-small-n" title="Permanent link">&para;</a></h3>
+<p><strong>Fused MP2 energy kernel (end-to-end energy step):</strong></p>
 <table>
 <thead>
 <tr>
 <th>Shape</th>
-<th style="text-align: right;">DFT-GEMM</th>
-<th style="text-align: right;">Butterfly</th>
+<th style="text-align: right;">Torch reduction</th>
+<th style="text-align: right;">Fused kernel</th>
 <th style="text-align: right;">Speedup</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>N = 256, B = 1</td>
-<td style="text-align: right;">1 882 μs</td>
-<td style="text-align: right;">9 862 μs</td>
-<td style="text-align: right;">5.2×</td>
+<td>medium (nbasis=512, nocc=64, nvir=448)</td>
+<td style="text-align: right;">8.03 s</td>
+<td style="text-align: right;">5.43 s</td>
+<td style="text-align: right;">1.48×</td>
 </tr>
 <tr>
-<td>B = 32, N = 256</td>
-<td style="text-align: right;">2 049 μs</td>
-<td style="text-align: right;">29 210 μs</td>
-<td style="text-align: right;">14.3×</td>
-</tr>
-<tr>
-<td>STFT (n_fft = 256, 16 k samples)</td>
-<td style="text-align: right;">2 445 μs</td>
-<td style="text-align: right;">30 514 μs</td>
-<td style="text-align: right;">12.5×</td>
+<td>large (nbasis=768, nocc=96, nvir=672)</td>
+<td style="text-align: right;">44.57 s</td>
+<td style="text-align: right;">30.27 s</td>
+<td style="text-align: right;">1.47×</td>
 </tr>
 </tbody>
 </table>
-<p>The batched/STFT columns are where the architectural thesis paid off. DFT-GEMM at <code>(B = 32, N = 256)</code> collapses the entire batch into one <code>nisa.nc_matmul</code> — the partition-dim finally saturates, and the per-batch cost drops 12–14× against the butterfly chain. <code>torch.fft.fft</code> on the x86 bench host (running MKL) is still faster than Trainium for isolated one-shot FFT calls — 10–80 μs cold, roughly 50–300× lower than the NKI path. The architectural story isn't "beat MKL on cold calls"; it's "keep data on-chip across long operator chains".</p>
+<p><strong>Cross-platform DF-MP2 medium end-to-end:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th style="text-align: right;">Warm wall</th>
+<th style="text-align: right;">TFLOPS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>trn1.2xlarge</td>
+<td style="text-align: right;">9.91 s</td>
+<td style="text-align: right;">0.28</td>
+</tr>
+<tr>
+<td>A10G g5.xlarge</td>
+<td style="text-align: right;">0.266 s</td>
+<td style="text-align: right;">10.3</td>
+</tr>
+</tbody>
+</table>
+<p>A10G's cuBLAS is ~37× faster per-call on medium. Ampere's tensor
+cores are further along their per-watt optimization curve for dense
+GEMM than trn1's first-generation NeuronCores at the sizes these
+benches touch; the cost story (trn1.2xlarge at $1.34/hr vs g5.xlarge
+at $1.006/hr) only shifts at scales where memory bandwidth and
+multi-chip topology matter more than single-GPU throughput.</p>
+<p><strong>Chemistry validation</strong> (via
+<a href="https://github.com/trnsci/trnblas/blob/main/tests/test_df_mp2_pyscf.py"><code>test_df_mp2_pyscf.py</code></a>):
+H₂O/STO-3G matches PySCF's <code>mp.dfmp2.DFMP2</code> to 1 µHa
+(1×10⁻⁶ Ha). H₂O/cc-pVDZ, CH₄/cc-pVDZ, and NH₃/cc-pVDZ match to
+10 µHa (1×10⁻⁵ Ha). These tolerances come from the accumulated
+rounding of FP32 accumulation in the Tensor Engine against PySCF's
+FP64 reference. For closed-shell correlation energies in the
+~10⁻¹ to 10⁻⁰ Ha range, 10⁻⁵ Ha relative error sits comfortably
+above chemical-accuracy thresholds (~1 mHa ≈ 2.6 kJ/mol). The
+FP32-vs-FP64 question is real and open — Phase 2 tracks
+double-double GEMM for workloads where the relative error floor
+matters more than these benches exercise.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Phase 2 #52 — Kahan / Neumaier summation for long Bluestein chains.</strong> Partial delivery in v0.11.0 (precision-modes API + compensated butterfly kernel). The Kahan butterfly compiles on NKI 2.24.5133.0 and agrees with the stock kernel at FP32 rtol across the 17-test neuron suite; whether the 2Prod compensation <em>actually</em> reduces FP32 FFT error on silicon is the measurement question still open in issue #58.</li>
-<li><strong>Thread B — Stockham radix-4 (v0.13 candidate).</strong> A POC kernel shipped this week, CPU reference + NKI port green under the CPU simulator. 5 kernel launches at N = 1024 vs 10 for butterfly, and log₄(N) fp32 accumulation vs the O(N²) ceiling that caps DFT-GEMM at N = 256. Hardware validation pending an AWS DLAMI with Neuron SDK 2.29.</li>
-<li><strong>Phase 3 #53 — perf.</strong> Plan reuse across shapes, streaming large FFTs that exceed HBM, NEFF cache hit-rate instrumentation.</li>
-<li><strong>Phase 4 #54 — multi-chip FFT for N &gt; 2²⁰</strong> via cross-core collectives.</li>
-<li><strong>Phase 5 #55 — trn2.</strong> Larger SBUF, different systolic array sizing; some constraints loosen.</li>
+<li><strong><a href="https://github.com/trnsci/trnblas/issues/35">#35</a> — cross-pair
+  batching.</strong> The remaining perf hypothesis for the 1.48× gap:
+  batching K pair partials in SBUF before one HBM store relaxes
+  the per-pair synchronization fence. Phase 3 perf work.</li>
+<li><strong><a href="https://github.com/trnsci/trnblas/issues/26">#26</a> — NKI GEMM
+  tile-shape autotuner.</strong> Phase 3. Plan-time tile selection feeds
+  the NEFF cache key; measured-best tile per shape replaces the
+  current fixed <code>(128, 128, 512)</code>.</li>
+<li><strong>Phase 2 — <a href="https://github.com/trnsci/trnblas/issues/22">double-double FP64
+  GEMM</a>.</strong> Emulated
+  FP64 via two FP32 values in the Tensor Engine. Opens the door
+  to chemistry workloads where 10⁻⁵ Ha relative error is not
+  enough — coupled-cluster correlation, geometry optimizations
+  near stationary points.</li>
+<li><strong>Phase 4 — tensor-parallel GEMM across
+  NeuronCores.</strong> trn1.32xlarge has 16 chips. A single DF-MP2 chunk
+  sharded across chips is the obvious next architectural exercise.</li>
 </ul>
-<h2 id="toolchain-observations-worth-flagging">Toolchain observations worth flagging<a class="headerlink" href="#toolchain-observations-worth-flagging" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>The CPU simulator (<code>NKI_SIMULATOR=1</code>) is the biggest DX change since NKI 0.3.0 shipped.</strong> It runs kernels on CPU without NEFF compile or hardware dispatch. Kernel iteration that used to need a 5–10 min SSM round-trip to trn1 now takes seconds locally; GitHub Actions can run simulator-backed correctness tests on <code>ubuntu-latest</code> with no AWS access. It surfaced every one of the NKI 0.3.0 API deltas that broke trnfft's kernels in a CI run lasting under two minutes. If you're shipping a library that depends on NKI, add a simulator job before you ship anything else.</li>
-<li><strong><code>nisa.tensor_copy</code> signature.</strong> The switch from <code>nl.copy(psum, dtype=...)</code> to <code>nisa.tensor_copy(dst=sbuf, src=psum)</code> is a meaningful behavioral change — <code>nl.copy</code> now returns a view — and the migration guide didn't call it out. Downstream libraries with PSUM → SBUF materialization patterns will hit the same issue.</li>
-</ul>
+<p>Phase tracker: <a href="https://trnsci.dev/roadmap/">trnsci ROADMAP</a>.</p>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>Trainium was designed for large-model training and inference; FFT is not the workload it was built for. A CUDA-style radix-2 butterfly with one thread per butterfly and thousands in flight maps badly onto a 128-partition systolic array with a fixed engine hierarchy. What works instead is treating the partition dim as "total independent butterfly groups across every batch row, vectorized", the four engines as a scheduling substrate that fires multiply and add in parallel, and the fp32 PSUM as a real ceiling that constrains algorithm choice. Every trnfft kernel shipped so far is a variation on that theme — split real/imag, flatten across groups, route compute between engines, and respect the precision ceiling. The rest of the roadmap is about pushing that thesis into medium and large N where it's not obvious the butterfly is still the right decomposition.</p>
+<p>The fused MP2 energy kernel is what happens when a library takes
+Trainium's architecture seriously instead of porting cuBLAS
+primitives one-to-one. The whole <code>T * (2T − Tᵀ) / Δ + sum</code>
+expression is one kernel, one NEFF, one dispatch per <code>(i, j)</code> pair,
+with every intermediate SBUF-resident. cuBLAS cannot express this
+shape — not because it's hard, but because cuBLAS's primitive is
+matrix products, and this expression isn't one. NKI's whole-program
+DAG compilation is what makes "one kernel per pair" the natural
+unit of work on Trainium. Phase 1's measurable win is smaller than
+the kernel's design target (1.48× vs the 3× minimum), and that gap
+is documented and queued as the Phase 3 concrete next step. But the architectural
+shape of the kernel is the thing to notice — a shape cuBLAS doesn't
+suggest and a whole-program compilation model does.</p>
 
 
 
@@ -5551,10 +5608,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

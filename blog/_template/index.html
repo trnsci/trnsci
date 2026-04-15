@@ -49,6 +49,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/blog.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -657,8 +659,6 @@
       
         
       
-        
-      
     
     
     
@@ -724,6 +724,22 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -747,7 +763,7 @@
   <span class="md-ellipsis">
     
   
-    Archive
+    Categories
   
 
     
@@ -760,116 +776,6 @@
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Archive
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-    
-  
-  
-    <li class="md-nav__item">
-      <a href="../archive/2026/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    2026
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Categories
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -5185,6 +5091,7 @@ Required sections below — keep them in this order.
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
 <p><strong>Required section.</strong> What does Trainium's hardware actually afford for this problem? Which engines are load-bearing (Tensor / Vector / Scalar / GpSimd)? What tile shape, SBUF layout, PSUM accumulation, DMA pattern, or NEFF cache behavior is the natural fit?</p>
 <p>The native-to-Trainium design, independent of what CUDA does. This section is the heart of the post.</p>
+<p>A small Mermaid diagram of the dataflow (HBM → SBUF → engines → PSUM → HBM, or similar) is often the right move here.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
 <p>The design chosen. How it exploits what the previous section identified. At least one deliberate tradeoff. If the design ended up looking like the CUDA approach, say so and say why — but don't default to that framing.</p>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
@@ -5215,6 +5122,7 @@ Required sections below — keep them in this order.
 </tbody>
 </table>
 <p>Honest numbers, including ones that look bad. Numbers confirm or contextualize the architectural choice above — they don't justify it on their own.</p>
+<p>A table here is almost always the right shape. Add columns for any cross-platform comparisons that exist (CPU, vintage-matched GPU, hardware-validated NKI). Bold the winning column per row only when meaningful.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <p>Link the Phase 2/3/4/5 tracker issues for this library. Readers should know where the project goes from here.</p>
 <ul>

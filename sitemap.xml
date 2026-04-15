@@ -61,35 +61,35 @@
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/2026/04/13/hello-trnsci/</loc>
+         <loc>https://trnsci.dev/blog/hello-trnsci/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/2026/04/14/the-dev-loop-just-got-a-lot-shorter/</loc>
+         <loc>https://trnsci.dev/blog/the-dev-loop-just-got-a-lot-shorter/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/2026/04/14/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/</loc>
+         <loc>https://trnsci.dev/blog/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/2026/04/14/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/</loc>
+         <loc>https://trnsci.dev/blog/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/2026/04/14/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/</loc>
+         <loc>https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/2026/04/14/trnsparse-the-tile-is-the-unit-not-the-nonzero/</loc>
+         <loc>https://trnsci.dev/blog/trnsparse-the-tile-is-the-unit-not-the-nonzero/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/2026/04/15/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/</loc>
+         <loc>https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/2026/04/15/trntensor-when-the-kernel-boundary-is-the-api/</loc>
+         <loc>https://trnsci.dev/blog/trntensor-when-the-kernel-boundary-is-the-api/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
@@ -402,10 +402,6 @@
     </url>
     <url>
          <loc>https://trnsci.dev/workflows/speech_enhancement/</loc>
-         <lastmod>2026-04-15</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/archive/2026/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>

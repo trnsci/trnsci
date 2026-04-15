@@ -1,0 +1,23 @@
+/* Blog: don't show post dates anywhere user-facing.
+ *
+ * The date stays in post frontmatter (used by the blog plugin for ordering
+ * and by the RSS feed for metadata) but isn't rendered in the page body,
+ * post header, archive index, or category index.
+ */
+
+/* Date row at the top of an individual post. */
+article.md-post .md-post__meta time,
+article.md-post header time {
+  display: none;
+}
+
+/* Date in the post-summary cards on the blog index. */
+.md-post--excerpt .md-post__meta time {
+  display: none;
+}
+
+/* If only the time element is hidden, the surrounding meta row may collapse
+ * to an empty bullet/separator. Hide the whole meta row if it ends up empty. */
+.md-post__meta:has(> time:only-child) {
+  display: none;
+}
