@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/trnblas/api/level3/">
+        <link rel="canonical" href="https://trnsci.dev/blog/2026/04/14/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">
       
       
-        <link rel="prev" href="../level2/">
+        <link rel="prev" href="../trnsparse-the-tile-is-the-unit-not-the-nonzero/">
       
       
-        <link rel="next" href="../nki/">
+        <link rel="next" href="../trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">
       
       
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Level 3 (Matrix-Matrix) - trnsci</title>
+        <title>trnfft: FFT on hardware that doesn't want to be an FFT engine - trnsci</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#level-3-matrix-matrix-operations" class="md-skip">
+        <a href="#trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../../../../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Level 3 (Matrix-Matrix)
+              trnfft: FFT on hardware that doesn't want to be an FFT engine
             
           </span>
         </div>
@@ -195,7 +195,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../.." class="md-tabs__link">
+      <a href="../../../../.." class="md-tabs__link">
         
   
   
@@ -214,7 +214,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../why/" class="md-tabs__link">
+      <a href="../../../../../why/" class="md-tabs__link">
         
   
   
@@ -233,7 +233,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../cuda_rosetta/" class="md-tabs__link">
+      <a href="../../../../../cuda_rosetta/" class="md-tabs__link">
         
   
   
@@ -252,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../trainium_positioning/" class="md-tabs__link">
+      <a href="../../../../../trainium_positioning/" class="md-tabs__link">
         
   
   
@@ -271,7 +271,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../roadmap/" class="md-tabs__link">
+      <a href="../../../../../roadmap/" class="md-tabs__link">
         
   
   
@@ -290,7 +290,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../nki_validation_status/" class="md-tabs__link">
+      <a href="../../../../../nki_validation_status/" class="md-tabs__link">
         
   
   
@@ -307,11 +307,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../../blog/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../../../" class="md-tabs__link">
           
   
   
@@ -333,7 +335,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../installation/" class="md-tabs__link">
+        <a href="../../../../../installation/" class="md-tabs__link">
           
   
   
@@ -355,7 +357,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../workflows/integration/" class="md-tabs__link">
+        <a href="../../../../../workflows/integration/" class="md-tabs__link">
           
   
   
@@ -373,8 +375,6 @@
   
   
   
-    
-  
   
     
     
@@ -382,13 +382,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../../trnfft/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../../../../trnfft/" class="md-tabs__link">
           
   
   
@@ -411,7 +409,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../contributing/" class="md-tabs__link">
+      <a href="../../../../../contributing/" class="md-tabs__link">
         
   
   
@@ -435,7 +433,9 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -446,7 +446,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../../../../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -476,7 +476,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href="../../../../.." class="md-nav__link">
         
   
   
@@ -503,7 +503,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../why/" class="md-nav__link">
+      <a href="../../../../../why/" class="md-nav__link">
         
   
   
@@ -530,7 +530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../cuda_rosetta/" class="md-nav__link">
+      <a href="../../../../../cuda_rosetta/" class="md-nav__link">
         
   
   
@@ -557,7 +557,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trainium_positioning/" class="md-nav__link">
+      <a href="../../../../../trainium_positioning/" class="md-nav__link">
         
   
   
@@ -584,7 +584,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../roadmap/" class="md-nav__link">
+      <a href="../../../../../roadmap/" class="md-nav__link">
         
   
   
@@ -611,7 +611,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../nki_validation_status/" class="md-nav__link">
+      <a href="../../../../../nki_validation_status/" class="md-nav__link">
         
   
   
@@ -635,6 +635,8 @@
       
   
   
+    
+  
   
   
     
@@ -652,20 +654,23 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../blog/" class="md-nav__link ">
+            <a href="../../../../" class="md-nav__link ">
               
   
   
@@ -683,13 +688,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -719,17 +724,20 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
         
           
-          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="">
             
   
   
@@ -767,7 +775,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../blog/archive/2026/" class="md-nav__link">
+      <a href="../../../../archive/2026/" class="md-nav__link">
         
   
   
@@ -825,17 +833,20 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3" >
         
           
-          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="">
             
   
   
@@ -873,7 +884,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../blog/category/announcements/" class="md-nav__link">
+      <a href="../../../../category/announcements/" class="md-nav__link">
         
   
   
@@ -903,7 +914,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../blog/category/deep-dive/" class="md-nav__link">
+      <a href="../../../../category/deep-dive/" class="md-nav__link">
         
   
   
@@ -933,7 +944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../blog/category/ecosystem/" class="md-nav__link">
+      <a href="../../../../category/ecosystem/" class="md-nav__link">
         
   
   
@@ -963,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../blog/category/trnblas/" class="md-nav__link">
+      <a href="../../../../category/trnblas/" class="md-nav__link">
         
   
   
@@ -993,7 +1004,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../blog/category/trnfft/" class="md-nav__link">
+      <a href="../../../../category/trnfft/" class="md-nav__link">
         
   
   
@@ -1023,7 +1034,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../blog/category/trnsparse/" class="md-nav__link">
+      <a href="../../../../category/trnsparse/" class="md-nav__link">
         
   
   
@@ -1053,7 +1064,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../blog/category/trntensor/" class="md-nav__link">
+      <a href="../../../../category/trntensor/" class="md-nav__link">
         
   
   
@@ -1154,7 +1165,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../installation/" class="md-nav__link">
+      <a href="../../../../../installation/" class="md-nav__link">
         
   
   
@@ -1182,7 +1193,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../deployment/" class="md-nav__link">
+      <a href="../../../../../deployment/" class="md-nav__link">
         
   
   
@@ -1277,7 +1288,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../workflows/integration/" class="md-nav__link">
+      <a href="../../../../../workflows/integration/" class="md-nav__link">
         
   
   
@@ -1305,7 +1316,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../workflows/speech_enhancement/" class="md-nav__link">
+      <a href="../../../../../workflows/speech_enhancement/" class="md-nav__link">
         
   
   
@@ -1333,7 +1344,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../workflows/quantum_chemistry/" class="md-nav__link">
+      <a href="../../../../../workflows/quantum_chemistry/" class="md-nav__link">
         
   
   
@@ -1365,10 +1376,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -1388,22 +1397,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -1421,7 +1427,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1463,13 +1469,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1477,7 +1480,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../trnfft/" class="md-nav__link ">
+            <a href="../../../../../trnfft/" class="md-nav__link ">
               
   
   
@@ -1495,7 +1498,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -1521,7 +1524,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/installation/" class="md-nav__link">
+      <a href="../../../../../trnfft/installation/" class="md-nav__link">
         
   
   
@@ -1549,7 +1552,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/quickstart/" class="md-nav__link">
+      <a href="../../../../../trnfft/quickstart/" class="md-nav__link">
         
   
   
@@ -1639,7 +1642,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/api/fft/" class="md-nav__link">
+      <a href="../../../../../trnfft/api/fft/" class="md-nav__link">
         
   
   
@@ -1667,7 +1670,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/api/complex/" class="md-nav__link">
+      <a href="../../../../../trnfft/api/complex/" class="md-nav__link">
         
   
   
@@ -1695,7 +1698,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/api/nn/" class="md-nav__link">
+      <a href="../../../../../trnfft/api/nn/" class="md-nav__link">
         
   
   
@@ -1723,7 +1726,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/api/nki/" class="md-nav__link">
+      <a href="../../../../../trnfft/api/nki/" class="md-nav__link">
         
   
   
@@ -1759,7 +1762,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/architecture/" class="md-nav__link">
+      <a href="../../../../../trnfft/architecture/" class="md-nav__link">
         
   
   
@@ -1787,7 +1790,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/benchmarks/" class="md-nav__link">
+      <a href="../../../../../trnfft/benchmarks/" class="md-nav__link">
         
   
   
@@ -1871,7 +1874,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/aws_setup/" class="md-nav__link">
+      <a href="../../../../../trnfft/aws_setup/" class="md-nav__link">
         
   
   
@@ -1912,8 +1915,6 @@
                 
   
   
-    
-  
   
   
     
@@ -1945,21 +1946,18 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../" class="md-nav__link ">
+            <a href="../../../../../trnblas/" class="md-nav__link ">
               
   
   
@@ -1977,13 +1975,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2003,7 +2001,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/" class="md-nav__link">
+      <a href="../../../../../trnblas/installation/" class="md-nav__link">
         
   
   
@@ -2031,7 +2029,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../quickstart/" class="md-nav__link">
+      <a href="../../../../../trnblas/quickstart/" class="md-nav__link">
         
   
   
@@ -2056,10 +2054,8 @@
                 
   
   
-    
   
   
-  
     
     
       
@@ -2080,11 +2076,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2_4" >
         
           
           <label class="md-nav__link" for="__nav_10_2_4" id="__nav_10_2_4_label" tabindex="0">
@@ -2105,7 +2101,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_2_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10_2_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2123,7 +2119,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../level1/" class="md-nav__link">
+      <a href="../../../../../trnblas/api/level1/" class="md-nav__link">
         
   
   
@@ -2151,7 +2147,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../level2/" class="md-nav__link">
+      <a href="../../../../../trnblas/api/level2/" class="md-nav__link">
         
   
   
@@ -2176,37 +2172,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Level 3 (Matrix-Matrix)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../../../trnblas/api/level3/" class="md-nav__link">
         
   
   
@@ -2222,92 +2191,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        batched_gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#symmalpha-a-b-beta00-cnone-sideleft-uploupper" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        symm(alpha, A, B, beta=0.0, C=None, side="left", uplo="upper")
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#syrkalpha-a-beta00-cnone-uploupper-transfalse" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        syrk(alpha, A, beta=0.0, C=None, uplo="upper", trans=False)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        trsm(alpha, A, B, side="left", uplo="upper", trans=False, diag="nonunit")
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        trmm(alpha, A, B, side="left", uplo="upper", trans=False, unit=False)
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2320,7 +2203,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../nki/" class="md-nav__link">
+      <a href="../../../../../trnblas/api/nki/" class="md-nav__link">
         
   
   
@@ -2356,7 +2239,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/" class="md-nav__link">
+      <a href="../../../../../trnblas/architecture/" class="md-nav__link">
         
   
   
@@ -2440,7 +2323,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developing_kernels/" class="md-nav__link">
+      <a href="../../../../../trnblas/developing_kernels/" class="md-nav__link">
         
   
   
@@ -2534,7 +2417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+      <a href="../../../../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
         
   
   
@@ -2562,7 +2445,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/mp2_energy_profile_findings/" class="md-nav__link">
+      <a href="../../../../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
         
   
   
@@ -2598,7 +2481,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../benchmarks/" class="md-nav__link">
+      <a href="../../../../../trnblas/benchmarks/" class="md-nav__link">
         
   
   
@@ -2682,7 +2565,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../aws_setup/" class="md-nav__link">
+      <a href="../../../../../trnblas/aws_setup/" class="md-nav__link">
         
   
   
@@ -2760,13 +2643,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2774,7 +2654,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../trnrand/" class="md-nav__link ">
+            <a href="../../../../../trnrand/" class="md-nav__link ">
               
   
   
@@ -2792,7 +2672,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -2818,7 +2698,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/installation/" class="md-nav__link">
+      <a href="../../../../../trnrand/installation/" class="md-nav__link">
         
   
   
@@ -2846,7 +2726,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/quickstart/" class="md-nav__link">
+      <a href="../../../../../trnrand/quickstart/" class="md-nav__link">
         
   
   
@@ -2936,7 +2816,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/api/generator/" class="md-nav__link">
+      <a href="../../../../../trnrand/api/generator/" class="md-nav__link">
         
   
   
@@ -2964,7 +2844,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/api/distributions/" class="md-nav__link">
+      <a href="../../../../../trnrand/api/distributions/" class="md-nav__link">
         
   
   
@@ -2992,7 +2872,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/api/quasi/" class="md-nav__link">
+      <a href="../../../../../trnrand/api/quasi/" class="md-nav__link">
         
   
   
@@ -3020,7 +2900,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/api/nki/" class="md-nav__link">
+      <a href="../../../../../trnrand/api/nki/" class="md-nav__link">
         
   
   
@@ -3056,7 +2936,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/architecture/" class="md-nav__link">
+      <a href="../../../../../trnrand/architecture/" class="md-nav__link">
         
   
   
@@ -3140,7 +3020,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/developing_kernels/" class="md-nav__link">
+      <a href="../../../../../trnrand/developing_kernels/" class="md-nav__link">
         
   
   
@@ -3234,7 +3114,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+      <a href="../../../../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
         
   
   
@@ -3262,7 +3142,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+      <a href="../../../../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
         
   
   
@@ -3298,7 +3178,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/roadmap/" class="md-nav__link">
+      <a href="../../../../../trnrand/roadmap/" class="md-nav__link">
         
   
   
@@ -3326,7 +3206,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/benchmarks/" class="md-nav__link">
+      <a href="../../../../../trnrand/benchmarks/" class="md-nav__link">
         
   
   
@@ -3410,7 +3290,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/aws_setup/" class="md-nav__link">
+      <a href="../../../../../trnrand/aws_setup/" class="md-nav__link">
         
   
   
@@ -3446,7 +3326,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/release/" class="md-nav__link">
+      <a href="../../../../../trnrand/release/" class="md-nav__link">
         
   
   
@@ -3474,7 +3354,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/stability/" class="md-nav__link">
+      <a href="../../../../../trnrand/stability/" class="md-nav__link">
         
   
   
@@ -3536,13 +3416,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -3550,7 +3427,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../trnsolver/" class="md-nav__link ">
+            <a href="../../../../../trnsolver/" class="md-nav__link ">
               
   
   
@@ -3568,7 +3445,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -3594,7 +3471,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/installation/" class="md-nav__link">
+      <a href="../../../../../trnsolver/installation/" class="md-nav__link">
         
   
   
@@ -3622,7 +3499,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/quickstart/" class="md-nav__link">
+      <a href="../../../../../trnsolver/quickstart/" class="md-nav__link">
         
   
   
@@ -3712,7 +3589,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/api/eigen/" class="md-nav__link">
+      <a href="../../../../../trnsolver/api/eigen/" class="md-nav__link">
         
   
   
@@ -3740,7 +3617,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/api/factor/" class="md-nav__link">
+      <a href="../../../../../trnsolver/api/factor/" class="md-nav__link">
         
   
   
@@ -3768,7 +3645,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/api/iterative/" class="md-nav__link">
+      <a href="../../../../../trnsolver/api/iterative/" class="md-nav__link">
         
   
   
@@ -3796,7 +3673,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/api/nki/" class="md-nav__link">
+      <a href="../../../../../trnsolver/api/nki/" class="md-nav__link">
         
   
   
@@ -3832,7 +3709,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/architecture/" class="md-nav__link">
+      <a href="../../../../../trnsolver/architecture/" class="md-nav__link">
         
   
   
@@ -3860,7 +3737,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/benchmarks/" class="md-nav__link">
+      <a href="../../../../../trnsolver/benchmarks/" class="md-nav__link">
         
   
   
@@ -3944,7 +3821,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/aws_setup/" class="md-nav__link">
+      <a href="../../../../../trnsolver/aws_setup/" class="md-nav__link">
         
   
   
@@ -4036,7 +3913,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/developing_kernels/" class="md-nav__link">
+      <a href="../../../../../trnsolver/developing_kernels/" class="md-nav__link">
         
   
   
@@ -4106,13 +3983,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -4120,7 +3994,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../trnsparse/" class="md-nav__link ">
+            <a href="../../../../../trnsparse/" class="md-nav__link ">
               
   
   
@@ -4138,7 +4012,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -4164,7 +4038,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsparse/installation/" class="md-nav__link">
+      <a href="../../../../../trnsparse/installation/" class="md-nav__link">
         
   
   
@@ -4192,7 +4066,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../../../../../trnsparse/quickstart/" class="md-nav__link">
         
   
   
@@ -4220,7 +4094,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsparse/api/" class="md-nav__link">
+      <a href="../../../../../trnsparse/api/" class="md-nav__link">
         
   
   
@@ -4248,7 +4122,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsparse/architecture/" class="md-nav__link">
+      <a href="../../../../../trnsparse/architecture/" class="md-nav__link">
         
   
   
@@ -4276,7 +4150,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../../../../../trnsparse/migration_scipy/" class="md-nav__link">
         
   
   
@@ -4304,7 +4178,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../../../../../trnsparse/benchmarks/" class="md-nav__link">
         
   
   
@@ -4388,7 +4262,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../../../../../trnsparse/aws_setup/" class="md-nav__link">
         
   
   
@@ -4458,13 +4332,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -4472,7 +4343,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../trntensor/" class="md-nav__link ">
+            <a href="../../../../../trntensor/" class="md-nav__link ">
               
   
   
@@ -4490,7 +4361,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -4516,7 +4387,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/installation/" class="md-nav__link">
+      <a href="../../../../../trntensor/installation/" class="md-nav__link">
         
   
   
@@ -4544,7 +4415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/quickstart/" class="md-nav__link">
+      <a href="../../../../../trntensor/quickstart/" class="md-nav__link">
         
   
   
@@ -4605,7 +4476,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../trntensor/api/" class="md-nav__link ">
+            <a href="../../../../../trntensor/api/" class="md-nav__link ">
               
   
   
@@ -4649,7 +4520,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/api/einsum/" class="md-nav__link">
+      <a href="../../../../../trntensor/api/einsum/" class="md-nav__link">
         
   
   
@@ -4677,7 +4548,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/api/plan/" class="md-nav__link">
+      <a href="../../../../../trntensor/api/plan/" class="md-nav__link">
         
   
   
@@ -4705,7 +4576,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/api/decompose/" class="md-nav__link">
+      <a href="../../../../../trntensor/api/decompose/" class="md-nav__link">
         
   
   
@@ -4733,7 +4604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/api/quantum/" class="md-nav__link">
+      <a href="../../../../../trntensor/api/quantum/" class="md-nav__link">
         
   
   
@@ -4761,7 +4632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/api/nki/" class="md-nav__link">
+      <a href="../../../../../trntensor/api/nki/" class="md-nav__link">
         
   
   
@@ -4797,7 +4668,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/architecture/" class="md-nav__link">
+      <a href="../../../../../trntensor/architecture/" class="md-nav__link">
         
   
   
@@ -4825,7 +4696,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/benchmarks/" class="md-nav__link">
+      <a href="../../../../../trntensor/benchmarks/" class="md-nav__link">
         
   
   
@@ -4909,7 +4780,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/tutorial_df_mp2/" class="md-nav__link">
+      <a href="../../../../../trntensor/tutorial_df_mp2/" class="md-nav__link">
         
   
   
@@ -5001,7 +4872,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/aws_setup/" class="md-nav__link">
+      <a href="../../../../../trntensor/aws_setup/" class="md-nav__link">
         
   
   
@@ -5052,7 +4923,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../contributing/" class="md-nav__link">
+      <a href="../../../../../contributing/" class="md-nav__link">
         
   
   
@@ -5080,6 +4951,8 @@
             
             
               
+                
+              
               <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
@@ -5099,10 +4972,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" class="md-nav__link">
+  <a href="#the-problem" class="md-nav__link">
     <span class="md-ellipsis">
       
-        gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)
+        The problem
       
     </span>
   </a>
@@ -5110,10 +4983,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" class="md-nav__link">
+  <a href="#what-the-architecture-suggests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        batched_gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)
+        What the architecture suggests
       
     </span>
   </a>
@@ -5121,10 +4994,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#symmalpha-a-b-beta00-cnone-sideleft-uploupper" class="md-nav__link">
+  <a href="#the-approach" class="md-nav__link">
     <span class="md-ellipsis">
       
-        symm(alpha, A, B, beta=0.0, C=None, side="left", uplo="upper")
+        The approach
       
     </span>
   </a>
@@ -5132,10 +5005,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#syrkalpha-a-beta00-cnone-uploupper-transfalse" class="md-nav__link">
+  <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        syrk(alpha, A, beta=0.0, C=None, uplo="upper", trans=False)
+        Implementation
       
     </span>
   </a>
@@ -5143,10 +5016,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit" class="md-nav__link">
+  <a href="#what-didnt-work" class="md-nav__link">
     <span class="md-ellipsis">
       
-        trsm(alpha, A, B, side="left", uplo="upper", trans=False, diag="nonunit")
+        What didn't work
       
     </span>
   </a>
@@ -5154,10 +5027,71 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" class="md-nav__link">
+  <a href="#numbers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        trmm(alpha, A, B, side="left", uplo="upper", trans=False, unit=False)
+        Numbers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Numbers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#v070-v080-batched-kernel-landing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.7.0 → v0.8.0 — batched kernel landing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v0120-dft-as-gemm-for-small-n" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.12.0 — DFT-as-GEMM for small N
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's next
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#toolchain-observations-worth-flagging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Toolchain observations worth flagging
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#takeaway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Takeaway
       
     </span>
   </a>
@@ -5173,65 +5107,302 @@
             
           
           
-            <div class="md-content" data-md-component="content">
-              
-              <article class="md-content__inner md-typeset">
-                
-                  
-
-
-  
-  
-
-
-<h1 id="level-3-matrix-matrix-operations">Level 3 — Matrix-matrix operations<a class="headerlink" href="#level-3-matrix-matrix-operations" title="Permanent link">&para;</a></h1>
-<p>Level 3 BLAS: <code>O(n³)</code> matrix-matrix operations. This is the hot path for
-scientific computing workloads and the primary target for NKI acceleration.</p>
-<h2 id="gemmalpha-a-b-beta00-cnone-transafalse-transbfalse"><code>gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)</code><a class="headerlink" href="#gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" title="Permanent link">&para;</a></h2>
-<p>General matrix-matrix multiply: <code>C = α·op(A)·op(B) + β·C</code>.</p>
-<p>Dispatches to NKI GEMM kernel with stationary tile reuse on Trainium;
-falls back to <code>torch.matmul</code> on CPU/GPU.</p>
-<h2 id="batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse"><code>batched_gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)</code><a class="headerlink" href="#batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" title="Permanent link">&para;</a></h2>
-<p>Batched GEMM over the leading dimension — used for DF-MP2 tensor contractions
-over auxiliary basis indices.</p>
-<h2 id="symmalpha-a-b-beta00-cnone-sideleft-uploupper"><code>symm(alpha, A, B, beta=0.0, C=None, side="left", uplo="upper")</code><a class="headerlink" href="#symmalpha-a-b-beta00-cnone-sideleft-uploupper" title="Permanent link">&para;</a></h2>
-<p>Symmetric matrix-matrix multiply.</p>
-<h2 id="syrkalpha-a-beta00-cnone-uploupper-transfalse"><code>syrk(alpha, A, beta=0.0, C=None, uplo="upper", trans=False)</code><a class="headerlink" href="#syrkalpha-a-beta00-cnone-uploupper-transfalse" title="Permanent link">&para;</a></h2>
-<p>Symmetric rank-k update: <code>C = α·A·Aᵀ + β·C</code> (or <code>AᵀA</code> when <code>trans=True</code>).</p>
-<p>Dispatches to a dedicated NKI kernel (<code>trnblas.nki.nki_syrk</code>) on
-Trainium: loads <code>A</code> once into SBUF for both operand roles, avoiding the
-<code>A.T.contiguous()</code> HBM write that <code>gemm(A, A.T)</code> would otherwise issue.
-Return value is the dense symmetric matrix (both triangles populated);
-a small post-kernel <code>0.5·(C + Cᵀ)</code> symmetrisation protects against fp32
-reduction-order asymmetry.</p>
-<h2 id="trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit"><code>trsm(alpha, A, B, side="left", uplo="upper", trans=False, diag="nonunit")</code><a class="headerlink" href="#trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit" title="Permanent link">&para;</a></h2>
-<p>Triangular solve: solves <code>op(A)·X = α·B</code> (or <code>X·op(A) = α·B</code> when <code>side="right"</code>).</p>
-<p>On Trainium + <code>side="left"</code>, dispatches to a blocked panel algorithm
-(<code>trnblas.nki.nki_trsm</code>): tiny diagonal panels solve via
-<code>torch.linalg.solve_triangular</code>; trailing off-diagonal updates run
-through <code>nki_gemm</code>. Covers all combinations of <code>uplo ∈ {"upper", "lower"}</code>,
-<code>trans ∈ {True, False}</code>, <code>diag ∈ {"unit", "nonunit"}</code>. <code>side="right"</code>
-falls back to direct <code>torch.linalg.solve_triangular</code>.</p>
-<h2 id="trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse"><code>trmm(alpha, A, B, side="left", uplo="upper", trans=False, unit=False)</code><a class="headerlink" href="#trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" title="Permanent link">&para;</a></h2>
-<p>Triangular matrix-matrix multiply: <code>B = α·op(A)·B</code>.</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                
-              </article>
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
             </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+                        <time datetime="2026-04-14 00:00:00+00:00" class="md-ellipsis">April 14, 2026</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/deep-dive/">Deep dive</a>, 
+                              <a href="../../../../category/trnfft/">trnfft</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              10 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
           
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+  
+  
+
+
+<h1 id="trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine">trnfft: FFT on hardware that doesn't want to be an FFT engine<a class="headerlink" href="#trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine" title="Permanent link">&para;</a></h1>
+<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly + fused DFT-as-GEMM stack with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be. Readers evaluating Trainium for spectral workloads or maintaining sibling NKI libraries will find the architectural framing directly portable.</p>
+<!-- more -->
+
+<h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
+<p>FFT is load-bearing for spectral PDE solvers, speech enhancement, radar, convolutional nets, Ewald sums. <code>torch.fft</code> and <code>cuFFT</code> are the reference APIs; both assume a native complex dtype and a massively threaded SIMT unit — a radix-2 Cooley-Tukey butterfly in that model is "one warp per butterfly, thousands in flight, one complex register per element, bit-reverse the input index".</p>
+<p>Trainium has neither assumption. There is no hardware complex dtype — every complex tensor must be paired real tensors. The execution model isn't SIMT; it's four cooperating engines (Tensor, Vector, Scalar, DMA) with a fixed tile shape of 128 partitions × up to 512 free elements, and a whole-program NKI compiler that schedules their dependencies. A naive "one thread per butterfly" port runs headfirst into partition underutilization: filling 128 partitions with radix-2 pairs requires reaching across 64 simultaneous butterfly groups, not across threads within one. "Port cuFFT" is a bad starting point. The interesting question is what the architecture suggests if cuFFT didn't exist.</p>
+<h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
+<p><strong>No complex dtype.</strong> Every complex tensor becomes two real tensors side by side — the <code>ComplexTensor(real, imag)</code> wrapper is a split-real/imag holder, not a new primitive. Complex multiply is four real multiplies and two real adds. Complex matmul is four real matmuls and two real matrix adds. On Trainium this is the native shape, because the real Tensor Engine op (stationary <code>nisa.nc_matmul</code> with PSUM accumulation) has no complex-typed equivalent and would unpack to four real matmuls in the compiler anyway.</p>
+<p><strong>The 128-partition tile prefers many independent small operations.</strong> A radix-2 butterfly acts on pairs, so filling the partition dim means <em>flattening across butterfly groups</em>. An FFT of size N at stage s has <code>N / 2^(s+1)</code> independent butterfly groups; all of them run in parallel along the partition dim. For batched FFT (<code>(B, N)</code> input) the math compounds: <code>B × num_groups</code> lands in the partition slot, naturally saturating the tile at reasonable B. The kernel runs once per stage, vectorized across every group in every batch row. What looks like a radix-2 algorithm on paper is really "one big elementwise-per-stage over a tall partition-dim".</p>
+<p><strong>Four engines mean a butterfly stage issues two ops in parallel.</strong> The Tensor Engine does the twiddle × odd-element multiply. The Vector Engine does the <code>e + prod</code> / <code>e - prod</code> butterfly combination. These aren't sequential the way they are on a GPU warp — the NKI compiler schedules them on separate engines with DMA prefetch overlapping from HBM. The architectural primitive isn't "one butterfly"; it's "fill the Tensor Engine pipeline with twiddle multiplies while the Vector Engine consumes their outputs".</p>
+<p><strong>PSUM is fp32 and has a ceiling.</strong> The Tensor Engine accumulates products in PSUM in fp32. Generous for one matmul, but a long dependency chain — three power-of-2 FFTs composed in Bluestein's chirp-z decomposition — compounds rounding error. At N ≥ 500 the default Bluestein path in fp32 accumulates roughly 2 × 10⁻² relative error against a scipy fp64 reference. That's a hardware-sizing observation as much as an algorithm choice, and it's what motivated the Kahan-compensated butterfly shipped in the <code>"kahan"</code> precision mode: the Vector Engine folds a 2Prod compensation step into the butterfly kernel cheaply, because the extra adds land on the engine that would otherwise be idle while the Tensor Engine is busy. Compensation is architecturally-free in a way it wouldn't be on a GPU.</p>
+<p><strong>NEFF cache makes the first call expensive.</strong> Every distinct kernel signature compiles to a NEFF binary on first invocation; subsequent calls are cache hits. This favors plan-based execution (FFTW/cuFFT-style) over kernel-per-call — <code>trnfft.plan</code> caches plans keyed on <code>(N, inverse)</code>.</p>
+<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
+<p>v0.8.0 landed four NKI kernels built on the above:</p>
+<ol>
+<li><code>_complex_gemm_kernel</code> — 4 real <code>nisa.nc_matmul</code> calls into 2 fp32 PSUM accumulators with stationary-tile reuse: A_real stays in the stationary slot while B_real and B_imag stream through as moving operands, then A_imag stationary while -B_imag and B_real stream. Four SBUF loads become two per PSUM pair, saving HBM traffic.</li>
+<li><code>_complex_mul_kernel</code> — fused elementwise complex multiply, single kernel, one SBUF round-trip instead of six for the naive implementation.</li>
+<li><code>butterfly_stage_kernel</code> — batched radix-2 DIT stage. Input <code>(B, N)</code> flattens to <code>(B * num_groups, m)</code>; partition dim is the combined batch-and-group axis, free dim is the intra-group element. Twiddles are host-broadcast across partition rows so partition dims match when the Vector Engine fires the complex-multiply + butterfly.</li>
+<li><code>butterfly_stage_kernel_kahan</code> — compensated variant. Dekker 2Prod split of each <code>t × o</code>, then adds the rounded-off low-order part back into the complex sum. Doubles the butterfly op count, runs mostly on the Vector Engine. Opt-in via <code>trnfft.set_precision("kahan")</code>.</li>
+</ol>
+<p>STFT, batched FFT, and fft2/fftn all run through a single <code>_cooley_tukey_nki</code> dispatcher that flattens any leading batch dims into the partition slot and calls the kernel once per stage.</p>
+<p>The deliberate tradeoff: radix-2, not radix-4 or larger. Radix-2 is simpler and fills the Vector Engine cleanly, but at large N the per-stage launch count is <code>log₂(N)</code> and each launch pays NKI dispatch overhead. For N ≥ 1024 this starts to dominate — which motivates Thread B (Stockham radix-4) under active development.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p>The butterfly stage kernel is the load-bearing piece. Stripped to its essential shape:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">butterfly_stage_kernel</span><span class="p">(</span><span class="n">x_re</span><span class="p">,</span> <span class="n">x_im</span><span class="p">,</span> <span class="n">tw_re_bcast</span><span class="p">,</span> <span class="n">tw_im_bcast</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">stage</span><span class="p">):</span>
+    <span class="n">B</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">x_re</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">stage</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">half</span> <span class="o">=</span> <span class="n">m</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
+    <span class="n">num_groups</span> <span class="o">=</span> <span class="n">n</span> <span class="o">//</span> <span class="n">m</span>
+    <span class="n">total_groups</span> <span class="o">=</span> <span class="n">B</span> <span class="o">*</span> <span class="n">num_groups</span>
+
+    <span class="n">out_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x_re</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+    <span class="n">out_im</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x_im</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+
+    <span class="c1"># Flatten (B, n) -&gt; (total_groups, m). Partition dim = total_groups;</span>
+    <span class="c1"># every partition row is one independent butterfly group.</span>
+    <span class="n">x_re_2d</span> <span class="o">=</span> <span class="n">x_re</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">total_groups</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+    <span class="c1"># ... same for x_im_2d, out_re_2d, out_im_2d ...</span>
+
+    <span class="n">groups_chunk</span> <span class="o">=</span> <span class="n">total_groups</span> <span class="k">if</span> <span class="n">total_groups</span> <span class="o">&lt;=</span> <span class="n">PMAX</span> <span class="k">else</span> <span class="n">PMAX</span>
+    <span class="n">n_partition_tiles</span> <span class="o">=</span> <span class="n">total_groups</span> <span class="o">//</span> <span class="n">groups_chunk</span>
+
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">n_partition_tiles</span><span class="p">):</span>
+        <span class="n">p_off</span> <span class="o">=</span> <span class="n">p</span> <span class="o">*</span> <span class="n">groups_chunk</span>
+        <span class="n">p_end</span> <span class="o">=</span> <span class="n">p_off</span> <span class="o">+</span> <span class="n">groups_chunk</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">half</span><span class="p">):</span>
+            <span class="n">t_re_col</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tw_re_bcast</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">t_im_col</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tw_im_bcast</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">e_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">x_re_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">e_im</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">x_im_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">o_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">x_re_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="o">+</span><span class="n">half</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="n">half</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">o_im</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">x_im_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="o">+</span><span class="n">half</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="n">half</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="c1"># Complex multiply, one butterfly column at a time.</span>
+            <span class="n">prod_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span>
+                <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_re_col</span><span class="p">,</span> <span class="n">o_re</span><span class="p">),</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_im_col</span><span class="p">,</span> <span class="n">o_im</span><span class="p">))</span>
+            <span class="n">prod_im</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_re_col</span><span class="p">,</span> <span class="n">o_im</span><span class="p">),</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_im_col</span><span class="p">,</span> <span class="n">o_re</span><span class="p">))</span>
+
+            <span class="c1"># Even = e + prod, odd = e - prod.</span>
+            <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">out_re_2d</span><span class="p">[</span><span class="n">p_off</span><span class="p">:</span><span class="n">p_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span>
+                     <span class="n">value</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">e_re</span><span class="p">,</span> <span class="n">prod_re</span><span class="p">))</span>
+            <span class="c1"># ... three more stores for out_im even, out_re odd, out_im odd ...</span>
+    <span class="k">return</span> <span class="n">out_re</span><span class="p">,</span> <span class="n">out_im</span>
+</code></pre></div>
+<p>(Apache 2.0, full source: <a href="https://github.com/trnsci/trnfft/blob/main/trnfft/nki/butterfly.py"><code>trnfft/nki/butterfly.py</code></a>.)</p>
+<p>The partition-dim-is-total_groups pattern is the Trainium-native bit. A GPU would nest <code>k</code> as the outer loop and thread-parallelize over groups; here the partition dim <em>is</em> the group dim, and <code>k</code> iterates through butterfly positions within each group. For non-power-of-2 <code>B</code> (STFT's 33-frame case), the host pads to the next multiple of 128 — zero-padding is cheaper than supporting irregular partition counts in NKI 2.24, and the padding is discarded after the stage.</p>
+<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
+<p><strong>FP32 Bluestein precision.</strong> The single largest surprise. Bluestein chains three power-of-2 FFTs and a pair of chirp multiplies to handle arbitrary-N FFT; composed in fp32 the relative error grows roughly as O(N). At N = 500 error reaches ~1.4 × 10⁻²; at N = 8193 ~2.2 × 10⁻³. The test suite had silently papered over this with <code>tol = 2e-2</code> for N ≥ 500 — a gap marked "expected fp32 degradation" rather than fixed. v0.11.0 shipped three precision modes in response: <code>"fast"</code> keeps the fp32 path, <code>"double"</code> promotes Bluestein host math to fp64 (~5 × 10⁻¹³ at any N, 10 orders of magnitude tighter, but host-side only — NKI stays fp32), and <code>"kahan"</code> uses the compensated butterfly. <code>"kahan"</code> on CPU is equivalent to <code>"fast"</code> because the chirp multiplies aren't where the error lives — the butterfly chain is — and only on NKI does the compensation actually engage.</p>
+<p><strong>NKI kernels silently detached autograd.</strong> Every <code>@nki.jit</code> kernel returns a tensor from <code>nl.shared_hbm</code> with no registered <code>grad_fn</code>. Forward passes work fine; <code>loss.backward()</code> raises <code>element 0 of tensors does not require grad and does not have a grad_fn</code> on the first backward call (issue #56). Invisible for inference-only users. v0.10.1 wrapped every kernel in a <code>torch.autograd.Function</code> subclass with analytic adjoints (<code>dA = dC @ conj(B)ᵀ</code> for GEMM, <code>dx = ifft(dy) × n</code> for FFT).</p>
+<p><strong><code>torch.Tensor.unfold</code> has no XLA backend.</strong> <code>trnfft.stft</code> originally used <code>x.unfold(dim, size, step)</code> for frame extraction; that raised <code>aten::unfold not implemented for XLA</code> the moment anyone set <code>set_backend("nki")</code>. Replaced with explicit <code>torch.arange</code>-based frame-index construction in PR #44.</p>
+<p><strong>The NKI 0.3.0 migration surfaced three API deltas that broke our kernels.</strong> <code>nisa.nc_matmul</code> went kwargs-only with in-place accumulation (<code>dst=, stationary=, moving=, accumulate=True</code>). <code>nl.copy</code> now returns a view, so PSUM → SBUF materialization requires <code>nisa.tensor_copy(dst=, src=)</code> with a pre-allocated SBUF destination. Python <code>*</code> / <code>+</code> / <code>-</code> operators are no longer defined on <code>NkiTensor</code> — every complex multiply and butterfly expression rewrote with explicit <code>nl.multiply</code> / <code>nl.add</code> / <code>nl.subtract</code>. All three were surfaced by the CPU simulator (<code>NKI_SIMULATOR=1</code>) in minutes. AWS Neuron team: migration release notes calling out operator-overload changes would save downstream libraries a CI iteration each.</p>
+<p><strong>Full-size DFT-as-GEMM capped at N = 256.</strong> v0.12.0 introduced a DFT-as-GEMM fast path (<code>x @ W</code> where <code>W</code> is the <code>N × N</code> DFT matrix) that beats butterfly by 2.2–5.7× for N ∈ {8..128} and still wins 5.3× at N = 1024 — but fp32 <code>nisa.nc_matmul</code> accumulation at N = 1024 reaches ~2.2% relative error, breaking the 1e-3 test tolerance. The win is perf-real and precision-blocked. Routing past the 256 ceiling is what motivates Stockham radix-4 (Thread B), where a <code>log₄(N)</code> chain accumulates only O(r²) error per stage.</p>
+<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
+<p>Steady-state on trn1.2xlarge, <code>neuronxcc 2.24.5133.0</code>, Deep Learning AMI Neuron PyTorch 2.9. All numbers after warmup — first call pays NEFF compile, these are mean of subsequent steady-state invocations.</p>
+<h3 id="v070-v080-batched-kernel-landing">v0.7.0 → v0.8.0 — batched kernel landing<a class="headerlink" href="#v070-v080-batched-kernel-landing" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th style="text-align: right;">v0.7.0</th>
+<th style="text-align: right;">v0.8.0</th>
+<th style="text-align: right;">Speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fftn 32×64×64</td>
+<td style="text-align: right;">52.3 s</td>
+<td style="text-align: right;">70.8 ms</td>
+<td style="text-align: right;">738×</td>
+</tr>
+<tr>
+<td>fft2 1024×1024</td>
+<td style="text-align: right;">32.4 s</td>
+<td style="text-align: right;">545 ms</td>
+<td style="text-align: right;">59×</td>
+</tr>
+<tr>
+<td>batched FFT (128×1024)</td>
+<td style="text-align: right;">2.07 s</td>
+<td style="text-align: right;">52 ms</td>
+<td style="text-align: right;">39×</td>
+</tr>
+<tr>
+<td>STFT (16 000 samples)</td>
+<td style="text-align: right;">765 ms</td>
+<td style="text-align: right;">28 ms</td>
+<td style="text-align: right;">27×</td>
+</tr>
+</tbody>
+</table>
+<p>v0.7.0 ran the butterfly kernel in a Python for-loop over batch rows — one kernel dispatch per (row, stage) pair. v0.8.0's batched kernel removes that loop; what looks like a 27× STFT speedup is "fix the dispatch pattern so the kernel sees the batch".</p>
+<h3 id="v0120-dft-as-gemm-for-small-n">v0.12.0 — DFT-as-GEMM for small N<a class="headerlink" href="#v0120-dft-as-gemm-for-small-n" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Shape</th>
+<th style="text-align: right;">DFT-GEMM</th>
+<th style="text-align: right;">Butterfly</th>
+<th style="text-align: right;">Speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N = 256, B = 1</td>
+<td style="text-align: right;">1 882 μs</td>
+<td style="text-align: right;">9 862 μs</td>
+<td style="text-align: right;">5.2×</td>
+</tr>
+<tr>
+<td>B = 32, N = 256</td>
+<td style="text-align: right;">2 049 μs</td>
+<td style="text-align: right;">29 210 μs</td>
+<td style="text-align: right;">14.3×</td>
+</tr>
+<tr>
+<td>STFT (n_fft = 256, 16 k samples)</td>
+<td style="text-align: right;">2 445 μs</td>
+<td style="text-align: right;">30 514 μs</td>
+<td style="text-align: right;">12.5×</td>
+</tr>
+</tbody>
+</table>
+<p>The batched/STFT columns are where the architectural thesis paid off. DFT-GEMM at <code>(B = 32, N = 256)</code> collapses the entire batch into one <code>nisa.nc_matmul</code> — the partition-dim finally saturates, and the per-batch cost drops 12–14× against the butterfly chain. <code>torch.fft.fft</code> on the x86 bench host (running MKL) is still faster than Trainium for isolated one-shot FFT calls — 10–80 μs cold, roughly 50–300× lower than the NKI path. The architectural story isn't "beat MKL on cold calls"; it's "keep data on-chip across long operator chains".</p>
+<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Phase 2 #52 — Kahan / Neumaier summation for long Bluestein chains.</strong> Partial delivery in v0.11.0 (precision-modes API + compensated butterfly kernel). The Kahan butterfly compiles on NKI 2.24.5133.0 and agrees with the stock kernel at FP32 rtol across the 17-test neuron suite; whether the 2Prod compensation <em>actually</em> reduces FP32 FFT error on silicon is the measurement question still open in issue #58.</li>
+<li><strong>Thread B — Stockham radix-4 (v0.13 candidate).</strong> A POC kernel shipped this week, CPU reference + NKI port green under the CPU simulator. 5 kernel launches at N = 1024 vs 10 for butterfly, and log₄(N) fp32 accumulation vs the O(N²) ceiling that caps DFT-GEMM at N = 256. Hardware validation pending an AWS DLAMI with Neuron SDK 2.29.</li>
+<li><strong>Phase 3 #53 — perf.</strong> Plan reuse across shapes, streaming large FFTs that exceed HBM, NEFF cache hit-rate instrumentation.</li>
+<li><strong>Phase 4 #54 — multi-chip FFT for N &gt; 2²⁰</strong> via cross-core collectives.</li>
+<li><strong>Phase 5 #55 — trn2.</strong> Larger SBUF, different systolic array sizing; some constraints loosen.</li>
+</ul>
+<h2 id="toolchain-observations-worth-flagging">Toolchain observations worth flagging<a class="headerlink" href="#toolchain-observations-worth-flagging" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>The CPU simulator (<code>NKI_SIMULATOR=1</code>) is the biggest DX change since NKI 0.3.0 shipped.</strong> It runs kernels on CPU without NEFF compile or hardware dispatch. Kernel iteration that used to need a 5–10 min SSM round-trip to trn1 now takes seconds locally; GitHub Actions can run simulator-backed correctness tests on <code>ubuntu-latest</code> with no AWS access. It surfaced every one of the NKI 0.3.0 API deltas that broke trnfft's kernels in a CI run lasting under two minutes. If you're shipping a library that depends on NKI, add a simulator job before you ship anything else.</li>
+<li><strong><code>nisa.tensor_copy</code> signature.</strong> The switch from <code>nl.copy(psum, dtype=...)</code> to <code>nisa.tensor_copy(dst=sbuf, src=psum)</code> is a meaningful behavioral change — <code>nl.copy</code> now returns a view — and the migration guide didn't call it out. Downstream libraries with PSUM → SBUF materialization patterns will hit the same issue.</li>
+</ul>
+<h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
+<p>Trainium was designed for large-model training and inference; FFT is not the workload it was built for. A CUDA-style radix-2 butterfly with one thread per butterfly and thousands in flight maps badly onto a 128-partition systolic array with a fixed engine hierarchy. What works instead is treating the partition dim as "total independent butterfly groups across every batch row, vectorized", the four engines as a scheduling substrate that fires multiply and add in parallel, and the fp32 PSUM as a real ceiling that constrains algorithm choice. Every trnfft kernel shipped so far is a variation on that theme — split real/imag, flatten across groups, route compute between engines, and respect the precision ceiling. The rest of the roadmap is about pushing that thesis into medium and large N where it's not obvious the butterfly is still the right decomposition.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+
+
+  <h2 id="__comments">Comments</h2>
+
+  <script src="https://giscus.app/client.js"
+          data-repo="trnsci/trnsci"
+          data-repo-id="REPO_ID_PLACEHOLDER"
+          data-category="Blog comments"
+          data-category-id="CATEGORY_ID_PLACEHOLDER"
+          data-mapping="pathname"
+          data-strict="0"
+          data-reactions-enabled="1"
+          data-emit-metadata="0"
+          data-input-position="bottom"
+          data-theme="preferred_color_scheme"
+          data-lang="en"
+          data-loading="lazy"
+          crossorigin="anonymous"
+          async>
+  </script><script>
+    document$.subscribe(function() {
+      var palette = __md_get("__palette")
+      if (palette && typeof palette.color === "object") {
+        var theme = palette.color.scheme === "slate" ? "dark" : "light"
+        var frame = document.querySelector(".giscus-frame")
+        if (frame) {
+          frame.contentWindow.postMessage(
+            { giscus: { setConfig: { theme } } },
+            "https://giscus.app"
+          )
+        }
+      }
+    })
+  </script>
+
+      
+    </article>
+  </div>
+
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
@@ -5265,10 +5436,10 @@ falls back to direct <code>torch.linalg.solve_triangular</code>.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

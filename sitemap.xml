@@ -69,6 +69,10 @@
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/2026/04/14/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/</loc>
+         <lastmod>2026-04-15</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/2026/04/14/trnsparse-the-tile-is-the-unit-not-the-nonzero/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
@@ -406,6 +410,10 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnblas/</loc>
+         <lastmod>2026-04-15</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
