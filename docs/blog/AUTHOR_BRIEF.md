@@ -137,9 +137,39 @@ comments: true
 ---
 ```
 
+The `date` field is required for blog ordering and RSS metadata, but **the date is not displayed on the rendered page or in the URL** (the URL is `/blog/<slug>/`). Don't reference the date inline as if it'll be visible to the reader.
+
 No `authors:` line for technical deep-dives.
 
 Slug and filename: `docs/blog/posts/<YYYY-MM-DD>-<short-slug>.md`. Keep slugs short — `2026-04-13-fft-without-complex-dtype.md`, not the full title.
+
+## Tables, diagrams, and visual aids
+
+Wall-of-text retrospectives are intimidating. Use visuals where they earn their keep — a 200-word paragraph that becomes a 6-row table is almost always a win for the reader.
+
+**Tables.** Standard markdown tables work everywhere. Use them for: benchmark results, per-shape comparisons, NKI-vs-CPU-vs-other-platform numbers, before/after diffs of a tradeoff, mapping a sub-project's APIs to their cuX analogs. Honest tables — including rows where the project loses — are credibility-positive.
+
+**Mermaid diagrams.** Lightweight architecture sketches, dataflow diagrams, kernel pipeline shapes, and decision flowcharts render cleanly via fenced code blocks:
+
+````
+```mermaid
+flowchart LR
+  HBM[("HBM\n(eri tensor)")]
+  SBUF[/"SBUF\n(stationary)"/]
+  TE["Tensor Engine\n(nc_matmul)"]
+  PSUM[("PSUM\n(fp32 accumulator)")]
+  HBM -->|DMA load| SBUF
+  SBUF --> TE
+  TE -->|accumulate| PSUM
+  PSUM -->|DMA store| HBM
+```
+````
+
+Don't over-do it. One or two diagrams in a post that genuinely benefit from visual structure beats five decorative ones. Diagram-as-recap (a single picture summarizing what the prose just explained) is usually a win.
+
+**Code samples** stay short. One representative kernel snippet is much better than three near-identical ones. Link to the full source on GitHub for readers who want depth.
+
+**Admonitions** (`!!! note`, `!!! warning`, `!!! info`) work via the `admonition` extension and are useful for sidebar-style content — version compatibility caveats, "if you're skimming, here's the takeaway", links to deeper reading. Use sparingly so they retain visual weight.
 
 ## Submitting — PR only, no direct commits
 

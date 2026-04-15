@@ -28,6 +28,8 @@ What workload is this solving, and what's awkward about solving it on Trainium w
 
 The native-to-Trainium design, independent of what CUDA does. This section is the heart of the post.
 
+A small Mermaid diagram of the dataflow (HBM → SBUF → engines → PSUM → HBM, or similar) is often the right move here.
+
 ## The approach
 
 The design chosen. How it exploits what the previous section identified. At least one deliberate tradeoff. If the design ended up looking like the CUDA approach, say so and say why — but don't default to that framing.
@@ -55,6 +57,8 @@ Candid fit-assessment also belongs here: is this workload actually well-matched 
 | | | | |
 
 Honest numbers, including ones that look bad. Numbers confirm or contextualize the architectural choice above — they don't justify it on their own.
+
+A table here is almost always the right shape. Add columns for any cross-platform comparisons that exist (CPU, vintage-matched GPU, hardware-validated NKI). Bold the winning column per row only when meaningful.
 
 ## What's next
 
