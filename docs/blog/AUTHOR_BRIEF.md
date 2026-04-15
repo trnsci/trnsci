@@ -141,12 +141,26 @@ No `authors:` line for technical deep-dives.
 
 Slug and filename: `docs/blog/posts/<YYYY-MM-DD>-<short-slug>.md`. Keep slugs short — `2026-04-13-fft-without-complex-dtype.md`, not the full title.
 
-## Submitting
+## Submitting — PR only, no direct commits
 
-1. Open a PR against [trnsci/trnsci](https://github.com/trnsci/trnsci) with the post at `docs/blog/posts/<YYYY-MM-DD>-<slug>.md`.
-2. Scott (as suite director) reviews for editorial consistency — structural edits, fact-checks against the repo, smoothing. Technical content isn't rewritten.
-3. Expect one or two review rounds.
-4. On merge, the post appears at `trnsci.dev/blog/` within minutes (on push) or by 06:00 UTC the next day (daily cron).
+**Do not commit the post directly to `main`. Do not push only to a branch. The PR is how editorial review happens; skipping it is an editorial failure, not a speed win.**
+
+Exact steps, in order:
+
+1. Draft the post on a branch in the umbrella repo (`trnsci/trnsci`) named `blog-<library>-<short-slug>` (e.g. `blog-trnfft-no-complex-dtype`).
+2. Commit the post to `docs/blog/posts/<YYYY-MM-DD>-<slug>.md` on that branch.
+3. Push the branch to `origin`.
+4. Open a pull request against `main`:
+   ```
+   gh pr create --repo trnsci/trnsci --base main --head <branch> \
+     --title "blog: <library> — <title>" \
+     --body "Ready for editorial review."
+   ```
+5. **Do not merge the PR yourself.** Scott (suite director) reviews for structural consistency, fact-checks against the repo, and merges when ready.
+6. Expect one or two rounds of review comments. Technical content isn't rewritten; your voice stays.
+7. On merge, the post appears at `trnsci.dev/blog/` within minutes (on push) or by 06:00 UTC the next day (daily cron).
+
+Posts that land on `main` without review are treated as a process miss and may need to be reverted + replayed through PR. The review step catches both factual errors and tone drift that's hard to see from inside the post.
 
 ## Optional pre-draft pitch
 

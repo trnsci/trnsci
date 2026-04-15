@@ -2,10 +2,18 @@
 
 Self-contained prompts to paste into each sub-project's Claude agent when you want them to draft a technical deep-dive for the [trnsci blog](https://trnsci.dev/blog/).
 
-Each prompt is designed to be pasted verbatim — it carries all the context the agent needs (editorial brief, structure, voice, suite positioning). The agent drafts a post in the correct location (`docs/blog/posts/<date>-<slug>.md`), opens a PR against `trnsci/trnsci`, and you/Scott reviews before merge.
+Each prompt is designed to be pasted verbatim — it carries all the context the agent needs (editorial brief, structure, voice, suite positioning, delivery rules).
 
 Editorial brief the prompts reference: [`docs/blog/AUTHOR_BRIEF.md`](docs/blog/AUTHOR_BRIEF.md).
 Template file: [`docs/blog/_template.md`](docs/blog/_template.md).
+
+## Delivery rule (in every prompt, top and bottom)
+
+Every prompt below opens and closes with the same delivery instruction. **Do not paraphrase it away** when forwarding — repetition is deliberate:
+
+> **PR only, no direct-to-main.** Draft on a branch named `blog-<library>-<short-slug>` in `trnsci/trnsci`, commit the post to `docs/blog/posts/<YYYY-MM-DD>-<slug>.md`, push, open a PR with `gh pr create --repo trnsci/trnsci --base main --head <branch>`, and do not merge it — Scott reviews and merges. Posts that land on `main` without review may be reverted and replayed through PR.
+
+This was buried at the end of earlier prompts and got skipped by three of six agents in the first round. Hardened now.
 
 **A standing editorial note for every post:** the brief's "What didn't work" section also covers two axes of candor beyond internal project decisions.
 
