@@ -69,6 +69,10 @@
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/2026/04/15/trntensor-when-the-kernel-boundary-is-the-api/</loc>
+         <lastmod>2026-04-15</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
@@ -385,11 +389,15 @@
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/ecosystem/</loc>
+         <loc>https://trnsci.dev/blog/category/deep-dive/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/deep-dive/</loc>
+         <loc>https://trnsci.dev/blog/category/trntensor/</loc>
+         <lastmod>2026-04-15</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/ecosystem/</loc>
          <lastmod>2026-04-15</lastmod>
     </url>
     <url>

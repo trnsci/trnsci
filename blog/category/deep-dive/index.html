@@ -821,6 +821,8 @@
       
         
       
+        
+      
     
     
     
@@ -988,6 +990,36 @@
     
   
     trnblas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../trntensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    trntensor
   
 
     
@@ -4891,6 +4923,48 @@
       <header class="md-typeset">
         <h1 id="deep-dive">Deep dive<a class="headerlink" href="#deep-dive" title="Permanent link">&para;</a></h1>
       </header>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-04-15 00:00:00+00:00">April 15, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trntensor/" class="md-meta__link">trntensor</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              10 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trntensor-when-the-kernel-boundary-is-the-api"><a class="toclink" href="../../2026/04/15/trntensor-when-the-kernel-boundary-is-the-api/">trntensor: when the kernel boundary is the API</a></h2>
+<p>trntensor Phase 1 landed this week: the 2-index and batched <code>nc_matmul</code> NKI kernels validate on trn1, <code>ContractionPlan.backend</code> now reports <code>"nki"</code> when shapes qualify, and two fused multi-step primitives — the DF-MP2 correlation-energy kernel and the 4-index AO→MO integral transform — run the full contract → elementwise → reduce and contract → SBUF-resident → contract patterns in single NKI programs. The architectural point isn't "we implemented einsum on Trainium." It's that on Trainium the kernel boundary is the design surface: what cuTENSOR encapsulates behind a <code>Plan</code> object, NKI asks you to lay out in source. That's more work, but it's also where a tensor library can become a cuTENSOR superset rather than a cuTENSOR port.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../2026/04/15/trntensor-when-the-kernel-boundary-is-the-api/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
       
         <article class="md-post md-post--excerpt">
   <header class="md-post__header">
