@@ -14,6 +14,20 @@ A technical retrospective on a piece of work that just shipped in one of the trn
 
 **Audience:** CUDA programmers evaluating Trainium. Neuron SDK users looking for scientific computing code. Maintainers of the sibling libraries in the trnsci suite. Assume readers know Trainium exists but not what NKI is — link out for NKI, don't redefine it each post.
 
+## Voice — fair, objective, self-effacing, lightly funny when warranted
+
+The blog has a consistent voice across posts and across libraries. Editorial review enforces it. Four notes per axis:
+
+**Fair.** Don't pick favorites or stack the deck. If a CUDA library or a CPU-only baseline does the workload better at the sizes you tested, say so. Don't bash alternatives to make trnsci look better — let the architectural argument carry the difference. If a post argues "Trainium is well-fitted for X," the same post should be willing to say "and badly fitted for Y."
+
+**Objective.** Claims grounded in evidence: specific numbers with units, version-pinned compiler behavior, reproducible commits, named test cases. Replace "fast" with the microsecond figure. Replace "we improved" with the before/after numbers. If a claim can't be backed with evidence, soften it ("appears to" / "in our testing on these shapes") or omit it.
+
+**Self-effacing.** When the project does well, state it plainly without victory-lapping. When it falls short, name the shortfall in concrete terms. When the team got something wrong before getting it right, walk through the error in enough detail that someone else can avoid it. The project's track record will sell itself; the post doesn't need to.
+
+**Lightly funny when warranted.** Dry observational humor about the working conditions of low-level systems work — NKI compiler surprises, the gap between "the kernel compiles" and "the kernel does what you want," the moment the fix turned out to be simpler / dumber / more frustrating than expected — lands well in small doses. Don't manufacture humor. Let it surface when the truth is genuinely funny. Comedy that's trying gets cut.
+
+The combined effect: the blog should read like a maintainer talking to another maintainer over coffee. Detail-rich, fair-minded, willing to admit what didn't work, willing to make a wry observation about the toolchain. Marketing voice and triumph-narrative voice are both out of bounds.
+
 ## Voice — authorless by default, library as subject
 
 **Technical deep-dives are unsigned.** No byline. No "I". No named maintainer.
@@ -123,7 +137,7 @@ Use these section headings in this order. The `posts/_template.md` file has them
 - Link back to the suite: [trnsci.dev](https://trnsci.dev), the [roadmap](https://trnsci.dev/roadmap/), the [suite-wide tracker](https://github.com/trnsci/trnsci/issues/1). Act like part of a suite.
 - No emoji unless the post is explicitly about emoji. (It isn't.)
 - Apache 2.0 code samples only. If borrowed, cite.
-- Length: 1,200–2,500 words. Longer splits into two posts.
+- **Length: 2,000 words hard cap.** 1,200–2,000 is the working range. Posts that exceed 2,000 must split into two posts before merge — the editor will measure at review time and bounce overlong drafts. The cap is to protect the reader, not to constrain the writer; the second post is usually stronger than the half-trimmed single post.
 
 ## Frontmatter
 

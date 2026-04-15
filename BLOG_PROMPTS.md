@@ -22,6 +22,13 @@ This was buried at the end of earlier prompts and got skipped by three of six ag
 
 Professional and specific, not bitter. Readers evaluating Trainium benefit more from that candor than from a post that pretends everything was smooth. See the brief for the detailed stance on both.
 
+## Voice and length — checked at editorial review
+
+Two non-negotiable constraints on every post:
+
+- **Voice:** fair, objective, self-effacing, lightly funny when warranted. Maintainer-talking-to-maintainer-over-coffee, not marketing-speak. Editorial review enforces this; posts that read as triumph-narrative or as point-scoring against alternatives get sent back with specific edits. Full guidance in the [author brief](https://trnsci.dev/blog/AUTHOR_BRIEF/) under "Voice — fair, objective, self-effacing, lightly funny when warranted."
+- **Length:** **2,000 words hard cap.** Working range 1,200–2,000. The editor measures word count at review time. Drafts over 2,000 must split into two posts before merge — the second post is usually stronger than the half-trimmed single post.
+
 ---
 
 ## One-time setup: pointer in each sub-project's `CLAUDE.md`
