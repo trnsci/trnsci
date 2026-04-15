@@ -67,6 +67,18 @@ across three of them:
   engines"; it's "the RNG output doesn't need to leave SBUF to be
   consumed by the next stage."
 
+```mermaid
+flowchart LR
+  CTR[("Counter<br/>(P, 1) uint32")]
+  GPS["GpSimd<br/>Philox 4×32-10<br/>10 rounds"]
+  U[("Uniform<br/>uint32 stream")]
+  VE["Vector Engine<br/>Box-Muller<br/>cos / sin / log / sqrt"]
+  N[/"Normals<br/>SBUF-resident"/]
+  DS["Downstream<br/>(trnfft STFT noise,<br/>trnblas stochastic trace)"]
+  CTR --> GPS --> U --> VE --> N
+  N -.no HBM round-trip.-> DS
+```
+
 Philox was chosen specifically because it is stateless: outputs are a pure
 function of `(counter, key)`. Partition-axis splitting on Trainium's 128-
 lane tile is then trivially correct — lane `i` gets counter range `[i·N,
@@ -156,6 +168,15 @@ Every scalar fed into a Vector Engine op (the `1e-10` clamp, the `-2.0`,
 the `2π`) is materialized as a `(P, 1)` vector-immediate up front. The
 reason is in the next section.
 
+!!! info "Why the next section exists"
+    The full curated NKI test suite runs in **~7 seconds on
+    `ubuntu-latest`** via `TRNRAND_USE_SIMULATOR=1 pytest -m nki_simulator`,
+    versus **~2 minutes** for the equivalent hardware path (SSM round-trip
+    + cold NEFF compile on trn1.2xlarge) — about **17× faster iteration**.
+    Without it, two failed decompositions plus a precision-loss trace
+    would have been several hours of hardware time rather than a single
+    afternoon.
+
 ## What didn't work
 
 Three things, two of them algorithmic and one structural. All three are
@@ -230,30 +251,15 @@ above. Tracked in
 
 ## Numbers
 
-There are no hardware speed numbers worth publishing yet, for the
-reason in the section above — the kernel runs, but the output is
-wrong until aws-neuron-sdk#1308 lands. This section inverts the
-usual blog-post ordering and leads with correctness instead. Three
-concrete numbers from 0.3.0:
+No hardware speed numbers worth publishing yet — see above for why.
+What's verifiable today:
 
-- **CPU reference: Salmon SC'11 test vectors, 3/3 exact.** The
-  `philox4x32_reference` path in `trnrand.nki.dispatch` matches all
-  three published test vectors from Salmon et al., SC'11 bit-exactly.
-  This is the oracle the NKI kernel is validated *against*.
-- **CPU reference: 100,000-sample mean 0.5000 ± 0.01, variance 1/12
-  ± 0.005.** Distributional tests in
-  `tests/test_nki_philox.py::TestPhiloxReference`.
-- **NKI kernel: simulator 4/6 xfail, hardware 3/3 fail.** All
-  attributable to aws-neuron-sdk#1308. No speedup number to report
-  until that lands.
-
-One cost number worth calling out: the CPU simulator loop
-(`TRNRAND_USE_SIMULATOR=1 pytest -m nki_simulator`) runs the full
-curated NKI test suite in **~7 seconds on `ubuntu-latest`**. The
-equivalent hardware run via SSM on trn1.2xlarge costs ~2 minutes
-(cold NEFF compile + SSM round-trip) — about 17× slower. That's
-the "seconds per cycle vs minutes on hardware" number, and it's why
-the bug above was trackable at all.
+| Measurement                                              | Value                            | Source                                          |
+|----------------------------------------------------------|----------------------------------|-------------------------------------------------|
+| Salmon SC'11 test vectors, CPU reference                 | 3 / 3 exact                      | `tests/test_nki_philox.py::TestPhiloxReference` |
+| 100k-sample uniform, CPU reference                       | mean 0.5000 ± 0.01, var 1/12 ± 0.005 | same file, distributional tests             |
+| NKI kernel on simulator                                  | 4 / 6 xfail (aws-neuron-sdk#1308) | `tests/test_nki_sim.py`                        |
+| NKI kernel on trn1 hardware                              | 3 / 3 fail (same root cause)     | `tests/test_nki_philox.py::TestPhiloxNKI`       |
 
 ## What's next
 
