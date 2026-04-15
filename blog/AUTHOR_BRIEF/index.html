@@ -4911,10 +4911,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#submitting" class="md-nav__link">
+  <a href="#submitting-pr-only-no-direct-commits" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Submitting
+        Submitting — PR only, no direct commits
       
     </span>
   </a>
@@ -5069,13 +5069,23 @@ We built a butterfly kernel…</p>
 </code></pre></div>
 <p>No <code>authors:</code> line for technical deep-dives.</p>
 <p>Slug and filename: <code>docs/blog/posts/&lt;YYYY-MM-DD&gt;-&lt;short-slug&gt;.md</code>. Keep slugs short — <code>2026-04-13-fft-without-complex-dtype.md</code>, not the full title.</p>
-<h2 id="submitting">Submitting<a class="headerlink" href="#submitting" title="Permanent link">&para;</a></h2>
+<h2 id="submitting-pr-only-no-direct-commits">Submitting — PR only, no direct commits<a class="headerlink" href="#submitting-pr-only-no-direct-commits" title="Permanent link">&para;</a></h2>
+<p><strong>Do not commit the post directly to <code>main</code>. Do not push only to a branch. The PR is how editorial review happens; skipping it is an editorial failure, not a speed win.</strong></p>
+<p>Exact steps, in order:</p>
 <ol>
-<li>Open a PR against <a href="https://github.com/trnsci/trnsci">trnsci/trnsci</a> with the post at <code>docs/blog/posts/&lt;YYYY-MM-DD&gt;-&lt;slug&gt;.md</code>.</li>
-<li>Scott (as suite director) reviews for editorial consistency — structural edits, fact-checks against the repo, smoothing. Technical content isn't rewritten.</li>
-<li>Expect one or two review rounds.</li>
+<li>Draft the post on a branch in the umbrella repo (<code>trnsci/trnsci</code>) named <code>blog-&lt;library&gt;-&lt;short-slug&gt;</code> (e.g. <code>blog-trnfft-no-complex-dtype</code>).</li>
+<li>Commit the post to <code>docs/blog/posts/&lt;YYYY-MM-DD&gt;-&lt;slug&gt;.md</code> on that branch.</li>
+<li>Push the branch to <code>origin</code>.</li>
+<li>Open a pull request against <code>main</code>:
+   <div class="highlight"><pre><span></span><code>gh pr create --repo trnsci/trnsci --base main --head &lt;branch&gt; \
+  --title &quot;blog: &lt;library&gt; — &lt;title&gt;&quot; \
+  --body &quot;Ready for editorial review.&quot;
+</code></pre></div></li>
+<li><strong>Do not merge the PR yourself.</strong> Scott (suite director) reviews for structural consistency, fact-checks against the repo, and merges when ready.</li>
+<li>Expect one or two rounds of review comments. Technical content isn't rewritten; your voice stays.</li>
 <li>On merge, the post appears at <code>trnsci.dev/blog/</code> within minutes (on push) or by 06:00 UTC the next day (daily cron).</li>
 </ol>
+<p>Posts that land on <code>main</code> without review are treated as a process miss and may need to be reverted + replayed through PR. The review step catches both factual errors and tone drift that's hard to see from inside the post.</p>
 <h2 id="optional-pre-draft-pitch">Optional pre-draft pitch<a class="headerlink" href="#optional-pre-draft-pitch" title="Permanent link">&para;</a></h2>
 <p>For sanity-checking scope and angle before investing the writing time: open a GitHub issue on <a href="https://github.com/trnsci/trnsci/issues">trnsci/trnsci</a> with label <code>blog-pitch</code>. Title + 3-sentence abstract. Lightweight.</p>
 <h2 id="questions">Questions<a class="headerlink" href="#questions" title="Permanent link">&para;</a></h2>
