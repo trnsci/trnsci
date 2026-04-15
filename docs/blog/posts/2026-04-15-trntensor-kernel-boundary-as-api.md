@@ -6,7 +6,9 @@ comments: true
 
 # trntensor: when the kernel boundary is the API
 
-trntensor Phase 1 landed: the 2-index and batched `nc_matmul` NKI kernels validate on trn1, `ContractionPlan.backend` reports `"nki"` when shapes qualify, and two fused multi-step primitives — a DF-MP2 correlation-energy kernel and a 4-index AO→MO integral transform — run the contract → elementwise → reduce and contract → SBUF-resident → contract patterns as single NKI programs. The architectural point isn't "einsum on Trainium." It's that the kernel boundary is the design surface: what cuTENSOR hides behind a `Plan` object, NKI asks you to lay out in source. More work, but also where a tensor library can become a cuTENSOR superset rather than a port.
+trntensor Phase 1 landed. The 2-index and batched `nc_matmul` NKI kernels validate on trn1. `ContractionPlan.backend` now reports `"nki"` when shapes qualify, `"pytorch"` otherwise — plan-time transparency about where work will actually land. And two fused multi-step primitives — a DF-MP2 correlation-energy kernel and a 4-index AO→MO integral transform — run contract → elementwise → reduce and contract → SBUF-resident → contract as single NKI programs.
+
+The architectural point isn't "einsum on Trainium." It's that the kernel boundary is the design surface: what cuTENSOR hides behind a `Plan` object, NKI asks you to lay out in source. More work, but also where a tensor library can become a cuTENSOR superset rather than a port.
 
 <!-- more -->
 
@@ -65,7 +67,7 @@ The `mp2_energy_kernel`, per `(i, j)` orbital pair:
 def mp2_energy_kernel(B, eps_occ, eps_vir):
     NOCC, NVIR, NAUX = B.shape
     partial = nl.ndarray((NOCC, NOCC), dtype=nl.float32, buffer=nl.shared_hbm)
-    ev = nl.load(eps_vir[0:NVIR, 0:1])  # 2D for unambiguous partition dim
+    ev = nl.load(eps_vir[0:NVIR, 0:1])
 
     for i in nl.affine_range(NOCC):
         Bi_t = nl.load_transpose2d(B[i, 0:NVIR, 0:NAUX])
@@ -81,13 +83,11 @@ def mp2_energy_kernel(B, eps_occ, eps_vir):
             nisa.nc_matmul(dst=psum_T,  stationary=Bi_t, moving=Bj_t, accumulate=True)
             nisa.nc_matmul(dst=psum_Tt, stationary=Bj_t, moving=Bi_t, accumulate=True)
 
-            # PSUM → SBUF (NKI 0.3.0 requires explicit copy)
             t   = nl.ndarray((NVIR, NVIR), dtype=B.dtype, buffer=nl.sbuf)
             t_T = nl.ndarray((NVIR, NVIR), dtype=B.dtype, buffer=nl.sbuf)
             nisa.tensor_copy(src=psum_T,  dst=t)
             nisa.tensor_copy(src=psum_Tt, dst=t_T)
 
-            # Vector Engine: Δ_ab = (ε_i+ε_j) - ε_a - ε_b
             denom = nl.subtract(nl.subtract(eo_sum, ev), ev.reshape((1, NVIR)))
 
             # term = T * (2T - T^T) / Δ  (divide-as-reciprocal for 0.3.0)
