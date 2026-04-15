@@ -1,9 +1,8 @@
 ---
-date: 2026-04-DD
+date: 2026-04-14
 authors: [scttfrdmn]
 categories: [Ecosystem]
 comments: true
-draft: true
 ---
 
 # The dev loop just got a lot shorter
@@ -39,16 +38,12 @@ So the honest framing: the dev loop is dramatically faster, the coverage is good
 
 ## What this means for the suite
 
-Adoption is underway across the six libraries this week. trnblas shipped the reference implementation (commits [`f24993b`](https://github.com/trnsci/trnblas/commit/f24993b) for the dispatch pattern, [`77eeb82`](https://github.com/trnsci/trnblas/commit/77eeb82) for the CI job). The other five — trnfft, trnrand, trnsolver, trnsparse, trntensor — are tracking their adoption in sister issues under the [suite coordination issue](https://github.com/trnsci/trnsci/issues/5).
+Adoption is complete across all six libraries as of this week. trnblas was the pathfinder, landing the dispatch pattern in commit [`f24993b`](https://github.com/trnsci/trnblas/commit/f24993b) and the `nki-simulator` CI job in [`77eeb82`](https://github.com/trnsci/trnblas/commit/77eeb82); trnfft, trnrand, trnsolver, trnsparse, and trntensor each followed with their own implementations matching that shape. Coordination tracked in [trnsci/trnsci#5](https://github.com/trnsci/trnsci/issues/5).
 
-Once adoption is complete across all six, a contributor can make NKI kernel changes to any library without any AWS account, any trn1 instance, or any SDK install on their laptop. The `[dev]` extras pull in the simulator; `pytest -m nki_simulator` runs locally; a PR opens a simulator-gated run on GitHub Actions. That's the threshold where NKI kernel contribution goes from "expert-only" to "anyone who knows Python and a little linear algebra."
+With adoption complete, a contributor can now make NKI kernel changes to any library without any AWS account, any trn1 instance, or any SDK install on their laptop. The `[dev]` extras pull in the simulator; `pytest -m nki_simulator` runs locally; a PR opens a simulator-gated run on GitHub Actions. That's the threshold where NKI kernel contribution goes from "expert-only" to "anyone who knows Python and a little linear algebra."
 
 ## A thank-you and a small ask
 
 This landed because the AWS Neuron team took the simulator seriously as a first-class feature rather than a debug tool, and because they published the `nki` wheel to the pip index in a form that works on generic Linux runners. Both of those were real decisions that made this week possible.
 
 The small ask: a device-free NEFF compile entry point would let us add a third gate (shape/MLIR verification on `ubuntu-latest` with no device), filling the one gap in the current pipeline. If that's on the roadmap, it's worth calling out. If it isn't, that's a concrete request.
-
----
-
-*Draft note: this post is sitting behind a `draft: true` frontmatter flag and on the `blog/nki-0-3-simulator-milestone` branch. Flip `draft` to `false` and merge when adoption lands across all five sister libraries. Replace the `YYYY-MM-DD` in the date / filename with the actual publish date.*
