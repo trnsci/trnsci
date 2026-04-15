@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/2026/04/14/trnsparse-the-tile-is-the-unit-not-the-nonzero/">
+        <link rel="canonical" href="https://trnsci.dev/blog/2026/04/14/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">
       
       
-        <link rel="prev" href="../../13/hello-trnsci/">
+        <link rel="prev" href="../trnsparse-the-tile-is-the-unit-not-the-nonzero/">
       
       
-        <link rel="next" href="../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">
+        <link rel="next" href="../trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>trnsparse: the tile is the unit, not the nonzero - trnsci</title>
+        <title>trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice - trnsci</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trnsparse-the-tile-is-the-unit-not-the-nonzero" class="md-skip">
+        <a href="#trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trnsparse: the tile is the unit, not the nonzero
+              trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice
             
           </span>
         </div>
@@ -5059,17 +5059,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fit-where-bsr-works-and-where-it-doesnt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fit — where BSR works and where it doesn't
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#numbers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5151,7 +5140,7 @@
                             in
                             
                               <a href="../../../../category/deep-dive/">Deep dive</a>, 
-                              <a href="../../../../category/trnsparse/">trnsparse</a></span>
+                              <a href="../../../../category/trnsolver/">trnsolver</a></span>
                         </div>
                       </li>
                     
@@ -5162,7 +5151,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              11 min read
+                              9 min read
                             
                           </span>
                         </div>
@@ -5189,226 +5178,131 @@
   
 
 
-<h1 id="trnsparse-the-tile-is-the-unit-not-the-nonzero">trnsparse: the tile is the unit, not the nonzero<a class="headerlink" href="#trnsparse-the-tile-is-the-unit-not-the-nonzero" title="Permanent link">&para;</a></h1>
-<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0 last week, and the benchmark table was publicly worse than scipy across every configuration that was run. That's not a failure — it's the piece of evidence that led to the reframe that v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. This post is the retrospective — what shipped, what the numbers actually said, and why the honest story is that the CUDA sparse playbook is the wrong starting point for this hardware.</p>
+<h1 id="trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice">trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice<a class="headerlink" href="#trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice" title="Permanent link">&para;</a></h1>
+<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count and is what every numerical-linear-algebra textbook reaches for. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. This post is how trnsolver's Phase 1 got there, what the hardware kept telling it, and which blind alleys it walked first.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p><a href="https://trnsci.dev/trnsparse/">trnsparse</a> is trnsci's cuSPARSE-equivalent: CSR and COO formats, SpMV, SpMM, integral screening for quantum chemistry. The workloads that motivate it — Schwarz-screened Fock builds, block-structured Hamiltonians, graph Laplacians, block-sparse attention — share an awkward property. They are <em>sparse</em> in a general sense (most entries are zero), but the distribution of those zeros is almost never uniform. Fock matrices after Schwarz screening are dense in diagonal blocks and sparse off-diagonal. FEM stiffness matrices track mesh connectivity. Block-sparse transformer attention is a structured mask.</p>
-<p>cuSPARSE handles all of this with a CSR-native design: row pointers, column indices, scalar values, a bag of kernels tuned for a GPU's ability to do arbitrary-pattern indirect gather cheaply. Thousands of threads each chasing one pointer is what GPU memory hierarchies are built for. A naive port of that design to Trainium is where trnsparse started, and where the numbers told it to stop.</p>
+<p>Symmetric eigendecomposition is the hot loop inside <code>FC = SCε</code> — the SCF step in quantum chemistry — and the first place trnsolver has to own the NKI backend end-to-end. Trainium ships no LAPACK. The naive port would grab a Householder-based symmetric eigensolver from scipy or from a textbook, wire it through NKI kernels, tune for tile sizes, and ship it. That matches cuSOLVER's shape: Householder tridiagonalization followed by implicit-shift QR on the tridiagonal.</p>
+<p>The problem with that path isn't that it's slow. Every architecturally-tempting move the textbook implies runs into friction with NKI 0.3.0 at the kernel-dispatch layer. The rest of this post is what trnsolver learned trying.</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p>Trainium's Tensor Engine is a 128-partition × 512-moving systolic array. <code>nisa.nc_matmul</code> is the hot op, and it operates on a tile — partition dim ≤ 128 on the stationary operand, free dim ≤ 512 on the moving operand. A single <code>nc_matmul</code> is a dense 128×K×N multiply. The DMA engine handles memory movement between HBM and SBUF, but — and this matters for sparse workloads — <strong>as of NKI 2.24 / 0.3.0, the DMA engine does not expose an indirect-gather primitive at the kernel level</strong>. Scatter-gather is a pattern the silicon supports in principle; the language doesn't expose it yet.</p>
-<p>That combination — tile-shaped compute, no per-element indirect gather — has a specific consequence. The natural unit of sparse work on Trainium is not a single nonzero. It's a 128×128 block.</p>
-<p>A format that stores sparse matrices as 128×128 dense blocks, with a block-level CSR pattern over which blocks are nonzero, maps one-to-one onto the Tensor Engine. Each nonzero block is already in the shape <code>nc_matmul</code> wants — no gather step. The block-level pattern is a much smaller sparse structure that fits cleanly in host-side dispatch. Zero blocks are skipped in the dispatch loop.</p>
-<p>This is Block-Sparse Row (BSR) at <code>block_size = 128</code>. cuSPARSE has a BSR implementation, but it's a secondary format there — a specialization. On Trainium it's not a specialization; it's the format the hardware asks for. cuSPARSE's BSR is a port back. Trainium's BSR is native.</p>
-<p><strong>CSR and COO stop being compute formats</strong> on the NKI path. They're interop — how scipy users hand matrices in, how ERIs come out of a chemistry code, how graph adjacencies arrive from PyTorch Geometric. The compute path converts to BSR at dispatch time, runs at tile granularity, returns dense. And <strong>block density matters much more than element density</strong>: a Fock matrix at 99.5% zero might have 30% of its 128×128 blocks storing something. That's the density BSR cares about, and the one that stays modest for the structured workloads that motivated the library.</p>
-<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<p>v0.2.0 shipped as the correctness path. The NKI kernel — <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/nki/kernels.py"><code>_spmm_dense_kernel</code></a> — does the simplest thing that validates the Neuron toolchain: materialize CSR into a dense <code>(M, K)</code> tile on the host, pad to tile multiples, dispatch a stationary-A GEMM. Effectively the <a href="https://github.com/trnsci/trnblas/blob/main/trnblas/nki/dispatch.py">trnblas GEMM pattern</a> with a trivial preamble. No sparsity exploitation.</p>
-<p>The deliberate tradeoff: publicly slow. At 1024×1024 / density 0.001 / N=128, this does roughly 1000× more arithmetic than scipy. The benchmark table in v0.2.0 documents that directly. The reason to ship it: the full toolchain — compile, NEFF cache, XLA dispatch, PyTorch integration, <code>torch.autograd.Function</code>-wrapped backward — had to be wired end-to-end before the project could credibly commit to BSR. v0.2.0 is the evidence that said "the pipeline works; the shape of the work is wrong."</p>
-<p>v0.3.0 introduced <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/formats.py"><code>BSRMatrix</code></a> and <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py"><code>bsr_spmm</code></a> as the headline. CSR stays in the API — users bring CSR from elsewhere, and the vectorized CPU fallback is within 2× of scipy — but the NKI compute story runs through BSR. v0.4.0 layered on <a href="https://github.com/trnsci/trnsparse/blob/main/trnsparse/ops.py"><code>screened_spmm</code></a>: a single <code>@nki.jit</code> kernel fuses Schwarz bounds, mask application, and matmul. The unfused equivalent is four host passes plus a separate CSR construction before the matmul. The fused flow is one dispatch, no mask tensor on HBM, no separate format conversion. That's the second architectural pattern Trainium makes natural and CUDA doesn't reach for.</p>
-<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>The BSR kernel, stripped of docstrings and padding:</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_bsr_spmm_kernel</span><span class="p">(</span><span class="n">blocks_pad</span><span class="p">,</span> <span class="n">b_gathered</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Block-sparse × dense matmul via per-block nc_matmul.&quot;&quot;&quot;</span>
-    <span class="n">M_tiles</span><span class="p">,</span> <span class="n">K_max</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">blocks_pad</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">b_gathered</span><span class="o">.</span><span class="n">shape</span>
-
-    <span class="n">TILE_M</span> <span class="o">=</span> <span class="mi">128</span>  <span class="c1"># fixed by BSR block_size</span>
-    <span class="n">TILE_N</span> <span class="o">=</span> <span class="n">N</span> <span class="k">if</span> <span class="n">N</span> <span class="o">&lt;=</span> <span class="mi">512</span> <span class="k">else</span> <span class="mi">512</span>
-
-    <span class="n">out</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">M_tiles</span> <span class="o">*</span> <span class="n">TILE_M</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span>
-                     <span class="n">dtype</span><span class="o">=</span><span class="n">blocks_pad</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">M_tiles</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="n">TILE_N</span><span class="p">):</span>
-            <span class="n">psum</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">TILE_M</span><span class="p">,</span> <span class="n">TILE_N</span><span class="p">),</span>
-                            <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">psum</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">K_max</span><span class="p">):</span>
-                <span class="n">a_t</span>    <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load_transpose2d</span><span class="p">(</span><span class="n">blocks_pad</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span>
-                <span class="n">b_tile</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">b_gathered</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="p">:,</span>
-                                            <span class="n">n</span> <span class="o">*</span> <span class="n">TILE_N</span><span class="p">:(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">TILE_N</span><span class="p">])</span>
-                <span class="n">psum</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">a_t</span><span class="p">,</span> <span class="n">b_tile</span><span class="p">)</span>
-            <span class="n">c_sbuf</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">psum</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">blocks_pad</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-            <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="n">m</span> <span class="o">*</span> <span class="n">TILE_M</span><span class="p">:(</span><span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">TILE_M</span><span class="p">,</span>
-                          <span class="n">n</span> <span class="o">*</span> <span class="n">TILE_N</span><span class="p">:(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">TILE_N</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">c_sbuf</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">out</span>
-</code></pre></div>
-<p>The host-side preamble pads each block-row to the same <code>K_max</code> with zero blocks so the kernel's <code>affine_range</code> bounds are fixed. That padding is the honest admission: block-rows with fewer stored blocks pay for the max. The alternative — row-bucketing by nnz (<a href="https://github.com/trnsci/trnsparse/issues/15">#15</a>) — requires an indirect-DMA primitive that NKI 2.24/0.3.0 does not expose.</p>
-<p>The autograd wrapper, which is the suite's reference pattern for satisfying the cross-project differentiability requirement in <a href="https://github.com/trnsci/trnsci/issues/3">trnsci/trnsci#3</a>:</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">_BSRSpMMFunction</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">A_blocks</span><span class="p">,</span> <span class="n">A_block_col_indices</span><span class="p">,</span> <span class="n">A_block_row_ptrs</span><span class="p">,</span>
-                <span class="n">A_shape</span><span class="p">,</span> <span class="n">A_block_size</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
-        <span class="c1"># Host-side pad + gather + NKI dispatch (or simulator / PyTorch fallback)</span>
-        <span class="o">...</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">save_for_backward</span><span class="p">(</span><span class="n">A_blocks</span><span class="p">,</span> <span class="n">A_block_col_indices</span><span class="p">,</span> <span class="n">A_block_row_ptrs</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">A_shape</span> <span class="o">=</span> <span class="n">A_shape</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">A_block_size</span> <span class="o">=</span> <span class="n">A_block_size</span>
-        <span class="k">return</span> <span class="n">C</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">grad_out</span><span class="p">):</span>
-        <span class="c1"># dA_blocks[k] = grad_out[rowblock*b:(rowblock+1)*b]</span>
-        <span class="c1">#                @ B[col*b:(col+1)*b].T  (pattern stays fixed)</span>
-        <span class="c1"># dB           = A.T @ grad_out   (reconstruct A dense)</span>
-        <span class="o">...</span>
-</code></pre></div>
-<p>Backward runs at the PyTorch level. The mask (which blocks exist) is non-differentiable by construction. <code>torch.autograd.gradcheck</code> at <code>atol=1e-4</code> passes on hardware; this pattern now ships for three NKI kernels (CSR SpMM in v0.2.0, BSR SpMM in v0.3.0, fused screened SpMM in v0.4.0).</p>
-<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p>This is the richest section of the post, because several things went sideways in instructive ways.</p>
-<p><strong>v0.2.0's benchmark numbers were worse than planning assumed.</strong> The expectation going in was "dense-materialization will be slower at low densities, but the high-N dispatch win narrows the gap."</p>
-<p>The measured gap at 1024×1024 / density 0.01 / N=128: <strong>scipy at 257 μs, trnsparse NKI at 2212 μs.</strong></p>
-<p>The reason turned out to be dispatch overhead, not arithmetic — NKI times are roughly constant at 1.3–2.5 ms across all configurations tested, because the Neuron dispatch + HBM round-trip floor is flat and big. The <a href="https://trnsci.dev/trnsparse/benchmarks/">full benchmark table</a> ships with all the entries where NKI loses by 100×. None were removed before release.</p>
-<p><strong>CG-in-kernel isn't buildable on NKI 2.24/0.3.0.</strong> <a href="https://github.com/trnsci/trnsparse/issues/24">#24</a> was filed early as the v0.4.0 architectural follow-up: a fused Conjugate Gradient kernel with <code>A</code> SBUF-resident across all <code>max_iter</code> iterations, x/r/p cycled inside the kernel. This was the story. The audit that killed it found three hard walls: <code>nl.affine_range</code> has no <code>break</code>/<code>continue</code>, so no in-kernel convergence exit; no iteration-carried scalar state across <code>affine_range</code> levels (documented in the <code>trnblas _mp2_energy_kernel</code> source at <code>dispatch.py:586-588</code> as "<code>in-place += across affine_range hits NKI's 'Unexpected output dependencies'</code>"); and no nested kernel calls, so the BSR matvec would have to be inlined rather than invoked. #24 is closed as not-buildable in current NKI. An honest close comment explains the reframe and leaves the door open for a future NKI release that adds persistent SBUF across calls, at which point the full loop-in-kernel design becomes reachable again. What shipped instead was v0.3.2 <code>cg_bsr</code> — Python-loop around the existing <code>bsr_spmm</code> matvec, correct and differentiable but without the SBUF-resident win.</p>
-<p><strong>NKI 0.3.0 migration breaking changes are MLIR-level, not Python-level.</strong> The library migrated to the top-level <code>nki.*</code> namespace on 2026-04-14 (<a href="https://github.com/trnsci/trnsci/issues/5">trnsci/trnsci#5</a>). The moves to watch — <code>nc_matmul</code> keyword-only arguments, <code>nl.copy</code> returning a view of PSUM, <code>nl.divide</code> dropped in favor of <code>nl.multiply</code> + <code>nl.reciprocal</code> — manifest at the MLIR verifier layer, not in a Python trace. The trnsparse kernels were already compliant by coincidence (modelled on trnblas, which did the audit first), so no functional change. For kernels written less cautiously, hardware CI stays the gate that catches these.</p>
-<p><strong>The autograd wrapper's block-gradient projection needed care.</strong> The natural first cut — differentiate through <code>BSRMatrix.from_dense</code> — flowed gradients back through the block-selection logic, which is structurally wrong because block selection is non-differentiable. The shipped wrapper stores block-col-indices and block-row-ptrs in <code>ctx</code> and routes <code>grad_out[rowblock*b:(rowblock+1)*b] @ B[col*b:(col+1)*b].T</code> into exactly the stored blocks. <code>torch.autograd.gradcheck</code> on a tiny synthetic system was the only thing that would have caught the first version.</p>
-<p><strong>Simulator coverage is narrower than the headline suggests.</strong> The <a href="https://trnsci.dev/blog/the-dev-loop-just-got-a-lot-shorter/">NKI 0.3.0 simulator write-up</a> covers this in detail; the trnsparse-specific note is that <code>nki.simulate</code> catches Python-layer errors but not MLIR verifier errors, so hardware CI stays load-bearing for anything touching partition-dim broadcasting or shared-memory barriers. A device-free NEFF compile entry point would close this gap; a concrete request for the Neuron team.</p>
-<h2 id="fit-where-bsr-works-and-where-it-doesnt">Fit — where BSR works and where it doesn't<a class="headerlink" href="#fit-where-bsr-works-and-where-it-doesnt" title="Permanent link">&para;</a></h2>
-<p>Trainium is well-indexed for dense-GEMM-heavy training — its original motivating workload. trnsparse's Fock-build and block-sparse attention cases are a decent fit because they're block-dense at 128×128. Truly irregular sparse matmul (random CSR at density 0.001, highly variable nnz per row) is a shape mismatch with the silicon, not a library limitation. When a workload doesn't fit BSR — graph neural networks over non-uniform adjacency, for instance — the library recommends the <code>torch.sparse</code> fallback, not the NKI path. A future silicon generation that exposes indirect DMA gather would unblock a real gather-matmul-scatter path; that's a concrete hardware request.</p>
-<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>All numbers below are on <code>trn1.2xlarge</code> with the DLAMI <code>ami-07f81955eadf5b89c</code> (2026-04-10 build, <code>neuronxcc==2.24.5133</code> alongside <code>nki==0.3.0</code>). CPU baselines run on the same instance's Xeon.</p>
-<p><strong>v0.2.0 CSR SpMM, mean time in μs.</strong> Lower is better. Columns are size <code>M=K</code>, density, <code>N</code> (RHS width).</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;">Size</th>
-<th style="text-align: right;">Density</th>
-<th style="text-align: right;">N</th>
-<th style="text-align: right;">scipy</th>
-<th style="text-align: right;">torch.sparse</th>
-<th style="text-align: right;">trnsparse pytorch</th>
-<th style="text-align: right;">trnsparse nki</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">0.001</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">8.8</td>
-<td style="text-align: right;">15.4</td>
-<td style="text-align: right;">48.3</td>
-<td style="text-align: right;">1397</td>
-</tr>
-<tr>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">0.001</td>
-<td style="text-align: right;">128</td>
-<td style="text-align: right;">7.6</td>
-<td style="text-align: right;">29.1</td>
-<td style="text-align: right;">44.7</td>
-<td style="text-align: right;">1365</td>
-</tr>
-<tr>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">0.01</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">8.8</td>
-<td style="text-align: right;">15.6</td>
-<td style="text-align: right;">28.9</td>
-<td style="text-align: right;">1248</td>
-</tr>
-<tr>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">0.01</td>
-<td style="text-align: right;">128</td>
-<td style="text-align: right;">20.4</td>
-<td style="text-align: right;">27.5</td>
-<td style="text-align: right;">41.7</td>
-<td style="text-align: right;">1370</td>
-</tr>
-<tr>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">40.0</td>
-<td style="text-align: right;">18.5</td>
-<td style="text-align: right;">31.7</td>
-<td style="text-align: right;">1278</td>
-</tr>
-<tr>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">128</td>
-<td style="text-align: right;">137</td>
-<td style="text-align: right;">34.2</td>
-<td style="text-align: right;">48.6</td>
-<td style="text-align: right;">1428</td>
-</tr>
-<tr>
-<td style="text-align: right;">1024</td>
-<td style="text-align: right;">0.001</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">14.4</td>
-<td style="text-align: right;">28.9</td>
-<td style="text-align: right;">43.4</td>
-<td style="text-align: right;">1732</td>
-</tr>
-<tr>
-<td style="text-align: right;">1024</td>
-<td style="text-align: right;">0.001</td>
-<td style="text-align: right;">128</td>
-<td style="text-align: right;">39.8</td>
-<td style="text-align: right;">27.2</td>
-<td style="text-align: right;">47.0</td>
-<td style="text-align: right;">2067</td>
-</tr>
-<tr>
-<td style="text-align: right;">1024</td>
-<td style="text-align: right;">0.01</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">72.4</td>
-<td style="text-align: right;">31.8</td>
-<td style="text-align: right;">48.1</td>
-<td style="text-align: right;">1847</td>
-</tr>
-<tr>
-<td style="text-align: right;">1024</td>
-<td style="text-align: right;">0.01</td>
-<td style="text-align: right;">128</td>
-<td style="text-align: right;">257</td>
-<td style="text-align: right;">46.5</td>
-<td style="text-align: right;">72.5</td>
-<td style="text-align: right;">2212</td>
-</tr>
-<tr>
-<td style="text-align: right;">1024</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">609</td>
-<td style="text-align: right;">75.0</td>
-<td style="text-align: right;">95.5</td>
-<td style="text-align: right;">2151</td>
-</tr>
-<tr>
-<td style="text-align: right;">1024</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">128</td>
-<td style="text-align: right;">2475</td>
-<td style="text-align: right;">248</td>
-<td style="text-align: right;">274</td>
-<td style="text-align: right;">2479</td>
-</tr>
-</tbody>
-</table>
-<p>At every data point, the NKI column is slower than both CPU backends. This is the v0.2.0 shipping posture: correctness first, not speed. Two structural reasons, both honest:</p>
+<p>Start from the 128×128 partition tile, set aside all existing algorithms, and ask: what dense-eigendecomposition moves does this hardware actually make cheap?</p>
+<p>The Tensor Engine is a systolic array with a stationary operand and a streaming operand. It's built to reuse one matrix across many applications of another. Its natural operation is a GEMM with at least one operand resident in SBUF across many invocations. Its partition dim tops out at 128 (<code>PMAX</code>), so anything expressing parallelism on that axis has to fit that budget. PSUM accumulates in FP32 regardless of input precision — mixed precision is free at the matmul boundary.</p>
+<p>Two eigendecomposition primitives look attractive against that shape:</p>
 <ol>
-<li><strong>No sparsity exploitation.</strong> The v0.2.0 kernel materializes the CSR into a dense <code>(M, K)</code> tile before the matmul. At density 0.001 on a 1024×1024 matrix, this is 1000× more work than scipy does. The fused path from v0.3.0 onward operates on BSR, which doesn't pay this cost.</li>
-<li><strong>Dispatch overhead dominates.</strong> The NKI column is roughly constant at 1.3–2.5 ms across densities. That's the Neuron dispatch + HBM round-trip floor, not the arithmetic. At these sizes, a kernel launch is more expensive than the matmul itself.</li>
+<li>
+<p><strong>Householder reflector</strong> <code>I − 2 v vᵀ</code>. The update <code>A ← A − 2 v (vᵀA)</code> is a rank-1 outer product. Stationary v, streaming A. PSUM accumulates the sum. This looks like exactly what the Tensor Engine was built for.</p>
+</li>
+<li>
+<p><strong>Givens rotation</strong> on a disjoint pair of rows/columns <code>(p, q)</code>. The update is a 2×2 rotation matrix applied to two n-element rows. In a batched Jacobi sweep, n/2 rotations on disjoint pairs commute; they can apply in parallel. A single sweep round maps to one NKI kernel call that rotates n/2 pairs at strided positions.</p>
+</li>
 </ol>
-<p><strong>v0.3.0 BSR SpMM.</strong> At 10% block density on <code>4 × 4</code> block grids with <code>N=128</code>, BSR-NKI is 1.85 ms vs BSR-PyTorch 0.11 ms — NKI still loses because dispatch overhead dominates at these sizes, but the trend flips with scale: at <code>8 × 8</code> / 50% block density / <code>N=256</code>, NKI is 3.11 ms vs PyTorch 1.05 ms (3× slower), and PyTorch itself is approaching the dense-GEMM ceiling of 0.47 ms. The architectural claim — BSR is Trainium-native — is validated at the level of "runs correctly, differentiable, on the Tensor Engine." The performance win against CPU is still ahead of the library; that's Phase 3 work.</p>
-<p>Phase 1 (correctness) landed. Phase 3 (performance) has a clear architectural shape and is not shipped.</p>
-<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
+<p>Naively, Householder wins: rank-1 matches the systolic array's dataflow, and asymptotic FLOPs for symmetric eigh via Householder-QR beat Jacobi's O(n³) per sweep × O(n) sweeps.</p>
+<p>The inversion happens at the kernel-boundary layer. Householder-QR for a symmetric matrix is inherently <strong>serial</strong>: each reflector <code>v_k</code> is computed from <code>A</code>'s state after <code>v_{k-1}</code> has been applied. The scalar quantities — the Householder norm, β = 2/(vᵀv), γ for the rank-2 update — are tiny values that feed back into big tensor operations. On NKI 0.3.0 that scalar dataflow has to traverse the kernel boundary, and every such traversal is a new traced graph for the XLA layer underneath NKI. Every new traced graph is a new NEFF compile.</p>
+<p>Jacobi's sweep round, by contrast, is <strong>data-parallel at the granularity of a single kernel call</strong>. Compute all n/2 rotation angles from <code>D</code>'s current state in one pass. Apply all n/2 rotations in a second kernel call. No per-rotation scalar dataflow across the kernel boundary. The Brent–Luk round-robin schedule fixes the pairing for each of the n-1 rounds per sweep; those permutations are pure combinatorics — int64 tables computed once on the host and reused forever.</p>
+<p>The 128-partition tile doesn't care about rank-1 vs rank-2 FLOP arithmetic at this scale. It cares about <strong>dispatch granularity</strong>. Jacobi fits the dispatch budget. Householder, applied step by step, doesn't.</p>
+<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
+<p>trnsolver's Phase 1 <code>eigh</code> is batched-sweep parallel Jacobi driven from the host:</p>
 <ul>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/15">Phase 3 — #15</a></strong> was originally scoped as row-bucketing CSR + gather-matmul-scatter. Under the BSR reframe it's backlog: CSR row-bucketing requires an indirect-DMA primitive that NKI doesn't expose. BSR at 128×128 covers the structured-sparse workloads without needing it. If NKI later exposes per-row DMA gather, #15 reopens.</li>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/22">#22 — on-chip iterative solvers</a></strong> is half-shipped: the Python-loop plumbing (<code>cg_bsr</code>, <code>power_iteration_bsr</code>) is in v0.3.2. The architectural-win half (CG loop fused inside one NKI kernel, A SBUF-resident across iterations) is parked on <a href="https://github.com/trnsci/trnsparse/issues/24">#24</a> pending NKI capability additions — closed honestly as not-buildable under current constraints.</li>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/16">Phase 4 — #16</a></strong> is sharded BSR across multiple NeuronCores. Gated on suite-level multi-chip collective primitives that don't exist in any trnsci library yet; this is pioneering territory.</li>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/17">Phase 5 — #17</a></strong> is trn2-specific DMA bandwidth exploitation. Blocked on trn2 silicon being more widely available and on the indirect-DMA story from Phase 3 reopening.</li>
-<li><strong>Block-sparse attention as a primitive</strong> — BSR at 128×128 is architecturally identical to a local-attention mask in a sparse transformer. Tracked in <a href="https://github.com/trnsci/trnsparse/issues/21">#21</a>; the writeup is an unshipped doc task.</li>
+<li>
+<p><strong>Brent–Luk round schedule</strong> computed once on the host (<code>trnsolver/_brent_luk.py</code>). For even matrix size n, this returns <code>(n-1, n)</code> int64 permutations. Applying permutation <code>perms[r]</code> to D's rows and columns lands the pair set for round r at strided positions <code>(0,1), (2,3), …, (n-2, n-1)</code>.</p>
+</li>
+<li>
+<p><strong><code>rotate_pairs_kernel</code></strong> in <code>trnsolver/nki/dispatch.py</code> — one NKI kernel that rotates n/2 disjoint row pairs at strided positions. Signature <code>(even, odd, c, s) → (new_even, new_odd)</code>, with <code>even, odd : (n/2, n)</code> and <code>c, s : (n/2, 1)</code>. Partition dim is n/2, free dim is n. For n ≤ 256 the whole thing fits a single partition tile; NKI's compile graph is stable per <code>(n/2, n, dtype)</code>.</p>
+</li>
+<li>
+<p><strong>Host driver</strong> <code>_jacobi_eigh_nki</code> in <code>trnsolver/eigen.py</code>. Per round: permute D and V into strided-pair layout, compute per-pair (c, s) from the current D diagonals and off-diagonals via a host helper (<code>_rotation_angles_strided</code>), call the kernel three times (D rows, D columns, V columns), apply a small diagonal-block fixup where row-and-column rotations double-touch the 2×2 block on the diagonal.</p>
+</li>
+<li>
+<p><strong>Simulator-first development</strong>. <code>nki.simulate(rotate_pairs_kernel)(numpy_args)</code> runs the kernel on CPU with no NEFF compile and no XLA tracing. Seconds per iteration on <code>ubuntu-latest</code> CI — the inner loop for kernel design.</p>
+</li>
+</ul>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p>The kernel is short enough to inline:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rotate_pairs_kernel</span><span class="p">(</span><span class="n">even</span><span class="p">,</span> <span class="n">odd</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rotate two stacked tiles by a per-row Givens rotation.</span>
+
+<span class="sd">    even, odd : (half, n)  — the two rows of each pair</span>
+<span class="sd">    c, s      : (half, 1)  — per-pair cosine, sine</span>
+<span class="sd">    returns new_even, new_odd — both (half, n)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">half</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">even</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">new_even</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">half</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">even</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+    <span class="n">new_odd</span>  <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">half</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">even</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+
+    <span class="n">e</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">even</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">])</span>
+    <span class="n">o</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">odd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">])</span>
+    <span class="n">c_tile</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">s_tile</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">neg_s</span>  <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">negative</span><span class="p">(</span><span class="n">s_tile</span><span class="p">)</span>
+
+    <span class="n">ne</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">c_tile</span><span class="p">),</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">neg_s</span><span class="p">))</span>
+    <span class="n">no</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">s_tile</span><span class="p">),</span> <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">c_tile</span><span class="p">))</span>
+
+    <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">new_even</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">ne</span><span class="p">)</span>
+    <span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">new_odd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">half</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">],</span>  <span class="n">value</span><span class="o">=</span><span class="n">no</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_even</span><span class="p">,</span> <span class="n">new_odd</span>
+</code></pre></div>
+<p>Two loads, four Vector-Engine element-wise ops, two stores. <code>(c, s)</code> broadcasts across the free dim. The Vector Engine is doing all the math in Phase 1 — the Tensor Engine reformulation where the 2×2 rotation block is stationary for a <code>nisa.nc_matmul</code> is the obvious next lever, and the one that finally justifies calling this "a rank-2 matmul" at the hardware layer. Phase 1's simpler form validates correctness first.</p>
+<p>The host driver's inner loop:</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">perm</span> <span class="o">=</span> <span class="n">perms</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>                              <span class="c1"># precomputed int64</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">perm</span><span class="p">][:,</span> <span class="n">perm</span><span class="p">]</span>                         <span class="c1"># row+col permute</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">V</span><span class="p">[:,</span> <span class="n">perm</span><span class="p">]</span>
+
+    <span class="n">cs</span> <span class="o">=</span> <span class="n">_rotation_angles_strided</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>             <span class="c1"># (n/2, 2)</span>
+    <span class="n">c_col</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+    <span class="n">s_col</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+
+    <span class="n">D_even</span><span class="p">,</span> <span class="n">D_odd</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">idx_p</span><span class="p">,</span> <span class="p">:],</span> <span class="n">D</span><span class="p">[</span><span class="n">idx_q</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">D_even</span><span class="p">,</span> <span class="n">D_odd</span> <span class="o">=</span> <span class="n">rotate_pairs_kernel</span><span class="p">(</span><span class="n">D_even</span><span class="p">,</span> <span class="n">D_odd</span><span class="p">,</span> <span class="n">c_col</span><span class="p">,</span> <span class="n">s_col</span><span class="p">)</span>
+    <span class="c1"># store back, repeat for D columns and V columns</span>
+</code></pre></div>
+<p><code>_rotation_angles_strided</code> is a host function: five element-wise torch ops on the strided pair diagonals. It could live in the kernel, but keeping it on the host removes a would-be scalar-intermediate dataflow from the NKI-side traced graph. Same reasoning that sank Householder.</p>
+<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
+<p>Householder-QR was the first path attempted. The simulator-side implementation landed cleanly and passed 18 correctness tests against <code>torch.linalg.eigh</code> at rtol=1e-3 for n ∈ {8, 16, 32, 64, 128}. On <code>ubuntu-latest</code>, the full suite ran in 2.67 seconds.</p>
+<p>The same code running against real trn1 hardware logged <strong>303 separate NEFF compile workdirs</strong> inside <code>/tmp/ubuntu/neuroncc_compile_workdir/</code> during a single test run before the run was cancelled. The traced XLA graph changed on every outer-loop iteration because <code>A_work</code> had a different computation history per Householder step — it had been mutated by the previous rank-2 update — and NKI compiles per traced graph, not per kernel signature. The simulator didn't surface this: <code>nki.simulate(kernel)(np_args)</code> runs the kernel logic directly on numpy, with no XLA layer and no trace cache, so the host-integration failure mode was invisible until hardware.</p>
+<p>That recompile behavior is a hard architectural statement from the compiler. A solver that wants to live inside a Python loop has to present a fixed traced graph to NKI. Householder's scalar-intermediate dataflow fights that requirement head-on. Jacobi's batched-sweep form doesn't.</p>
+<p>A handful of smaller items from the iteration:</p>
+<ul>
+<li>
+<p><strong>Single-rotation kernel dispatch.</strong> Before the batched-round design landed, an earlier kernel took <code>(p, q, c, s)</code> as scalar arguments and applied one Givens rotation per call. Same per-call-recompile pathology as Householder — the slicing indices <code>A[p:p+1, :]</code> changed per call, so every rotation was a fresh graph. A full Jacobi sweep of n²/2 rotations, each needing its own compile, is worse than unviable. The Brent–Luk permutation is the fix: indices become strided constants <code>(0,1), (2,3), …</code>, and the permutation is applied on the host.</p>
+</li>
+<li>
+<p><strong>Newton–Schulz convergence criterion.</strong> The matrix-square-root-inverse <code>inv_sqrt_spd_ns</code> that shipped alongside eigh uses a coupled <code>Y, Z</code> iteration. The first convergence test asserted <code>‖Y − I‖_F &lt; tol</code>, which is wrong — <code>Y</code> converges to <code>(A/s)^(1/2)</code>, not to <code>I</code>. The correct test is <code>‖Y·Z − I‖_F &lt; tol</code>. Twenty minutes of confusion before the identity clicked.</p>
+</li>
+<li>
+<p><strong>NKI 0.3.0 migration specifics.</strong> The <code>neuronxcc.nki.*</code> shim was dropped in favor of the top-level <code>nki</code> package. <code>nl.store(dest, expr)</code> needs the keyword form <code>nl.store(dest, value=expr)</code>. Python unary minus on an <code>InstTile</code> raises <code>TypeError</code>; use <code>nl.negative(t)</code>. Output tensors need explicit <code>buffer=nl.shared_hbm</code>. None of these are surprising once documented, but the failure surfaces are at kernel-compile time on hardware — only partly at simulator time.</p>
+</li>
+<li>
+<p><strong>Dynamic path composition inside the SSM test runner.</strong> The runner shell-quotes a bash-in-JSON payload handed to <code>aws ssm send-command</code>. A first attempt used <code>NEURON_VENV=\\\$(ls -d /opt/aws_neuronx_venv_pytorch_* …)</code> for deferred expansion; that rendered as <code>\$</code> in the JSON, which isn't a valid JSON escape, and the command failed parameter validation before it reached the instance. The current runner hardcodes the venv path. Not a kernel story, but a toolchain-integration tax that shows up whenever automation crosses the shell/JSON/remote-shell boundary.</p>
+</li>
+</ul>
+<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
+<p>Simulator parity, <code>nki-simulator</code> CI job on <code>ubuntu-latest</code>, NKI 0.3.0 / neuronxcc 2.24.5133 from the AWS pip index:</p>
+<p>Eigenvalue relative error vs <code>torch.linalg.eigh</code>, reconstruction error <code>‖V·diag(w)·Vᵀ − A‖</code>, and orthonormality <code>‖VᵀV − I‖</code> all hold at <strong>rtol=1e-3</strong> across n ∈ {8, 16, 32, 64, 128} on random symmetric inputs. Full simulator suite — 18 tests including the cases above plus the tridiag-specific correctness tests carried through the Householder pivot-and-back work — runs in <strong>2.67 seconds wall-clock</strong> per CI run.</p>
+<p>Hardware <code>@pytest.mark.neuron</code> numbers up to n=512 are the next gate. The simulator isn't a substitute for hardware on perf: it skips NEFF compile, tile-capacity checks, and PSUM/SBUF latency modelling. What's measured so far is the math, not the wall-clock-on-silicon.</p>
+<p>The disappointing number, to the extent Phase 1 has one: <strong>per-sweep kernel-dispatch count is 3</strong>, not 1 (D rows, D columns, V columns). That's 3× the dispatch overhead of a "one kernel per round" design. Collapsing those three calls into one kernel, plus reformulating the rotation as a stationary 2×2-matmul on the Tensor Engine, is the Phase 3 perf headline.</p>
+<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
+<p>The trnsolver phase trackers:</p>
+<ul>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/27">Phase 2 — iterative refinement + Newton-Schulz variants</a>. FP32 Jacobi eigendecomposition isn't accurate enough for nanohartree-level chemistry; iterative refinement on top of the Jacobi result, using trnblas's double-double GEMM, restores precision where the motivating workloads demand it. Gated by trnblas Phase 2.</p>
+</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/28">Phase 3 — preconditioned iterative solvers + NEFF cache reuse</a>. Jacobi preconditioner for CG already landed; IC0 and SSOR are the next primitives. NEFF cache reuse in examples and benchmarks pays back across the whole suite.</p>
+</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/29">Phase 4 — parallel Jacobi sweeps across NeuronCores</a>. The disjoint rotations of a sweep round commute; they shard trivially across NeuronCores. Large-n SCF eigh is Phase 4's headline.</p>
+</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/30">Phase 5 — trn2 rotation-block tuning</a>. Trn2's larger SBUF changes the rotation-block tile size. Generation-specific kernels live here.</p>
+</li>
 </ul>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>The v0.2.0 benchmark table is the most important thing trnsparse has published so far. Not because the numbers are good — they're not — but because they're the evidence that anchored the reframe. The CUDA sparse playbook assumes a memory hierarchy where arbitrary-pattern gather is cheap; Trainium has a tile-shaped compute unit and a DMA engine that doesn't yet expose indirect gather at the kernel level. Under those constraints, the native sparse representation isn't a list of nonzeros; it's a list of 128×128 blocks. BSR isn't a cuSPARSE port. It's what the hardware asks for. And the honest way to find that out was to ship the naive port, publish the numbers it produced, and let the shape of the failure tell the story.</p>
+<p>The 128-partition Tensor Engine tile's preferences invert at the kernel-dispatch layer. Householder's rank-1 outer products look like the right hardware-native move until the serial dataflow between reflectors collides with NKI's per-traced-graph compile model. Jacobi's batched-sweep form — n/2 rotations commuting on disjoint pairs, mapping to one kernel dispatch per round — trades asymptotic FLOP count for kernel-boundary efficiency, and wins on Trainium.</p>
+<p>The concrete lesson for anyone building a dense-linear-algebra library on NKI 0.3.0: the simulator validates kernel math; only hardware validates host-integration shape. A kernel that compiles per call on the simulator will compile per call on hardware too, and on hardware the compile cost is an order of magnitude higher. Design for a stable traced graph from the first commit, not as a later optimization.</p>
 
 
 
