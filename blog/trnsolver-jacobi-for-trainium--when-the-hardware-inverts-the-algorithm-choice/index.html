@@ -5160,7 +5160,7 @@
 
 
 <h1 id="trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice">trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice<a class="headerlink" href="#trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice" title="Permanent link">&para;</a></h1>
-<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in. This post is how trnsolver got there, what the hardware kept telling it, and which blind alleys it walked first.</p>
+<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
@@ -5275,8 +5275,50 @@
 </ul>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
 <p>Simulator parity, <code>nki-simulator</code> CI job on <code>ubuntu-latest</code>, NKI 0.3.0 / neuronxcc 2.24.5133 from the AWS pip index:</p>
-<p>Eigenvalue relative error vs <code>torch.linalg.eigh</code>, reconstruction error <code>‖V·diag(w)·Vᵀ − A‖</code>, and orthonormality <code>‖VᵀV − I‖</code> all hold at <strong>rtol=1e-3</strong> across n ∈ {8, 16, 32, 64, 128} on random symmetric inputs. Full simulator suite — 18 tests, including tridiag-specific cases from the Householder pivot-and-back — runs in <strong>2.67 seconds wall-clock</strong> per CI run.</p>
-<p>Hardware <code>@pytest.mark.neuron</code> numbers up to n=512 are the next gate. The simulator isn't a substitute for hardware on perf: it skips NEFF compile, tile-capacity checks, and PSUM/SBUF latency modelling. What's measured so far is the math, not the wall-clock-on-silicon.</p>
+<p>Eigenvalue relative error vs <code>torch.linalg.eigh</code>, reconstruction error <code>‖V·diag(w)·Vᵀ − A‖</code>, and orthonormality <code>‖VᵀV − I‖</code>, across n ∈ {8, 16, 32, 64, 128} on random symmetric inputs:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">n</th>
+<th style="text-align: center;">eigenvalue rtol</th>
+<th style="text-align: center;">reconstruction rtol</th>
+<th style="text-align: center;">orthonormality rtol</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+</tr>
+<tr>
+<td style="text-align: right;">64</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+</tr>
+<tr>
+<td style="text-align: right;">128</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+<td style="text-align: center;">1e-3</td>
+</tr>
+</tbody>
+</table>
+<p>Full simulator suite — 18 tests, including tridiag-specific cases from the Householder pivot-and-back — runs in <strong>2.67 seconds wall-clock</strong> per CI run. Hardware perf lands in Phase 3.</p>
 <p>The disappointing number, to the extent Phase 1 has one: <strong>per-sweep kernel-dispatch count is 3</strong>, not 1 (D rows, D columns, V columns). That's 3× the dispatch overhead of a "one kernel per round" design. Collapsing those three calls into one kernel, plus reformulating the rotation as a stationary 2×2-matmul on the Tensor Engine, is the Phase 3 perf headline.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <p>The trnsolver phase trackers:</p>
@@ -5296,7 +5338,7 @@
 </ul>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
 <p>The 128-partition Tensor Engine tile's preferences invert at the kernel-dispatch layer. Householder's rank-1 outer products look like the right hardware-native move until the serial dataflow between reflectors collides with NKI's per-traced-graph compile model. Jacobi's batched-sweep form — n/2 rotations commuting on disjoint pairs, mapping to one kernel dispatch per round — trades asymptotic FLOP count for kernel-boundary efficiency, and wins on Trainium.</p>
-<p>The concrete lesson for anyone building a dense-linear-algebra library on NKI 0.3.0: the simulator validates kernel math; only hardware validates host-integration shape. A kernel that compiles per call on the simulator will compile per call on hardware too, and on hardware the compile cost is an order of magnitude higher. Design for a stable traced graph from the first commit.</p>
+<p>The concrete lesson for anyone building a dense-linear-algebra library on NKI 0.3.0: the simulator validates kernel math; only hardware validates host-integration shape. A kernel that compiles per call on the simulator will compile per call on hardware too, and on hardware the compile cost is an order of magnitude higher. Phase 1's lesson, internalized: plan the traced graph before the kernel, not after.</p>
 
 
 

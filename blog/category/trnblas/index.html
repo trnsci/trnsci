@@ -5031,12 +5031,12 @@
   <div class="md-post__content md-typeset">
     <h2 id="trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel"><a class="toclink" href="../../trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">trnblas: fusing DF-MP2 energy reduction into one NKI kernel</a></h2>
 <p>trnblas v0.4.0 shipped hardware-validated NKI kernels for GEMM, SYRK,
-and a fused MP2 energy reduction on trn1, with end-to-end density-fitted
-MP2 matching PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at
-cc-pVDZ. The interesting story isn't the GEMM. It's the fused energy
-kernel — a single NKI pass that holds the contraction, the orbital-
-denominator division, and the scalar sum-reduction SBUF-resident, and
-how the choice to build it looks nothing like a cuBLAS port.</p>
+and a fused MP2 energy reduction on trn1. End-to-end density-fitted MP2
+matches PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at cc-pVDZ.
+The interesting story isn't the GEMM. It's the fused energy kernel — a
+single NKI pass that holds the contraction, the orbital-denominator
+division, and the scalar sum-reduction SBUF-resident, and how the choice
+to build it looks nothing like a cuBLAS port.</p>
 
     
       <nav class="md-post__action">

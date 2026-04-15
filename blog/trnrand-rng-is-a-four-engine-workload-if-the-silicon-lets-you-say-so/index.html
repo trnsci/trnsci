@@ -5249,8 +5249,10 @@ output is <code>(P, 2)</code> standard normal pairs. All transcendentals are nat
 Vector Engine primitives, no library calls, no CPU fallback per element.</p>
 <p>The scalar <code>set_backend</code> API is intentionally minimal — three values
 (<code>auto</code>/<code>pytorch</code>/<code>nki</code>), a global switch, no per-call dispatch overhead.
-The NKI path is not the default and will not be until it is hardware-
-validated.</p>
+A per-call flag would impose a Python-level branch on every sample draw;
+at the sizes where the NKI path pays off, the dispatch decision is made
+once per session, not once per call. The NKI path is not the default and
+will not be until it is hardware-validated.</p>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
 <p>Philox's outer loop, lifted directly from
 <a href="https://github.com/trnsci/trnrand/blob/v0.3.0/trnrand/nki/dispatch.py"><code>trnrand/nki/dispatch.py</code></a>:</p>
@@ -5311,8 +5313,7 @@ would have been several hours of hardware time rather than a single
 afternoon.</p>
 </div>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p>Three things, two of them algorithmic and one structural. All three are
-the kind of toolchain-feedback content this blog is for.</p>
+<p>Three things, two of them algorithmic and one structural.</p>
 <p><strong>Decomposition attempt #1: 16-bit halves.</strong> Philox needs a 32×32→64
 multiply returning both halves (<code>hi</code>, <code>lo</code>). NKI 0.3.0 has no int64,
 so the multiply has to decompose over 32-bit arithmetic. The obvious
@@ -5350,8 +5351,8 @@ work around a precision loss at the load/cast boundary.</p>
 (<code>0x692B6AE8</code>). The kernel returns <code>1764265856</code> (<code>0x692B6AC0</code>) — low
 six bits clobbered. For inputs with the MSB set (<code>0x80000000</code>,
 <code>0xFFFFFFFF</code>, <code>0xD2511F53</code>), the output is <code>0x80000000</code> outright:
-the NaN-cast sentinel. Distribution mean of the Philox output on
-trn1 is 0.31 vs the expected 0.5.</p>
+the NaN-cast sentinel.</p>
+<p><strong>Distribution mean of the Philox output on trn1 is 0.31 vs the expected 0.5.</strong></p>
 <p>This is tracked upstream as
 <a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1308">aws-neuron-sdk#1308</a>.
 Four simulator tests are now marked <code>xfail</code> with that reference:

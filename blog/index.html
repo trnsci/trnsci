@@ -5171,12 +5171,12 @@ gap that stands between the current state and hardware-validated Philox.</p>
   <div class="md-post__content md-typeset">
     <h2 id="trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel"><a class="toclink" href="trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">trnblas: fusing DF-MP2 energy reduction into one NKI kernel</a></h2>
 <p>trnblas v0.4.0 shipped hardware-validated NKI kernels for GEMM, SYRK,
-and a fused MP2 energy reduction on trn1, with end-to-end density-fitted
-MP2 matching PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at
-cc-pVDZ. The interesting story isn't the GEMM. It's the fused energy
-kernel — a single NKI pass that holds the contraction, the orbital-
-denominator division, and the scalar sum-reduction SBUF-resident, and
-how the choice to build it looks nothing like a cuBLAS port.</p>
+and a fused MP2 energy reduction on trn1. End-to-end density-fitted MP2
+matches PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at cc-pVDZ.
+The interesting story isn't the GEMM. It's the fused energy kernel — a
+single NKI pass that holds the contraction, the orbital-denominator
+division, and the scalar sum-reduction SBUF-resident, and how the choice
+to build it looks nothing like a cuBLAS port.</p>
 
     
       <nav class="md-post__action">
@@ -5218,7 +5218,7 @@ how the choice to build it looks nothing like a cuBLAS port.</p>
   </header>
   <div class="md-post__content md-typeset">
     <h2 id="trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine"><a class="toclink" href="trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">trnfft: FFT on hardware that doesn't want to be an FFT engine</a></h2>
-<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision — all hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.</p>
+<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision. All of it is hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.</p>
 
     
       <nav class="md-post__action">
@@ -5260,7 +5260,7 @@ how the choice to build it looks nothing like a cuBLAS port.</p>
   </header>
   <div class="md-post__content md-typeset">
     <h2 id="trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice"><a class="toclink" href="trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice</a></h2>
-<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in. This post is how trnsolver got there, what the hardware kept telling it, and which blind alleys it walked first.</p>
+<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in.</p>
 
     
       <nav class="md-post__action">
@@ -5291,7 +5291,7 @@ how the choice to build it looks nothing like a cuBLAS port.</p>
           
           <li class="md-meta__item">
             
-              9 min read
+              8 min read
             
           </li>
         
