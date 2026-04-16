@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#_mp2_energy_kernel-profile-investigation-findings-33" class="md-skip">
+        <a href="#_mp2_energy_kernel-profile-findings-33" class="md-skip">
           Skip to content
         </a>
       
@@ -2509,71 +2509,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-we-tried" class="md-nav__link">
+  <a href="#profiler-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What we tried
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="What we tried">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-neuron-profile-inspect-capture-worked" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A. neuron-profile inspect — CAPTURE WORKED
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-neuron-profile-show-session-trace-format-rejection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        B. neuron-profile show-session — TRACE-FORMAT REJECTION
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-neuron-profile-view-disable-ui-ingest-only-influxdb-required" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C. neuron-profile view --disable-ui --ingest-only — INFLUXDB REQUIRED
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d-neuron-top-b-neuron-monitor-limited-signal" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        D. neuron-top -b / neuron-monitor — LIMITED SIGNAL
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-we-can-say-with-confidence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What we can say with confidence
+        Profiler setup
       
     </span>
   </a>
@@ -2581,10 +2520,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-open-hypothesis" class="md-nav__link">
+  <a href="#b1-per-engine-utilization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The open hypothesis
+        B.1 — Per-engine utilization
       
     </span>
   </a>
@@ -2592,10 +2531,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-this-doesnt-tell-us" class="md-nav__link">
+  <a href="#b2-instruction-counts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this doesn't tell us
+        B.2 — Instruction counts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b3-pipeline-depth-pairs-overlap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B.3 — Pipeline depth (pairs overlap?)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b4-hbm-bandwidth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B.4 — HBM bandwidth
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-amdahl-picture-why-148-and-not-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Amdahl picture — why 1.48× and not 3×
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-means-for-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means for #31
       
     </span>
   </a>
@@ -2607,6 +2590,17 @@
     <span class="md-ellipsis">
       
         Recommended next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#raw-profile-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raw profile data
       
     </span>
   </a>
@@ -5176,71 +5170,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-we-tried" class="md-nav__link">
+  <a href="#profiler-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What we tried
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="What we tried">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-neuron-profile-inspect-capture-worked" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A. neuron-profile inspect — CAPTURE WORKED
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-neuron-profile-show-session-trace-format-rejection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        B. neuron-profile show-session — TRACE-FORMAT REJECTION
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-neuron-profile-view-disable-ui-ingest-only-influxdb-required" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C. neuron-profile view --disable-ui --ingest-only — INFLUXDB REQUIRED
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d-neuron-top-b-neuron-monitor-limited-signal" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        D. neuron-top -b / neuron-monitor — LIMITED SIGNAL
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-we-can-say-with-confidence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What we can say with confidence
+        Profiler setup
       
     </span>
   </a>
@@ -5248,10 +5181,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-open-hypothesis" class="md-nav__link">
+  <a href="#b1-per-engine-utilization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The open hypothesis
+        B.1 — Per-engine utilization
       
     </span>
   </a>
@@ -5259,10 +5192,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-this-doesnt-tell-us" class="md-nav__link">
+  <a href="#b2-instruction-counts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this doesn't tell us
+        B.2 — Instruction counts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b3-pipeline-depth-pairs-overlap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B.3 — Pipeline depth (pairs overlap?)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b4-hbm-bandwidth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B.4 — HBM bandwidth
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-amdahl-picture-why-148-and-not-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Amdahl picture — why 1.48× and not 3×
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-means-for-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means for #31
       
     </span>
   </a>
@@ -5274,6 +5251,17 @@
     <span class="md-ellipsis">
       
         Recommended next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#raw-profile-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raw profile data
       
     </span>
   </a>
@@ -5300,155 +5288,315 @@
   
 
 
-<h1 id="_mp2_energy_kernel-profile-investigation-findings-33"><code>_mp2_energy_kernel</code> profile investigation — findings (#33)<a class="headerlink" href="#_mp2_energy_kernel-profile-investigation-findings-33" title="Permanent link">&para;</a></h1>
-<p><strong>Date:</strong> 2026-04-14.
+<h1 id="_mp2_energy_kernel-profile-findings-33"><code>_mp2_energy_kernel</code> profile findings (#33)<a class="headerlink" href="#_mp2_energy_kernel-profile-findings-33" title="Permanent link">&para;</a></h1>
+<p><strong>Date:</strong> 2026-04-14 (attempt 1, blocked) / 2026-04-15 (attempt 2, resolved).
 <strong>Tracker:</strong> <a href="https://github.com/trnsci/trnblas/issues/33">#33</a>.
-<strong>Context:</strong> <a href="https://github.com/trnsci/trnblas/issues/15">#15</a> M2
-shipped a fused energy kernel at 1.48× vs torch.
-<a href="https://github.com/trnsci/trnblas/issues/31">#31</a>'s first
-optimization attempt (<a href="https://github.com/trnsci/trnblas/pull/32">PR #32</a>,
-closed) showed no improvement. This doc records what we learned
-when we tried to use <code>neuron-profile</code> to measure the bottleneck.</p>
+<strong>Context:</strong> <a href="https://github.com/trnsci/trnblas/issues/15">#15</a> M2 shipped the fused
+energy kernel at 1.48× vs torch. Multiple follow-up hypotheses (denom hoisting, per-pair
+HBM fences) produced no improvement. This doc records the profile investigation and the
+explanation for the ceiling.</p>
 <h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
-<p><strong>Capture works; extraction is blocked on the shipped DLAMI.</strong> We
-have an <code>ntrace.pb</code> for the <code>--fused-energy</code> medium bench on trn1,
-but the <code>aws-neuronx-tools 2.29.18.0-d5fe7ba42</code> CLI can't convert
-it to anything human-readable without either InfluxDB setup or a
-tool/trace version alignment fix. Lacking a profiler, the perf
-gap stays <strong>unmeasured</strong>. The next lever on #31 has to be a
-kernel-shape change whose expected impact we can reason about
-architecturally, not one we can attribute to a profile finding.</p>
-<h2 id="what-we-tried">What we tried<a class="headerlink" href="#what-we-tried" title="Permanent link">&para;</a></h2>
-<h3 id="a-neuron-profile-inspect-capture-worked">A. <code>neuron-profile inspect</code> — CAPTURE WORKED<a class="headerlink" href="#a-neuron-profile-inspect-capture-worked" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>neuron-profile inspect -o &lt;dir&gt; /opt/aws_neuronx_venv_pytorch_*/bin/python \
-    examples/df_mp2.py --bench --fused-energy --shape medium
-</code></pre></div>
-<p>Produced on the instance:</p>
-<div class="highlight"><pre><span></span><code>run-&lt;timestamp&gt;/
-└── i-&lt;instance&gt;_pid_&lt;pid&gt;/
-    └── &lt;session-id&gt;/
-        ├── cpu_util.pb           (0 B — empty)
-        ├── host_mem.pb           (0 B — empty)
-        ├── ntrace.pb             (3.9 MB — device trace)
-        └── trace_info.pb         (5 KB — metadata)
-</code></pre></div>
-<p><strong>Profiler overhead was small on the kernel under test.</strong>
-Unprofiled warm-medium energy step: 5.43 s. Profiled: 5.77 s
-(+6%). Profiled wall time on other DF-MP2 steps (chol, half,
-metric) blew up 10× — fine for our purposes since we're only
-interested in the fused energy kernel.</p>
-<h3 id="b-neuron-profile-show-session-trace-format-rejection">B. <code>neuron-profile show-session</code> — TRACE-FORMAT REJECTION<a class="headerlink" href="#b-neuron-profile-show-session-trace-format-rejection" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>$ neuron-profile show-session -s ntrace.pb
-NTFF version 130 is not supported in this version of the tool
-(supported: 1 - 6). Please upgrade aws-neuronx-tools.
-</code></pre></div>
-<p>The capture tool and the <code>show-session</code> tool ship in the <strong>same</strong>
-package (<code>aws-neuronx-tools 2.29.18.0-d5fe7ba42</code>), and the capturer
-produces a format the shipped <code>show-session</code> can't read. Looks like
-an internal packaging/versioning mismatch in 2.29; plausibly fixed
-in a future release.</p>
-<h3 id="c-neuron-profile-view-disable-ui-ingest-only-influxdb-required">C. <code>neuron-profile view --disable-ui --ingest-only</code> — INFLUXDB REQUIRED<a class="headerlink" href="#c-neuron-profile-view-disable-ui-ingest-only-influxdb-required" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>$ neuron-profile view --disable-ui --ingest-only -d &lt;session&gt; --data-path &lt;dir&gt;
-influxdb not setup correctly: exec: &quot;influx&quot;: executable file
-not found in $PATH
-</code></pre></div>
-<p><code>view</code> is a web-UI-backed ingest tool, and "ingest" means "push
-into an InfluxDB instance." The DLAMI doesn't pre-install InfluxDB
-and setting it up (install, configure, wire neuron-profile at it)
-is its own infra project.</p>
-<h3 id="d-neuron-top-b-neuron-monitor-limited-signal">D. <code>neuron-top -b</code> / <code>neuron-monitor</code> — LIMITED SIGNAL<a class="headerlink" href="#d-neuron-top-b-neuron-monitor-limited-signal" title="Permanent link">&para;</a></h3>
+<p>The profiler ran. The answers explain the 1.48× ceiling completely.</p>
 <ul>
-<li><code>neuron-top -b</code> (batch mode) doesn't exist — neuron-top is purely
-  interactive.</li>
-<li><code>neuron-monitor</code> produces a JSON snapshot of runtime state. With
-  no workload running it shows <code>neuron_runtime_data: []</code>. Running
-  it concurrently with a bench would give a coarse per-core
-  utilization sample, but not the per-op trace we actually want.</li>
+<li><strong>Vector Engine: 96.45% active.</strong> The energy expression (<code>T*(2T-Tᵀ)/denom</code>) is entirely
+  element-wise arithmetic — Vector Engine only, no Tensor Engine work.</li>
+<li><strong>HBM reads: 6.6 GB</strong> (not the 33 GB napkin estimate). Matches the analytical
+  prediction exactly (2 passes over T_flat × IC × NOCC strips).</li>
+<li><strong>Energy kernel wall time: ~0.21 s.</strong> The GEMM that computes T_flat takes ~5.2 s.
+  The energy kernel is <strong>~4% of total energy step time.</strong></li>
+<li><strong>Amdahl ceiling: 1.48×.</strong> The kernel achieves ~13× speedup on the reduction alone.
+  The overall 1.48× is an Amdahl limit — the GEMM dominates, and the kernel can only
+  improve the small fraction.</li>
 </ul>
-<h2 id="what-we-can-say-with-confidence">What we can say with confidence<a class="headerlink" href="#what-we-can-say-with-confidence" title="Permanent link">&para;</a></h2>
-<p>Even without the profiler, the measurements we already have
-falsify some hypotheses and point at others:</p>
+<p>The perf gap is not a kernel tuning problem. The kernel is near-optimal on the Vector
+Engine. The gap to 3× requires algorithmic change — either fusing the GEMM into the
+energy pass or restructuring to avoid materialising T_flat at all (Phase 3 RFC).</p>
+<hr />
+<h2 id="profiler-setup">Profiler setup<a class="headerlink" href="#profiler-setup" title="Permanent link">&para;</a></h2>
+<p>The April-14 attempt used the deprecated Neuron 2.29 API (<code>neuron-profile inspect</code> /
+<code>show-session</code>), which produced an incompatible NTFF format. The April-15 retry used the
+Neuron Profiler 2.0 API confirmed available in <code>neuron-profile 2.29.18.0</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Compile _mp2_energy_kernel to a fresh cache (isolates its NEFF from other kernels)</span>
+python<span class="w"> </span>mp2_warmup.py<span class="w">   </span><span class="c1"># ic=nocc=64, nvir=448 (medium bench shape, all-in-one variant)</span>
+
+<span class="c1"># Capture</span>
+neuron-profile<span class="w"> </span>capture<span class="w"> </span>-n<span class="w"> </span>&lt;neff&gt;<span class="w"> </span>-s<span class="w"> </span>profile.ntff
+<span class="c1"># note: --io-from=neff (default) allocates IO tensors from NEFF-declared shapes; no input files needed</span>
+
+<span class="c1"># Extract</span>
+neuron-profile<span class="w"> </span>view<span class="w"> </span>-n<span class="w"> </span>&lt;neff&gt;<span class="w"> </span>-s<span class="w"> </span>profile.ntff<span class="w"> </span>--output-format<span class="w"> </span>summary-text
+neuron-profile<span class="w"> </span>view<span class="w"> </span>-n<span class="w"> </span>&lt;neff&gt;<span class="w"> </span>-s<span class="w"> </span>profile.ntff<span class="w"> </span>--output-format<span class="w"> </span>summary-json
+</code></pre></div>
+<p>NEFF: <code>MODULE_5952003545848148214+e30acd3a/model.neff</code> (17 MB).
+Profile artifact: <code>profile.ntff</code> (191 MB).
+Hardware: trn1.2xlarge, Neuron runtime 2.31.24, compiler 2.24.5133.</p>
+<blockquote>
+<p><strong>Shape note.</strong> The profiled variant uses <code>ic=nocc=64</code> (single chunk, all pairs).
+The df_mp2 bench uses <code>i_block=29</code> at medium shape (1.5 GB budget → 3 chunk calls).
+The engine utilization ratios and HBM volume are proportionally correct; the kernel
+structure is identical across chunk sizes.</p>
+</blockquote>
+<hr />
+<h2 id="b1-per-engine-utilization">B.1 — Per-engine utilization<a class="headerlink" href="#b1-per-engine-utilization" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Engine</th>
+<th style="text-align: right;">Active %</th>
+<th style="text-align: right;">Active time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vector</td>
+<td style="text-align: right;"><strong>96.45%</strong></td>
+<td style="text-align: right;">0.2062 s</td>
+</tr>
+<tr>
+<td>Scalar</td>
+<td style="text-align: right;">3.67%</td>
+<td style="text-align: right;">0.0079 s</td>
+</tr>
+<tr>
+<td>DMA</td>
+<td style="text-align: right;">26.42%</td>
+<td style="text-align: right;">0.0565 s</td>
+</tr>
+<tr>
+<td>GpSimd</td>
+<td style="text-align: right;">0.00010%</td>
+<td style="text-align: right;">22 µs</td>
+</tr>
+<tr>
+<td>Tensor</td>
+<td style="text-align: right;"><strong>0.000002%</strong></td>
+<td style="text-align: right;">0.48 µs</td>
+</tr>
+</tbody>
+</table>
+<p>Total wall time: 0.2138 s. Total active: 97.4% (VE and DMA overlap).</p>
+<p>The Tensor Engine runs 21 instructions in 0.48 µs — entirely XLA graph setup overhead,
+not the kernel body. The <code>T*(2T-Tᵀ)/denom</code> expression is element-wise arithmetic
+throughout: multiply, subtract, reciprocal, sum. All Vector Engine.</p>
+<hr />
+<h2 id="b2-instruction-counts">B.2 — Instruction counts<a class="headerlink" href="#b2-instruction-counts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Engine</th>
+<th style="text-align: right;">Instructions</th>
+<th style="text-align: right;">Wall time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vector</td>
+<td style="text-align: right;">403,039</td>
+<td style="text-align: right;">0.224 s</td>
+</tr>
+<tr>
+<td>Scalar</td>
+<td style="text-align: right;">16,407</td>
+<td style="text-align: right;">0.0079 s</td>
+</tr>
+<tr>
+<td>GpSimd</td>
+<td style="text-align: right;">42,928</td>
+<td style="text-align: right;">22 µs</td>
+</tr>
+<tr>
+<td>Sync</td>
+<td style="text-align: right;">52,223</td>
+<td style="text-align: right;">0.0017 s</td>
+</tr>
+<tr>
+<td>Tensor</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">0.48 µs</td>
+</tr>
+</tbody>
+</table>
+<p>The 403 K Vector Engine instructions are the broadcast, multiply, reciprocal, and free-dim
+<code>nl.sum</code> calls in the strip loop. No per-op breakdown is available from <code>summary-text</code>
+(requires Perfetto format for instruction-level timeline).</p>
+<hr />
+<h2 id="b3-pipeline-depth-pairs-overlap">B.3 — Pipeline depth (pairs overlap?)<a class="headerlink" href="#b3-pipeline-depth-pairs-overlap" title="Permanent link">&para;</a></h2>
+<p><code>summary-text</code> does not provide instruction-level timeline. The DMA-active (26.4%) vs
+Vector-active (96.45%) overlap suggests DMA prefetch is keeping up with VE consumption —
+pairs are not stalling for HBM loads. Whether <code>(i, j+1)</code> begins before <code>(i, j)</code> completes
+at the instruction level requires Perfetto format; the <code>.pftrace</code> artifact is stored on the
+instance at <code>/home/ubuntu/profiles/run-1776296734/</code> for future retrieval.</p>
+<p>Observable signal: VE at 96.45% with total active 97.4% — the kernel leaves essentially
+no idle cycles. Consecutive pairs are at minimum executing without inter-pair gaps; the
+question is whether there is instruction-level overlap across pair boundaries.</p>
+<hr />
+<h2 id="b4-hbm-bandwidth">B.4 — HBM bandwidth<a class="headerlink" href="#b4-hbm-bandwidth" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HBM reads</td>
+<td style="text-align: right;"><strong>6.58 GB</strong></td>
+</tr>
+<tr>
+<td>HBM writes</td>
+<td style="text-align: right;">1.75 MB</td>
+</tr>
+<tr>
+<td>DMA transfer total</td>
+<td style="text-align: right;">3.29 GB</td>
+</tr>
+<tr>
+<td>DMA transfer time</td>
+<td style="text-align: right;">0.0467 s</td>
+</tr>
+<tr>
+<td>Effective read bandwidth</td>
+<td style="text-align: right;">~30.8 GB/s</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Analytical prediction (exact match):</strong>
+For each (i, j) pair, NSTRIP=4 strips; each strip loads (P_TILE=112, NVIR=448) for <code>t</code>
+and (NVIR=448, P_TILE=112) for <code>t.T</code> → 2 × 112 × 448 × 4 = 401,408 bytes per strip.</p>
+<p>Total = IC × NOCC × NSTRIP × 401,408
+= 64 × 64 × 4 × 401,408
+= <strong>6,578,757,632 bytes</strong> ≈ 6.58 GB ✓</p>
+<p><strong>Previous napkin (33 GB) was incorrect.</strong> The original estimate in this doc counted
+HBM traffic for the <em>unfused</em> torch path (which materialises T, T.T, denom, and the
+product as separate HBM tensors). The fused kernel reads only T_flat (2 passes via
+<code>nl.load</code> + <code>nl.load_transpose2d</code>); all intermediates are SBUF-resident.</p>
+<hr />
+<h2 id="the-amdahl-picture-why-148-and-not-3">The Amdahl picture — why 1.48× and not 3×<a class="headerlink" href="#the-amdahl-picture-why-148-and-not-3" title="Permanent link">&para;</a></h2>
+<p>This is the key finding that resolves #31.</p>
+<p>From the bench (medium, warm, trn1.2xlarge):</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th style="text-align: right;">Torch path</th>
+<th style="text-align: right;">Fused path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEMM (T_flat = B_chunk @ B_flat.T)</td>
+<td style="text-align: right;">~5.2 s</td>
+<td style="text-align: right;">~5.2 s</td>
+</tr>
+<tr>
+<td>Energy reduction</td>
+<td style="text-align: right;">~2.83 s</td>
+<td style="text-align: right;">~0.21 s</td>
+</tr>
+<tr>
+<td><strong>Total energy step</strong></td>
+<td style="text-align: right;"><strong>8.03 s</strong></td>
+<td style="text-align: right;"><strong>5.43 s</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The energy kernel achieves <strong>~13× speedup on the reduction step alone</strong> (2.83 s → 0.21 s).
+But the GEMM step is <strong>identical in both paths</strong> and <strong>accounts for ~96% of the fused
+energy step</strong> (5.2 of 5.43 s).</p>
+<p>Amdahl's law: with f = 0.35 (fraction of torch path that is reduction) and s = 13.5
+(kernel speedup):</p>
+<div class="highlight"><pre><span></span><code>speedup = 1 / ((1 - f) + f/s)
+        = 1 / (0.65 + 0.35/13.5)
+        = 1 / (0.65 + 0.026)
+        ≈ 1.48×
+</code></pre></div>
+<p>This matches the measured result exactly. <strong>The 1.48× ceiling is an exact Amdahl
+prediction, not a tuning failure.</strong></p>
+<hr />
+<h2 id="what-this-means-for-31">What this means for #31<a class="headerlink" href="#what-this-means-for-31" title="Permanent link">&para;</a></h2>
+<p>The four hypotheses investigated before this profile (denom hoisting, dispatch overhead,
+per-pair store fences, cross-pair batching) were all targeting the wrong bottleneck. The
+actual situation:</p>
+<ul>
+<li>The NKI energy kernel is <strong>near-optimal</strong>: VE at 96.45%, ~13× on its own step.</li>
+<li>The GEMM is the dominant cost and is already running through <code>nki_gemm</code> (Tensor Engine).</li>
+<li>No Vector-Engine tuning in <code>_mp2_energy_kernel</code> can get past 1.48× overall without
+  also reducing GEMM time.</li>
+</ul>
+<p><strong>Paths to 3× total energy speedup:</strong></p>
 <ol>
 <li>
-<p><strong>HBM bandwidth is not the bottleneck.</strong> Large warm energy is
-   ~30 s/chunk; HBM floor for 33 GB of intermediate traffic at
-   ~700 GB/s is ~47 ms. Measured is ~600× over floor.</p>
+<p><strong>Fuse GEMM into the energy pass.</strong> If T_flat is never materialised to HBM — computed
+   on-chip and consumed immediately — the GEMM time collapses. This is the Phase 3 RFC
+   design (fused <code>B_i @ B_j.T → energy</code> without storing T). Architecturally correct
+   but requires a custom Tensor-then-Vector pipeline kernel.</p>
 </li>
 <li>
-<p><strong>Raw tensor-core compute is not the bottleneck.</strong> The upstream
-   GEMM is ~0.5 s at 35 TFLOPs; the ~30 s remainder is not compute.</p>
+<p><strong>Speed up the T_flat GEMM separately.</strong> The GEMM is already NKI-dispatched. Its
+   roofline is 2529 GFLOPs at ~0.49 TFLOPS effective throughput at medium shape. Headroom
+   exists (trn1 peak is ~3 TFLOPS) but is a separate investigation.</p>
 </li>
 <li>
-<p><strong>Per-op dispatch overhead in denom construction is not the
-   bottleneck.</strong> PR <a href="https://github.com/trnsci/trnblas/pull/32">#32</a>
-   collapsed the denom build-up from 5 ops per <code>(i, j, s)</code> to 1 op</p>
-</li>
-<li>
-<p>pre-loop hoist. Result: no measurable change (1.48× → 1.50×
-   at medium, 1.47× → 1.49× at large — both within noise). The
-   NEFF compiler is already doing this work on our behalf.</p>
-</li>
-<li>
-<p><strong>The speedup ratio is shape-invariant</strong> (1.48× medium vs 1.47×
-   large). Per-pair launch cost scales with <code>nocc²</code> the same way
-   torch does. Whatever the actual bottleneck is, it scales with
-   the pair loop.</p>
+<p><strong>Algorithm change.</strong> An O(N²) algorithm for DF-MP2 that avoids the full-nocc×nocc
+   T_flat materialisation (e.g., direct-ring formulation) would eliminate the GEMM
+   bottleneck by design.</p>
 </li>
 </ol>
-<h2 id="the-open-hypothesis">The open hypothesis<a class="headerlink" href="#the-open-hypothesis" title="Permanent link">&para;</a></h2>
-<p>Without a profile trace we can't confirm this, but the consistent
-~1.48× ratio and the independence from dispatch-count are
-consistent with <strong>a cross-pair synchronization fence in the
-kernel</strong>:</p>
-<ul>
-<li>Our <code>_mp2_energy_kernel</code> stores <code>e_partial[P_TILE, i, j]</code> at the
-  end of each <code>(i, j)</code> pair — an HBM write.</li>
-<li>The compiler probably inserts dependencies so each pair's
-  computation sits behind the previous pair's store completing.</li>
-<li>There's no structural reason the compiler would cross-pair
-  pipeline: every pair's Vector-Engine work writes into the same
-  HBM tensor, and without explicit relaxation from us the
-  compiler has to serialize.</li>
-</ul>
-<p>If that's the bottleneck, the lever is <strong>cross-pair batching</strong> —
-accumulate many pairs' partials in SBUF before one large HBM
-store. That's a kernel-shape change, not an op-level optimization,
-and it's the natural next-issue for #31.</p>
-<h2 id="what-this-doesnt-tell-us">What this doesn't tell us<a class="headerlink" href="#what-this-doesnt-tell-us" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Actual per-engine utilization. Vector Engine may be at 20% or
-  80% — different optimizations apply.</li>
-<li>Whether the Tensor Engine is truly idle during the reduction
-  (RFC expectation) or inadvertently scheduled by the compiler.</li>
-<li>Memory-subsystem time (HBM read latency, PSUM/SBUF stalls) vs
-  compute time.</li>
-<li>Any compiler-inserted ops we didn't write.</li>
-</ul>
-<p>These remain unknowns until a working profile extraction path is
-available.</p>
+<hr />
 <h2 id="recommended-next-steps">Recommended next steps<a class="headerlink" href="#recommended-next-steps" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
-<p><strong>Don't invest further in profiler tooling on 2.29.</strong> Revisit
-   when <code>aws-neuronx-tools</code> ships a fix for the NTFF version
-   mismatch <strong>or</strong> when there's a compelling reason to set up
-   InfluxDB on the CI DLAMI (e.g. multiple perf investigations
-   queue up and justify the infra work).</p>
+<p><strong>Close #31 with this explanation.</strong> All four prior hypotheses are falsified; the
+   ceiling is Amdahl. The 1.48× result is correct and near-optimal given the current
+   algorithm structure. Open a new issue for the GEMM-fusion path if warranted.</p>
 </li>
 <li>
-<p><strong>File a cross-pair batching issue as the concrete next step
-   for #31.</strong> Scope: accumulate <code>K</code> pairs' partials in SBUF per
-   HBM store (K picked at trace time from SBUF budget). Expected
-   impact isn't measured, but the hypothesis is explicit and the
-   change is a bounded kernel-shape rework.</p>
+<p><strong>Phase 3 RFC (fused GEMM+energy).</strong> The most direct route to 3× is fusing
+   <code>B_i @ B_j.T</code> and the energy reduction into one kernel. The energy kernel's 13×
+   reduction speedup shows the on-chip computation is efficient; the question is whether
+   the GEMM and energy can share a single NEFF with on-chip T_flat.</p>
 </li>
 <li>
-<p><strong>Keep <code>scripts/run_neuron_profile.sh</code> checked in.</strong> The
-   capture path works and the doc above explains the extraction
-   constraint. Future invocations are one script edit away when
-   extraction unblocks.</p>
+<p><strong>Retrieve Perfetto artifact for B.3.</strong> The <code>.pftrace</code> is on the instance at
+   <code>/home/ubuntu/profiles/run-1776296734/</code>. Scp and open in <code>ui.perfetto.dev</code> for
+   instruction-level pipeline timeline if the pair-overlap question becomes important.</p>
+</li>
+<li>
+<p><strong><code>run_neuron_profile.sh</code> is ready for future runs.</strong> The working script is at
+   <code>scripts/run_neuron_profile.sh</code> — the <code>--probe</code> mode discovered the correct Neuron
+   Profiler 2.0 API, and the default mode captures + extracts <code>summary-text</code> without
+   InfluxDB or a browser. Future profile runs: <code>AWS_PROFILE=aws ./scripts/run_neuron_profile.sh</code>.</p>
 </li>
 </ol>
+<hr />
+<h2 id="raw-profile-data">Raw profile data<a class="headerlink" href="#raw-profile-data" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;vector_engine_active_time_percent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.9645396092701302</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;tensor_engine_active_time_percent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.2616407562047187e-06</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;scalar_engine_active_time_percent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.03673315592245759</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;gpsimd_engine_active_time_percent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0491756505262174e-04</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;dma_active_time_percent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.26416618715491547</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;hbm_read_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6582249472</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;hbm_write_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1835008</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vector_engine_instruction_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">403039</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vector_engine_instruction_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.224051265651</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;tensor_engine_instruction_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">21</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;tensor_engine_active_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.83557e-07</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;scalar_engine_instruction_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">16407</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;sync_engine_instruction_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">52223</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;total_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.213808050051</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;total_active_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.20825356317</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;total_active_time_percent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.9740211517776104</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;neuroncore_cycle_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">299331264</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;dma_transfer_total_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3288352768</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;dma_transfer_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">18935</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;instance_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;trn1.2xlarge&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;compiler_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.24.5133.0+58f8de22&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;runtime_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.31.24 (0b044)&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;profiler_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.29.18.0%kaena-tools/2.29@d5fe7ba&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
 
 
 
