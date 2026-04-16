@@ -4,115 +4,133 @@ categories: [Deep dive, trnrand]
 comments: true
 ---
 
-# trnrand: when the blocker points to a better algorithm
+# trnrand: the integer-multiply gap pointed to a better algorithm
 
-aws-neuron-sdk#1308 is still open. trnrand 0.4.0 ships a hardware-path random
-number generator anyway, because the constraint that makes Philox unworkable
-on today's NKI substrate — no exact integer arithmetic above 2²⁴ — points
-directly to an algorithm that never needed it. Threefry4×32-20 was designed
-for exactly this class of hardware.
+The [previous trnrand post](../2026-04-15-trnrand-four-engine-rng/) closed with:
+"the silicon just needs one more op to let the library say it out loud."
+[aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308)
+is still open. trnrand 0.4.0 ships hardware-validated uniform RNG on trn1 anyway
+— not by fixing Philox, but by using Threefry4x32-20, the PRNG Salmon et al.
+designed in the same SC'11 paper for hardware without fast integer multiply.
+The library said it out loud without waiting for the op.
 
 <!-- more -->
 
 ## The problem
 
-[The 0.3.0 post](https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/) ended on a specific wall:
-Philox 4×32-10 requires a 32×32→64-bit integer multiply to produce its first
-output word. NKI routes all 32-bit tile operations through the float32 activation
-path, which is exact only up to 2²⁴ ≈ 16.7 million. Philox counter values
-routinely exceed that. No amount of algorithmic decomposition inside the kernel
-can work around a precision loss at the input boundary — the counter is already
-rounded before the kernel sees it.
+Philox 4x32-10 needs one primitive NKI cannot provide exactly: a 32x32-bit
+integer multiply returning both halves (hi, lo) of the 64-bit result. NKI
+routes all 32-bit tile operations through the Vector Engine's float32 activation
+path, which represents integers exactly only up to 2^24 (approximately 16.7M).
 
-The 0.3.0 response was to file [aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308)
-and wait. That's still the right move for Philox specifically. But waiting for
-upstream isn't the only available response to "this algorithm needs a primitive
-the hardware doesn't have."
+The first attempted fix was to decompose the multiply into 8-bit byte
+sub-products, keeping each sub-product under 2^16 — well inside the float32
+ceiling. The decomposition is arithmetically correct. A pure-numpy port
+(`_mul32_hi_lo_numpy`) verifies it bit-exact against a Python unbounded-integer
+ground truth. The kernel compiled, the sub-products were right, and the Philox
+output was still wrong.
+
+The problem was not the multiply. Philox counter values exceed 2^24 the moment
+the counter advances past the first lane. The moment such a value enters an NKI
+tile — via `nl.copy`, `nl.bitwise_and`, `nl.right_shift`, anything — it gets
+rounded through float32 before the multiply decomposition can run. The input is
+already corrupted. No kernel-level decomposition can work around a lossless-load
+problem. The concrete failure: for input `0x7FFFFFFF` the kernel returns
+`0x80000000` outright — the NaN-cast sentinel — because the MSB triggers the
+float32 INT_MIN rounding path. Distribution mean on trn1: 0.31 vs the
+expected 0.50.
 
 ## What the architecture suggests
 
-Philox and Threefry were introduced in the same paper: Salmon et al. SC'11,
-"Parallel Random Numbers: As Easy as 1, 2, 3." Philox was designed for
-architectures with fast integer multiply — GPUs, modern CPUs. Threefry was
-designed for architectures *without* it — FPGAs, embedded processors. The
-primitives Threefry requires are 32-bit addition, XOR, and rotation. All three
-are operations NKI can perform exactly on values that fit in a float32 mantissa.
+Threefry4x32-20 (same Salmon SC'11 paper, same test vectors, same statistical
+guarantees as Philox) uses only three primitives: 32-bit add, XOR, and
+rotate-left. None require integer multiply. All three decompose cleanly into
+byte arithmetic on NKI.
 
-The structural advantage Trainium has for both algorithms — stateless
-counter-based generation, partition-axis lane independence, SBUF-resident output
-for downstream fusion — applies to Threefry unchanged. The four-engine framing
-from 0.3.0 holds:
+If a 32-bit word is stored as four separate 8-bit byte tiles — each a `(P, 1)`
+uint32 tile with value in [0, 255] — then:
 
-- **GpSimd for integer counter rounds.** Threefry's 20 rounds of
-  `(a + b) mod 2³²`, `rotl32(b, R) ^ a`. No multiply, no state to synchronize.
-- **Vector Engine for Box-Muller.** Same `cos`/`sin`/`log`/`sqrt` pipeline as
-  before; the input uniforms just come from Threefry instead of Philox.
-- **SBUF-resident normals for downstream fusion.** Output tiles hand off to
-  `trnfft` STFT noise injection or `trnblas` stochastic trace without an HBM
-  round-trip.
+- **Addition** propagates carries byte-by-byte. Each intermediate sum is at most
+  255 + 255 + 1 = 511 < 2^10 — two orders of magnitude below float32's
+  exact-integer ceiling.
+- **XOR** operates per-byte independently. Each output byte is in [0, 255].
+- **Rotate-left** by (q bytes + r bits) reindexes bytes and shifts by at most
+  8 bits. Sub-byte rotation intermediates are at most 32640 < 2^15.
 
-The observation that drove 0.4.0: the problem was never "float32 is imprecise."
-It was "Philox needs a primitive float32 can't model." Threefry doesn't.
+The architecture does not merely permit byte-tile Threefry — it makes it exact
+where uint32-tile Philox is approximate. The precision problem is not "float32
+is imprecise"; it is "Philox needs one primitive float32 cannot model; Threefry
+does not." Salmon et al. designed Threefry specifically for hardware without fast
+multiply. Trainium's current NKI substrate is exactly that hardware.
 
 ```mermaid
 flowchart LR
-  CTR[("Counter\n(P,1)×4 int32")]
-  BYTES["Byte split\n4 tiles × [0,255]"]
-  GPS["GpSimd\nThreefry4×32-20\n20 rounds\nadd + xor + rotl"]
-  U[("Uniforms\n3-byte mantissa\n/ 2²⁴")]
-  VE["Vector Engine\nBox-Muller\ncos/sin/log/sqrt"]
-  N[/"Normals\nSBUF-resident"/]
-  DS["Downstream\n(trnfft / trnblas)"]
-  CTR --> BYTES --> GPS --> U --> VE --> N
-  N -.no HBM round-trip.-> DS
+  subgraph input ["Input: counter + key words"]
+    W["32-bit int32 tile\n(P, 1)"]
+  end
+  subgraph bytes ["_b_split: byte decomposition"]
+    B0["b0 in [0,255]"]
+    B1["b1 in [0,255]"]
+    B2["b2 in [0,255]"]
+    B3["b3 in [0,255]"]
+  end
+  subgraph gpsimd ["GpSimd: 20 rounds, all intermediates <= 511"]
+    ADD["_add32_b\ncarry-propagating add"]
+    XOR["_xor32_b\nper-byte XOR"]
+    ROT["_rotl32_b\nbyte-shift + bit-shift"]
+    ADD --> XOR --> ROT --> ADD
+  end
+  subgraph conv ["Output conversion (no uint32 tile)"]
+    MAN["mantissa = b0 + b1*256 + b2*65536\n<= 2^24 - 1, exact in float32"]
+    F32["/ 2^24 -> float32 U[0,1)"]
+    MAN --> F32
+  end
+  subgraph ve ["Vector Engine"]
+    BM["Box-Muller\nlog / sqrt / cos / sin\n-> N(0,1)"]
+  end
+  W --> B0 & B1 & B2 & B3 --> ADD
+  ROT -->|"key injection\nevery 4 rounds"| MAN
+  F32 -.SBUF-resident.-> BM
 ```
+
+The output conversion is where the approach pays off a second time: the three
+least-significant bytes of each output word give a 24-bit mantissa — the maximum
+resolution a float32 significand can carry. No uint32 tile is ever assembled. The
+kernel goes from counter inputs to float32 uniforms without touching any
+representation that exceeds float32's exact-integer ceiling.
 
 ## The approach
 
-The constraint is tighter than "no multiply." Any tile element that holds a value
-above 2²⁴ is rounded at load time, before arithmetic begins. That means even
-the counter inputs are unsafe if they exceed the ceiling. The solution isn't
-to find a multiply-free algorithm — it's to never let a tile element hold a
-value above 255.
+Every 32-bit word in the kernel — the four counter words, four key words,
+running Threefry state, and all intermediate computation — lives as four separate
+`(P, 1)` uint32 tiles. The helper `_b_split` extracts four bytes from a
+`(P, 1)` int32 tile immediately on load. The kernel never holds a uint32 value
+above 255 in any tile for the duration of the 20 Threefry rounds and 5 key
+injections.
 
-**Byte-tile representation.** Every 32-bit word is stored as four separate
-`(P, 1)` uint32 tiles, one per byte, with values in [0, 255]. The kernel never
-assembles a uint32 tile. The arithmetic operates on bytes:
+The fused `threefry_normal_kernel` carries byte-tile state directly into the
+Vector Engine Box-Muller stage. Output uniforms are SBUF-resident between the
+GpSimd computation and the transcendental stage — no HBM round-trip between the
+RNG and the transform. This is the four-engine pipeline described in the prior
+post, now realized end to end: counter arithmetic on GpSimd, transcendentals on
+the Vector Engine, SBUF-resident output available to downstream consumers such
+as trnfft noise injection or the stochastic-trace estimators in trnblas.
 
-- **Add:** carry-propagating byte addition, sums ≤ 511 < 2¹⁰.
-- **XOR:** byte-by-byte, result in [0, 255].
-- **Rotate left by R bits:** decompose as q = R // 8 (byte shift) + r = R % 8
-  (sub-byte rotation). The sub-byte step produces intermediates ≤ 32640 < 2¹⁵.
-
-All intermediates are two or more orders of magnitude below 2²⁴. The float32
-activation path is exact for every operation in the kernel.
-
-**Output directly from bytes.** Threefry's output words go to float32 uniforms
-without assembling a uint32:
-
-```
-mantissa = b₀ + b₁ × 256.0 + b₂ × 65536.0   (≤ 2²⁴ − 1, exact in float32)
-uniform  = mantissa / 16777216.0
-```
-
-This gives 24-bit uniform resolution per output word — the same resolution
-`cuRAND` targets — without the uint32 tile assembly step that would require
-exact 32-bit arithmetic.
-
-One tradeoff made deliberately: the counter design caps tile inputs at 24 bits.
-Lane index (0–127) goes to `c0`, batch index goes to `c1`, and both are masked
-to `0xFFFFFF`. This bounds generation jobs to ≈ 128 × 2²⁴ × 4 = 8 billion
-elements before counter rollover. That's sufficient for the workload sizes
-trnrand targets in 0.4.0; counter extension is a 0.5 item.
+Threefry is stateless: outputs are a pure function of `(counter, key)`. Like
+Philox, this makes partition-axis splitting trivially correct. Each of 128
+partition lanes holds an independent Threefry stream; no state synchronization
+across lanes is needed. The batch index occupies the second counter word (c1),
+giving disjoint counter ranges across calls by construction.
 
 ## Implementation
 
-The `_add32_b` helper illustrates the pattern. Each argument is a list of four
-byte tiles; the function returns the sum mod 2³² as four byte tiles:
+The three core byte-tile helpers, from
+[`trnrand/nki/dispatch.py`](https://github.com/trnsci/trnrand/blob/main/trnrand/nki/dispatch.py):
 
 ```python
 def _add32_b(a_b, b_b):
-    s0 = nl.add(a_b[0], b_b[0], dtype=nl.uint32)   # ≤ 510
+    """Carry-propagating 32-bit addition. Each intermediate <= 511."""
+    s0 = nl.add(a_b[0], b_b[0], dtype=nl.uint32)   # <= 510
     c0 = nl.right_shift(s0, 8, dtype=nl.uint32)
     r0 = nl.bitwise_and(s0, 0xFF, dtype=nl.uint32)
     s1 = nl.add(nl.add(a_b[1], b_b[1], dtype=nl.uint32), c0, dtype=nl.uint32)
@@ -126,114 +144,122 @@ def _add32_b(a_b, b_b):
     return [r0, r1, r2, r3]
 ```
 
-The rotation helper for sub-byte shifts:
+Output conversion per word (unrolled x4 to satisfy the hardware compiler):
 
 ```python
-def _rotl32_b(x_b, q, r):
-    # q = R // 8, r = R % 8, both precomputed at module level
-    if r == 0:
-        return [x_b[(i - q) % 4] for i in range(4)]
-    out = []
-    for i in range(4):
-        hi = nl.left_shift(x_b[(i - q) % 4], r, dtype=nl.uint32)       # ≤ 32640
-        lo = nl.right_shift(x_b[(i - q - 1) % 4], 8 - r, dtype=nl.uint32)
-        out.append(nl.bitwise_and(nl.bitwise_or(hi, lo, dtype=nl.uint32),
-                                  0xFF, dtype=nl.uint32))
-    return out
+b = x0_b
+out[:, 0:1] = nl.multiply(
+    nl.add(
+        nl.add(nl.copy(b[0], dtype=nl.float32),
+               nl.multiply(nl.copy(b[1], dtype=nl.float32), _s256,
+                           dtype=nl.float32), dtype=nl.float32),
+        nl.multiply(nl.copy(b[2], dtype=nl.float32), _s65536,
+                    dtype=nl.float32), dtype=nl.float32,
+    ),
+    inv24, dtype=nl.float32,  # inv24 = 1.0 / 16_777_216.0
+)
 ```
 
-`threefry_normal_kernel` fuses the full pipeline: 20 Threefry rounds in byte
-tiles followed immediately by Box-Muller on the Vector Engine, with intermediate
-float32 uniforms remaining SBUF-resident. The two kernels share a common 8×`(P,1)`
-input signature — counter and key words, each guaranteed < 2²⁴ by the host wrapper.
-
-!!! info "NKI constraint: module-level helpers only"
-    NKI's `@nki.jit` decorator prohibits inner function definitions. All helper
-    functions (`_add32_b`, `_xor32_b`, `_rotl32_b`, `_mix_b`, `_key_inject_b`)
-    are defined at module level inside `if HAS_NKI:`. The byte-arithmetic
-    decomposition naturally maps to this constraint: the helpers are pure functions
-    of NKI tiles, with no captured state.
+The `_rotl32_b` helper covers all (q, r) combinations through fully unrolled
+branches rather than a loop — 64 cases total. The reason is in the next section.
 
 ## What didn't work
 
-**Phase 0 went untested.** When AWS responded to [aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308),
-they noted that `nki.isa.tensor_copy` operates on the Vector Engine and is
-bit-accurate, suggesting it as a potential fix for the `nl.copy` cast that
-triggers float32 rounding in Philox. The hypothesis: if only the cast is lossy
-and the bitwise operations are exact, replacing the single cast might unblock
-Philox without a new algorithm.
+Three things: one at the algorithm level, and two from the NKI hardware compiler.
 
-The experiment wasn't run. The AWS response also said "VE/Scalar engines use
-FP32 casting for all 32-bit types," which implies the bitwise operations
-themselves route through the float path — meaning a fixed cast would help only
-if the intermediate values happen to stay below 2²⁴, which Philox counters don't.
-The hypothesis remains open; the experiment is straightforward to run once
-`nki.isa.tensor_copy`'s exact semantics are confirmed on trn1. Threefry removes
-the need to find out.
+**Fixing the Philox multiply works; fixing the Philox inputs doesn't.** The
+8-bit byte decomposition of the 32x32-bit multiply is correct and bit-exact.
+The mistake was assuming that fixing the multiply would fix the output. The
+root cause was one layer up, at the tile-load boundary, where counter inputs
+above 2^24 were being silently rounded before any arithmetic began. An
+`nki.isa.tensor_copy` path was also considered as a potential bypass around
+the VE float32 cast; the AWS Neuron team's response on aws-neuron-sdk#1308
+("VE/Scalar engines use FP32 casting for all 32-bit types") indicates this is
+a systemic property of the current architecture rather than a single-op
+workaround. Threefry removes the question. The outstanding upstream ask remains
+specific: document the 2^24 exact-integer ceiling in the NKI type-casting
+reference, and provide either a bitwise-exact `nl.copy` path for integer tiles
+or a compile-time error when the cast truncates. Filed with a reproducer at
+[aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308).
 
-**The intermediate carry accumulator.** The first byte-tile addition
-implementation accumulated carry into the *next* byte's sum without masking the
-carry out. On the CPU numpy reference this was correct — numpy arithmetic on
-`uint32` discards out-of-range bits naturally. In the NKI simulator, the carry
-tile for the high byte retains a two-bit value (0, 1, or 2), which propagated
-into the output and produced wrong results at high counter values. The fix was
-explicit masking at each stage, reducing carry tiles to {0, 1}.
+**The CPU simulator and the trn1 hardware compiler accept different Python
+constructs.** Three categories of syntax are silently accepted by the simulator
+and rejected by the real compiler, found across three separate SSM hardware
+runs after the kernel passed all simulator tests:
 
-**24-bit resolution vs 32-bit.** The output convention — 3 low bytes divided by
-2²⁴ — produces 24-bit uniform resolution, not 32-bit. Philox's output convention
-(full uint32 divided by 2³²) gives 32-bit resolution. The difference matters for
-quasi-Monte Carlo uses (Sobol sequences, lattice rules) where the bit depth of
-uniform inputs affects the effective dimension of the low-discrepancy structure.
-This is an honest regression relative to the intended Philox path; it's accepted
-for 0.4.0 because it doesn't affect standard Monte Carlo uses, and because
-matching 32-bit resolution requires assembling a uint32 tile, which is exactly
-the operation aws-neuron-sdk#1308 blocks.
+1. *Inner function definitions* inside any function in the `@nki.jit` call tree.
+   Fix: extract to module level. The `_mul32_hi_lo` helper originally defined
+   four inner functions; all became module-level helpers.
+2. *List comprehensions* (`[expr for i in range(n)]`) inside jit-traced code.
+   Fix: explicit element-by-element construction. This is why `_rotl32_b` is
+   fully unrolled rather than a compact loop.
+3. *Subscript expressions as left-hand assignment targets* in tuple unpacking.
+   `x_b_list[0], x_b_list[1] = _mix_b(...)` is rejected; named-variable
+   unpacking (`x0_b, x1_b = _mix_b(...)`) is accepted.
+
+The pattern: where a construct touches Python's dynamic object model at the AST
+level, the real NKI compiler may not trace it. Use the simplest syntactic form
+available. None of these failures produced a useful error message on first
+encounter — each surfaced as a generic compile failure on the trn1 host that had
+no simulator analog. A specific ask for AWS: the hardware compiler's rejection
+message for inner function defs should name the outer function and the line
+number of the inner def; the current message does not.
+
+**NCC_IBIR605 (pre-existing, not a Threefry regression).** The fused
+`threefry_normal_kernel` Box-Muller stage is blocked on trn1 by the same
+compiler restriction that blocked the standalone `box_muller_kernel` in 0.3.0:
+`InstActivation` rejects non-immediate bias parameters when the activation is
+`Ln`. The two affected hardware tests are marked `xfail(strict=False)` and
+tracked in [trnrand#2](https://github.com/trnsci/trnrand/issues/2). This is
+trn1-only; trn2+ and the CPU simulator are unaffected, and it has no bearing
+on the Threefry algorithm or the uniform kernel.
 
 ## Numbers
 
-No hardware throughput numbers yet — hardware validation via SSM is the remaining
-gate. What is verifiable today:
+No throughput benchmark yet — that's 0.5 scope
+([trnrand#3](https://github.com/trnsci/trnrand/issues/3)), deferred until
+both uniform and normal have clean trn1 paths. Hardware correctness as of 0.4.0:
 
-| Measurement | Value | Source |
+| Test | Simulator | trn1 hardware |
 |---|---|---|
-| Random123 KAT vectors (CPU reference) | 3 / 3 exact | `TestThreefryReference::test_spec_vectors` |
-| 100k-sample uniform, CPU reference | mean 0.4994 ± 0.01, var 1/12 ± 0.005 | `test_uniform_cpu_distribution` |
-| Byte-add helper vs Python ground truth | all 7 boundary cases exact | `test_add32_bytes_numpy` |
-| Byte-rotate helper vs Python ground truth | all 8 rotation constants × 5 inputs | `test_rotl32_bytes_numpy` |
-| Simulator: 128-lane tile matches CPU reference | pass (no xfail) | `test_threefry_kernel_matches_reference` |
-| Simulator: U[0,1) distribution | mean ≈ 0.5, var ≈ 1/12 | `test_threefry_kernel_distribution` |
-| Simulator: fused kernel N(0,1) distribution | mean ≈ 0, std ≈ 1 | `test_threefry_normal_kernel_distribution` |
-| Philox simulator tests | 4 / 4 xfail (aws-neuron-sdk#1308) | `tests/test_nki_sim.py` |
+| KAT vectors (3 Salmon SC'11 reference vectors) | pass | pass |
+| Reference parity (128-lane numpy vs NKI output) | pass | pass |
+| U[0,1) distribution (mean 0.500 +/- 0.01, var 1/12 +/- 0.005) | pass | pass |
+| Seed determinism + seed isolation | pass | pass |
+| threefry_normal N(0,1) distribution | pass | xfail (NCC_IBIR605, trnrand#2) |
 
-The absence of Philox xfail marks on the Threefry tests is the headline number
-in this table — those tests have no business failing, and they don't.
+Four of five `TestThreefryNKI` hardware cases pass. The fifth xfail is
+pre-existing trn1 compiler behavior and does not affect the uniform kernel
+or the Threefry algorithm on any other platform.
 
 ## What's next
 
-Two open tracks.
+**[aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308)**
+stays open. Philox remains the intended long-term primary for on-device RNG —
+it is the cuRAND and JAX standard, stateless, and partition-parallel by
+construction. Threefry is the production path until AWS ships a true uint32
+integer-multiply primitive; at that point Philox hardware validation reopens.
 
-**Hardware validation.** [trnrand#1](https://github.com/trnsci/trnrand/issues/1)
-now tracks Threefry hardware validation in addition to the original Philox item.
-The SSM run (`scripts/run_neuron_tests.sh`) is the next step.
-Benchmarks vs cuRAND are deferred until after hardware validation passes.
+**[trnrand#2](https://github.com/trnsci/trnrand/issues/2)** (NCC_IBIR605) —
+the `threefry_normal_kernel` trn1 path unblocks when the trn1 compiler fix
+ships. No workaround exists at the kernel level; trn2+ and the simulator path
+are clean today.
 
-**aws-neuron-sdk#1308.** Stays on the tracker. If AWS ships a true uint32
-multiply primitive or a bit-accurate copy path before 0.5.0, Philox becomes
-the hardware path again. Threefry would drop to CPU-only. Both are worth keeping.
+**[trnrand#3](https://github.com/trnsci/trnrand/issues/3)** — benchmarks vs
+cuRAND on equivalent generation sizes. Deferred to 0.5; the comparison is only
+useful once both chips have end-to-end correct on-device paths.
 
-**24-bit output resolution.** A `threefry_uniform_nki_32bit` variant that
-assembles the full uint32 from four byte tiles (at the cost of more NKI ops) is
-a 0.5 candidate — relevant if high-resolution quasi-Monte Carlo integration
-becomes a priority use case.
+The gamma, chi-squared, beta, and Poisson distributions (added in 0.2.0, CPU
+paths only) all wait on on-device acceleration via NKI kernels built on top of
+the uniform primitive validated here.
 
 ## Takeaway
 
-The constraint in NKI that blocked Philox — no exact integer arithmetic above
-2²⁴ — isn't a deficiency of Threefry. Threefry was designed for hardware where
-multiply is unavailable or imprecise. Representing each counter word as four byte
-tiles and keeping all intermediates below 255 is not a workaround; it is the
-correct substrate for this algorithm on this hardware at this point in the NKI
-roadmap. The four-engine framing from 0.3.0 is now realized end-to-end: GpSimd
-byte arithmetic, Vector Engine transcendentals, SBUF-resident normals handed off
-to downstream consumers without an HBM round-trip. The silicon constraint pointed
-to a better algorithm. Hardware validation will close the loop.
+The float32 exact-integer ceiling that blocks Philox on Trainium does not block
+Threefry, because Threefry was designed for exactly that constraint. Byte-tile
+arithmetic is not a workaround for the ceiling; it is the representation that
+keeps every intermediate at least three orders of magnitude below it. The
+four-engine pipeline — GpSimd byte arithmetic, SBUF-resident intermediate
+output, Vector Engine transcendentals — is now hardware-validated for uniforms
+on trn1. The integer-multiply gap that blocked Philox did not block trnrand;
+it identified the algorithm the architecture already preferred.
