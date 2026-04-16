@@ -4645,13 +4645,74 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#einsumsubscripts-operands-torchtensor" class="md-nav__link">
+  <a href="#einsumsubscripts-operands-alpha-beta-out-dtype-precision-torchtensor" class="md-nav__link">
     <span class="md-ellipsis">
       
-        einsum(subscripts, *operands) -&gt; torch.Tensor
+        einsum(subscripts, *operands, *, alpha, beta, out, dtype, precision) -&gt; torch.Tensor
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="einsum(subscripts, *operands, *, alpha, beta, out, dtype, precision) -&gt; torch.Tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arguments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alpha-beta-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        alpha / beta scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dtype-mixed-precision-compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dtype — mixed-precision compute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#precision-accumulation-precision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        precision — accumulation precision
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4663,6 +4724,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="multi_einsum(*contractions) -&gt; list[torch.Tensor]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plan-cache-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plan cache helpers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5161,13 +5239,74 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#einsumsubscripts-operands-torchtensor" class="md-nav__link">
+  <a href="#einsumsubscripts-operands-alpha-beta-out-dtype-precision-torchtensor" class="md-nav__link">
     <span class="md-ellipsis">
       
-        einsum(subscripts, *operands) -&gt; torch.Tensor
+        einsum(subscripts, *operands, *, alpha, beta, out, dtype, precision) -&gt; torch.Tensor
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="einsum(subscripts, *operands, *, alpha, beta, out, dtype, precision) -&gt; torch.Tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arguments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alpha-beta-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        alpha / beta scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dtype-mixed-precision-compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dtype — mixed-precision compute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#precision-accumulation-precision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        precision — accumulation precision
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5179,6 +5318,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="multi_einsum(*contractions) -&gt; list[torch.Tensor]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plan-cache-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plan cache helpers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5204,12 +5360,72 @@
 
 <h1 id="einsum">einsum<a class="headerlink" href="#einsum" title="Permanent link">&para;</a></h1>
 <p>Einstein summation with contraction planning. Mirrors the subscript
-notation used by <code>torch.einsum</code> and <code>numpy.einsum</code>.</p>
-<h2 id="einsumsubscripts-operands-torchtensor"><code>einsum(subscripts, *operands) -&gt; torch.Tensor</code><a class="headerlink" href="#einsumsubscripts-operands-torchtensor" title="Permanent link">&para;</a></h2>
-<p>Execute a single contraction. The planner selects one of <code>matmul</code>,
-<code>bmm</code>, or <code>torch.einsum</code> based on the subscript pattern and operand
-shapes. When a NKI backend is active and the pattern maps to a 2-index
-matmul, the kernel in <code>trntensor.nki._kernels.matmul_kernel</code> is used.</p>
+notation used by <code>torch.einsum</code> and <code>numpy.einsum</code>, with additional
+control over scaling, accumulation precision, and mixed-precision compute.</p>
+<h2 id="einsumsubscripts-operands-alpha-beta-out-dtype-precision-torchtensor"><code>einsum(subscripts, *operands, *, alpha, beta, out, dtype, precision) -&gt; torch.Tensor</code><a class="headerlink" href="#einsumsubscripts-operands-alpha-beta-out-dtype-precision-torchtensor" title="Permanent link">&para;</a></h2>
+<p>Execute a single contraction.</p>
+<div class="highlight"><pre><span></span><code><span class="n">einsum</span><span class="p">(</span>
+    <span class="n">subscripts</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">operands</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;fast&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+</code></pre></div>
+<p>The planner selects <code>matmul</code>, <code>bmm</code>, <code>path</code>, or <code>torch.einsum</code> based on
+the subscript pattern and operand shapes. When a NKI backend is active and
+the pattern maps to a 2-index matmul, the kernel in
+<code>trntensor.nki._kernels.matmul_kernel</code> is used.</p>
+<h3 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>subscripts</code></td>
+<td>—</td>
+<td>Einstein summation string, e.g. <code>"ij,jk-&gt;ik"</code></td>
+</tr>
+<tr>
+<td><code>*operands</code></td>
+<td>—</td>
+<td>Input tensors</td>
+</tr>
+<tr>
+<td><code>alpha</code></td>
+<td><code>1.0</code></td>
+<td>Scalar multiplier on the contraction result</td>
+</tr>
+<tr>
+<td><code>beta</code></td>
+<td><code>0.0</code></td>
+<td>Scalar multiplier on <code>out</code> before accumulation</td>
+</tr>
+<tr>
+<td><code>out</code></td>
+<td><code>None</code></td>
+<td>Accumulation tensor; result is <code>α·contract + β·out</code></td>
+</tr>
+<tr>
+<td><code>dtype</code></td>
+<td><code>None</code></td>
+<td>Cast all operands to this dtype before contracting; result is returned in this dtype. Accepts <code>torch.dtype</code> or strings: <code>"bf16"</code>, <code>"bfloat16"</code>, <code>"fp16"</code>, <code>"float16"</code>, <code>"f32"</code>, <code>"float32"</code></td>
+</tr>
+<tr>
+<td><code>precision</code></td>
+<td><code>"fast"</code></td>
+<td>Accumulation precision: <code>"fast"</code>, <code>"kahan"</code>, or <code>"dd"</code> (see below)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="basic-examples">Basic examples<a class="headerlink" href="#basic-examples" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trntensor</span>
 
 <span class="c1"># Matrix multiply</span>
@@ -5221,19 +5437,73 @@ matmul, the kernel in <code>trntensor.nki._kernels.matmul_kernel</code> is used.
 <span class="c1"># DF-MP2 pair contraction</span>
 <span class="n">T_ab</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">)</span>
 
-<span class="c1"># 4-index transform</span>
+<span class="c1"># 4-index AO→MO transform step</span>
 <span class="n">Inu</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;mi,mnP-&gt;inP&quot;</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">eri</span><span class="p">)</span>
 </code></pre></div>
+<h3 id="alpha-beta-scaling"><code>alpha</code> / <code>beta</code> scaling<a class="headerlink" href="#alpha-beta-scaling" title="Permanent link">&para;</a></h3>
+<p>Matches cuTENSOR's GEMM-style interface:
+<code>alpha·contract(A, B) + beta·C</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Scaled GEMM: 2·A@B + 0.5·C</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
+
+<span class="c1"># In-place accumulation (beta=1, alpha=1): result += A@B</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="dtype-mixed-precision-compute"><code>dtype</code> — mixed-precision compute<a class="headerlink" href="#dtype-mixed-precision-compute" title="Permanent link">&para;</a></h3>
+<p>Cast operands to a lower dtype to hit the NKI bf16 matmul path without
+changing the model's weight dtype. The result is returned in the requested
+dtype.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Route through NKI bf16 kernel even if weights are fp32</span>
+<span class="n">result_bf16</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;bf16&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use torch.dtype directly</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="precision-accumulation-precision"><code>precision</code> — accumulation precision<a class="headerlink" href="#precision-accumulation-precision" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"fast"</code></td>
+<td>Native operand dtype; NKI kernels accumulate in fp32 via PSUM</td>
+</tr>
+<tr>
+<td><code>"kahan"</code></td>
+<td>Promotes operands to fp64 before contracting, casts back to original dtype; ~15.9 significant digits; bypasses NKI dispatch (runs on CPU)</td>
+</tr>
+<tr>
+<td><code>"dd"</code></td>
+<td>Double-double accumulation via trnblas Phase 2 — raises <code>NotImplementedError</code> until trnblas#22 lands</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="c1"># High-precision DF-MP2 energy accumulation</span>
+<span class="n">E_corr</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ijab,ijab-&gt;&quot;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;kahan&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
 <h2 id="multi_einsumcontractions-listtorchtensor"><code>multi_einsum(*contractions) -&gt; list[torch.Tensor]</code><a class="headerlink" href="#multi_einsumcontractions-listtorchtensor" title="Permanent link">&para;</a></h2>
 <p>Execute several contractions in one call. Each contraction is a tuple
-of <code>(subscripts, *operands)</code>. The result preserves input order. In
-future versions the planner will reuse intermediates across
-contractions when they share operands (tracked in <a href="https://github.com/trnsci/trntensor/issues/19">#19</a>).</p>
+of <code>(subscripts, *operands)</code>. Results are returned in input order.</p>
+<p>When NKI dispatch is active, operand tensors that appear in more than one
+contraction (by object identity) are pre-pinned to the XLA device once
+before executing the loop, eliminating redundant host↔device transfers.</p>
 <div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">multi_einsum</span><span class="p">(</span>
-    <span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">),</span>   <span class="c1"># Coulomb term</span>
+    <span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_k</span><span class="p">),</span>   <span class="c1"># exchange term — B_i pinned once</span>
 <span class="p">)</span>
 </code></pre></div>
+<h3 id="plan-cache-helpers">Plan cache helpers<a class="headerlink" href="#plan-cache-helpers" title="Permanent link">&para;</a></h3>
+<p>These are documented on the <a href="../plan/">Planning</a> page but are also
+relevant to einsum performance:</p>
+<ul>
+<li><code>trntensor.clear_plan_cache()</code> — discard all cached plans</li>
+<li><code>trntensor.plan_cache_info()</code> — return <code>{"size": N}</code> cache statistics</li>
+</ul>
 
 
 

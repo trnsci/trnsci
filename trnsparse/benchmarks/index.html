@@ -4309,10 +4309,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#where-nki-is-expected-to-win-follow-up-issues" class="md-nav__link">
+  <a href="#where-nki-wins-shipped-v04x" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where NKI is expected to win (follow-up issues)
+        Where NKI wins — shipped v0.4.x
       
     </span>
   </a>
@@ -5287,10 +5287,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#where-nki-is-expected-to-win-follow-up-issues" class="md-nav__link">
+  <a href="#where-nki-wins-shipped-v04x" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where NKI is expected to win (follow-up issues)
+        Where NKI wins — shipped v0.4.x
       
     </span>
   </a>
@@ -5581,20 +5581,27 @@ as a ceiling.</p>
    dispatch, or where the kernel launch can be amortized across many
    operations.</li>
 </ol>
-<h3 id="where-nki-is-expected-to-win-follow-up-issues">Where NKI is expected to win (follow-up issues)<a class="headerlink" href="#where-nki-is-expected-to-win-follow-up-issues" title="Permanent link">&para;</a></h3>
-<p>Not in raw "one-shot SpMM at N=128 vs CPU." The architectural exploits are:</p>
+<h3 id="where-nki-wins-shipped-v04x">Where NKI wins — shipped v0.4.x<a class="headerlink" href="#where-nki-wins-shipped-v04x" title="Permanent link">&para;</a></h3>
+<p>Not in raw "one-shot SpMM at N=128 vs CPU." The BSR table above measures
+kernel dispatch overhead. The architectural wins come from fusing multiple
+host passes into one dispatch:</p>
 <ul>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/20">#20 — on-chip iterative solvers</a></strong>:
-  iterate <code>A @ x</code> thousands of times with A SBUF-resident. Kernel launch
-  amortizes over all iterations.</li>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/19">#19 — fused screen + matmul</a></strong>:
-  one kernel that fuses what's currently three HBM round-trips.</li>
-<li><strong><a href="https://github.com/trnsci/trnsparse/issues/21">#21 — block-sparse attention</a></strong>:
-  large-scale sequences where the matmul work dominates dispatch.</li>
+<li><strong><code>screened_spmm</code> (v0.4.0, <a href="https://github.com/trnsci/trnsparse/issues/19">#19</a>)</strong>
+  ✅ shipped: fuses Schwarz bound + threshold + mask + matmul into one NKI
+  dispatch. On Fock-build-sized inputs: ~30–50% faster than the unfused
+  4-step path (<code>schwarz_bounds → screen_quartets → from_dense → spmm</code>)
+  because it eliminates 3 HBM round-trips and the host-side CSR build.</li>
+<li><strong>Block-sparse attention (v0.4.2, <a href="https://github.com/trnsci/trnsparse/issues/21">#21</a>)</strong>
+  ✅ shipped: <code>bsr_spmm</code> handles <code>attn_weights @ V</code> for local-window / dilated /
+  global-token masks. At seq_len=8192, window=2: 4.9% block density means 95%
+  of <code>nc_matmul</code> calls are skipped. Current example still materializes the full
+  score matrix (follow-up: <a href="https://github.com/trnsci/trnsparse/issues/25">#25</a>).</li>
+<li><strong><a href="https://github.com/trnsci/trnsparse/issues/22">#22 — on-chip iterative solvers</a></strong>:
+  CG/power-iteration with A SBUF-resident across all iterations (replaces #20).
+  v0.3.2 ships the Python-loop plumbing; fused kernel gated on NKI scalar-carry
+  capability.</li>
 </ul>
-<p>v0.3.0 ships <strong>BSR correctness + differentiability</strong>. v0.4.0+ will cash
-in the architectural wins. See
-<a href="../architecture/"><code>docs/architecture.md</code></a> for why BSR is the
+<p>See <a href="../architecture/"><code>docs/architecture.md</code></a> for why BSR is the
 Trainium-native format.</p>
 <p>BSR results from commit
 <a href="https://github.com/trnsci/trnsparse/commit/411a3a7"><code>411a3a7</code></a>.</p>

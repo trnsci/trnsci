@@ -4673,13 +4673,30 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#plan_contractionsubscripts-operands-contractionplan" class="md-nav__link">
+  <a href="#plan_contractionsubscripts-operands-precisionfast-contractionplan" class="md-nav__link">
     <span class="md-ellipsis">
       
-        plan_contraction(subscripts, *operands) -&gt; ContractionPlan
+        plan_contraction(subscripts, *operands, *, precision="fast") -&gt; ContractionPlan
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="plan_contraction(subscripts, *operands, *, precision=&#34;fast&#34;) -&gt; ContractionPlan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#precision-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        precision values
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4692,6 +4709,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="ContractionPlan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strategy-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy selection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4702,6 +4736,45 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plan-cache-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plan cache helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plan cache helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clear_plan_cache-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clear_plan_cache() -&gt; None
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plan_cache_info-dictstr-int" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plan_cache_info() -&gt; dict[str, int]
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5172,13 +5245,30 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#plan_contractionsubscripts-operands-contractionplan" class="md-nav__link">
+  <a href="#plan_contractionsubscripts-operands-precisionfast-contractionplan" class="md-nav__link">
     <span class="md-ellipsis">
       
-        plan_contraction(subscripts, *operands) -&gt; ContractionPlan
+        plan_contraction(subscripts, *operands, *, precision="fast") -&gt; ContractionPlan
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="plan_contraction(subscripts, *operands, *, precision=&#34;fast&#34;) -&gt; ContractionPlan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#precision-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        precision values
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5191,6 +5281,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="ContractionPlan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strategy-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy selection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5201,6 +5308,45 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plan-cache-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plan cache helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plan cache helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clear_plan_cache-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clear_plan_cache() -&gt; None
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plan_cache_info-dictstr-int" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plan_cache_info() -&gt; dict[str, int]
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5226,29 +5372,142 @@
 
 <h1 id="planning">Planning<a class="headerlink" href="#planning" title="Permanent link">&para;</a></h1>
 <p>The planner analyzes einsum subscripts to select a concrete execution
-strategy and estimate cost.</p>
-<h2 id="plan_contractionsubscripts-operands-contractionplan"><code>plan_contraction(subscripts, *operands) -&gt; ContractionPlan</code><a class="headerlink" href="#plan_contractionsubscripts-operands-contractionplan" title="Permanent link">&para;</a></h2>
+strategy, estimate cost, and cache the decision so repeated calls are cheap.</p>
+<h2 id="plan_contractionsubscripts-operands-precisionfast-contractionplan"><code>plan_contraction(subscripts, *operands, *, precision="fast") -&gt; ContractionPlan</code><a class="headerlink" href="#plan_contractionsubscripts-operands-precisionfast-contractionplan" title="Permanent link">&para;</a></h2>
 <p>Inspect the dispatch decision without executing.</p>
 <div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">strategy</span>          <span class="c1"># &quot;matmul&quot; | &quot;bmm&quot; | &quot;torch&quot;</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">strategy</span>             <span class="c1"># &quot;matmul&quot; | &quot;bmm&quot; | &quot;torch&quot; | &quot;path&quot;</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">contraction_indices</span>  <span class="c1"># list of indices being summed over</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">batch_indices</span>        <span class="c1"># list of batch indices</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">output_indices</span>       <span class="c1"># list of output indices in order</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">transA</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">transB</span>  <span class="c1"># whether to pre-transpose before matmul</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span>     <span class="c1"># [(i,j), ...] for &quot;path&quot; strategy</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">precision</span>            <span class="c1"># &quot;fast&quot; | &quot;kahan&quot; | &quot;dd&quot;</span>
+</code></pre></div>
+<p>Results are cached by <code>(subscripts, operand shapes, precision)</code>. Repeated
+calls with the same subscript, shapes, and precision skip replanning entirely.
+Call <code>clear_plan_cache()</code> to invalidate (e.g. after a backend change).</p>
+<h3 id="precision-values"><code>precision</code> values<a class="headerlink" href="#precision-values" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Effect on planning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"fast"</code></td>
+<td>Default; NKI kernels eligible for matmul/bmm strategies</td>
+</tr>
+<tr>
+<td><code>"kahan"</code></td>
+<td>Signals fp64 promotion at execution time; plan is still computed but <code>einsum</code> will use <code>torch.einsum</code> in fp64 regardless of strategy</td>
+</tr>
+<tr>
+<td><code>"dd"</code></td>
+<td>Raises <code>NotImplementedError</code> at execution time (trnblas#22 pending)</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="n">plan_fast</span>  <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;fast&quot;</span><span class="p">)</span>
+<span class="n">plan_kahan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;kahan&quot;</span><span class="p">)</span>
+<span class="c1"># Two distinct cache entries — plan_fast is not plan_kahan</span>
 </code></pre></div>
 <h2 id="contractionplan"><code>ContractionPlan</code><a class="headerlink" href="#contractionplan" title="Permanent link">&para;</a></h2>
-<p>Dataclass with the fields above plus:</p>
+<p>Dataclass returned by <code>plan_contraction</code>. All fields are read-only after
+the planner returns.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>subscripts</code></td>
+<td><code>str</code></td>
+<td>Original subscript string</td>
+</tr>
+<tr>
+<td><code>strategy</code></td>
+<td><code>str</code></td>
+<td><code>"matmul"</code> | <code>"bmm"</code> | <code>"torch"</code> | <code>"path"</code></td>
+</tr>
+<tr>
+<td><code>backend</code></td>
+<td><code>str</code></td>
+<td><code>"nki"</code> or <code>"pytorch"</code></td>
+</tr>
+<tr>
+<td><code>transA</code></td>
+<td><code>bool</code></td>
+<td>Pre-transpose first operand (matmul only)</td>
+</tr>
+<tr>
+<td><code>transB</code></td>
+<td><code>bool</code></td>
+<td>Pre-transpose second operand (matmul only)</td>
+</tr>
+<tr>
+<td><code>contraction_indices</code></td>
+<td><code>list[str]</code></td>
+<td>Indices summed over</td>
+</tr>
+<tr>
+<td><code>batch_indices</code></td>
+<td><code>list[str]</code></td>
+<td>Shared batch indices</td>
+</tr>
+<tr>
+<td><code>output_indices</code></td>
+<td><code>list[str]</code></td>
+<td>Output index order</td>
+</tr>
+<tr>
+<td><code>estimated_flops</code></td>
+<td><code>int</code></td>
+<td>Multiply-add estimate</td>
+</tr>
+<tr>
+<td><code>contraction_path</code></td>
+<td><code>list[tuple[int,int]]</code></td>
+<td>Greedy pair order for <code>"path"</code> strategy (opt_einsum convention)</td>
+</tr>
+<tr>
+<td><code>precision</code></td>
+<td><code>str</code></td>
+<td><code>"fast"</code> | <code>"kahan"</code> | <code>"dd"</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="strategy-selection">Strategy selection<a class="headerlink" href="#strategy-selection" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>subscripts</code> — the original subscript string</li>
-<li><code>backend</code> — executor that will run the contraction: <code>"nki"</code> (when
-  the strategy is <code>matmul</code>/<code>bmm</code> and <code>neuronxcc</code> is importable) or
-  <code>"pytorch"</code></li>
-<li><code>estimated_flops: int</code></li>
+<li><strong><code>"matmul"</code></strong> — 2-operand, 2D tensors, single contracted index → <code>torch.matmul</code> (or NKI kernel when backend is <code>"nki"</code>)</li>
+<li><strong><code>"bmm"</code></strong> — 2-operand, 3D tensors, single contracted index + single batch index → <code>torch.bmm</code> (or NKI batched kernel)</li>
+<li><strong><code>"torch"</code></strong> — 2-operand fallback for patterns that don't fit matmul/bmm → <code>torch.einsum</code></li>
+<li><strong><code>"path"</code></strong> — 3+ operands → greedy binary contraction ordering; each binary step is dispatched through the full backend-selection stack so large sub-contractions still reach NKI</li>
 </ul>
 <h2 id="estimate_flopssubscripts-operands-int"><code>estimate_flops(subscripts, *operands) -&gt; int</code><a class="headerlink" href="#estimate_flopssubscripts-operands-int" title="Permanent link">&para;</a></h2>
 <p>Estimate multiply-add operations for a contraction as the product of
 all distinct index sizes.</p>
 <div class="highlight"><pre><span></span><code><span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># M*K*N</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">&quot;iap,jbp-&gt;ijab&quot;</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># nocc² * nvir² * naux</span>
+</code></pre></div>
+<h2 id="plan-cache-helpers">Plan cache helpers<a class="headerlink" href="#plan-cache-helpers" title="Permanent link">&para;</a></h2>
+<h3 id="clear_plan_cache-none"><code>clear_plan_cache() -&gt; None</code><a class="headerlink" href="#clear_plan_cache-none" title="Permanent link">&para;</a></h3>
+<p>Discard all cached contraction plans. Call after changing the active
+backend or when memory is a concern.</p>
+<div class="highlight"><pre><span></span><code><span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">clear_plan_cache</span><span class="p">()</span>  <span class="c1"># flush plans that may have chosen &quot;pytorch&quot;</span>
+</code></pre></div>
+<h3 id="plan_cache_info-dictstr-int"><code>plan_cache_info() -&gt; dict[str, int]</code><a class="headerlink" href="#plan_cache_info-dictstr-int" title="Permanent link">&para;</a></h3>
+<p>Return cache statistics. Currently returns <code>{"size": N}</code> where <code>N</code> is
+the number of cached plans.</p>
+<div class="highlight"><pre><span></span><code><span class="n">info</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_cache_info</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cached plans: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 

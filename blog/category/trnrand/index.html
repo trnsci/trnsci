@@ -5109,7 +5109,7 @@
           
           <li class="md-meta__item">
             
-              7 min read
+              8 min read
             
           </li>
         
@@ -5119,16 +5119,18 @@
     </div>
   </header>
   <div class="md-post__content md-typeset">
-    <h2 id="trnrand-when-the-blocker-points-to-a-better-algorithm"><a class="toclink" href="../../trnrand-when-the-blocker-points-to-a-better-algorithm/">trnrand: when the blocker points to a better algorithm</a></h2>
-<p>aws-neuron-sdk#1308 is still open. trnrand 0.4.0 ships a hardware-path random
-number generator anyway, because the constraint that makes Philox unworkable
-on today's NKI substrate — no exact integer arithmetic above 2²⁴ — points
-directly to an algorithm that never needed it. Threefry4×32-20 was designed
-for exactly this class of hardware.</p>
+    <h2 id="trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm"><a class="toclink" href="../../trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm/">trnrand: the integer-multiply gap pointed to a better algorithm</a></h2>
+<p>The <a href="https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">previous trnrand post</a> closed with:
+"the silicon just needs one more op to let the library say it out loud."
+<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1308">aws-neuron-sdk#1308</a>
+is still open. trnrand 0.4.0 ships hardware-validated uniform RNG on trn1 anyway
+— not by fixing Philox, but by using Threefry4x32-20, the PRNG Salmon et al.
+designed in the same SC'11 paper for hardware without fast integer multiply.
+The library said it out loud without waiting for the op.</p>
 
     
       <nav class="md-post__action">
-        <a href="../../trnrand-when-the-blocker-points-to-a-better-algorithm/">
+        <a href="../../trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm/">
           Continue reading
         </a>
       </nav>

@@ -4713,10 +4713,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cp_decomposetensor-rank-max_iter100-tol1e-6-factors-weights" class="md-nav__link">
+  <a href="#cp_decomposetensor-rank-max_iter100-tol1e-6-nonnegfalse-factorsnone-factors-weights" class="md-nav__link">
     <span class="md-ellipsis">
       
-        cp_decompose(tensor, rank, *, max_iter=100, tol=1e-6) -&gt; (factors, weights)
+        cp_decompose(tensor, rank, *, max_iter=100, tol=1e-6, nonneg=False, factors=None) -&gt; (factors, weights)
       
     </span>
   </a>
@@ -4767,6 +4767,45 @@
     <span class="md-ellipsis">
       
         tucker_reconstruct(core, factors) -&gt; torch.Tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tensor-train-tt-svd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tensor Train (TT-SVD)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tensor Train (TT-SVD)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tt_decomposetensor-max_rank-listtorchtensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tt_decompose(tensor, max_rank) -&gt; list[torch.Tensor]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tt_reconstructcores-torchtensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tt_reconstruct(cores) -&gt; torch.Tensor
       
     </span>
   </a>
@@ -5229,10 +5268,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cp_decomposetensor-rank-max_iter100-tol1e-6-factors-weights" class="md-nav__link">
+  <a href="#cp_decomposetensor-rank-max_iter100-tol1e-6-nonnegfalse-factorsnone-factors-weights" class="md-nav__link">
     <span class="md-ellipsis">
       
-        cp_decompose(tensor, rank, *, max_iter=100, tol=1e-6) -&gt; (factors, weights)
+        cp_decompose(tensor, rank, *, max_iter=100, tol=1e-6, nonneg=False, factors=None) -&gt; (factors, weights)
       
     </span>
   </a>
@@ -5294,6 +5333,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#tensor-train-tt-svd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tensor Train (TT-SVD)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tensor Train (TT-SVD)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tt_decomposetensor-max_rank-listtorchtensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tt_decompose(tensor, max_rank) -&gt; list[torch.Tensor]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tt_reconstructcores-torchtensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tt_reconstruct(cores) -&gt; torch.Tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5315,32 +5393,115 @@
 
 
 <h1 id="decompositions">Decompositions<a class="headerlink" href="#decompositions" title="Permanent link">&para;</a></h1>
-<p>CP (CANDECOMP/PARAFAC) and Tucker (HOSVD) decompositions for
-compressing high-order tensors. Used in quantum chemistry for tensor
-hypercontraction (THC) and low-rank factorization of DF-coefficient
-tensors.</p>
+<p>CP (CANDECOMP/PARAFAC), Tucker (HOSVD), and Tensor Train (TT-SVD)
+decompositions for compressing high-order tensors. Used in quantum chemistry
+for tensor hypercontraction (THC), low-rank factorization of DF-coefficient
+tensors, and DMRG-style high-dimensional compression.</p>
 <h2 id="cp-parafac">CP (PARAFAC)<a class="headerlink" href="#cp-parafac" title="Permanent link">&para;</a></h2>
-<h3 id="cp_decomposetensor-rank-max_iter100-tol1e-6-factors-weights"><code>cp_decompose(tensor, rank, *, max_iter=100, tol=1e-6) -&gt; (factors, weights)</code><a class="headerlink" href="#cp_decomposetensor-rank-max_iter100-tol1e-6-factors-weights" title="Permanent link">&para;</a></h3>
-<p>Decompose a tensor as <code>T ≈ Σ_r w_r * a_r ⊗ b_r ⊗ c_r ⊗ ...</code> via
-alternating least squares.</p>
+<h3 id="cp_decomposetensor-rank-max_iter100-tol1e-6-nonnegfalse-factorsnone-factors-weights"><code>cp_decompose(tensor, rank, *, max_iter=100, tol=1e-6, nonneg=False, factors=None) -&gt; (factors, weights)</code><a class="headerlink" href="#cp_decomposetensor-rank-max_iter100-tol1e-6-nonnegfalse-factorsnone-factors-weights" title="Permanent link">&para;</a></h3>
+<p>Decompose a tensor as <code>T ≈ Σ_r w_r · a_r ⊗ b_r ⊗ c_r ⊗ ...</code> via
+alternating least squares (ALS).</p>
 <ul>
 <li><code>factors</code>: list of factor matrices, one per mode with shape <code>(I_k, R)</code></li>
 <li><code>weights</code>: <code>(R,)</code> tensor of component weights</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="n">factors</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">cp_decompose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tensor</code></td>
+<td>—</td>
+<td>Input tensor of any order</td>
+</tr>
+<tr>
+<td><code>rank</code></td>
+<td>—</td>
+<td>Number of CP components</td>
+</tr>
+<tr>
+<td><code>max_iter</code></td>
+<td><code>100</code></td>
+<td>Maximum ALS iterations</td>
+</tr>
+<tr>
+<td><code>tol</code></td>
+<td><code>1e-6</code></td>
+<td>Relative reconstruction-error convergence threshold</td>
+</tr>
+<tr>
+<td><code>nonneg</code></td>
+<td><code>False</code></td>
+<td>Enforce non-negative factors via multiplicative updates</td>
+</tr>
+<tr>
+<td><code>factors</code></td>
+<td><code>None</code></td>
+<td>Warm-start factor matrices; list of <code>(I_k, R)</code> tensors, one per mode — skips random initialization</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="c1"># Standard CP decomposition</span>
+<span class="n">factors</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">cp_decompose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 <span class="n">T_approx</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">cp_reconstruct</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+
+<span class="c1"># Non-negative CP (e.g. for density-matrix elements that must stay ≥ 0)</span>
+<span class="n">factors_nn</span><span class="p">,</span> <span class="n">weights_nn</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">cp_decompose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Warm-start from a previous run (e.g. after increasing rank by one)</span>
+<span class="n">factors_new</span><span class="p">,</span> <span class="n">weights_new</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">cp_decompose</span><span class="p">(</span>
+    <span class="n">T</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">factors</span><span class="o">=</span><span class="n">prev_factors</span> <span class="o">+</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+<span class="p">)</span>
+
+<span class="c1"># nonneg and warm-start compose</span>
+<span class="n">factors_ws</span><span class="p">,</span> <span class="n">weights_ws</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">cp_decompose</span><span class="p">(</span>
+    <span class="n">T</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">factors</span><span class="o">=</span><span class="n">seed_factors</span>
+<span class="p">)</span>
 </code></pre></div>
 <h3 id="cp_reconstructfactors-weights-torchtensor"><code>cp_reconstruct(factors, weights) -&gt; torch.Tensor</code><a class="headerlink" href="#cp_reconstructfactors-weights-torchtensor" title="Permanent link">&para;</a></h3>
-<p>Reconstruct the full tensor from CP factors.</p>
+<p>Reconstruct the full tensor from CP factors and weights.</p>
+<hr />
 <h2 id="tucker-hosvd">Tucker (HOSVD)<a class="headerlink" href="#tucker-hosvd" title="Permanent link">&para;</a></h2>
 <h3 id="tucker_decomposetensor-ranks-core-factors"><code>tucker_decompose(tensor, ranks) -&gt; (core, factors)</code><a class="headerlink" href="#tucker_decomposetensor-ranks-core-factors" title="Permanent link">&para;</a></h3>
-<p>Higher-order SVD: <code>T ≈ G ×_1 U_1 ×_2 U_2 ...</code> Each factor matrix <code>U_k</code>
+<p>Higher-order SVD: <code>T ≈ G ×_1 U_1 ×_2 U_2 ...</code>. Each factor matrix <code>U_k</code>
 is orthonormal by construction.</p>
 <div class="highlight"><pre><span></span><code><span class="n">core</span><span class="p">,</span> <span class="n">factors</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">tucker_decompose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">ranks</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 <span class="n">T_approx</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">tucker_reconstruct</span><span class="p">(</span><span class="n">core</span><span class="p">,</span> <span class="n">factors</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="tucker_reconstructcore-factors-torchtensor"><code>tucker_reconstruct(core, factors) -&gt; torch.Tensor</code><a class="headerlink" href="#tucker_reconstructcore-factors-torchtensor" title="Permanent link">&para;</a></h3>
-<p>Reconstruct from a Tucker decomposition.</p>
+<p>Reconstruct from a Tucker core and factor matrices.</p>
+<hr />
+<h2 id="tensor-train-tt-svd">Tensor Train (TT-SVD)<a class="headerlink" href="#tensor-train-tt-svd" title="Permanent link">&para;</a></h2>
+<h3 id="tt_decomposetensor-max_rank-listtorchtensor"><code>tt_decompose(tensor, max_rank) -&gt; list[torch.Tensor]</code><a class="headerlink" href="#tt_decomposetensor-max_rank-listtorchtensor" title="Permanent link">&para;</a></h3>
+<p>Decompose a d-dimensional tensor into a chain of d cores via TT-SVD
+(Oseledets 2011). Bond dimensions are capped at <code>max_rank</code>.</p>
+<p>Each core has shape <code>(r_{k-1}, n_k, r_k)</code> where:
+- <code>r_0 = r_d = 1</code> (boundary ranks)
+- <code>n_k</code> is the size of mode <code>k</code>
+- <code>r_k ≤ max_rank</code></p>
+<div class="highlight"><pre><span></span><code>T[i_1, i_2, ..., i_d] ≈ G_1[1, i_1, :] · G_2[:, i_2, :] · ... · G_d[:, i_d, 1]
+</code></pre></div>
+<p>Returns a list of <code>d</code> core tensors.</p>
+<div class="highlight"><pre><span></span><code><span class="n">cores</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">tt_decompose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">max_rank</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="c1"># cores[k].shape == (r_{k-1}, n_k, r_k)</span>
+
+<span class="n">T_approx</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">tt_reconstruct</span><span class="p">(</span><span class="n">cores</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Use case — DMRG-style compression.</strong> For a 6-mode tensor with modes
+of size 20 each, full storage is <code>20^6 ≈ 64M</code> floats. At <code>max_rank=10</code>
+the TT representation needs <code>6 · 10 · 20 · 10 = 12k</code> floats — a 5000×
+reduction, at the cost of some truncation error.</p>
+<h3 id="tt_reconstructcores-torchtensor"><code>tt_reconstruct(cores) -&gt; torch.Tensor</code><a class="headerlink" href="#tt_reconstructcores-torchtensor" title="Permanent link">&para;</a></h3>
+<p>Contract the TT core chain back to the full tensor by successive
+<code>tensordot</code> over the bond dimensions.</p>
+<div class="highlight"><pre><span></span><code><span class="n">T_approx</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">tt_reconstruct</span><span class="p">(</span><span class="n">cores</span><span class="p">)</span>
+<span class="c1"># T_approx.shape == (n_1, n_2, ..., n_d)</span>
+</code></pre></div>
 
 
 
