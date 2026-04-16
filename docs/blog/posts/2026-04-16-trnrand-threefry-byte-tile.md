@@ -182,7 +182,7 @@ explicit masking at each stage, reducing carry tiles to {0, 1}.
 **24-bit resolution vs 32-bit.** The output convention — 3 low bytes divided by
 2²⁴ — produces 24-bit uniform resolution, not 32-bit. Philox's output convention
 (full uint32 divided by 2³²) gives 32-bit resolution. The difference matters for
-quasi-Monte Carlo uses (Sobol sequencies, lattice rules) where the bit depth of
+quasi-Monte Carlo uses (Sobol sequences, lattice rules) where the bit depth of
 uniform inputs affects the effective dimension of the low-discrepancy structure.
 This is an honest regression relative to the intended Philox path; it's accepted
 for 0.4.0 because it doesn't affect standard Monte Carlo uses, and because
