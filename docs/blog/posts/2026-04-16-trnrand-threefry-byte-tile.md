@@ -6,7 +6,7 @@ comments: true
 
 # trnrand: the integer-multiply gap pointed to a better algorithm
 
-The [previous trnrand post](../2026-04-15-trnrand-four-engine-rng/) closed with:
+The [previous trnrand post](https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/) closed with:
 "the silicon just needs one more op to let the library say it out loud."
 [aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308)
 is still open. trnrand 0.4.0 ships hardware-validated uniform RNG on trn1 anyway
