@@ -39,7 +39,9 @@ python examples/quantum_chemistry/df_mp2_synthetic.py --demo
 
 ## Status
 
-**Alpha across the suite.** PyTorch fallback works end-to-end on any machine. NKI kernels are scaffolded; on-hardware validation on trn1 / trn2 is the next milestone.
+Phase 1 has landed across all six libraries. NKI paths run end-to-end and are exercised in CI via the NKI CPU simulator on every PR. Hardware validation on trn1 is complete for **trnfft** (butterfly FFT + complex GEMM, 70/70 benchmark cases) and **trnblas** (GEMM/SYRK + fused DF-MP2 energy, PySCF agreement to 10 µHa on H₂O / CH₄ / NH₃ at cc-pVDZ). **trnsolver**, **trnsparse**, and **trntensor** are simulator-validated with hardware runs in progress. **trnrand** is simulator-validated and blocked on a named upstream NKI integer-multiply issue ([aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308)); the PyTorch fallback is the default until that lands.
+
+PyTorch fallback works end-to-end on any machine, with or without Neuron hardware. The [NKI validation status page](nki_validation_status.md) carries the per-library detail.
 
 Read more:
 
