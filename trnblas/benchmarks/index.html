@@ -2626,6 +2626,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tile-shape-autotuner-v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tile-shape autotuner (v0.5.0)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tile-shape autotuner (v0.5.0)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measured-numbers-trn12xlarge-warm-neff-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured numbers (trn1.2xlarge, warm NEFF cache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#out-of-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4126,6 +4165,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -4357,6 +4400,62 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../trnsparse/iterative_solvers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterative Solvers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnsparse/sparse_attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sparse Attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -4375,10 +4474,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_5_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_5_10" >
         
           
-          <label class="md-nav__link" for="__nav_10_5_8" id="__nav_10_5_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_5_10" id="__nav_10_5_10_label" tabindex="0">
             
   
   
@@ -4396,8 +4495,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_5_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_5_8">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_5_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_5_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -5246,6 +5345,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tile-shape-autotuner-v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tile-shape autotuner (v0.5.0)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tile-shape autotuner (v0.5.0)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measured-numbers-trn12xlarge-warm-neff-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured numbers (trn1.2xlarge, warm NEFF cache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#out-of-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5568,6 +5706,48 @@ pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-onl
 <p>See <a href="../aws_setup/">AWS Setup</a> for the one-time Terraform provisioning
 for each instance (<code>infra/terraform/</code> for trn1, <code>infra/terraform-cuda/</code>
 for the A10G).</p>
+<h2 id="tile-shape-autotuner-v050">Tile-shape autotuner (v0.5.0)<a class="headerlink" href="#tile-shape-autotuner-v050" title="Permanent link">&para;</a></h2>
+<p><code>nki_gemm</code> now sweeps six tile candidates <code>{64,128} × {128} × {128,256,512}</code> on
+the first call per shape bucket and caches the winner to
+<code>/var/tmp/trnblas-autotune/cache.json</code> (overrideable via <code>TRNBLAS_AUTOTUNE_CACHE</code>).</p>
+<h3 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shape bucket</td>
+<td><code>ceil_pow2(M) × ceil_pow2(K) × ceil_pow2(N)</code> — all shapes in a DF-MP2 run land in the same bucket</td>
+</tr>
+<tr>
+<td>Sweep</td>
+<td>3 warm runs per candidate; candidates that don't evenly divide the padded shape are skipped</td>
+</tr>
+<tr>
+<td>Winner</td>
+<td>Stored in-process in <code>_autotune_mem</code>; written to JSON cache</td>
+</tr>
+<tr>
+<td>Cache hit</td>
+<td>Same bucket → dict lookup only, no re-sweep</td>
+</tr>
+<tr>
+<td>Escape hatch</td>
+<td><code>TRNBLAS_AUTOTUNE=0</code> → fixed <code>(128,128,512)</code>, identical to v0.4.x</td>
+</tr>
+</tbody>
+</table>
+<p>The sweep runs once per shape bucket per instance lifetime (the cache file persists
+on EBS across stop/start). DF-MP2's <code>nocc²</code> pair loop sees zero sweep overhead after
+the first call.</p>
+<h3 id="measured-numbers-trn12xlarge-warm-neff-cache">Measured numbers (trn1.2xlarge, warm NEFF cache)<a class="headerlink" href="#measured-numbers-trn12xlarge-warm-neff-cache" title="Permanent link">&para;</a></h3>
+<p>Hardware sweep timings are recorded after the first DF-MP2 bench run with v0.5.0.
+Numbers will be added here once the hardware run completes
+(<a href="https://github.com/trnsci/trnblas/issues/26">#26</a> tracking).</p>
 <h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><code>syrk</code> / <code>trsm</code> NKI numbers:</strong> those ops are PyTorch-only in v0.4.x;

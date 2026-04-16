@@ -2558,10 +2558,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#open-questions" class="md-nav__link">
+  <a href="#implementation-plan-v051" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Open questions
+        Implementation plan (v0.5.1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation plan (v0.5.1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-implementation-spike-scriptsspike_phase3_fused_gemm_energypy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-implementation spike (scripts/spike_phase3_fused_gemm_energy.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-kernel-design-post-spike" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full kernel design (post-spike)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sbuf-budget-at-medium-shape-tile128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SBUF budget at medium shape (TILE=128)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-questions-post-spike" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open questions (post-spike)
       
     </span>
   </a>
@@ -4144,6 +4194,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -4375,6 +4429,62 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../../trnsparse/iterative_solvers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterative Solvers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trnsparse/sparse_attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sparse Attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -4393,10 +4503,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_5_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_5_10" >
         
           
-          <label class="md-nav__link" for="__nav_10_5_8" id="__nav_10_5_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_5_10" id="__nav_10_5_10_label" tabindex="0">
             
   
   
@@ -4414,8 +4524,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_5_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10_5_8">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_10_5_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_5_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -5258,10 +5368,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#open-questions" class="md-nav__link">
+  <a href="#implementation-plan-v051" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Open questions
+        Implementation plan (v0.5.1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation plan (v0.5.1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-implementation-spike-scriptsspike_phase3_fused_gemm_energypy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-implementation spike (scripts/spike_phase3_fused_gemm_energy.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-kernel-design-post-spike" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full kernel design (post-spike)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sbuf-budget-at-medium-shape-tile128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SBUF budget at medium shape (TILE=128)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-questions-post-spike" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open questions (post-spike)
       
     </span>
   </a>
@@ -5548,19 +5708,101 @@ just a compiler trick.</p>
    throughput: trn1.2xlarge at $1.34/hr vs A10G at $1.20/hr, end-to-
    end wall time normalized per problem.</li>
 </ol>
-<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-plan-v051">Implementation plan (v0.5.1)<a class="headerlink" href="#implementation-plan-v051" title="Permanent link">&para;</a></h2>
+<p>The profiler findings from <a href="https://github.com/trnsci/trnblas/issues/33">#33</a> and
+the Amdahl analysis confirm the fused path is the only route to 3×. With
+the tile-shape autotuner (<a href="https://github.com/trnsci/trnblas/issues/26">#26</a>) now
+shipped in v0.5.0, the next milestone is the fused GEMM+energy kernel (#38, v0.5.1).</p>
+<h3 id="pre-implementation-spike-scriptsspike_phase3_fused_gemm_energypy">Pre-implementation spike (<code>scripts/spike_phase3_fused_gemm_energy.py</code>)<a class="headerlink" href="#pre-implementation-spike-scriptsspike_phase3_fused_gemm_energypy" title="Permanent link">&para;</a></h3>
+<p>Three minimal kernels probe the NKI primitives before committing to the full
+implementation. Run via <code>AWS_PROFILE=aws ./scripts/run_phase3_spike.sh</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Spike</th>
+<th>Question</th>
+<th>Success criterion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A — <code>_spike_a_psum_to_ve</code></td>
+<td>Can VE energy ops consume PSUM output (via SBUF) in one <code>@nki.jit</code> without HBM intermediate?</td>
+<td>Compiles, runs, result matches <code>2*(A@B).sum(axis=1)</code> within atol=1e-2</td>
+</tr>
+<tr>
+<td>B — <code>_spike_b_two_gemm</code></td>
+<td>Does the two-GEMM strategy (T and T_T each in PSUM→SBUF) allow the energy expression to run fully SBUF-resident?</td>
+<td>Both GEMM tiles compile into one <code>@nki.jit</code>; energy result matches reference within atol=1e-2</td>
+</tr>
+<tr>
+<td>C — <code>_spike_c_te_ve_overlap</code></td>
+<td>Does the profiler show TE and VE active simultaneously in a kernel with interleaved GEMM + energy?</td>
+<td><code>summary-json</code> shows <code>tensor_engine_active_time_percent &gt; 5%</code> and <code>vector_engine_active_time_percent &gt; 50%</code> simultaneously; Perfetto trace shows instruction-level overlap</td>
+</tr>
+</tbody>
+</table>
+<p><strong>T_T strategy from spike B:</strong> Rather than using <code>nl.load_transpose2d</code> from HBM (which
+defeats the HBM elimination), T_T = B_j @ B_i.T is computed as a second GEMM tile in
+the same <code>@nki.jit</code>. Both T and T_T end up in SBUF via <code>tensor_copy</code>; the VE energy
+expression never reads from HBM for either operand.</p>
+<h3 id="full-kernel-design-post-spike">Full kernel design (post-spike)<a class="headerlink" href="#full-kernel-design-post-spike" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>_nki_fused_gemm_energy(b_i, b_j, eps_occ_i, eps_occ_j, eps_vir) → scalar
+
+For each tile (a_strip, b_strip):
+  GEMM 1:  nc_matmul(B_i[a_strip].T, B_j[b_strip].T) → PSUM → t_sbuf
+  GEMM 2:  nc_matmul(B_j[b_strip].T, B_i[a_strip].T) → PSUM → t_t_sbuf
+  VE:      denom = broadcast(eps_occ_i + eps_occ_j - eps_vir[a] - eps_vir[b])
+           energy_tile = t_sbuf * (2*t_sbuf - t_t_sbuf) * reciprocal(denom)
+           partial += sum(energy_tile, axis=1)
+  Store:   partial → HBM once per pair (IC stores total)
+</code></pre></div>
+<p>The NEFF cache amortises the two-GEMM compile cost across the <code>nocc²</code> pair loop
+exactly as the single-GEMM kernel does today.</p>
+<h3 id="sbuf-budget-at-medium-shape-tile128">SBUF budget at medium shape (TILE=128)<a class="headerlink" href="#sbuf-budget-at-medium-shape-tile128" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tile</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t_sbuf (TILE_M, TILE_M) fp32</td>
+<td>64 KB</td>
+</tr>
+<tr>
+<td>t_t_sbuf (TILE_M, TILE_M) fp32</td>
+<td>64 KB</td>
+</tr>
+<tr>
+<td>denom (TILE_M, TILE_M) fp32</td>
+<td>64 KB</td>
+</tr>
+<tr>
+<td>scratch VE tiles</td>
+<td>~128 KB</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>~320 KB</strong></td>
+</tr>
+</tbody>
+</table>
+<p>SBUF limit is 48 MB on trn1 — well under budget. The dominant SBUF
+consumer is the VE pipeline scratch, not the T tiles.</p>
+<h2 id="open-questions-post-spike">Open questions (post-spike)<a class="headerlink" href="#open-questions-post-spike" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Tile shape.</strong> For 64512² T-chunks, a <code>(128, 128)</code> tile fits all
-  three SBUF-resident operands (T, T.T, denom) at ~192 KB. A
-  <code>(128, 512)</code> tile reduces transpose edge effects but needs ~768 KB
-  — still under SBUF's 48 MB but crowds the denom tile. Autotuner
-  picks at plan time.</li>
-<li><strong>SBUF-local transpose.</strong> Does Vector Engine have a cheap
-  transpose primitive, or is it stride-2 loads from SBUF? Answer
-  depends on NKI 2.24 primitives; worth spiking before committing
-  the tile shape.</li>
+<li><strong>PSUM double-allocation.</strong> Spike B uses two <code>nl.psum</code> allocations in one
+  kernel body (<code>psum_t</code> and <code>psum_tt</code>). The compiler may accept this
+  (sequential reuse of physical PSUM buffer) or reject it (aliasing error).
+  If rejected, the fix is to zero and reuse a single <code>psum</code> between GEMMs.</li>
+<li><strong>SBUF-local transpose.</strong> If the two-GEMM strategy has excessive GEMM
+  overhead vs. one GEMM + HBM reload of T_T, investigate whether NKI 2.24
+  exposes a SBUF stride-transpose primitive for the alternative path.</li>
 <li><strong>trn1 vs trn2 trade-offs.</strong> Wider PSUM on trn2 enables larger
-  tiles, which shifts the transpose / compute ratio. Phase 5
+  tiles, which shifts the GEMM/VE compute ratio. Phase 5
   (<a href="https://github.com/trnsci/trnblas/issues/25">#25</a>) handles the
   generation-specific path; this RFC targets trn1 first.</li>
 <li><strong>Relationship to <a href="https://github.com/trnsci/trntensor/issues/13">trntensor #13</a>.</strong>

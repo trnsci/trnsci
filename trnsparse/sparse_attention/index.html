@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">
+        <link rel="canonical" href="https://trnsci.dev/trnsparse/sparse_attention/">
       
       
-        <link rel="prev" href="../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">
+        <link rel="prev" href="../iterative_solvers/">
       
       
-        <link rel="next" href="../trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">
+        <link rel="next" href="../aws_setup/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>trnfft: FFT on hardware that doesn't want to be an FFT engine - trnsci</title>
+        <title>Sparse Attention - trnsci</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine" class="md-skip">
+        <a href="#block-sparse-attention" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trnfft: FFT on hardware that doesn't want to be an FFT engine
+              Sparse Attention
             
           </span>
         </div>
@@ -309,13 +309,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../blog/" class="md-tabs__link">
           
   
   
@@ -377,6 +375,8 @@
   
   
   
+    
+  
   
     
     
@@ -384,10 +384,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../../trnfft/" class="md-tabs__link">
           
   
@@ -454,9 +456,7 @@
           
             
               
-                
-              
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -656,8 +656,6 @@
       
   
   
-    
-  
   
   
     
@@ -673,23 +671,20 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../blog/" class="md-nav__link ">
               
   
   
@@ -707,13 +702,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -759,20 +754,17 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
         
           
-          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="0">
             
   
   
@@ -810,7 +802,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/announcements/" class="md-nav__link">
+      <a href="../../blog/category/announcements/" class="md-nav__link">
         
   
   
@@ -840,7 +832,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/deep-dive/" class="md-nav__link">
+      <a href="../../blog/category/deep-dive/" class="md-nav__link">
         
   
   
@@ -870,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/ecosystem/" class="md-nav__link">
+      <a href="../../blog/category/ecosystem/" class="md-nav__link">
         
   
   
@@ -900,7 +892,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/trnblas/" class="md-nav__link">
+      <a href="../../blog/category/trnblas/" class="md-nav__link">
         
   
   
@@ -930,7 +922,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/trnfft/" class="md-nav__link">
+      <a href="../../blog/category/trnfft/" class="md-nav__link">
         
   
   
@@ -960,7 +952,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/trnrand/" class="md-nav__link">
+      <a href="../../blog/category/trnrand/" class="md-nav__link">
         
   
   
@@ -990,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/trnsolver/" class="md-nav__link">
+      <a href="../../blog/category/trnsolver/" class="md-nav__link">
         
   
   
@@ -1020,7 +1012,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/trnsparse/" class="md-nav__link">
+      <a href="../../blog/category/trnsparse/" class="md-nav__link">
         
   
   
@@ -1050,7 +1042,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../category/trntensor/" class="md-nav__link">
+      <a href="../../blog/category/trntensor/" class="md-nav__link">
         
   
   
@@ -1362,8 +1354,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1383,19 +1377,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
         
           
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
             
   
   
@@ -1413,7 +1410,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1455,10 +1452,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -1484,7 +1484,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -1932,10 +1932,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -1961,7 +1964,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -2629,10 +2632,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -2658,7 +2664,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -3402,10 +3408,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -3431,7 +3440,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -3940,6 +3949,8 @@
                 
   
   
+    
+  
   
   
     
@@ -3973,18 +3984,21 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_5" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnsparse/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -4002,13 +4016,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_10_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -4028,7 +4042,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/installation/" class="md-nav__link">
+      <a href="../installation/" class="md-nav__link">
         
   
   
@@ -4056,7 +4070,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../quickstart/" class="md-nav__link">
         
   
   
@@ -4084,7 +4098,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/api/" class="md-nav__link">
+      <a href="../api/" class="md-nav__link">
         
   
   
@@ -4112,7 +4126,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/architecture/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
@@ -4140,7 +4154,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../migration_scipy/" class="md-nav__link">
         
   
   
@@ -4168,7 +4182,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../benchmarks/" class="md-nav__link">
         
   
   
@@ -4196,7 +4210,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/iterative_solvers/" class="md-nav__link">
+      <a href="../iterative_solvers/" class="md-nav__link">
         
   
   
@@ -4221,10 +4235,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../trnsparse/sparse_attention/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sparse Attention
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -4240,6 +4281,120 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The connection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building patterns
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Building patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-window-longformer-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local window (Longformer-style)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dilated-sparse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dilated sparse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-tokens-bigbird-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global tokens (BigBird-style)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-computation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The computation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#block-density-arithmetic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Block density arithmetic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -4308,7 +4463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../aws_setup/" class="md-nav__link">
         
   
   
@@ -4378,10 +4533,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -4407,7 +4565,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -5024,8 +5182,6 @@
             
             
               
-                
-              
               <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
@@ -5045,10 +5201,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-problem" class="md-nav__link">
+  <a href="#the-connection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The problem
+        The connection
       
     </span>
   </a>
@@ -5056,66 +5212,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-the-architecture-suggests" class="md-nav__link">
+  <a href="#building-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the architecture suggests
+        Building patterns
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-approach" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The approach
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-didnt-work" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What didn't work
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#numbers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Numbers
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Numbers">
+    <nav class="md-nav" aria-label="Building patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#v070-v080-batched-kernel-landing" class="md-nav__link">
+  <a href="#local-window-longformer-style" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.7.0 → v0.8.0 — batched kernel landing
+        Local window (Longformer-style)
       
     </span>
   </a>
@@ -5123,10 +5235,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#v0120-dft-as-gemm-for-small-n" class="md-nav__link">
+  <a href="#dilated-sparse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.12.0 — DFT-as-GEMM for small N
+        Dilated sparse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-tokens-bigbird-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global tokens (BigBird-style)
       
     </span>
   </a>
@@ -5139,10 +5262,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
+  <a href="#the-computation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What's next
+        The computation
       
     </span>
   </a>
@@ -5150,10 +5273,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#takeaway" class="md-nav__link">
+  <a href="#block-density-arithmetic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Takeaway
+        Block density arithmetic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's next
       
     </span>
   </a>
@@ -5169,240 +5303,181 @@
             
           
           
-  <div class="md-content md-content--post" data-md-component="content">
-    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
-      <div class="md-sidebar__scrollwrap">
-        <div class="md-sidebar__inner md-post">
-          <nav class="md-nav md-nav--primary">
-            <div class="md-post__back">
-              <div class="md-nav__title md-nav__container">
-                <a href="../" class="md-nav__link">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-                  <span class="md-ellipsis">
-                    Back to index
-                  </span>
-                </a>
-              </div>
-            </div>
-            
-            <ul class="md-post__meta md-nav__list">
-              <li class="md-nav__item md-nav__item--section">
-                <div class="md-post__title">
-                  <span class="md-ellipsis">
-                    Metadata
-                  </span>
-                </div>
-                <nav class="md-nav">
-                  <ul class="md-nav__list">
-                    <li class="md-nav__item">
-                      <div class="md-nav__link">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
-                        <time datetime="2026-04-14 00:00:00+00:00" class="md-ellipsis">April 14, 2026</time>
-                      </div>
-                    </li>
-                    
-                    
-                      <li class="md-nav__item">
-                        <div class="md-nav__link">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
-                          <span class="md-ellipsis">
-                            in
-                            
-                              <a href="../category/deep-dive/">Deep dive</a>, 
-                              <a href="../category/trnfft/">trnfft</a></span>
-                        </div>
-                      </li>
-                    
-                    
-                      
-                      <li class="md-nav__item">
-                        <div class="md-nav__link">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
-                          <span class="md-ellipsis">
-                            
-                              8 min read
-                            
-                          </span>
-                        </div>
-                      </li>
-                    
-                  </ul>
-                </nav>
-              </li>
-            </ul>
-            
-          </nav>
-          
-        </div>
-      </div>
-    </div>
-    <article class="md-content__inner md-typeset">
-      
-        
-  
-
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
 
 
   
   
 
 
-<h1 id="trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine">trnfft: FFT on hardware that doesn't want to be an FFT engine<a class="headerlink" href="#trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine" title="Permanent link">&para;</a></h1>
-<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision. All of it is hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.</p>
-<!-- more -->
+<h1 id="block-sparse-attention">Block-sparse attention<a class="headerlink" href="#block-sparse-attention" title="Permanent link">&para;</a></h1>
+<h2 id="the-connection">The connection<a class="headerlink" href="#the-connection" title="Permanent link">&para;</a></h2>
+<p>Transformer attention computes <code>O = softmax(Q @ K.T / √d) @ V</code>. The expensive
+part at long sequence lengths is the <code>(seq_len, seq_len)</code> score matrix and the
+final <code>attn_weights @ V</code> matmul. Sparse attention restricts which positions can
+attend to each other, zeroing out large regions of the score matrix. What
+remains is a sparse × dense matmul: exactly <code>bsr_spmm</code>.</p>
+<p>The block size that matters is 128. Trainium's Tensor Engine is a 128-partition
+systolic array; <code>nc_matmul</code> consumes a 128×K×N tile in one call. A local-window
+attention mask with window granularity of 128 tokens has exactly <code>2w+1</code> nonzero
+128×128 blocks per block-row — each nonzero block maps one-to-one to one
+<code>nc_matmul</code> call, with no gather overhead. The tile size of the mask and the
+tile size of the hardware coincide.</p>
+<p>cuSPARSE's BSR is a specialization added on top of CSR. Here it's the other
+way: BSR is what the attention mask asks for, and the hardware is built around
+that shape.</p>
+<h2 id="building-patterns">Building patterns<a class="headerlink" href="#building-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="local-window-longformer-style">Local window (Longformer-style)<a class="headerlink" href="#local-window-longformer-style" title="Permanent link">&para;</a></h3>
+<p>Each token block attends to its <code>window</code> nearest neighbors in block space:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnsparse</span>
 
-<h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>FFT is load-bearing for spectral PDE solvers, speech enhancement, radar, convolutional nets, Ewald sums. <code>torch.fft</code> and <code>cuFFT</code> are the reference APIs; both assume a native complex dtype and a massively threaded SIMT unit — a radix-2 Cooley-Tukey butterfly in that model is "one warp per butterfly, thousands in flight, one complex register, bit-reverse the input index".</p>
-<p>Trainium has neither assumption. There is no hardware complex dtype — every complex tensor must be paired real tensors. The execution model isn't SIMT; it's four cooperating engines (Tensor, Vector, Scalar, DMA) with a fixed tile shape of 128 partitions × up to 512 free elements, and a whole-program NKI compiler that schedules their dependencies. A naive "one thread per butterfly" port runs into partition underutilization: filling 128 partitions with radix-2 pairs means reaching across 64 simultaneous butterfly groups, not across threads inside one. Porting cuFFT is a bad starting point; the interesting question is what the architecture suggests if cuFFT didn't exist.</p>
-<h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p><strong>No complex dtype.</strong> Every complex tensor becomes two real tensors side by side. The <code>ComplexTensor(real, imag)</code> wrapper is a split-real/imag holder, not a new primitive. Complex multiply decomposes to four real multiplies and two real adds; complex matmul to four real matmuls and two real matrix adds. This isn't a workaround — stationary <code>nisa.nc_matmul</code> has no complex-typed equivalent and would unpack to four real matmuls in the compiler either way.</p>
-<p><strong>The 128-partition tile prefers many independent small operations.</strong> A radix-2 butterfly acts on pairs, so filling the partition dim means <em>flattening across butterfly groups</em>. An FFT of size N at stage s has <code>N / 2^(s+1)</code> independent groups; all of them run in parallel along the partition dim. For batched FFT (<code>(B, N)</code> input) the math compounds: <code>B × num_groups</code> lands in the partition slot, saturating the tile at reasonable B.</p>
-<pre class="mermaid"><code>flowchart LR
-    A["Input (B=2, N=8)"] --&gt;|reshape| B["(B × num_groups, m) = (8, 2)"]
-    B --&gt; C["Partition dim = 8&lt;br/&gt;batch 0: 4 groups&lt;br/&gt;batch 1: 4 groups"]
-    B --&gt; D["Free dim = m&lt;br/&gt;intra-group elements"]
-    C --&gt; E["Kernel runs once per stage&lt;br/&gt;across every group in every batch row"]
-    D --&gt; E</code></pre>
-<p><strong>Four engines mean a butterfly stage issues two ops in parallel.</strong> The Tensor Engine does the twiddle × odd-element multiply; the Vector Engine does the <code>e + prod</code> / <code>e - prod</code> butterfly combination. These aren't sequential the way they are on a GPU warp — the NKI compiler schedules them on separate engines, with DMA prefetch overlapping from HBM. The primitive isn't "one butterfly"; it's "fill the Tensor Engine pipeline with twiddle multiplies while the Vector Engine consumes their outputs".</p>
-<pre class="mermaid"><code>flowchart LR
-    subgraph "One butterfly stage"
-        direction TB
-        DMA["DMA Engine\nprefetch twiddles k+1\nHBM → SBUF"]
-        TE["Tensor Engine\nt × o_re,  t × o_im\n(current k)"]
-        VE["Vector Engine\ne ± prod → output\n(current k)"]
-        DMA -. overlaps .-&gt; TE
-        TE -- prod_re, prod_im --&gt; VE
-    end</code></pre>
-<p><strong>PSUM is fp32 and has a ceiling.</strong> The Tensor Engine accumulates products in PSUM in fp32 — generous for one matmul, but a long dependency chain (three power-of-2 FFTs in Bluestein's chirp-z decomposition) compounds rounding error. At N ≥ 500 the default Bluestein path accumulates roughly 2 × 10⁻² relative error against a scipy fp64 reference. That's as much a hardware-sizing observation as an algorithm choice, and it motivated the Kahan-compensated butterfly in the <code>"kahan"</code> precision mode: the Vector Engine folds a 2Prod compensation step in cheaply because the extra adds land on the engine that would otherwise sit idle while the Tensor Engine is busy — compensation is architecturally cheap in a way it isn't on a GPU.</p>
-<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<p>v0.8.0 landed four NKI kernels built on the above:</p>
-<ol>
-<li><code>_complex_gemm_kernel</code> — four real <code>nisa.nc_matmul</code> calls into two fp32 PSUM accumulators, with stationary-tile reuse: A_real stationary while B_real and B_imag stream, then A_imag stationary with -B_imag and B_real. Halves SBUF loads per PSUM pair.</li>
-<li><code>_complex_mul_kernel</code> — fused elementwise complex multiply, one SBUF round-trip instead of six.</li>
-<li><code>butterfly_stage_kernel</code> — batched radix-2 DIT stage. Input <code>(B, N)</code> flattens to <code>(B × num_groups, m)</code>; partition dim is the combined batch-and-group axis, free dim is the intra-group element. Twiddles are host-broadcast across partition rows so partition dims match when the Vector Engine fires.</li>
-<li><code>butterfly_stage_kernel_kahan</code> — compensated variant. Dekker 2Prod split of each <code>t × o</code>, adding the rounded-off low-order part back into the complex sum. Doubles the butterfly op count, runs mostly on the Vector Engine. Opt-in via <code>trnfft.set_precision("kahan")</code>.</li>
-</ol>
-<p>STFT, batched FFT, and fft2/fftn all flow through one <code>_cooley_tukey_nki</code> dispatcher that flattens leading batch dims into the partition slot and calls the kernel once per stage.</p>
-<p>Deliberate tradeoff: radix-2 fills the Vector Engine cleanly but pays <code>log₂(N)</code> kernel launches, each carrying NKI dispatch overhead. At N ≥ 1024 that starts to dominate — which motivates Thread B (radix-4 Stockham) under active development.</p>
-<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>The butterfly stage kernel is the load-bearing piece. Stripped to its essential shape:</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">butterfly_stage_kernel</span><span class="p">(</span><span class="n">x_re</span><span class="p">,</span> <span class="n">x_im</span><span class="p">,</span> <span class="n">tw_re</span><span class="p">,</span> <span class="n">tw_im</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">stage</span><span class="p">):</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">stage</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">half</span> <span class="o">=</span> <span class="n">m</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
-    <span class="n">total_groups</span> <span class="o">=</span> <span class="n">x_re</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">//</span> <span class="n">m</span><span class="p">)</span>
-
-    <span class="c1"># Flatten (B, n) -&gt; (total_groups, m). Partition dim = total_groups;</span>
-    <span class="c1"># every partition row is one independent butterfly group.</span>
-    <span class="n">x_re_2d</span> <span class="o">=</span> <span class="n">x_re</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">total_groups</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>  <span class="c1"># x_im, outputs likewise</span>
-
-    <span class="n">groups_chunk</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">total_groups</span><span class="p">,</span> <span class="n">PMAX</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">total_groups</span> <span class="o">//</span> <span class="n">groups_chunk</span><span class="p">):</span>
-        <span class="n">p_off</span> <span class="o">=</span> <span class="n">p</span> <span class="o">*</span> <span class="n">groups_chunk</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">half</span><span class="p">):</span>
-            <span class="c1"># Load t_re, t_im and the even/odd pair at column k for this tile.</span>
-            <span class="c1"># ...</span>
-            <span class="n">prod_re</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_re</span><span class="p">,</span> <span class="n">o_re</span><span class="p">),</span>
-                                  <span class="n">nl</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">t_im</span><span class="p">,</span> <span class="n">o_im</span><span class="p">))</span>
-            <span class="c1"># prod_im symmetric; then even = e + prod, odd = e - prod.</span>
-    <span class="k">return</span> <span class="n">out_re</span><span class="p">,</span> <span class="n">out_im</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">local_window_mask</span><span class="p">(</span><span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;BSRMatrix for sliding-window attention.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+    <span class="n">n_blocks</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">//</span> <span class="n">block_size</span>
+    <span class="n">block_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">):</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="n">window</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">block_mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">mask_dense</span> <span class="o">=</span> <span class="n">block_mask</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span><span class="n">mask_dense</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
 </code></pre></div>
-<p>(Apache 2.0, full source: <a href="https://github.com/trnsci/trnfft/blob/main/trnfft/nki/butterfly.py"><code>trnfft/nki/butterfly.py</code></a>.)</p>
-<p>A GPU would nest <code>k</code> as the outer loop and thread-parallelize over groups. Here the partition dim <em>is</em> the group dim, and <code>k</code> iterates through butterfly positions inside each group. For non-power-of-2 <code>B</code> (STFT's 33 frames), the host pads to the next multiple of 128 — cheaper than irregular-partition support in NKI 2.24, and discarded after the stage.</p>
-<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p><strong>FP32 Bluestein precision.</strong> Bluestein chains three power-of-2 FFTs with chirp multiplies to handle arbitrary-N; in fp32 the relative error grows roughly as O(N) — ~1.4 × 10⁻² at N = 500 against a scipy fp64 reference. The test suite had silently papered over this with <code>tol = 2e-2</code> for N ≥ 500, marked "expected fp32 degradation" rather than fixed. v0.11.0 shipped <code>"fast"</code> / <code>"double"</code> / <code>"kahan"</code> precision modes: <code>"double"</code> promotes host math to fp64 (~5 × 10⁻¹³, host-side only), and <code>"kahan"</code> uses the compensated butterfly. <code>"kahan"</code> on CPU is equivalent to <code>"fast"</code> because the chirp multiplies aren't where the error lives — the butterfly chain is — and only on NKI does the compensation actually engage.</p>
-<p><strong>NKI kernels silently detached autograd.</strong> Every <code>@nki.jit</code> kernel returns a tensor from <code>nl.shared_hbm</code> with no registered <code>grad_fn</code>. Forward works fine; <code>loss.backward()</code> raises <code>element 0 of tensors does not require grad and does not have a grad_fn</code> on the first backward call (issue #56). Invisible for inference-only users. v0.10.1 wrapped every kernel in a <code>torch.autograd.Function</code> subclass with analytic adjoints.</p>
-<p><strong><code>torch.Tensor.unfold</code> has no XLA backend.</strong> <code>trnfft.stft</code> originally used <code>x.unfold(dim, size, step)</code> for frame extraction; that raised <code>aten::unfold not implemented for XLA</code> the moment anyone set <code>set_backend("nki")</code>. Replaced with <code>torch.arange</code>-based frame indexing in PR #44.</p>
-<p><strong>Three NKI 0.3.0 API deltas broke our kernels:</strong></p>
-<ul>
-<li><code>nisa.nc_matmul</code> is kwargs-only with in-place accumulation (<code>dst=, stationary=, moving=, accumulate=True</code>).</li>
-<li><code>nl.copy</code> now returns a view; PSUM → SBUF materialization requires <code>nisa.tensor_copy(dst=, src=)</code> with a pre-allocated SBUF destination.</li>
-<li>Python <code>*</code>/<code>+</code>/<code>-</code> are no longer defined on <code>NkiTensor</code> — every complex-multiply and butterfly expression rewrote with explicit <code>nl.multiply</code> / <code>nl.add</code> / <code>nl.subtract</code>.</li>
-</ul>
-<p>All three were surfaced by the CPU simulator (<code>NKI_SIMULATOR=1</code>) in under two CI minutes. Release notes calling out operator-overload removal and <code>nl.copy</code> becoming a view would save downstream libraries a CI iteration each.</p>
-<p><strong>Full-size DFT-as-GEMM capped at N = 256.</strong> v0.12.0's DFT-as-GEMM fast path beats butterfly by 2.2–5.7× at N ∈ {8..128} and 5.3× at N = 1024 — but fp32 <code>nisa.nc_matmul</code> accumulation at N = 1024 reaches ~2.2% relative error, breaking the 1e-3 test tolerance. Real perf win, precision-blocked. Routing past 256 is what motivates Thread B (Stockham radix-4), where a <code>log₄(N)</code> chain accumulates only O(r²) error per stage.</p>
-<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>Steady-state on trn1.2xlarge, <code>neuronxcc 2.24.5133.0</code>, Deep Learning AMI Neuron PyTorch 2.9. All numbers after warmup — the first call pays NEFF compile, subsequent calls are cache hits, and these are the means of the warm side.</p>
-<h3 id="v070-v080-batched-kernel-landing">v0.7.0 → v0.8.0 — batched kernel landing<a class="headerlink" href="#v070-v080-batched-kernel-landing" title="Permanent link">&para;</a></h3>
+<p>At <code>seq_len=4096</code> and <code>window=2</code>: <code>5</code> nonzero blocks per row, <code>5/32 ≈ 15.6%</code>
+block density vs 100% for dense attention. Memory for the stored blocks:
+<code>32 rows × 5 blocks × 128 × 128 × 4 bytes ≈ 10 MB</code> vs 64 MB for the full
+float32 attention matrix.</p>
+<h3 id="dilated-sparse">Dilated sparse<a class="headerlink" href="#dilated-sparse" title="Permanent link">&para;</a></h3>
+<p>Every <code>stride</code>-th block column is attended to. Block <code>(i, j)</code> is nonzero
+iff <code>(i - j) % stride == 0</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">dilated_mask</span><span class="p">(</span><span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+    <span class="n">n_blocks</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">//</span> <span class="n">block_size</span>
+    <span class="n">block_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">j</span><span class="p">)</span> <span class="o">%</span> <span class="n">stride</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">block_mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">mask_dense</span> <span class="o">=</span> <span class="n">block_mask</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span><span class="n">mask_dense</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="global-tokens-bigbird-style">Global tokens (BigBird-style)<a class="headerlink" href="#global-tokens-bigbird-style" title="Permanent link">&para;</a></h3>
+<p>The first <code>n_global</code> token-blocks attend to and are attended to by every
+block. Remaining block-rows follow a local window:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">global_token_mask</span><span class="p">(</span>
+    <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_global</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+    <span class="n">n_blocks</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">//</span> <span class="n">block_size</span>
+    <span class="n">block_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="n">block_mask</span><span class="p">[:</span><span class="n">n_global</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># global rows attend everywhere</span>
+    <span class="n">block_mask</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_global</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># global columns attended by all</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_global</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">):</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="n">window</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">block_mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">mask_dense</span> <span class="o">=</span> <span class="n">block_mask</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span><span class="n">mask_dense</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="the-computation">The computation<a class="headerlink" href="#the-computation" title="Permanent link">&para;</a></h2>
+<p>Given a <code>mask_bsr</code> constructed above:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">block_sparse_attention</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">mask_bsr</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Q, K, V: (seq_len, head_dim) → (seq_len, head_dim).&quot;&quot;&quot;</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="o">-</span><span class="mf">0.5</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">(</span><span class="n">Q</span> <span class="o">@</span> <span class="n">K</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span>
+
+    <span class="c1"># Mask out unattended positions before softmax.</span>
+    <span class="n">mask_dense</span> <span class="o">=</span> <span class="n">mask_bsr</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
+    <span class="n">masked_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="o">~</span><span class="n">mask_dense</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">))</span>
+    <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">masked_scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Positions outside the mask go to zero after softmax; from_dense</span>
+    <span class="c1"># with threshold=0 will still store them unless they&#39;re exactly zero.</span>
+    <span class="c1"># Use threshold slightly above zero to keep only the attended blocks.</span>
+    <span class="n">attn_bsr</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span>
+        <span class="n">attn_weights</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">mask_bsr</span><span class="o">.</span><span class="n">block_size</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1e-9</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">bsr_spmm</span><span class="p">(</span><span class="n">attn_bsr</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>What this materializes</strong>: the full <code>(seq_len, seq_len)</code> score matrix. At
+<code>seq_len=4096</code> that's 64 MB of float32 even before the matmul. See
+<a href="#whats-next">What's next</a> for the fused-tile path that avoids this.</p>
+<p><strong>Gradients</strong>: <code>bsr_spmm</code> is differentiable (see <code>architecture.md</code>). The
+backward through <code>block_sparse_attention</code> works out-of-the-box with
+<code>torch.autograd</code>; the block-selection step (<code>from_dense</code>) is non-differentiable
+by construction and is treated as a constant by the autograd graph.</p>
+<h2 id="block-density-arithmetic">Block density arithmetic<a class="headerlink" href="#block-density-arithmetic" title="Permanent link">&para;</a></h2>
+<p>For <code>seq_len = S</code>, <code>block_size = b</code>, <code>window = w</code> local-window mask:</p>
+<div class="highlight"><pre><span></span><code>blocks per row   = 2w + 1  (clamped at edges)
+block density    = (2w+1) / (S/b)
+</code></pre></div>
 <table>
 <thead>
 <tr>
-<th>Operation</th>
-<th style="text-align: right;">v0.7.0</th>
-<th style="text-align: right;">v0.8.0</th>
-<th style="text-align: right;">Speedup</th>
+<th style="text-align: right;">seq_len</th>
+<th style="text-align: right;">window</th>
+<th style="text-align: right;">n_blocks_per_row</th>
+<th style="text-align: left;">block density</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>fftn 32×64×64</td>
-<td style="text-align: right;">52.3 s</td>
-<td style="text-align: right;">70.8 ms</td>
-<td style="text-align: right;">738×</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">39.1%</td>
 </tr>
 <tr>
-<td>fft2 1024×1024</td>
-<td style="text-align: right;">32.4 s</td>
-<td style="text-align: right;">545 ms</td>
-<td style="text-align: right;">59×</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">19.5%</td>
 </tr>
 <tr>
-<td>batched FFT (128×1024)</td>
-<td style="text-align: right;">2.07 s</td>
-<td style="text-align: right;">52 ms</td>
-<td style="text-align: right;">39×</td>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">9.8%</td>
 </tr>
 <tr>
-<td>STFT (16 000 samples)</td>
-<td style="text-align: right;">765 ms</td>
-<td style="text-align: right;">28 ms</td>
-<td style="text-align: right;">27×</td>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: left;">17.6%</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">4.9%</td>
 </tr>
 </tbody>
 </table>
-<p>v0.7.0 dispatched the butterfly once per (row, stage) pair in Python. v0.8.0 removes that loop; the 27× STFT delta is "fix the dispatch pattern so the kernel sees the batch", not a kernel-level win.</p>
-<h3 id="v0120-dft-as-gemm-for-small-n">v0.12.0 — DFT-as-GEMM for small N<a class="headerlink" href="#v0120-dft-as-gemm-for-small-n" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Shape</th>
-<th style="text-align: right;">DFT-GEMM</th>
-<th style="text-align: right;">Butterfly</th>
-<th style="text-align: right;">Speedup</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>N = 256, B = 1</td>
-<td style="text-align: right;">1 882 μs</td>
-<td style="text-align: right;">9 862 μs</td>
-<td style="text-align: right;">5.2×</td>
-</tr>
-<tr>
-<td>B = 32, N = 256</td>
-<td style="text-align: right;">2 049 μs</td>
-<td style="text-align: right;">29 210 μs</td>
-<td style="text-align: right;">14.3×</td>
-</tr>
-<tr>
-<td>STFT (n_fft = 256, 16 k samples)</td>
-<td style="text-align: right;">2 445 μs</td>
-<td style="text-align: right;">30 514 μs</td>
-<td style="text-align: right;">12.5×</td>
-</tr>
-</tbody>
-</table>
-<p>The batched and STFT rows are where the architectural thesis pays off — DFT-GEMM at <code>(B = 32, N = 256)</code> collapses the whole batch into one <code>nisa.nc_matmul</code> and the partition dim saturates. For context, <code>torch.fft.fft</code> on an x86 bench host with MKL is faster than Trainium for isolated cold calls (10–80 μs); the story isn't "beat MKL on cold calls", it's "keep data on-chip across long operator chains".</p>
+<p>The win is at long sequences. At <code>seq_len=1024</code>, a window-2 mask still stores
+40% of blocks — dispatch overhead dominates on Trainium at that size. At
+<code>seq_len=8192</code>, 5% density means 95% of the <code>nc_matmul</code> calls are skipped and
+the per-block compute becomes the bottleneck, which is where the Tensor Engine
+thrives.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Phase 2 #52 — Kahan / Neumaier summation.</strong> Partial delivery in v0.11.0 (precision-modes API + compensated butterfly). The Kahan butterfly compiles on NKI 2.24.5133.0 and matches the stock kernel at fp32 rtol across the 17-test neuron suite; whether the 2Prod compensation <em>actually</em> reduces fp32 FFT error on silicon is the measurement question open in #58.</li>
-<li><strong>Thread B — Stockham radix-4 (v0.13 candidate).</strong> POC shipped this week, CPU reference + NKI port green under the simulator. 5 kernel launches at N = 1024 vs 10 for butterfly, and <code>log₄(N)</code> fp32 accumulation vs the O(N²) ceiling that caps DFT-GEMM. Hardware validation pending an AWS DLAMI with Neuron SDK 2.29.</li>
-<li><strong>Phase 3 #53 — perf.</strong> Plan reuse across shapes, streaming large FFTs that exceed HBM, NEFF cache hit-rate instrumentation.</li>
-<li><strong>Phase 4 #54 — multi-chip FFT for N &gt; 2²⁰</strong> via cross-core collectives.</li>
-<li><strong>Phase 5 #55 — trn2.</strong> Larger SBUF, different systolic sizing; some current constraints loosen.</li>
-</ul>
-<h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>Trainium was built for large-model training and inference; FFT isn't the workload it was indexed for. A warp-per-butterfly port maps badly onto 128 partitions and a fixed engine hierarchy. What works instead is treating the partition dim as "total independent butterfly groups across every batch row", the four engines as a scheduling substrate, and fp32 PSUM as a real ceiling on algorithm choice. Every trnfft kernel so far is a variation on that theme; the roadmap is about pushing the thesis into medium and large N where the butterfly isn't obviously the right decomposition.</p>
+<p>The current path materializes the full <code>(seq_len, seq_len)</code> score matrix to
+compute attention weights. A production path would:</p>
+<ol>
+<li>Iterate over nonzero blocks in <code>mask_bsr</code>.</li>
+<li>For each block <code>(i, j)</code>, load <code>Q[i*b:(i+1)*b]</code> and <code>K[j*b:(j+1)*b]</code> into
+   SBUF, compute the score tile, and apply softmax over the block-row.</li>
+<li>Multiply the score tile by <code>V[j*b:(j+1)*b]</code> and accumulate into the output.</li>
+</ol>
+<p>This fused tile-level kernel avoids the <code>O(seq_len²)</code> intermediate entirely.
+It's the same architectural opportunity as <a href="../iterative_solvers/">on-chip iterative solvers</a>:
+load A once, iterate on-chip. The NKI building block is available (the BSR
+kernel in <code>nki/kernels.py</code>); the row-wise softmax over variable numbers of
+tiles is the authoring challenge.</p>
+<p>A runnable reference for the current (non-fused) path is in
+<a href="https://github.com/trnsci/trnsparse/blob/main/examples/block_sparse_attention.py"><code>examples/block_sparse_attention.py</code></a>.</p>
 
 
 
@@ -5410,55 +5485,17 @@
 
 
 
-  
-  
-
-
-
-
-  
 
 
 
 
 
-  <h2 id="__comments">Comments</h2>
 
-  <script src="https://giscus.app/client.js"
-          data-repo="trnsci/trnsci"
-          data-repo-id="R_kgDOSA365w"
-          data-category="General"
-          data-category-id="DIC_kwDOSA36584C66kJ"
-          data-mapping="pathname"
-          data-strict="0"
-          data-reactions-enabled="1"
-          data-emit-metadata="0"
-          data-input-position="bottom"
-          data-theme="preferred_color_scheme"
-          data-lang="en"
-          data-loading="lazy"
-          crossorigin="anonymous"
-          async>
-  </script><script>
-    document$.subscribe(function() {
-      var palette = __md_get("__palette")
-      if (palette && typeof palette.color === "object") {
-        var theme = palette.color.scheme === "slate" ? "dark" : "light"
-        var frame = document.querySelector(".giscus-frame")
-        if (frame) {
-          frame.contentWindow.postMessage(
-            { giscus: { setConfig: { theme } } },
-            "https://giscus.app"
-          )
-        }
-      }
-    })
-  </script>
 
-      
-    </article>
-  </div>
-
+                
+              </article>
+            </div>
+          
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>

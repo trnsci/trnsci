@@ -197,6 +197,10 @@
          <lastmod>2026-04-16</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/trnfft/design-notes/kernel-profiling/</loc>
+         <lastmod>2026-04-16</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnrand/</loc>
          <lastmod>2026-04-16</lastmod>
     </url>
@@ -338,6 +342,10 @@
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/quickstart/</loc>
+         <lastmod>2026-04-16</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/trnsparse/sparse_attention/</loc>
          <lastmod>2026-04-16</lastmod>
     </url>
     <url>
