@@ -5038,18 +5038,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#profiling-runs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Profiling runs
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Profiling runs">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#run-metadata" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5057,11 +5045,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -5077,10 +5060,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#engine-utilization-butterfly-stage-kernel" class="md-nav__link">
+  <a href="#key-finding-hypothesis-was-wrong-permutes-are-not-the-bottleneck" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Engine utilization — butterfly stage kernel
+        Key finding: hypothesis was wrong — permutes are not the bottleneck
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key finding: hypothesis was wrong — permutes are not the bottleneck">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#but-the-projected-times-dont-match-the-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        But the projected times don't match the benchmarks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-the-hidden-overhead-comes-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the hidden overhead comes from
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#revised-diagnosis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Revised diagnosis
       
     </span>
   </a>
@@ -5088,10 +5110,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#engine-utilization-stockham-radix-4-stage-kernel" class="md-nav__link">
+  <a href="#corrected-fix-twiddle-precomputation-fused-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Engine utilization — Stockham radix-4 stage kernel
+        Corrected fix: twiddle precomputation + fused kernel
       
     </span>
   </a>
@@ -5099,21 +5121,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#engine-utilization-complex_gemm-kernel-tensor-engine-reference" class="md-nav__link">
+  <a href="#implications-for-thread-c-implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Engine utilization — complex_gemm kernel (Tensor Engine reference)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#interpretation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interpretation
+        Implications for Thread C implementation
       
     </span>
   </a>
@@ -5160,18 +5171,8 @@ NKI kernel launches at N=1024.</p>
 contiguous</code> XLA calls (pre-kernel reshape and post-kernel reshape) plus 1
 NKI kernel. That's 15 XLA ops total vs butterfly's 10 (1 kernel × 10 stages).
 The 5-vs-10 launch advantage is cancelled by permute overhead.</p>
-<p>Data to collect:
-1. <strong>Permute fraction</strong> — what % of per-stage wall time is <code>permute + contiguous</code>?
-2. <strong>Engine utilization</strong> — is Vector Engine at the ceiling? Tensor Engine idle?
-3. <strong>Butterfly reference</strong> — engine util for one butterfly stage vs one Stockham stage</p>
-<p>If permute fraction &gt; 20%, the fix is B1: fused-stage kernel absorbing
-the index shuffle into NKI via strided <code>nl.load</code> (DMA stride pattern).</p>
-<p>If Vector Engine ≥ 90% AND permutes are cheap, the fix is B2: Tensor-engine
-twiddle (4×4 composite matrix per group).</p>
 <hr />
-<h2 id="profiling-runs">Profiling runs<a class="headerlink" href="#profiling-runs" title="Permanent link">&para;</a></h2>
-<p><em>Placeholder — fill after hardware run.</em></p>
-<h3 id="run-metadata">Run metadata<a class="headerlink" href="#run-metadata" title="Permanent link">&para;</a></h3>
+<h2 id="run-metadata">Run metadata<a class="headerlink" href="#run-metadata" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -5182,7 +5183,7 @@ twiddle (4×4 composite matrix per group).</p>
 <tbody>
 <tr>
 <td>Instance</td>
-<td>trnfft-ci-trn1</td>
+<td>trnfft-ci-trn1 (<code>i-0ae0e12e04e6d29f3</code>)</td>
 </tr>
 <tr>
 <td>SDK version</td>
@@ -5194,17 +5195,18 @@ twiddle (4×4 composite matrix per group).</p>
 </tr>
 <tr>
 <td>trnfft SHA</td>
-<td><em>fill</em></td>
+<td><code>6764c21</code></td>
 </tr>
 <tr>
 <td>Date</td>
-<td><em>fill</em></td>
+<td>2026-04-16</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="permute-timing-permute-timing">Permute timing (<code>--permute-timing</code>)<a class="headerlink" href="#permute-timing-permute-timing" title="Permanent link">&para;</a></h2>
-<p><em>Placeholder — fill after <code>./scripts/run_neuron_profile.sh --permute-timing</code></em></p>
+<p>Measures <code>pre-permute</code>, <code>post-permute</code>, and <code>kernel</code> in isolation at stage <code>s=0</code>
+(L=1, twiddle trivially [1,1,1,1]/[0,0,0,0]).</p>
 <table>
 <thead>
 <tr>
@@ -5213,133 +5215,235 @@ twiddle (4×4 composite matrix per group).</p>
 <th>Post-permute (μs)</th>
 <th>Kernel (μs)</th>
 <th>Permute %</th>
+<th>All stages (μs)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>64</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td>57.6</td>
+<td>39.7</td>
+<td>853.0</td>
+<td>10%</td>
+<td>2 851 (3 stages)</td>
 </tr>
 <tr>
 <td>256</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td>56.2</td>
+<td>39.4</td>
+<td>858.8</td>
+<td>10%</td>
+<td>3 818 (4 stages)</td>
 </tr>
 <tr>
 <td>1024</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td>57.9</td>
+<td>40.0</td>
+<td>855.2</td>
+<td>10%</td>
+<td>4 766 (5 stages)</td>
 </tr>
 <tr>
 <td>4096</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td>57.5</td>
+<td>39.7</td>
+<td>884.3</td>
+<td>10%</td>
+<td>5 889 (6 stages)</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="engine-utilization-butterfly-stage-kernel">Engine utilization — butterfly stage kernel<a class="headerlink" href="#engine-utilization-butterfly-stage-kernel" title="Permanent link">&para;</a></h2>
-<p><em>Placeholder — fill after <code>./scripts/run_neuron_profile.sh --kernel butterfly</code></em></p>
+<p><strong>Butterfly stage reference (no permutes):</strong></p>
 <table>
 <thead>
 <tr>
-<th>Metric</th>
-<th>Value</th>
+<th>N</th>
+<th>Stage</th>
+<th>Kernel (μs)</th>
+<th>All stages projected (μs)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Vector Engine utilization</td>
-<td></td>
+<td>64</td>
+<td>s=3</td>
+<td>869.3</td>
+<td>5 216 (6 stages)</td>
 </tr>
 <tr>
-<td>Tensor Engine utilization</td>
-<td></td>
+<td>256</td>
+<td>s=4</td>
+<td>870.7</td>
+<td>6 965 (8 stages)</td>
 </tr>
 <tr>
-<td>DMA Engine utilization</td>
-<td></td>
-</tr>
-<tr>
-<td>Wall time (μs)</td>
-<td></td>
+<td>1024</td>
+<td>s=5</td>
+<td>882.5</td>
+<td>8 825 (10 stages)</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="engine-utilization-stockham-radix-4-stage-kernel">Engine utilization — Stockham radix-4 stage kernel<a class="headerlink" href="#engine-utilization-stockham-radix-4-stage-kernel" title="Permanent link">&para;</a></h2>
-<p><em>Placeholder — fill after <code>./scripts/run_neuron_profile.sh --kernel stockham</code></em></p>
+<h2 id="key-finding-hypothesis-was-wrong-permutes-are-not-the-bottleneck">Key finding: hypothesis was wrong — permutes are not the bottleneck<a class="headerlink" href="#key-finding-hypothesis-was-wrong-permutes-are-not-the-bottleneck" title="Permanent link">&para;</a></h2>
+<p><strong>Permute fraction is a constant 10% at all N.</strong> This refutes the original
+hypothesis that permutes cancelled the 5-vs-10 launch advantage.</p>
+<h3 id="but-the-projected-times-dont-match-the-benchmarks">But the projected times don't match the benchmarks<a class="headerlink" href="#but-the-projected-times-dont-match-the-benchmarks" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Metric</th>
-<th>Value</th>
+<th>N</th>
+<th>Stockham projected (μs)</th>
+<th>Stockham actual (μs)</th>
+<th>Discrepancy</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Vector Engine utilization</td>
-<td></td>
-</tr>
-<tr>
-<td>Tensor Engine utilization</td>
-<td></td>
-</tr>
-<tr>
-<td>DMA Engine utilization</td>
-<td></td>
-</tr>
-<tr>
-<td>Wall time (μs)</td>
-<td></td>
+<td>1024</td>
+<td>4 766</td>
+<td>7 568</td>
+<td>+2 802 μs (59% hidden overhead)</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="engine-utilization-complex_gemm-kernel-tensor-engine-reference">Engine utilization — complex_gemm kernel (Tensor Engine reference)<a class="headerlink" href="#engine-utilization-complex_gemm-kernel-tensor-engine-reference" title="Permanent link">&para;</a></h2>
-<p><em>Placeholder — fill after <code>./scripts/run_neuron_profile.sh --kernel gemm</code></em></p>
+<p>Butterfly actual (7 399 μs) is LOWER than the butterfly probe projection
+(8 825 μs). This inversion reveals that probe timing ≠ in-loop timing —
+the probe measures isolated single calls while the benchmark measures the
+full driver in a warm loop.</p>
+<h3 id="where-the-hidden-overhead-comes-from">Where the hidden overhead comes from<a class="headerlink" href="#where-the-hidden-overhead-comes-from" title="Permanent link">&para;</a></h3>
+<p>The probe measured stage <code>s=0</code> only, where <code>L=1</code> and twiddle tensors are trivially
+computed (<code>torch.cos(zeros) = 1, torch.sin(zeros) = 0</code>). In the actual driver
+each stage <code>s</code> computes twiddles from scratch on CPU:</p>
+<div class="highlight"><pre><span></span><code><span class="n">l_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>          <span class="c1"># CPU tensor, size L</span>
+<span class="n">k_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>          <span class="c1"># CPU tensor, size 4</span>
+<span class="n">ang</span>   <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="n">π</span> <span class="o">*</span> <span class="n">l_idx</span> <span class="o">*</span> <span class="n">k_idx</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span><span class="n">L</span><span class="p">)</span>    <span class="c1"># CPU multiply</span>
+<span class="n">tw_r</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ang</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">total_groups</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">tw_i</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ang</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">total_groups</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">tw_r</span>  <span class="o">=</span> <span class="n">tw_r</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>               <span class="c1"># H→D transfer</span>
+<span class="n">tw_i</span>  <span class="o">=</span> <span class="n">tw_i</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>               <span class="c1"># H→D transfer</span>
+</code></pre></div>
+<p>At stage <code>s=4</code> for N=1024, <code>L=256</code> — the twiddle arrays are <code>256×4 = 1024</code> floats
+each, computed and transferred to XLA every stage. Twiddle sizes grow across
+stages:</p>
 <table>
 <thead>
 <tr>
-<th>Metric</th>
-<th>Value</th>
+<th>Stage (N=1024)</th>
+<th>L</th>
+<th>tw tensor size</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Vector Engine utilization</td>
-<td></td>
+<td>s=0</td>
+<td>1</td>
+<td>4 floats (trivial)</td>
 </tr>
 <tr>
-<td>Tensor Engine utilization</td>
-<td></td>
+<td>s=1</td>
+<td>4</td>
+<td>16 floats</td>
 </tr>
 <tr>
-<td>DMA Engine utilization</td>
-<td></td>
+<td>s=2</td>
+<td>16</td>
+<td>64 floats</td>
 </tr>
 <tr>
-<td>Wall time (μs)</td>
-<td></td>
+<td>s=3</td>
+<td>64</td>
+<td>256 floats</td>
+</tr>
+<tr>
+<td>s=4</td>
+<td>256</td>
+<td>1024 floats</td>
 </tr>
 </tbody>
 </table>
+<p>Butterfly has the same pattern (twiddle computed per-stage, CPU → XLA). But
+Stockham's twiddles are 2D tensors (<code>(B,L,M,4)</code> before reshape) that require
+a 2D <code>expand + contiguous</code>, while butterfly twiddles are 1D (<code>half</code>-element).</p>
 <hr />
-<h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
-<p><em>Fill after all three profiles are in.</em></p>
-<p><strong>Decision</strong>: B1 (fused-stage kernel) vs B2 (Tensor-engine twiddle)</p>
+<h2 id="revised-diagnosis">Revised diagnosis<a class="headerlink" href="#revised-diagnosis" title="Permanent link">&para;</a></h2>
+<p>The real per-stage cost breakdown is:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Time (μs)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pre-permute</td>
+<td>57</td>
+<td>Constant — XLA graph op</td>
+</tr>
+<tr>
+<td>Post-permute</td>
+<td>40</td>
+<td>Constant — XLA graph op</td>
+</tr>
+<tr>
+<td>Twiddle recomputation</td>
+<td>~500–600</td>
+<td>Grows with stage; not measured by probe</td>
+</tr>
+<tr>
+<td>Kernel (NKI)</td>
+<td>855</td>
+<td>Measured by probe</td>
+</tr>
+<tr>
+<td>Total per stage (inferred)</td>
+<td>~1 500</td>
+<td>Matches 7568/5 = 1514 μs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Permutes are the wrong target. The real bottleneck is per-stage twiddle
+recomputation and device transfer.</strong></p>
+<hr />
+<h2 id="corrected-fix-twiddle-precomputation-fused-kernel">Corrected fix: twiddle precomputation + fused kernel<a class="headerlink" href="#corrected-fix-twiddle-precomputation-fused-kernel" title="Permanent link">&para;</a></h2>
+<p>If all twiddles are precomputed ONCE before the stage loop:
+1. All <code>log4(N)</code> twiddle tensors created in one pass on CPU
+2. One <code>stacked.to(device)</code> transfer for all stages combined
+3. Each stage reads its pre-sliced twiddle slice — zero extra H2D cost per stage</p>
+<p>Combined with B1 (fused-stage kernel absorbing permutes):
+- Theoretical per-stage: kernel (~855 μs) + no permutes + twiddle amortized ≈ 900 μs
+- Total N=1024: 5 stages × 900 ≈ <strong>4 500 μs</strong> vs butterfly <strong>7 399 μs</strong> → <strong>1.6× faster</strong></p>
+<hr />
+<h2 id="implications-for-thread-c-implementation">Implications for Thread C implementation<a class="headerlink" href="#implications-for-thread-c-implementation" title="Permanent link">&para;</a></h2>
+<p><strong>B1 (fused-stage kernel) alone saves 10% — worth doing but not decisive.</strong></p>
+<p>The decisive optimization is <strong>twiddle precomputation in the driver</strong>. This is
+a pure Python change to <code>_fft_via_stockham_nki</code> in <code>fft_core.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Before stage loop: precompute all twiddle factors at once</span>
+<span class="n">all_tw_r</span><span class="p">,</span> <span class="n">all_tw_i</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">log4n</span><span class="p">):</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">s</span><span class="p">)</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="n">n</span> <span class="o">//</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">L</span><span class="p">)</span>
+    <span class="n">l_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">k_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">ang</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">l_idx</span> <span class="o">*</span> <span class="n">k_idx</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">L</span><span class="p">)</span>
+    <span class="n">tw_r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ang</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">B_pad</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B_pad</span> <span class="o">*</span> <span class="n">L</span> <span class="o">*</span> <span class="n">M</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">tw_i</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ang</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">B_pad</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B_pad</span> <span class="o">*</span> <span class="n">L</span> <span class="o">*</span> <span class="n">M</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">all_tw_r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tw_r</span><span class="p">)</span>
+    <span class="n">all_tw_i</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tw_i</span><span class="p">)</span>
+<span class="c1"># One H→D transfer per-tensor (different sizes per stage, so can&#39;t stack):</span>
+<span class="n">all_tw_r</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">all_tw_r</span><span class="p">]</span>
+<span class="n">all_tw_i</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">all_tw_i</span><span class="p">]</span>
+
+<span class="c1"># Stage loop uses all_tw_r[s], all_tw_i[s] — no recomputation</span>
+</code></pre></div>
+<p>After twiddle precomputation, B1 (fused kernel) recovers the remaining 10% permute
+overhead. Combined, they should realize the 1.6× speedup suggested by the probe data.</p>
 <hr />
 <h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
 <p>Profiling script: <code>scripts/run_neuron_profile.sh</code><br />
+Data collected: 2026-04-16, SHA <code>6764c21</code>, trn1, Neuron SDK 2.29.0<br />
 Reference findings doc format: <code>trnblas/docs/design-notes/mp2_energy_profile_findings.md</code></p>
 
 
