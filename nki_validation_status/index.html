@@ -701,6 +701,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cross-suite-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-suite infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#looking-ahead" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5075,6 +5086,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cross-suite-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-suite infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#looking-ahead" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5132,18 +5154,13 @@
 <a href="../roadmap/#phase-1-single-chip-correctness">Phase 1</a> — the "NKI
 kernels replace stubs and match the PyTorch reference on real trn1/trn2
 hardware" milestone.</p>
-<p><strong>What "validated" means here:</strong></p>
+<p><strong>Three gates</strong>, in order of how cheaply they can be run:</p>
 <ol>
-<li>The NKI kernel is in-tree under <code>&lt;pkg&gt;/nki/</code> (not a stub).</li>
-<li><code>set_backend("nki")</code> exercises it for the relevant public API calls.</li>
-<li>On-hardware tests (<code>@pytest.mark.neuron</code>) pass on trn1 and/or trn2 via
-   <code>scripts/run_neuron_tests.sh</code> — <strong>run manually</strong> by the project
-   maintainers, not in GitHub Actions.</li>
-<li>A canonical reference passes: published spec vectors, PyTorch-parity
-   tolerance, or scipy-equivalent output depending on the library.</li>
+<li><strong>Simulator gate</strong> — <code>nki.simulate(kernel)(numpy_args)</code> runs the NKI program on CPU with no device and no NEFF compile. Exercised in every PR via the <code>nki-simulator</code> CI job on <code>ubuntu-latest</code> across all six libraries. Catches Python-layer correctness, shape mismatches, and API drift.</li>
+<li><strong>Hardware gate</strong> — <code>@pytest.mark.neuron</code> tests dispatched to a per-repo <code>trn1.2xlarge</code> via SSM, run manually by maintainers via <code>scripts/run_neuron_tests.sh</code>. Catches MLIR-verifier issues, numerical behavior, and real NEFF compile.</li>
+<li><strong>Canonical reference</strong> — published spec vectors, PyTorch-parity tolerance, or scipy / PySCF / LAPACK agreement, depending on the library.</li>
 </ol>
-<p>Per-kernel details live in each sub-project's <code>docs/architecture.md</code>.
-Per-phase definitions live in the suite <a href="../roadmap/">roadmap</a>.</p>
+<p>Per-kernel details live in each sub-project's <code>docs/architecture.md</code>. Per-phase definitions live in the suite <a href="../roadmap/">roadmap</a>.</p>
 <h2 id="status-by-sub-project">Status by sub-project<a class="headerlink" href="#status-by-sub-project" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -5151,69 +5168,72 @@ Per-phase definitions live in the suite <a href="../roadmap/">roadmap</a>.</p>
 <th>Sub-project</th>
 <th>Phase 1 tracker</th>
 <th>Status</th>
-<th>Validated kernels</th>
-<th>First shipped</th>
+<th>NKI kernels</th>
+<th>Blog retrospective</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://github.com/trnsci/trnfft">trnfft</a></td>
 <td><a href="https://github.com/trnsci/trnfft/issues/51">#51</a></td>
-<td>✅ Validated</td>
-<td>butterfly FFT, complex GEMM</td>
-<td>v0.10.0</td>
+<td>✅ Hardware-validated</td>
+<td>butterfly FFT, batched FFT, complex GEMM, DFT-as-GEMM fast path, Kahan butterfly</td>
+<td><a href="https://trnsci.dev/blog/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">trnfft: FFT on hardware that doesn't want to be an FFT engine</a></td>
 </tr>
 <tr>
 <td><a href="https://github.com/trnsci/trnblas">trnblas</a></td>
 <td><a href="https://github.com/trnsci/trnblas/issues/21">#21</a></td>
-<td>✅ Validated</td>
-<td>GEMM, batched_gemm</td>
-<td>≥ v0.4.0</td>
+<td>✅ Hardware-validated</td>
+<td>GEMM, SYRK, fused DF-MP2 energy reduction</td>
+<td><a href="https://trnsci.dev/blog/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">trnblas: fusing DF-MP2 energy reduction into one NKI kernel</a></td>
 </tr>
 <tr>
 <td><a href="https://github.com/trnsci/trnrand">trnrand</a></td>
 <td><a href="https://github.com/trnsci/trnrand/issues/18">#18</a></td>
-<td>🕑 Pending</td>
-<td>Philox 4×32-10, Box-Muller <em>(scaffolded, CPU-reference oracles pass)</em></td>
-<td>—</td>
+<td>🚧 Simulator-validated, upstream-blocked</td>
+<td>Philox 4×32-10, Box-Muller</td>
+<td><a href="https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">trnrand: RNG is a four-engine workload</a></td>
 </tr>
 <tr>
 <td><a href="https://github.com/trnsci/trnsolver">trnsolver</a></td>
 <td><a href="https://github.com/trnsci/trnsolver/issues/26">#26</a></td>
-<td>🕑 Pending</td>
-<td>Jacobi <code>eigh</code> <em>(scaffolded)</em></td>
-<td>—</td>
+<td>🕑 Simulator-validated</td>
+<td>batched-sweep Jacobi <code>eigh</code>, Newton–Schulz inverse-sqrt, CG / GMRES with Jacobi preconditioner</td>
+<td><a href="https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">trnsolver: Jacobi for Trainium</a></td>
 </tr>
 <tr>
 <td><a href="https://github.com/trnsci/trnsparse">trnsparse</a></td>
 <td><a href="https://github.com/trnsci/trnsparse/issues/14">#14</a></td>
-<td>✅ Validated</td>
-<td>SpMM gather-matmul-scatter</td>
-<td>≥ v0.2.0</td>
+<td>✅ Hardware-validated</td>
+<td>BSR-128 SpMM, fused screened SpMM, CSR-materialized SpMM</td>
+<td><a href="https://trnsci.dev/blog/trnsparse-the-tile-is-the-unit-not-the-nonzero/">trnsparse: the tile is the unit, not the nonzero</a></td>
 </tr>
 <tr>
 <td><a href="https://github.com/trnsci/trntensor">trntensor</a></td>
 <td><a href="https://github.com/trnsci/trntensor/issues/27">#27</a></td>
-<td>✅ Validated</td>
-<td>fused einsum</td>
-<td>≥ v0.2.0</td>
+<td>✅ Hardware-validated</td>
+<td>2-index + batched <code>nc_matmul</code>, fused MP2 energy, 4-index AO→MO transform</td>
+<td><a href="https://trnsci.dev/blog/trntensor-when-the-kernel-boundary-is-the-api/">trntensor: when the kernel boundary is the API</a></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Legend:</strong></p>
 <ul>
-<li>✅ <strong>Validated</strong> — Phase 1 tracker is closed; NKI path is the default when <code>neuronxcc</code> is available, falls back to PyTorch otherwise.</li>
-<li>🕑 <strong>Pending</strong> — NKI kernel exists in-tree with a CPU reference oracle, but on-hardware tests haven't been run yet. Users today get the PyTorch fallback; behavior and API are stable.</li>
+<li>✅ <strong>Hardware-validated</strong> — kernels pass <code>@pytest.mark.neuron</code> on trn1; NKI is the default dispatch target when <code>neuronxcc</code> is available.</li>
+<li>🕑 <strong>Simulator-validated</strong> — kernels pass <code>nki-simulator</code> CI; hardware runs queued. PyTorch is the default until hardware passes.</li>
+<li>🚧 <strong>Simulator-validated, upstream-blocked</strong> — kernels compile and run; the library has a named, trackable NKI primitive gap preventing numerically-correct hardware output. See the blog retrospective for specifics.</li>
+</ul>
+<h2 id="cross-suite-infrastructure">Cross-suite infrastructure<a class="headerlink" href="#cross-suite-infrastructure" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>NKI 0.3.0 migration</strong> complete across all six libraries. Coordination tracked in <a href="https://github.com/trnsci/trnsci/issues/5">trnsci/trnsci#5</a>. Narrative: <a href="https://trnsci.dev/blog/the-dev-loop-just-got-a-lot-shorter/">The dev loop just got a lot shorter</a>.</li>
+<li><strong><code>nki-simulator</code> CI gate</strong> on <code>ubuntu-latest</code> for every library. Fast iteration for Python-layer correctness; does not replace hardware for MLIR-verifier or numerical-behavior checks.</li>
+<li><strong>Hardware CI</strong> runs manually via per-repo <code>scripts/run_neuron_tests.sh</code> against a <code>&lt;repo&gt;-ci-trn1</code> instance.</li>
 </ul>
 <h2 id="looking-ahead">Looking ahead<a class="headerlink" href="#looking-ahead" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>trnrand</strong> and <strong>trnsolver</strong> are the two remaining pending Phase 1
-  validations. Both await access to a trn1.2xlarge via their
-  respective <code>scripts/run_neuron_tests.sh</code>.</li>
-<li>Phases 2–5 (precision, single-chip perf, multi-chip, generation-
-  specific optimization) build on top of Phase 1 per the
-  <a href="../roadmap/">roadmap</a> and are tracked per sub-project via the
-  matching <code>phase-N</code> labels.</li>
+<li><strong>trnrand</strong>'s Phase 1 closes when either an NKI integer-multiply primitive or a bitwise-exact <code>nl.copy</code> path lands. Tracked in <a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1308">aws-neuron-sdk#1308</a>.</li>
+<li><strong>trnsolver</strong>'s hardware validation is the remaining simulator-to-hardware gap; Phase 3 introduces the Tensor Engine reformulation of the Jacobi rotation and dispatch-count reduction.</li>
+<li>Phases 2–5 (precision, single-chip perf, multi-chip, generation-specific optimization) build on top of Phase 1 per the <a href="../roadmap/">roadmap</a> and are tracked per sub-project via the matching <code>phase-N</code> labels.</li>
 </ul>
 <h2 id="design-rfcs">Design RFCs<a class="headerlink" href="#design-rfcs" title="Permanent link">&para;</a></h2>
 <p>Sub-projects with published design docs for upcoming phases:</p>
