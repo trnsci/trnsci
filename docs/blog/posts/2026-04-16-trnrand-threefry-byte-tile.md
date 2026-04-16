@@ -16,7 +16,7 @@ for exactly this class of hardware.
 
 ## The problem
 
-[The 0.3.0 post](2026-04-15-trnrand-four-engine-rng.md) ended on a specific wall:
+[The 0.3.0 post](https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/) ended on a specific wall:
 Philox 4×32-10 requires a 32×32→64-bit integer multiply to produce its first
 output word. NKI routes all 32-bit tile operations through the float32 activation
 path, which is exact only up to 2²⁴ ≈ 16.7 million. Philox counter values
