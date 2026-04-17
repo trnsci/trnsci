@@ -105,6 +105,10 @@
          <lastmod>2026-04-17</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move/</loc>
+         <lastmod>2026-04-17</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-04-17</lastmod>
     </url>
@@ -441,15 +445,15 @@
          <lastmod>2026-04-17</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/category/trnblas/</loc>
+         <lastmod>2026-04-17</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/category/trnrand/</loc>
          <lastmod>2026-04-17</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnsparse/</loc>
-         <lastmod>2026-04-17</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/trnblas/</loc>
          <lastmod>2026-04-17</lastmod>
     </url>
     <url>
