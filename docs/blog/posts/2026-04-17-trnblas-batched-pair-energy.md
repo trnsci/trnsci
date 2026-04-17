@@ -148,20 +148,27 @@ Tile shapes in the batched-pair kernel are hardcoded constants; any
 autotuning would require a separate generated-kernel path, deferred as
 future work.
 
-**Medium-shape NEFF compile ran out of `/tmp`.** At nocc=64, nvir=448,
-naux=1536 (4096 pairs), the neuronxcc compiler's XLA compile workdir
-grew past the available tmpfs. The trn1 instance mounts `/tmp` as RAM-
-backed tmpfs (~16 GB); the compile workdir for the medium-shape batched-
-pair XLA graph needed more. The NEFF failed mid-compile, the fallback
-path ran the energy step on CPU, and the result (5.2 s warm energy,
-7.1 s warm total) happened to be *faster* than the NKI chunk-GEMM
-baseline (8.0 s, 9.8 s) — because CPU `torch.matmul` beats NKI at
-medium scale, one of the more uncomfortable observations in the suite.
+**Medium-shape XLA graph is 18 GB — the compiler can't fit it.** At
+nocc=64, nvir=448, naux=1536 (4096 pairs), `nl.affine_range` traces
+all iterations eagerly into the XLA graph at compile time. The resulting
+NKI source JSON is 18 GB; the trn1 root volume had 16 GB free. The
+NEFF failed mid-compile regardless of whether the compiler wrote to
+`/tmp` or `/var/tmp` — both live on the same 96 GB EBS root volume.
 
-Fix: `TMPDIR=/var/tmp` in v0.5.3 redirects the compiler to the
-EBS-backed root volume (100 GB). The batched-pair NEFF for medium shape
-is re-compiling now; numbers below are small-shape only until that
-completes.
+For comparison, the small-shape kernel (nocc=16, 256 pairs) produces a
+~240 MB JSON. Medium has 16× more pairs and roughly 64× more inner tile
+operations (nvir and naux are also larger), which explains the 75× size
+jump. `nl.affine_range` is not symbolic like a GPU JIT — it traces the
+loop body once per iteration at compile time.
+
+The correct fix is **chunked dispatch**: call the batched-pair kernel
+with chunks of ~256 pairs (16 chunks for nocc=64). Each chunk's XLA
+graph is ~240 MB; 16 dispatches add ~1.6 s of overhead versus the
+per-pair loop's 409 s. This is deferred to a follow-on PR.
+
+The fallback result (5.2 s warm energy, 7.1 s warm total) — faster
+than the NKI chunk-GEMM baseline (8.0 s, 9.8 s) — came from CPU
+`torch.matmul`, one of the more uncomfortable observations in the suite.
 
 ## Numbers
 
@@ -188,7 +195,7 @@ dispatch overheads that batched-pair avoids (256 × ~1.5 ms ≈ 384 ms).
 | Speedup | **13.5×** |
 
 **Medium shape preliminary** (`nocc=64, nvir=448, naux=1536`, 4096 pairs,
-batched-pair NEFF compile blocked by `/tmp` — see above):
+batched-pair NEFF compile blocked — 18 GB XLA graph, see above):
 
 | Energy path | Warm energy | Warm total |
 |---|---:|---:|
@@ -196,18 +203,22 @@ batched-pair NEFF compile blocked by `/tmp` — see above):
 | fused-gemm | 9.174 s | 10.877 s |
 | batched-pair (CPU fallback†) | 5.239 s | 7.111 s |
 
-† CPU `torch.matmul` fallback, not NKI. Updated numbers once TMPDIR fix
-completes compilation.
+† CPU `torch.matmul` fallback, not NKI. Updated numbers pending chunked
+dispatch implementation (#47).
 
 **Energy cross-check:** torch / fused-gemm = −1.619250×10⁻⁴ Ha,
 batched-pair = −1.619249×10⁻⁴ Ha. Matches to FP32 noise.
 
 ## What's next
 
-- **Medium/large batched-pair numbers** after TMPDIR fix (`v0.5.3`). The
-  open question is whether the batched-pair NEFF actually beats the NKI
-  chunk-GEMM baseline at nocc=64 — preliminary CPU-fallback data suggests
-  the CPU is competitive at that scale.
+- **Chunked batched-pair dispatch.** Process nocc² pairs in chunks of
+  ~256 per `@nki.jit` call — 16 dispatches for nocc=64 instead of 4096
+  (per-pair) or 1 (full-batch). Each chunk's XLA graph is ~240 MB
+  (manageable); 16 × ~100 ms overhead = 1.6 s (vs 409 s per-pair or
+  the ~18 GB graph that kills the compiler at medium scale). Open
+  empirical question: whether the compiled chunked kernel beats torch
+  at nocc=64 — preliminary CPU-fallback data suggest CPU is competitive
+  at that scale.
 - **[#20 — PySCF FP32 precision envelope.](https://github.com/trnsci/trnblas/issues/20)**
   Glycine/cc-pVDZ and water trimer tests written
   (`tests/test_df_mp2_pyscf.py`); hardware run pending. Decision gate
@@ -236,10 +247,11 @@ patterns that work on GPU — where kernel launch overhead is ~10 µs — need
 to be restructured for Trainium, or they will spend 99% of wall time in
 the runtime rather than the Tensor Engine.
 
-The /tmp compile-workdir failure at medium scale is the remaining open
-edge. A 100 GB EBS volume has the space; the compiler just wasn't pointed
-at it. `TMPDIR=/var/tmp` in v0.5.3 fixes the routing. Whether the
-compiled batched-pair kernel then beats NKI chunk-GEMM at 4096 pairs is
-the open empirical question — CPU `torch.matmul` may simply be faster
-than NKI at that working set size, which is its own finding worth
-reporting honestly.
+The medium-shape XLA graph limit is the remaining open edge. It is not
+a routing problem — `/tmp` and `/var/tmp` are both on the same 96 GB
+EBS root volume, and 18 GB of graph IR exceeds the 16 GB of free space
+regardless of where the compiler writes. The correct fix is chunked
+dispatch, not filesystem reconfiguration. Whether the compiled chunked
+kernel then beats NKI chunk-GEMM at 4096 pairs is the open empirical
+question — CPU `torch.matmul` may simply be faster than NKI at that
+working set size, which is its own finding worth reporting honestly.
