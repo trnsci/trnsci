@@ -204,7 +204,7 @@ batched-pair NEFF compile blocked — 18 GB XLA graph, see above):
 | batched-pair (CPU fallback†) | 5.239 s | 7.111 s |
 
 † CPU `torch.matmul` fallback, not NKI. Updated numbers pending chunked
-dispatch implementation (#47).
+dispatch implementation (#46).
 
 **Energy cross-check:** torch / fused-gemm = −1.619250×10⁻⁴ Ha,
 batched-pair = −1.619249×10⁻⁴ Ha. Matches to FP32 noise.
