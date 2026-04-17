@@ -2576,6 +2576,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#df-mp2-energy-step-3-way-kernel-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 energy step — 3-way kernel comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2661,6 +2672,28 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fused-gemmenergy-kernel-v051" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fused GEMM+energy kernel (v0.5.1)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batched-pair-energy-kernel-v052-43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batched-pair energy kernel (v0.5.2, #43)
+      
+    </span>
+  </a>
   
 </li>
       
@@ -5325,6 +5358,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#df-mp2-energy-step-3-way-kernel-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 energy step — 3-way kernel comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5410,6 +5454,28 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fused-gemmenergy-kernel-v051" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fused GEMM+energy kernel (v0.5.1)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batched-pair-energy-kernel-v052-43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batched-pair energy kernel (v0.5.2, #43)
+      
+    </span>
+  </a>
   
 </li>
       
@@ -5638,6 +5704,48 @@ HBM transfer + Tensor Engine dispatch only (NEFF cache hit).</p>
 </tr>
 </tbody>
 </table>
+<h2 id="df-mp2-energy-step-3-way-kernel-comparison">DF-MP2 energy step — 3-way kernel comparison<a class="headerlink" href="#df-mp2-energy-step-3-way-kernel-comparison" title="Permanent link">&para;</a></h2>
+<p><strong>Small shape (nbasis=128, nocc=16, nvir=112, naux=384 — 256 pairs),
+trn1.2xlarge, warm NEFF cache, v0.5.2:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Energy path</th>
+<th style="text-align: right;">Warm energy</th>
+<th style="text-align: right;">Warm total</th>
+<th style="text-align: right;">vs torch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>torch (chunk-GEMM baseline)</td>
+<td style="text-align: right;">0.018 s</td>
+<td style="text-align: right;">0.096 s</td>
+<td style="text-align: right;">1×</td>
+</tr>
+<tr>
+<td>fused-gemm (per-pair, v0.5.1)</td>
+<td style="text-align: right;">0.381 s</td>
+<td style="text-align: right;">0.454 s</td>
+<td style="text-align: right;">21× slower</td>
+</tr>
+<tr>
+<td><strong>batched-pair (v0.5.2)</strong></td>
+<td style="text-align: right;"><strong>0.005 s</strong></td>
+<td style="text-align: right;"><strong>0.081 s</strong></td>
+<td style="text-align: right;"><strong>3.6× faster</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The batched-pair kernel is the first energy path that beats the chunk-GEMM
+torch baseline end-to-end on the energy step. Cold energy (first call,
+includes NEFF compile): 6.7 s for batched-pair — paid once per instance
+lifetime, amortised across all subsequent calls.</p>
+<p>Energies agree to FP32 noise: torch / fused-gemm = -1.619250e-04,
+batched-pair = -1.619249e-04.</p>
+<p>Medium shape (nbasis=512, nocc=64, nvir=448, naux=1536 — 4096 pairs):
+numbers pending next bench run — tracked in
+<a href="https://github.com/trnsci/trnblas/issues/23">#23</a>.</p>
 <h2 id="df-mp2-end-to-end-trainium1-vs-nvidia-a10g">DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G<a class="headerlink" href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" title="Permanent link">&para;</a></h2>
 <p>Synthetic inputs, same seed, same three shapes on both platforms.
 Energy matches bit-for-bit within fp32 reduction-order noise.</p>
@@ -5778,12 +5886,73 @@ the first call.</p>
 <p>Hardware sweep timings are recorded after the first DF-MP2 bench run with v0.5.0.
 Numbers will be added here once the hardware run completes
 (<a href="https://github.com/trnsci/trnblas/issues/26">#26</a> tracking).</p>
+<h2 id="fused-gemmenergy-kernel-v051">Fused GEMM+energy kernel (v0.5.1)<a class="headerlink" href="#fused-gemmenergy-kernel-v051" title="Permanent link">&para;</a></h2>
+<p><code>nki_fused_gemm_energy(b_i, b_j, eps_occ_i, eps_occ_j, eps_vir)</code> fuses the
+two GEMMs (T and T_T) and the VE energy expression into a single <code>@nki.jit</code>.
+Eliminates the <code>(nvir, nvir)</code> T_flat HBM round-trip.</p>
+<p><strong>Measured on trn1 (small shape: nocc=16, 256 pairs):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Warm energy step</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chunk-GEMM baseline</td>
+<td>0.13 s</td>
+</tr>
+<tr>
+<td>Per-pair fused (#41, v0.5.1)</td>
+<td>27.8 s</td>
+</tr>
+</tbody>
+</table>
+<p>The per-pair kernel is correct (energies match to 6 significant figures) but
+<strong>215× slower</strong> — root cause is Neuron XLA's ~100ms per-NEFF-dispatch
+overhead multiplied by 256 pairs. Fixed in v0.5.2 below.</p>
+<h2 id="batched-pair-energy-kernel-v052-43">Batched-pair energy kernel (v0.5.2, #43)<a class="headerlink" href="#batched-pair-energy-kernel-v052-43" title="Permanent link">&para;</a></h2>
+<p><code>nki_batched_pair_energy(B, eps_occ, eps_vir)</code> computes all NOCC² pair
+energies in a single <code>@nki.jit</code> dispatch, reducing overhead from O(nocc²) to
+O(1).</p>
+<p><strong>Measured on trn1 (SHA <code>7dabe88</code>, warm NEFF cache, nocc=4 / 16 pairs):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Batched warm</td>
+<td style="text-align: right;">1.9 ms</td>
+</tr>
+<tr>
+<td>Per-pair loop (16 pairs, warm)</td>
+<td style="text-align: right;">25.4 ms</td>
+</tr>
+<tr>
+<td>Speedup (warm cache)</td>
+<td style="text-align: right;"><strong>13.5×</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reading the 13.5× number:</strong> With a warm NEFF cache each <code>nki_fused_gemm_energy</code>
+call takes ~1.6 ms (Tensor Engine compute only). 16 pairs × 1.6ms = 25.4ms vs
+one batched dispatch at 1.9ms. In production on a cold instance (first DF-MP2
+call, nocc=16 / 256 pairs), each per-pair invocation costs ~100ms → 256 × 100ms
+= 25.6s vs one batched dispatch → speedup ~1340×. The Spike B measurement
+(800× at NOCC=4, 16 pairs) used the cold-cache scenario.</p>
+<p>All 10 <code>TestBatchedPairEnergy</code> tests passed on trn1 (aligned, unaligned,
+vs-fused-gemm cross-check, zero-B). Total suite: 62/62.</p>
 <h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong><code>syrk</code> / <code>trsm</code> NKI numbers:</strong> those ops are PyTorch-only in v0.4.x;
-  v0.5.0 will add NKI kernels and a dedicated row here.</li>
-<li><strong>cuBLAS head-to-head:</strong> requires GPU access; tracked under
-  <a href="https://github.com/trnsci/trnblas/issues/4">#4</a>.</li>
+<li><strong>cuBLAS head-to-head at batched-pair scale:</strong> planned once PR #44 merges
+  and trn1 numbers are available.</li>
+<li><strong>trn2 benchmarks:</strong> infrastructure provisioned (<code>infra/terraform-trn2/</code>),
+  hardware investigation deferred (<a href="https://github.com/trnsci/trnblas/issues/25">#25</a>).</li>
 </ul>
 
 

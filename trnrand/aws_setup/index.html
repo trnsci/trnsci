@@ -5312,23 +5312,95 @@
 <p>GitHub Actions does <strong>not</strong> touch AWS. All AWS interaction is human-initiated.</p>
 <h2 id="one-time-setup">One-time setup<a class="headerlink" href="#one-time-setup" title="Permanent link">&para;</a></h2>
 <h3 id="1-provision-the-ci-instance">1. Provision the CI instance<a class="headerlink" href="#1-provision-the-ci-instance" title="Permanent link">&para;</a></h3>
-<p>Pick a VPC + subnet in a region with trn1/trn2/inf2 capacity. <code>trn1.2xlarge</code> is cheapest for basic validation.</p>
+<p>Two separate Terraform roots, one per hardware family:</p>
+<table>
+<thead>
+<tr>
+<th>Hardware</th>
+<th>Terraform root</th>
+<th>Default region</th>
+<th>Instance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trainium1</td>
+<td><code>infra/terraform/</code></td>
+<td><code>us-east-1</code></td>
+<td><code>trn1.2xlarge</code></td>
+</tr>
+<tr>
+<td>Trainium2</td>
+<td><code>infra/terraform-trn2/</code></td>
+<td><code>sa-east-1</code></td>
+<td><code>trn2.3xlarge</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>trn2 availability (as of 2026-04-16):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Instance type</th>
+<th>Region</th>
+<th>AZs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>trn2.xlarge</td>
+<td>—</td>
+<td>not yet offered</td>
+</tr>
+<tr>
+<td>trn2.3xlarge</td>
+<td>sa-east-1</td>
+<td>a, b, c</td>
+</tr>
+<tr>
+<td>trn2.48xlarge</td>
+<td>us-east-2</td>
+<td>a, b, c</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Trainium1 (trn1) — us-east-1:</strong>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>infra/terraform
-
 <span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>init
 <span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;vpc_id=vpc-xxxxxx&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;subnet_id=subnet-xxxxxx&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;instance_type=trn1.2xlarge&quot;</span>
-</code></pre></div>
-<p>Capture <code>instance_id</code> from the outputs. User-data takes ~5 minutes to install the Neuron SDK and clone trnrand.</p>
+<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;subnet_id=subnet-xxxxxx&quot;</span>
+</code></pre></div></p>
+<p><strong>Trainium2 (trn2) — sa-east-1:</strong>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>infra/terraform-trn2
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>init
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply
+</code></pre></div></p>
+<p>The trn2 root is self-contained — it creates its own VPC, public subnet, internet gateway,
+and route table in sa-east-1. No <code>vpc_id</code> or <code>subnet_id</code> variables required.</p>
+<p>If <code>apply</code> fails with <code>InsufficientInstanceCapacity</code>, the default AZ is <code>sa-east-1a</code>.
+Retry with a different AZ:
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span>-var<span class="o">=</span><span class="s2">&quot;az_suffix=b&quot;</span><span class="w">   </span><span class="c1"># or az_suffix=c</span>
+</code></pre></div></p>
+<p>User-data takes ~5 minutes to install the Neuron SDK and clone trnrand.</p>
 <p>Stop the instance once ready:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>aws<span class="w"> </span>ec2<span class="w"> </span>stop-instances<span class="w"> </span>--instance-ids<span class="w"> </span><span class="k">$(</span>terraform<span class="w"> </span>output<span class="w"> </span>-raw<span class="w"> </span>instance_id<span class="k">)</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># trn1</span>
+<span class="nb">cd</span><span class="w"> </span>infra/terraform
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>aws<span class="w"> </span>ec2<span class="w"> </span>stop-instances<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--instance-ids<span class="w"> </span><span class="k">$(</span><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>output<span class="w"> </span>-raw<span class="w"> </span>instance_id<span class="k">)</span><span class="w"> </span>--region<span class="w"> </span>us-east-1
+
+<span class="c1"># trn2</span>
+<span class="nb">cd</span><span class="w"> </span>infra/terraform-trn2
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>aws<span class="w"> </span>ec2<span class="w"> </span>stop-instances<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--instance-ids<span class="w"> </span><span class="k">$(</span><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>output<span class="w"> </span>-raw<span class="w"> </span>instance_id<span class="k">)</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--region<span class="w"> </span><span class="k">$(</span><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>output<span class="w"> </span>-raw<span class="w"> </span>aws_region<span class="k">)</span>
 </code></pre></div>
 <h2 id="running-neuron-tests">Running neuron tests<a class="headerlink" href="#running-neuron-tests" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_neuron_tests.sh
-<span class="c1"># or for trn2 / inf2:</span>
-<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_neuron_tests.sh<span class="w"> </span>trn2
+<div class="highlight"><pre><span></span><code><span class="c1"># trn1 (default)</span>
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_neuron_tests.sh
+
+<span class="c1"># trn2 — note AWS_REGION override (instance is in sa-east-1)</span>
+<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span><span class="nv">AWS_REGION</span><span class="o">=</span>sa-east-1<span class="w"> </span>./scripts/run_neuron_tests.sh<span class="w"> </span>trn2
 </code></pre></div>
 <p>The script will:</p>
 <ol>
@@ -5364,7 +5436,7 @@ effects are visible in the reported numbers.</p>
 <td style="text-align: right;">$0.22</td>
 </tr>
 <tr>
-<td>trn2.8xlarge</td>
+<td>trn2.3xlarge</td>
 <td style="text-align: right;">$10.00</td>
 <td style="text-align: right;">$1.67</td>
 </tr>

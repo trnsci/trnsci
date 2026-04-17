@@ -4381,10 +4381,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
+  <a href="#tiled-two-pass-path-v043" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What's next
+        Tiled two-pass path (v0.4.3)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nki-kernel-pair-v044" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI kernel pair (v0.4.4)
       
     </span>
   </a>
@@ -5314,10 +5325,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
+  <a href="#tiled-two-pass-path-v043" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What's next
+        Tiled two-pass path (v0.4.3)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nki-kernel-pair-v044" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI kernel pair (v0.4.4)
       
     </span>
   </a>
@@ -5492,21 +5514,52 @@ block density    = (2w+1) / (S/b)
 <code>seq_len=8192</code>, 5% density means 95% of the <code>nc_matmul</code> calls are skipped and
 the per-block compute becomes the bottleneck, which is where the Tensor Engine
 thrives.</p>
-<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
-<p>The current path materializes the full <code>(seq_len, seq_len)</code> score matrix to
-compute attention weights. A production path would:</p>
-<ol>
-<li>Iterate over nonzero blocks in <code>mask_bsr</code>.</li>
-<li>For each block <code>(i, j)</code>, load <code>Q[i*b:(i+1)*b]</code> and <code>K[j*b:(j+1)*b]</code> into
-   SBUF, compute the score tile, and apply softmax over the block-row.</li>
-<li>Multiply the score tile by <code>V[j*b:(j+1)*b]</code> and accumulate into the output.</li>
-</ol>
-<p>This fused tile-level kernel avoids the <code>O(seq_len²)</code> intermediate entirely.
-It's the same architectural opportunity as <a href="../iterative_solvers/">on-chip iterative solvers</a>:
-load A once, iterate on-chip. The NKI building block is available (the BSR
-kernel in <code>nki/kernels.py</code>); the row-wise softmax over variable numbers of
-tiles is the authoring challenge.</p>
-<p>A runnable reference for the current (non-fused) path is in
+<h2 id="tiled-two-pass-path-v043">Tiled two-pass path (v0.4.3)<a class="headerlink" href="#tiled-two-pass-path-v043" title="Permanent link">&para;</a></h2>
+<p><code>block_sparse_attention_tiled</code> eliminates the <code>O(seq_len²)</code> score intermediate
+without any new NKI primitives. The algorithm uses two passes over the nonzero
+blocks:</p>
+<p><strong>Pass 1 — per-block statistics</strong>: For each stored block <code>(m, ki)</code>, compute
+the score tile <code>Q[m] @ K[ki].T</code> and extract its row-wise max (<code>tile_max</code>,
+shape <code>(block_size,)</code>) and stable row-wise exp-sum (<code>tile_sumexp</code>). Every
+<code>(m, ki)</code> pair is independent — no iteration-carried state.</p>
+<p><strong>Host reduction</strong>: For each block-row m, take the max of <code>tile_max</code> across all
+its nonzero k-blocks (<code>row_max</code>) and compute the corrected denominator
+<code>row_denom</code>. This is O(n_stored_blocks × block_size) work — at seq_len=4096
+with window=2, about 160 block pairs × 128 = 20K operations, negligible.</p>
+<p><strong>Pass 2 — stable softmax + accumulation</strong>: Recompute each score tile, apply
+<code>exp(score - row_max) / row_denom</code>, and accumulate <code>weights @ V_block</code> into
+the output via a PSUM-style loop.</p>
+<div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">block_sparse_attention_tiled</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">mask_bsr</span><span class="p">)</span>
+</code></pre></div>
+<p>Memory: <code>n_stored_blocks × block_size × 4</code> bytes for stats (5 KB at seq_len=512,
+window=1) vs <code>seq_len² × 4</code> bytes for the naive dense score matrix (1 MB at
+seq_len=512, 64 MB at seq_len=4096).</p>
+<p><strong>On CPU</strong>, the Python-level loops make this path slower than the vectorized
+naive implementation — that's expected. The value of <code>block_sparse_attention_tiled</code>
+is algorithmic: it validates the two-pass decomposition that the NKI kernel pair
+(<code>_attn_stats_kernel</code> + <code>_attn_out_kernel</code>) will implement on hardware, where
+per-block <code>nc_matmul</code> calls amortize the dispatch cost and the O(seq_len²)
+allocation is the binding constraint.</p>
+<p>The NKI implementation path is documented in
+<a href="https://github.com/trnsci/trnsparse/issues/25">#25</a>.</p>
+<h2 id="nki-kernel-pair-v044">NKI kernel pair (v0.4.4)<a class="headerlink" href="#nki-kernel-pair-v044" title="Permanent link">&para;</a></h2>
+<p><code>block_sparse_attention_tiled</code> now routes through the NKI kernel pair on the
+<code>nki</code> backend. The <code>pytorch</code> backend retains the Python-loop reference path.</p>
+<p><code>_attn_stats_kernel</code> (pass 1) and <code>_attn_out_kernel</code> (pass 2) implement the
+two-pass decomposition in <code>trnsparse/nki/kernels.py</code>:</p>
+<ul>
+<li><strong>Pass 1</strong> (<code>_attn_stats_kernel</code>): each <code>(m, ki)</code> block pair is independent;
+  no carry. Uses <code>nl.max</code> and <code>nl.sum</code> reductions within the 128×128 SBUF tile.
+  Q block is loaded once as a transposed tile (stationary) and reused across all
+  ki blocks in the row.</li>
+<li><strong>Pass 2</strong> (<code>_attn_out_kernel</code>): recomputes scores from Q and K to avoid
+  storing the full score tensor; uses <code>row_max</code> / <code>row_denom</code> from the host
+  reduction (loaded by static <code>affine_range</code> offset — legal). Accumulates
+  <code>weights @ V</code> into a PSUM tile that spans all ki blocks.</li>
+</ul>
+<p><strong>Constraint:</strong> <code>head_dim ≤ 128</code> in v0.4.4 (<code>nc_matmul</code> partition limit).
+<code>head_dim=256</code> requires K-tiling and is a follow-up.</p>
+<p>A runnable reference for both the naive and tiled paths is in
 <a href="https://github.com/trnsci/trnsparse/blob/main/examples/block_sparse_attention.py"><code>examples/block_sparse_attention.py</code></a>.</p>
 
 

@@ -10,31 +10,27 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/trnblas/architecture/">
+        <link rel="canonical" href="https://trnsci.dev/trntensor/design/matmul_dispatch_findings/">
       
       
-        <link rel="prev" href="../api/nki/">
-      
-      
-        <link rel="next" href="../developing_kernels/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Architecture - trnsci</title>
+        <title>matmul dispatch overhead findings (#33) - trnsci</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +49,9 @@
       
     
     
-      <link rel="stylesheet" href="../../stylesheets/blog.css">
+      <link rel="stylesheet" href="../../../stylesheets/blog.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture" class="md-skip">
+        <a href="#matmul-dispatch-overhead-findings-33" class="md-skip">
           Skip to content
         </a>
       
@@ -92,7 +88,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -112,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Architecture
+              matmul dispatch overhead findings (#33)
             
           </span>
         </div>
@@ -197,7 +193,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../.." class="md-tabs__link">
         
   
   
@@ -216,7 +212,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../why/" class="md-tabs__link">
+      <a href="../../../why/" class="md-tabs__link">
         
   
   
@@ -235,7 +231,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../cuda_rosetta/" class="md-tabs__link">
+      <a href="../../../cuda_rosetta/" class="md-tabs__link">
         
   
   
@@ -254,7 +250,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../trainium_positioning/" class="md-tabs__link">
+      <a href="../../../trainium_positioning/" class="md-tabs__link">
         
   
   
@@ -273,7 +269,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../roadmap/" class="md-tabs__link">
+      <a href="../../../roadmap/" class="md-tabs__link">
         
   
   
@@ -292,7 +288,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../nki_validation_status/" class="md-tabs__link">
+      <a href="../../../nki_validation_status/" class="md-tabs__link">
         
   
   
@@ -313,7 +309,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../blog/" class="md-tabs__link">
+        <a href="../../../blog/" class="md-tabs__link">
           
   
   
@@ -335,7 +331,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../installation/" class="md-tabs__link">
+        <a href="../../../installation/" class="md-tabs__link">
           
   
   
@@ -357,7 +353,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../workflows/integration/" class="md-tabs__link">
+        <a href="../../../workflows/integration/" class="md-tabs__link">
           
   
   
@@ -375,8 +371,6 @@
   
   
   
-    
-  
   
     
     
@@ -384,13 +378,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../trnfft/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../../trnfft/" class="md-tabs__link">
           
   
   
@@ -413,7 +405,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../contributing/" class="md-tabs__link">
+      <a href="../../../contributing/" class="md-tabs__link">
         
   
   
@@ -432,7 +424,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../disclaimer/" class="md-tabs__link">
+      <a href="../../../disclaimer/" class="md-tabs__link">
         
   
   
@@ -467,7 +459,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -497,7 +489,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -524,7 +516,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../why/" class="md-nav__link">
+      <a href="../../../why/" class="md-nav__link">
         
   
   
@@ -551,7 +543,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cuda_rosetta/" class="md-nav__link">
+      <a href="../../../cuda_rosetta/" class="md-nav__link">
         
   
   
@@ -578,7 +570,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trainium_positioning/" class="md-nav__link">
+      <a href="../../../trainium_positioning/" class="md-nav__link">
         
   
   
@@ -605,7 +597,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../roadmap/" class="md-nav__link">
+      <a href="../../../roadmap/" class="md-nav__link">
         
   
   
@@ -632,7 +624,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../nki_validation_status/" class="md-nav__link">
+      <a href="../../../nki_validation_status/" class="md-nav__link">
         
   
   
@@ -684,7 +676,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../blog/" class="md-nav__link ">
+            <a href="../../../blog/" class="md-nav__link ">
               
   
   
@@ -802,7 +794,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/announcements/" class="md-nav__link">
+      <a href="../../../blog/category/announcements/" class="md-nav__link">
         
   
   
@@ -832,7 +824,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/deep-dive/" class="md-nav__link">
+      <a href="../../../blog/category/deep-dive/" class="md-nav__link">
         
   
   
@@ -862,7 +854,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/ecosystem/" class="md-nav__link">
+      <a href="../../../blog/category/ecosystem/" class="md-nav__link">
         
   
   
@@ -892,7 +884,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnblas/" class="md-nav__link">
+      <a href="../../../blog/category/trnblas/" class="md-nav__link">
         
   
   
@@ -922,7 +914,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnfft/" class="md-nav__link">
+      <a href="../../../blog/category/trnfft/" class="md-nav__link">
         
   
   
@@ -952,7 +944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnrand/" class="md-nav__link">
+      <a href="../../../blog/category/trnrand/" class="md-nav__link">
         
   
   
@@ -982,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnsolver/" class="md-nav__link">
+      <a href="../../../blog/category/trnsolver/" class="md-nav__link">
         
   
   
@@ -1012,7 +1004,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnsparse/" class="md-nav__link">
+      <a href="../../../blog/category/trnsparse/" class="md-nav__link">
         
   
   
@@ -1042,7 +1034,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trntensor/" class="md-nav__link">
+      <a href="../../../blog/category/trntensor/" class="md-nav__link">
         
   
   
@@ -1143,7 +1135,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/" class="md-nav__link">
+      <a href="../../../installation/" class="md-nav__link">
         
   
   
@@ -1171,7 +1163,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../deployment/" class="md-nav__link">
+      <a href="../../../deployment/" class="md-nav__link">
         
   
   
@@ -1266,7 +1258,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workflows/integration/" class="md-nav__link">
+      <a href="../../../workflows/integration/" class="md-nav__link">
         
   
   
@@ -1294,7 +1286,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workflows/speech_enhancement/" class="md-nav__link">
+      <a href="../../../workflows/speech_enhancement/" class="md-nav__link">
         
   
   
@@ -1322,7 +1314,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workflows/quantum_chemistry/" class="md-nav__link">
+      <a href="../../../workflows/quantum_chemistry/" class="md-nav__link">
         
   
   
@@ -1354,10 +1346,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -1377,22 +1367,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -1410,7 +1397,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1452,13 +1439,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1466,7 +1450,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnfft/" class="md-nav__link ">
+            <a href="../../../trnfft/" class="md-nav__link ">
               
   
   
@@ -1484,7 +1468,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -1510,7 +1494,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/installation/" class="md-nav__link">
+      <a href="../../../trnfft/installation/" class="md-nav__link">
         
   
   
@@ -1538,7 +1522,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/quickstart/" class="md-nav__link">
+      <a href="../../../trnfft/quickstart/" class="md-nav__link">
         
   
   
@@ -1628,7 +1612,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/api/fft/" class="md-nav__link">
+      <a href="../../../trnfft/api/fft/" class="md-nav__link">
         
   
   
@@ -1656,7 +1640,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/api/complex/" class="md-nav__link">
+      <a href="../../../trnfft/api/complex/" class="md-nav__link">
         
   
   
@@ -1684,7 +1668,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/api/nn/" class="md-nav__link">
+      <a href="../../../trnfft/api/nn/" class="md-nav__link">
         
   
   
@@ -1712,7 +1696,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/api/nki/" class="md-nav__link">
+      <a href="../../../trnfft/api/nki/" class="md-nav__link">
         
   
   
@@ -1748,7 +1732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/architecture/" class="md-nav__link">
+      <a href="../../../trnfft/architecture/" class="md-nav__link">
         
   
   
@@ -1776,7 +1760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/benchmarks/" class="md-nav__link">
+      <a href="../../../trnfft/benchmarks/" class="md-nav__link">
         
   
   
@@ -1860,7 +1844,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnfft/aws_setup/" class="md-nav__link">
+      <a href="../../../trnfft/aws_setup/" class="md-nav__link">
         
   
   
@@ -1901,8 +1885,6 @@
                 
   
   
-    
-  
   
   
     
@@ -1934,21 +1916,18 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../../trnblas/" class="md-nav__link ">
               
   
   
@@ -1966,13 +1945,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1992,7 +1971,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../../trnblas/installation/" class="md-nav__link">
         
   
   
@@ -2020,7 +1999,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/" class="md-nav__link">
+      <a href="../../../trnblas/quickstart/" class="md-nav__link">
         
   
   
@@ -2110,7 +2089,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/level1/" class="md-nav__link">
+      <a href="../../../trnblas/api/level1/" class="md-nav__link">
         
   
   
@@ -2138,7 +2117,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/level2/" class="md-nav__link">
+      <a href="../../../trnblas/api/level2/" class="md-nav__link">
         
   
   
@@ -2166,7 +2145,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/level3/" class="md-nav__link">
+      <a href="../../../trnblas/api/level3/" class="md-nav__link">
         
   
   
@@ -2194,7 +2173,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/nki/" class="md-nav__link">
+      <a href="../../../trnblas/api/nki/" class="md-nav__link">
         
   
   
@@ -2227,37 +2206,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../trnblas/architecture/" class="md-nav__link">
         
   
   
@@ -2273,109 +2225,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#layout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Layout
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#df-mp2-blas-mapping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DF-MP2 → BLAS mapping
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nki-gemm-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        NKI GEMM strategy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#known-gaps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Known gaps
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#precision-envelope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Precision envelope
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Precision envelope">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#measured-e_trnblas-e_pyscf-v05x-cpu-torchmatmul-fallback" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Measured |E_trnblas − E_pyscf| (v0.5.x, CPU torch.matmul fallback)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#decision-gate-for-double-double-10-22" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision gate for double-double (#10, #22)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2444,7 +2293,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../developing_kernels/" class="md-nav__link">
+      <a href="../../../trnblas/developing_kernels/" class="md-nav__link">
         
   
   
@@ -2538,7 +2387,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+      <a href="../../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
         
   
   
@@ -2566,7 +2415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../design/mp2_energy_profile_findings/" class="md-nav__link">
+      <a href="../../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
         
   
   
@@ -2602,7 +2451,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../benchmarks/" class="md-nav__link">
+      <a href="../../../trnblas/benchmarks/" class="md-nav__link">
         
   
   
@@ -2686,7 +2535,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../aws_setup/" class="md-nav__link">
+      <a href="../../../trnblas/aws_setup/" class="md-nav__link">
         
   
   
@@ -2764,13 +2613,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2778,7 +2624,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnrand/" class="md-nav__link ">
+            <a href="../../../trnrand/" class="md-nav__link ">
               
   
   
@@ -2796,7 +2642,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -2822,7 +2668,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/installation/" class="md-nav__link">
+      <a href="../../../trnrand/installation/" class="md-nav__link">
         
   
   
@@ -2850,7 +2696,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/quickstart/" class="md-nav__link">
+      <a href="../../../trnrand/quickstart/" class="md-nav__link">
         
   
   
@@ -2940,7 +2786,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/api/generator/" class="md-nav__link">
+      <a href="../../../trnrand/api/generator/" class="md-nav__link">
         
   
   
@@ -2968,7 +2814,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/api/distributions/" class="md-nav__link">
+      <a href="../../../trnrand/api/distributions/" class="md-nav__link">
         
   
   
@@ -2996,7 +2842,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/api/quasi/" class="md-nav__link">
+      <a href="../../../trnrand/api/quasi/" class="md-nav__link">
         
   
   
@@ -3024,7 +2870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/api/nki/" class="md-nav__link">
+      <a href="../../../trnrand/api/nki/" class="md-nav__link">
         
   
   
@@ -3060,7 +2906,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/architecture/" class="md-nav__link">
+      <a href="../../../trnrand/architecture/" class="md-nav__link">
         
   
   
@@ -3144,7 +2990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/developing_kernels/" class="md-nav__link">
+      <a href="../../../trnrand/developing_kernels/" class="md-nav__link">
         
   
   
@@ -3238,7 +3084,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+      <a href="../../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
         
   
   
@@ -3266,7 +3112,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+      <a href="../../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
         
   
   
@@ -3302,7 +3148,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/roadmap/" class="md-nav__link">
+      <a href="../../../trnrand/roadmap/" class="md-nav__link">
         
   
   
@@ -3330,7 +3176,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/benchmarks/" class="md-nav__link">
+      <a href="../../../trnrand/benchmarks/" class="md-nav__link">
         
   
   
@@ -3414,7 +3260,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/aws_setup/" class="md-nav__link">
+      <a href="../../../trnrand/aws_setup/" class="md-nav__link">
         
   
   
@@ -3450,7 +3296,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/release/" class="md-nav__link">
+      <a href="../../../trnrand/release/" class="md-nav__link">
         
   
   
@@ -3478,7 +3324,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnrand/stability/" class="md-nav__link">
+      <a href="../../../trnrand/stability/" class="md-nav__link">
         
   
   
@@ -3540,13 +3386,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -3554,7 +3397,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnsolver/" class="md-nav__link ">
+            <a href="../../../trnsolver/" class="md-nav__link ">
               
   
   
@@ -3572,7 +3415,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -3598,7 +3441,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/installation/" class="md-nav__link">
+      <a href="../../../trnsolver/installation/" class="md-nav__link">
         
   
   
@@ -3626,7 +3469,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/quickstart/" class="md-nav__link">
+      <a href="../../../trnsolver/quickstart/" class="md-nav__link">
         
   
   
@@ -3716,7 +3559,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/api/eigen/" class="md-nav__link">
+      <a href="../../../trnsolver/api/eigen/" class="md-nav__link">
         
   
   
@@ -3744,7 +3587,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/api/factor/" class="md-nav__link">
+      <a href="../../../trnsolver/api/factor/" class="md-nav__link">
         
   
   
@@ -3772,7 +3615,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/api/iterative/" class="md-nav__link">
+      <a href="../../../trnsolver/api/iterative/" class="md-nav__link">
         
   
   
@@ -3800,7 +3643,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/api/nki/" class="md-nav__link">
+      <a href="../../../trnsolver/api/nki/" class="md-nav__link">
         
   
   
@@ -3836,7 +3679,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/architecture/" class="md-nav__link">
+      <a href="../../../trnsolver/architecture/" class="md-nav__link">
         
   
   
@@ -3864,7 +3707,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/benchmarks/" class="md-nav__link">
+      <a href="../../../trnsolver/benchmarks/" class="md-nav__link">
         
   
   
@@ -3948,7 +3791,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/aws_setup/" class="md-nav__link">
+      <a href="../../../trnsolver/aws_setup/" class="md-nav__link">
         
   
   
@@ -4040,7 +3883,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsolver/developing_kernels/" class="md-nav__link">
+      <a href="../../../trnsolver/developing_kernels/" class="md-nav__link">
         
   
   
@@ -4114,13 +3957,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -4128,7 +3968,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trnsparse/" class="md-nav__link ">
+            <a href="../../../trnsparse/" class="md-nav__link ">
               
   
   
@@ -4146,7 +3986,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -4172,7 +4012,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/installation/" class="md-nav__link">
+      <a href="../../../trnsparse/installation/" class="md-nav__link">
         
   
   
@@ -4200,7 +4040,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../../../trnsparse/quickstart/" class="md-nav__link">
         
   
   
@@ -4228,7 +4068,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/api/" class="md-nav__link">
+      <a href="../../../trnsparse/api/" class="md-nav__link">
         
   
   
@@ -4256,7 +4096,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/architecture/" class="md-nav__link">
+      <a href="../../../trnsparse/architecture/" class="md-nav__link">
         
   
   
@@ -4284,7 +4124,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../../../trnsparse/migration_scipy/" class="md-nav__link">
         
   
   
@@ -4312,7 +4152,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../../../trnsparse/benchmarks/" class="md-nav__link">
         
   
   
@@ -4340,7 +4180,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/iterative_solvers/" class="md-nav__link">
+      <a href="../../../trnsparse/iterative_solvers/" class="md-nav__link">
         
   
   
@@ -4368,7 +4208,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/sparse_attention/" class="md-nav__link">
+      <a href="../../../trnsparse/sparse_attention/" class="md-nav__link">
         
   
   
@@ -4452,7 +4292,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../../../trnsparse/aws_setup/" class="md-nav__link">
         
   
   
@@ -4522,13 +4362,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -4536,7 +4373,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trntensor/" class="md-nav__link ">
+            <a href="../../" class="md-nav__link ">
               
   
   
@@ -4554,7 +4391,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -4580,7 +4417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -4608,7 +4445,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/quickstart/" class="md-nav__link">
+      <a href="../../quickstart/" class="md-nav__link">
         
   
   
@@ -4669,7 +4506,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../trntensor/api/" class="md-nav__link ">
+            <a href="../../api/" class="md-nav__link ">
               
   
   
@@ -4713,7 +4550,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/api/einsum/" class="md-nav__link">
+      <a href="../../api/einsum/" class="md-nav__link">
         
   
   
@@ -4741,7 +4578,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/api/plan/" class="md-nav__link">
+      <a href="../../api/plan/" class="md-nav__link">
         
   
   
@@ -4769,7 +4606,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/api/decompose/" class="md-nav__link">
+      <a href="../../api/decompose/" class="md-nav__link">
         
   
   
@@ -4797,7 +4634,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/api/quantum/" class="md-nav__link">
+      <a href="../../api/quantum/" class="md-nav__link">
         
   
   
@@ -4825,7 +4662,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/api/nki/" class="md-nav__link">
+      <a href="../../api/nki/" class="md-nav__link">
         
   
   
@@ -4861,7 +4698,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/architecture/" class="md-nav__link">
+      <a href="../../architecture/" class="md-nav__link">
         
   
   
@@ -4889,7 +4726,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/benchmarks/" class="md-nav__link">
+      <a href="../../benchmarks/" class="md-nav__link">
         
   
   
@@ -4975,7 +4812,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/tutorial_df_mp2/" class="md-nav__link">
+      <a href="../../tutorial_df_mp2/" class="md-nav__link">
         
   
   
@@ -5003,7 +4840,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/contraction_patterns/" class="md-nav__link">
+      <a href="../../contraction_patterns/" class="md-nav__link">
         
   
   
@@ -5095,7 +4932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../trntensor/aws_setup/" class="md-nav__link">
+      <a href="../../aws_setup/" class="md-nav__link">
         
   
   
@@ -5146,7 +4983,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../contributing/" class="md-nav__link">
+      <a href="../../../contributing/" class="md-nav__link">
         
   
   
@@ -5173,7 +5010,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../disclaimer/" class="md-nav__link">
+      <a href="../../../disclaimer/" class="md-nav__link">
         
   
   
@@ -5220,10 +5057,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#layout" class="md-nav__link">
+  <a href="#tldr" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Layout
+        TL;DR
       
     </span>
   </a>
@@ -5231,10 +5068,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#df-mp2-blas-mapping" class="md-nav__link">
+  <a href="#step-by-step-timing-trn12xlarge" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DF-MP2 → BLAS mapping
+        Step-by-step timing (trn1.2xlarge)
       
     </span>
   </a>
@@ -5242,10 +5079,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nki-gemm-strategy" class="md-nav__link">
+  <a href="#pre-pinned-sweep-residency-via-to_xla" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NKI GEMM strategy
+        Pre-pinned sweep (residency via to_xla)
       
     </span>
   </a>
@@ -5253,33 +5090,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#known-gaps" class="md-nav__link">
+  <a href="#key-findings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Known gaps
+        Key findings
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#precision-envelope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Precision envelope
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Precision envelope">
+    <nav class="md-nav" aria-label="Key findings">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#measured-e_trnblas-e_pyscf-v05x-cpu-torchmatmul-fallback" class="md-nav__link">
+  <a href="#1-067-ms-is-fixed-xla-dispatch-latency" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Measured |E_trnblas − E_pyscf| (v0.5.x, CPU torch.matmul fallback)
+        1. ~0.67 ms is fixed XLA dispatch latency
       
     </span>
   </a>
@@ -5287,10 +5113,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decision-gate-for-double-double-10-22" class="md-nav__link">
+  <a href="#2-residency-changes-the-economics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Decision gate for double-double (#10, #22)
+        2. Residency changes the economics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-current-threshold-was-correct-pinned-threshold-is-new" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Current threshold was correct; pinned threshold is new
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-20482-only-13-faster-unpinned-transfer-dominates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 2048² only 1.3× faster unpinned — transfer dominates
       
     </span>
   </a>
@@ -5299,6 +5147,39 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-means-for-33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this means for #33
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#raw-timing-data-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raw timing data (JSON)
+      
+    </span>
+  </a>
   
 </li>
       
@@ -5322,128 +5203,295 @@
   
 
 
-<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
-<h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>trnblas/
-├── trnblas/
-│   ├── __init__.py      # Re-exports all BLAS operations
-│   ├── level1.py        # axpy, dot, nrm2, scal, asum, iamax
-│   ├── level2.py        # gemv, symv, trmv, ger
-│   ├── level3.py        # gemm, batched_gemm, symm, syrk, trsm, trmm
-│   └── nki/
-│       ├── __init__.py
-│       └── dispatch.py  # auto/pytorch/nki dispatch + NKI GEMM kernel
-├── tests/
-├── examples/df_mp2.py
-└── benchmarks/
-</code></pre></div>
-<h2 id="df-mp2-blas-mapping">DF-MP2 → BLAS mapping<a class="headerlink" href="#df-mp2-blas-mapping" title="Permanent link">&para;</a></h2>
-<p>The DF-MP2 algorithm maps directly to trnblas Level 3 operations:</p>
+<h1 id="matmul-dispatch-overhead-findings-33">matmul dispatch overhead findings (#33)<a class="headerlink" href="#matmul-dispatch-overhead-findings-33" title="Permanent link">&para;</a></h1>
+<p><strong>Date:</strong> 2026-04-17<br />
+<strong>Tracker:</strong> <a href="https://github.com/trnsci/trntensor/issues/33">#33</a><br />
+<strong>Method:</strong> <code>scripts/run_neuron_profile.sh --dispatch-timing</code> on trn1.2xlarge<br />
+<strong>Hardware:</strong> trn1.2xlarge, Neuron runtime 2.31.24, compiler 2.24.5133</p>
+<h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
+<p>The per-call overhead in <code>nki_matmul</code> is <strong>~0.67 ms fixed XLA dispatch latency</strong> regardless
+of tensor size. Host↔device transfer scales with tensor size on top of this.</p>
+<ul>
+<li><strong>Without residency</strong>: NKI barely beats CPU at 1024² (2.94 ms vs 2.94 ms); 2.1× at 1536².<br />
+  Crossover: <strong>~2 GFLOPs</strong> (current <code>_MIN_NKI_FLOPS</code> default is correct).</li>
+<li><strong>With residency</strong> (<code>to_xla</code> pre-applied): Eliminates host→device transfer.<br />
+  NKI wins at 1024² (1.60 ms vs 2.90 ms = <strong>1.8×</strong>); 5.65× at 2048².<br />
+  Crossover: <strong>~900 MFLOPs</strong> (new <code>_MIN_NKI_FLOPS_PINNED</code> default set to 1 GFLOPs).</li>
+</ul>
+<hr />
+<h2 id="step-by-step-timing-trn12xlarge">Step-by-step timing (trn1.2xlarge)<a class="headerlink" href="#step-by-step-timing-trn12xlarge" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>DF-MP2 Step</th>
-<th>Math</th>
-<th>trnblas Call</th>
+<th>Size</th>
+<th style="text-align: right;">FLOPs</th>
+<th style="text-align: right;">PT ms</th>
+<th style="text-align: right;">to_xla ms</th>
+<th style="text-align: right;">kern ms</th>
+<th style="text-align: right;">to_cpu ms</th>
+<th style="text-align: right;">nki_tot ms</th>
+<th>winner</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Half-transform</td>
-<td><code>(iν|P) = C_occ^T @ (μν|P)</code></td>
-<td><code>gemm(1.0, C_occ, eri, transA=True)</code></td>
+<td>128</td>
+<td style="text-align: right;">4M</td>
+<td style="text-align: right;">0.025</td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.680</td>
+<td style="text-align: right;">0.082</td>
+<td style="text-align: right;">0.038†</td>
+<td>PyTorch</td>
 </tr>
 <tr>
-<td>MO transform</td>
-<td><code>(ia|P) = C_vir^T @ (iν|P)</code></td>
-<td><code>gemm(1.0, C_vir, iv_P, transA=True)</code></td>
+<td>256</td>
+<td style="text-align: right;">34M</td>
+<td style="text-align: right;">0.109</td>
+<td style="text-align: right;">0.105</td>
+<td style="text-align: right;">0.670</td>
+<td style="text-align: right;">0.128</td>
+<td style="text-align: right;">0.070†</td>
+<td>PyTorch</td>
 </tr>
 <tr>
-<td>Cholesky</td>
-<td><code>J = L @ L^T</code></td>
-<td><code>torch.linalg.cholesky</code></td>
+<td>512</td>
+<td style="text-align: right;">268M</td>
+<td style="text-align: right;">0.393</td>
+<td style="text-align: right;">0.295</td>
+<td style="text-align: right;">0.672</td>
+<td style="text-align: right;">0.322</td>
+<td style="text-align: right;">0.419†</td>
+<td>PyTorch</td>
 </tr>
 <tr>
-<td>Metric solve</td>
-<td><code>L^T @ X = I</code></td>
-<td><code>trsm(1.0, L, I, uplo="lower", trans=True)</code></td>
+<td>768</td>
+<td style="text-align: right;">906M</td>
+<td style="text-align: right;">1.274</td>
+<td style="text-align: right;">0.703</td>
+<td style="text-align: right;">0.673</td>
+<td style="text-align: right;">0.779</td>
+<td style="text-align: right;">1.270†</td>
+<td>PyTorch</td>
 </tr>
 <tr>
-<td>Metric contract</td>
-<td><code>B = (ia|Q) @ J^{-1/2}</code></td>
-<td><code>gemm(1.0, ia_P, J_inv_half)</code></td>
+<td>1024</td>
+<td style="text-align: right;">2.1G</td>
+<td style="text-align: right;">2.938</td>
+<td style="text-align: right;">1.502</td>
+<td style="text-align: right;">0.684</td>
+<td style="text-align: right;">0.970</td>
+<td style="text-align: right;"><strong>2.935</strong></td>
+<td>NKI (1.0×)</td>
 </tr>
 <tr>
-<td>Energy</td>
-<td><code>T_ab = B_i @ B_j^T</code></td>
-<td><code>gemm(1.0, B[i], B[j], transB=True)</code></td>
+<td>1536</td>
+<td style="text-align: right;">7.2G</td>
+<td style="text-align: right;">9.441</td>
+<td style="text-align: right;">3.998</td>
+<td style="text-align: right;">0.879</td>
+<td style="text-align: right;">1.859</td>
+<td style="text-align: right;"><strong>4.514</strong></td>
+<td>NKI (2.1×)</td>
+</tr>
+<tr>
+<td>2048</td>
+<td style="text-align: right;">17G</td>
+<td style="text-align: right;">23.547</td>
+<td style="text-align: right;">7.282</td>
+<td style="text-align: right;">1.003</td>
+<td style="text-align: right;">2.960</td>
+<td style="text-align: right;"><strong>17.934</strong></td>
+<td>NKI (1.3×)</td>
 </tr>
 </tbody>
 </table>
-<h2 id="nki-gemm-strategy">NKI GEMM strategy<a class="headerlink" href="#nki-gemm-strategy" title="Permanent link">&para;</a></h2>
-<p>The NKI GEMM kernel uses stationary tile reuse on the Tensor Engine:</p>
+<p>† Sizes below <code>_MIN_NKI_FLOPS</code> (2 GFLOPs) fall through to <code>torch.matmul</code> via the
+dispatch gate; <code>nki_tot</code> is measuring the fallback path, not NKI execution.</p>
+<p>The individual step measurements (to_xla, kern, to_cpu) always invoke the NKI path
+directly, bypassing the gate, and are accurate.</p>
+<hr />
+<h2 id="pre-pinned-sweep-residency-via-to_xla">Pre-pinned sweep (residency via <code>to_xla</code>)<a class="headerlink" href="#pre-pinned-sweep-residency-via-to_xla" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Size</th>
+<th style="text-align: right;">FLOPs</th>
+<th style="text-align: right;">PT ms</th>
+<th style="text-align: right;">kern ms</th>
+<th style="text-align: right;">to_cpu ms</th>
+<th style="text-align: right;">pinned_tot ms</th>
+<th>winner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>128</td>
+<td style="text-align: right;">4M</td>
+<td style="text-align: right;">0.021</td>
+<td style="text-align: right;">0.687</td>
+<td style="text-align: right;">0.083</td>
+<td style="text-align: right;">0.770</td>
+<td>PyTorch</td>
+</tr>
+<tr>
+<td>256</td>
+<td style="text-align: right;">34M</td>
+<td style="text-align: right;">0.058</td>
+<td style="text-align: right;">0.663</td>
+<td style="text-align: right;">0.124</td>
+<td style="text-align: right;">0.787</td>
+<td>PyTorch</td>
+</tr>
+<tr>
+<td>512</td>
+<td style="text-align: right;">268M</td>
+<td style="text-align: right;">0.396</td>
+<td style="text-align: right;">0.662</td>
+<td style="text-align: right;">0.311</td>
+<td style="text-align: right;">0.972</td>
+<td>PyTorch</td>
+</tr>
+<tr>
+<td>768</td>
+<td style="text-align: right;">906M</td>
+<td style="text-align: right;">1.270</td>
+<td style="text-align: right;">0.931</td>
+<td style="text-align: right;">0.748</td>
+<td style="text-align: right;">1.680</td>
+<td>PyTorch</td>
+</tr>
+<tr>
+<td>1024</td>
+<td style="text-align: right;">2.1G</td>
+<td style="text-align: right;">2.899</td>
+<td style="text-align: right;">0.673</td>
+<td style="text-align: right;">0.924</td>
+<td style="text-align: right;"><strong>1.597</strong></td>
+<td>NKI (1.8×)</td>
+</tr>
+<tr>
+<td>1536</td>
+<td style="text-align: right;">7.2G</td>
+<td style="text-align: right;">9.354</td>
+<td style="text-align: right;">0.689</td>
+<td style="text-align: right;">1.821</td>
+<td style="text-align: right;"><strong>2.511</strong></td>
+<td>NKI (3.7×)</td>
+</tr>
+<tr>
+<td>2048</td>
+<td style="text-align: right;">17G</td>
+<td style="text-align: right;">23.274</td>
+<td style="text-align: right;">0.973</td>
+<td style="text-align: right;">3.144</td>
+<td style="text-align: right;"><strong>4.116</strong></td>
+<td>NKI (5.65×)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-findings">Key findings<a class="headerlink" href="#key-findings" title="Permanent link">&para;</a></h2>
+<h3 id="1-067-ms-is-fixed-xla-dispatch-latency">1. ~0.67 ms is fixed XLA dispatch latency<a class="headerlink" href="#1-067-ms-is-fixed-xla-dispatch-latency" title="Permanent link">&para;</a></h3>
+<p>The <code>kern ms</code> column is nearly constant at 128–1024 (0.67–0.68 ms). This is the cost of
+submitting the XLA lazy graph for the NKI kernel — not the kernel execution time itself.
+XLA defers execution until a synchronization point (<code>.to(cpu)</code>). The "kern" timing only
+measures submission; actual execution is included in <code>to_cpu</code>.</p>
+<p>This ~0.67 ms is a fundamental floor for any individual NKI kernel dispatch. It cannot be
+reduced by kernel tuning; it can only be <strong>amortized</strong> by batching multiple operations into
+one XLA graph compile.</p>
+<h3 id="2-residency-changes-the-economics">2. Residency changes the economics<a class="headerlink" href="#2-residency-changes-the-economics" title="Permanent link">&para;</a></h3>
+<p>Without residency, <code>to_xla</code> is the dominant cost at large sizes (7.3 ms at 2048²). With
+residency, that cost is paid once per session. The pre-pinned crossover (~900 MFLOPs vs
+~2 GFLOPs) means users who call <code>to_xla()</code> before a loop of matmuls get NKI benefit at
+roughly half the matrix size.</p>
+<h3 id="3-current-threshold-was-correct-pinned-threshold-is-new">3. Current threshold was correct; pinned threshold is new<a class="headerlink" href="#3-current-threshold-was-correct-pinned-threshold-is-new" title="Permanent link">&para;</a></h3>
+<p>The 2 GFLOPs default was approximately right. The new <code>_MIN_NKI_FLOPS_PINNED = 1 GFLOPs</code>
+captures the pre-pinned benefit with a conservative margin above the ~900 MFLOPs crossover.</p>
+<h3 id="4-20482-only-13-faster-unpinned-transfer-dominates">4. 2048² only 1.3× faster unpinned — transfer dominates<a class="headerlink" href="#4-20482-only-13-faster-unpinned-transfer-dominates" title="Permanent link">&para;</a></h3>
+<p>At 2048², <code>to_xla</code> alone takes 7.3 ms. The kernel result is only 2.96 ms to retrieve.
+The NKI win (17.9 ms vs 23.5 ms) is entirely because the kernel itself runs in ~1 ms while
+torch.matmul spends 23 ms on CPU. The transfer overhead is significant. Users with 2048²
+workloads should pre-pin.</p>
+<hr />
+<h2 id="what-this-means-for-33">What this means for #33<a class="headerlink" href="#what-this-means-for-33" title="Permanent link">&para;</a></h2>
+<p>The four items in the #33 description:</p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Finding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lower <code>_MIN_NKI_FLOPS</code></td>
+<td>Done for pinned path (1 GFLOPs); 2 GFLOPs remains correct for unpinned</td>
+</tr>
+<tr>
+<td>Keep tensors on XLA across calls</td>
+<td>Already implemented (<code>to_xla</code>/<code>from_xla</code>); pinned threshold now lower to exploit it</td>
+</tr>
+<tr>
+<td>Batch dispatches into one XLA graph</td>
+<td>Not yet — would amortize the 0.67 ms fixed cost; relevant for multi_einsum loops</td>
+</tr>
+<tr>
+<td><code>torch_xla.compile</code> on einsum body</td>
+<td>Unexplored; would require graph-mode tracing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The batching approach</strong> (fusing multiple matmul dispatches into one XLA graph) is the next
+lever. For DF-MP2's O(N²) pair loop — <code>for i in range(nocc): for j in range(nocc): T = B[i] @ B[j].T</code> — each iteration pays 0.67 ms. At nocc=64, that's 64² × 0.67 ms ≈ 2.7 s of pure overhead. A batched dispatch would pay 0.67 ms once. This is the Phase 3 architectural target.</p>
+<hr />
+<h2 id="recommended-next-steps">Recommended next steps<a class="headerlink" href="#recommended-next-steps" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Load A tile (128×128) to SBUF as stationary operand.</li>
-<li>Stream B tiles through the systolic array as moving operand.</li>
-<li>Accumulate partial products in PSUM.</li>
-<li>One A load serves all B tiles → 2× fewer SBUF loads vs naive.</li>
+<li>
+<p><strong>Close #33 partially</strong> — thresholds calibrated, findings documented. The fundamental
+   dispatch overhead is understood and bounded.</p>
+</li>
+<li>
+<p><strong>Phase 3 batching investigation</strong> — prototype fusing the nocc×nocc pair loop into one
+   <code>torch_xla.compile</code> call or a single <code>multi_einsum</code> dispatch with an explicit graph.</p>
+</li>
+<li>
+<p><strong>Run <code>scripts/run_neuron_profile.sh --kernel matmul</code></strong> to get Tensor Engine utilization
+   for the kernel itself (separate from dispatch overhead). Expected: TE-dominant (contrast
+   with trnblas <code>_mp2_energy_kernel</code> which was VE-dominant at 96.45%).</p>
+</li>
+<li>
+<p><strong>Provision <code>trntensor-ci-trn1</code></strong> — run <code>terraform apply</code> in <code>infra/terraform/</code> to get
+   a dedicated instance. Current approach borrows <code>trnblas-ci-trn1</code>.</p>
+</li>
 </ol>
-<p>For DF-MP2, the MO coefficient matrix <code>C</code> is the natural stationary operand
-since it's reused across all auxiliary basis indices <code>P</code>.</p>
-<h2 id="known-gaps">Known gaps<a class="headerlink" href="#known-gaps" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Level 3 NKI coverage is partial.</strong> As of v0.4.0, <code>gemm</code>, <code>batched_gemm</code>,
-  and the custom <code>nki_mp2_energy</code> reduction have NKI kernels. <code>symm</code>, <code>syrk</code>,
-  <code>trsm</code>, <code>trmm</code> still dispatch straight to PyTorch — these are the next
-  targets (tracked for v0.5.0). <code>syrk</code> and <code>trsm</code> appear in the DF-MP2 hot
-  path (metric construction, Cholesky-based metric inversion).</li>
-<li><strong><code>nki_mp2_energy</code> matches torch at medium, doesn't beat it.</strong> Kernel is
-  correct; perf is gated by per-(i, j) dispatch/load overhead. Phase 2
-  restructuring (batch multiple (i, j) per dispatch) is open under
-  <a href="https://github.com/trnsci/trnblas/issues/15">#15</a>.</li>
-<li><strong>No FP64.</strong> Trainium's Tensor Engine maxes out at FP32. See
-  <a href="#precision-envelope">Precision envelope</a> below for the measured FP32 vs
-  PySCF-FP64 picture. Double-double emulation is gated on whether cc-pVTZ or
-  larger basis sets exceed µHartree
-  (<a href="https://github.com/trnsci/trnblas/issues/10">#10</a>).</li>
-<li><strong>Level 1/2 are PyTorch-only.</strong> The Tensor Engine is wasted on vector ops;
-  Level 3 is where NKI acceleration pays off. Not planned to change.</li>
-</ul>
-<h2 id="precision-envelope">Precision envelope<a class="headerlink" href="#precision-envelope" title="Permanent link">&para;</a></h2>
-<p>Trainium's Tensor Engine is FP32-only. trnblas uses FP32 throughout. The
-question for chemistry workloads is when FP32 accumulation error becomes
-visible relative to a FP64 reference (PySCF).</p>
-<h3 id="measured-e_trnblas-e_pyscf-v05x-cpu-torchmatmul-fallback">Measured |E_trnblas − E_pyscf| (v0.5.x, CPU torch.matmul fallback)<a class="headerlink" href="#measured-e_trnblas-e_pyscf-v05x-cpu-torchmatmul-fallback" title="Permanent link">&para;</a></h3>
-<p>| Molecule | Basis   | nocc | nvir | Pair-energy terms | |ΔE| Ha |
-|----------|---------|-----:|-----:|------------------:|-------:|
-| H₂O      | sto-3g  |    5 |    2 |           100     | &lt; 1e-6 |
-| H₂O      | cc-pVDZ |    5 |   19 |         ~9000     | &lt; 1e-5 |
-| CH₄      | cc-pVDZ |    5 |   29 |        ~21000     | &lt; 1e-5 |
-| NH₃      | cc-pVDZ |    5 |   21 |        ~11000     | &lt; 1e-5 |
-| glycine  | sto-3g  |   20 |   10 |       ~160000     | <em>TBD</em>  |
-| glycine  | cc-pVDZ |   20 |   75 |      ~9000000     | <em>TBD</em>  |
-| (H₂O)₃  | sto-3g  |   15 |   12 |       ~324000     | <em>TBD</em>  |
-| H₂O      | cc-pVTZ |    5 |   53 |        ~70000     | <em>TBD</em>  |</p>
-<p>TBD rows are tracked in <a href="https://github.com/trnsci/trnblas/issues/20">#20</a>.
-The <code>test_precision_envelope</code> test class in <code>tests/test_df_mp2_pyscf.py</code>
-populates these when run with <code>pytest -m "pyscf and slow"</code>.</p>
-<h3 id="decision-gate-for-double-double-10-22">Decision gate for double-double (#10, #22)<a class="headerlink" href="#decision-gate-for-double-double-10-22" title="Permanent link">&para;</a></h3>
-<ul>
-<li>If |ΔE| &lt; 1 µHartree at cc-pVTZ and glycine/cc-pVDZ: FP32 is sufficient,
-  close <a href="https://github.com/trnsci/trnblas/issues/10">#10</a> as "not needed".</li>
-<li>If |ΔE| &gt; 10 µHartree: double-double emulation (four FP32 GEMMs per
-  effective FP64 GEMM) is warranted. See
-  <a href="https://github.com/trnsci/trnblas/issues/22">#22</a>.</li>
-</ul>
-<p>The FP32 precision floor for a single GEMM (M×K×N) is approximately
-<code>sqrt(K) × machine_epsilon ≈ sqrt(K) × 6e-8</code>. For DF-MP2, the dominant
-accumulation is over the auxiliary basis P (K = naux), so the per-element
-error in T = B_i @ B_j.T is O(sqrt(naux) × 6e-8). With naux = 1536
-(medium shape) this is ~2.4e-6 per element, which can accumulate to
-~µHartree in the energy sum for large nvir.</p>
-<p>The pair-loop accumulation error grows as O(nocc² × nvir² × sqrt(naux) × ε).
-At glycine/cc-pVDZ (nocc=20, nvir=75, naux≈300), the theoretical FP32
-floor is ~5e-5 Ha — which sets the tolerance in <code>test_precision_envelope</code>.</p>
+<hr />
+<h2 id="raw-timing-data-json">Raw timing data (JSON)<a class="headerlink" href="#raw-timing-data-json" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;hardware&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;trn1.2xlarge&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;neuron_runtime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.31.24&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;compiler&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.24.5133.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;date&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-04-17&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;unpinned&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4194304</span><span class="p">,</span><span class="w">    </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.025</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_xla_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.080</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.680</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.082</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;nki_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.038</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PyTorch&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">33554432</span><span class="p">,</span><span class="w">   </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.109</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_xla_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.105</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.670</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.128</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;nki_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.070</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PyTorch&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">268435456</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.393</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_xla_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.295</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.672</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.322</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;nki_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.419</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PyTorch&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">768</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">905969664</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.274</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_xla_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.703</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.673</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.779</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;nki_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.270</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PyTorch&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2147483648</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.938</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_xla_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.502</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.970</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;nki_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.935</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NKI&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1536</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7247757312</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">9.441</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_xla_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.998</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.879</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.859</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;nki_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.514</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NKI&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2048</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">17179869184</span><span class="p">,</span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">23.547</span><span class="p">,</span><span class="nt">&quot;to_xla_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">7.282</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.003</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.960</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;nki_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">17.934</span><span class="p">,</span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NKI&quot;</span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;pinned&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4194304</span><span class="p">,</span><span class="w">    </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.021</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.687</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.083</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pinned_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.770</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PyTorch&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">33554432</span><span class="p">,</span><span class="w">   </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.058</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.663</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.124</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pinned_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.787</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PyTorch&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">268435456</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.396</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.662</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.311</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pinned_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.972</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PyTorch&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">768</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">905969664</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.270</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.931</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.748</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pinned_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.680</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PyTorch&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2147483648</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.899</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.673</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.924</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pinned_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.597</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NKI&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1536</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7247757312</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">9.354</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.689</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.821</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pinned_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.511</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NKI&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2048</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;flops&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">17179869184</span><span class="p">,</span><span class="nt">&quot;pt_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">23.274</span><span class="p">,</span><span class="nt">&quot;kern_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.973</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;to_cpu_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.144</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pinned_tot_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.116</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;winner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NKI&quot;</span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
 
 
 
@@ -5500,10 +5548,10 @@ floor is ~5e-5 Ha — which sets the tolerance in <code>test_precision_envelope<
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
