@@ -6,7 +6,7 @@ comments: true
 
 # trnblas Phase 3: from 215× slower to 3.6× faster in one kernel boundary move
 
-The [Phase 2 profiler post](https://trnsci.dev/blog/trnblas-four-hypotheses-one-profiler-trace-and-why-1.48x-is-the-correct-answer/)
+The [Phase 2 profiler post](https://trnsci.dev/blog/trnblas-four-hypotheses-one-profiler-trace-and-why-148-is-the-correct-answer/)
 closed with an unexpected conclusion: the fused MP2 energy kernel hits its
 Amdahl ceiling, the remaining gap to the 3× target lives entirely in the
 step that surrounds it, and the only lever left is the kernel *boundary*.
