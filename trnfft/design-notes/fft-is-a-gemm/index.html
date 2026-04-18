@@ -5589,7 +5589,7 @@ for a single H→D transfer before the loop.</p>
 entirely. If twiddle recomputation was the dominant term, projected
 Stockham time at N=1024 drops to ~4766 μs — a <strong>~1.55× win</strong> over butterfly (7399 μs).</p>
 <h3 id="hardware-result-after-twiddle-precomputation">Hardware result after twiddle precomputation<a class="headerlink" href="#hardware-result-after-twiddle-precomputation" title="Permanent link">&para;</a></h3>
-<p><em>Placeholder — fill after hardware benchmark run on SHA <code>f095671</code>.</em></p>
+<p>Hardware bench on trn1, SDK 2.29, 2026-04-17 (SHA <code>a74b697</code>):</p>
 <table>
 <thead>
 <tr>
@@ -5602,36 +5602,40 @@ Stockham time at N=1024 drops to ~4766 μs — a <strong>~1.55× win</strong> ov
 <tbody>
 <tr>
 <td>16</td>
-<td></td>
+<td>3 121</td>
 <td>3 337</td>
-<td></td>
+<td>Stockham</td>
 </tr>
 <tr>
 <td>64</td>
-<td></td>
+<td>4 322</td>
 <td>4 767</td>
-<td></td>
+<td>Stockham</td>
 </tr>
 <tr>
 <td>256</td>
-<td></td>
+<td>5 700</td>
 <td>6 067</td>
-<td></td>
+<td>Stockham</td>
 </tr>
 <tr>
 <td>1024</td>
-<td></td>
+<td>6 850</td>
 <td>7 399</td>
-<td></td>
+<td>Stockham</td>
 </tr>
 <tr>
 <td>4096</td>
-<td></td>
+<td>8 632</td>
 <td>9 387</td>
-<td></td>
+<td>Stockham</td>
 </tr>
 </tbody>
 </table>
+<p>Stockham wins by 6–9% at every tested N. Twiddle precomputation was the
+dominant overhead term: eliminating per-stage H→D transfer turned the ~2%
+deficit into a consistent lead. <code>trnfft</code> now auto-dispatches power-of-four
+N &gt; 256 through the Stockham path.</p>
 <h2 id="batched-fft-stft-where-the-thesis-pays-off">Batched FFT + STFT: where the thesis pays off<a class="headerlink" href="#batched-fft-stft-where-the-thesis-pays-off" title="Permanent link">&para;</a></h2>
 <p>The 1-D head-to-head sweep above proves the launch-count win exists.
 The bigger practical win is on <strong>batched FFT</strong> and <strong>STFT</strong>, which both
