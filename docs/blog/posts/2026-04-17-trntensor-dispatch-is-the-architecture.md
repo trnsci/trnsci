@@ -6,7 +6,7 @@ comments: true
 
 # trntensor v0.3.0–v0.7.0: dispatch granularity is the architecture
 
-[Phase 1](https://trnsci.dev/blog/trntensor-kernel-boundary-as-api/) shipped fused NKI primitives for DF-MP2 and the 4-index AO→MO transform — single-program kernels that outperform the equivalent multi-dispatch CUDA plan sequences in HBM traffic. That architectural argument held. What didn't hold was the assumption that per-contraction dispatch was an acceptable cost in a workload that runs 4,096 of them. Phase 2 through v0.7.0 fixed that, and the fix is the same idea one level up: the dispatch boundary should be at the loop, not the iteration.
+[Phase 1](https://trnsci.dev/blog/trntensor-when-the-kernel-boundary-is-the-api/) shipped fused NKI primitives for DF-MP2 and the 4-index AO→MO transform — single-program kernels that outperform the equivalent multi-dispatch CUDA plan sequences in HBM traffic. That architectural argument held. What didn't hold was the assumption that per-contraction dispatch was an acceptable cost in a workload that runs 4,096 of them. Phase 2 through v0.7.0 fixed that, and the fix is the same idea one level up: the dispatch boundary should be at the loop, not the iteration.
 
 <!-- more -->
 
@@ -25,7 +25,7 @@ The ceilings weren't hardware limits. SBUF and PSUM are large enough to accumula
 
 ## What the architecture suggests
 
-The 0.67 ms XLA dispatch floor is structural. Python dispatch calls the lazy XLA tracer, which looks up the compiled NEFF in the in-process cache, hands off to the NeuronCore queue, and synchronizes. The same property appeared in [trnblas Phase 3](https://trnsci.dev/blog/trnblas-phase-3-batched-pair-energy/): at `nocc²` pairs the per-dispatch overhead swamps the computation entirely. Both libraries hit the same wall; trntensor's version manifests through `multi_einsum`, not a single fused kernel.
+The 0.67 ms XLA dispatch floor is structural. Python dispatch calls the lazy XLA tracer, which looks up the compiled NEFF in the in-process cache, hands off to the NeuronCore queue, and synchronizes. The same property appeared in [trnblas Phase 3](https://trnsci.dev/blog/trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move/): at `nocc²` pairs the per-dispatch overhead swamps the computation entirely. Both libraries hit the same wall; trntensor's version manifests through `multi_einsum`, not a single fused kernel.
 
 Two levers exist below the hardware floor:
 
