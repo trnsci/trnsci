@@ -2346,10 +2346,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#measured-e_trnblas-e_pyscf-v05x-cpu-torchmatmul-fallback" class="md-nav__link">
+  <a href="#measured-e_trnblas-e_pyscf-v054-trn12xlarge-neuronxcc-2245133" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Measured |E_trnblas − E_pyscf| (v0.5.x, CPU torch.matmul fallback)
+        Measured |E_trnblas − E_pyscf| (v0.5.4, trn1.2xlarge, neuronxcc 2.24.5133)
       
     </span>
   </a>
@@ -5276,10 +5276,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#measured-e_trnblas-e_pyscf-v05x-cpu-torchmatmul-fallback" class="md-nav__link">
+  <a href="#measured-e_trnblas-e_pyscf-v054-trn12xlarge-neuronxcc-2245133" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Measured |E_trnblas − E_pyscf| (v0.5.x, CPU torch.matmul fallback)
+        Measured |E_trnblas − E_pyscf| (v0.5.4, trn1.2xlarge, neuronxcc 2.24.5133)
       
     </span>
   </a>
@@ -5413,28 +5413,29 @@ since it's reused across all auxiliary basis indices <code>P</code>.</p>
 <p>Trainium's Tensor Engine is FP32-only. trnblas uses FP32 throughout. The
 question for chemistry workloads is when FP32 accumulation error becomes
 visible relative to a FP64 reference (PySCF).</p>
-<h3 id="measured-e_trnblas-e_pyscf-v05x-cpu-torchmatmul-fallback">Measured |E_trnblas − E_pyscf| (v0.5.x, CPU torch.matmul fallback)<a class="headerlink" href="#measured-e_trnblas-e_pyscf-v05x-cpu-torchmatmul-fallback" title="Permanent link">&para;</a></h3>
-<p>| Molecule | Basis   | nocc | nvir | Pair-energy terms | |ΔE| Ha |
-|----------|---------|-----:|-----:|------------------:|-------:|
-| H₂O      | sto-3g  |    5 |    2 |           100     | &lt; 1e-6 |
-| H₂O      | cc-pVDZ |    5 |   19 |         ~9000     | &lt; 1e-5 |
-| CH₄      | cc-pVDZ |    5 |   29 |        ~21000     | &lt; 1e-5 |
-| NH₃      | cc-pVDZ |    5 |   21 |        ~11000     | &lt; 1e-5 |
-| glycine  | sto-3g  |   20 |   10 |       ~160000     | <em>TBD</em>  |
-| glycine  | cc-pVDZ |   20 |   75 |      ~9000000     | <em>TBD</em>  |
-| (H₂O)₃  | sto-3g  |   15 |   12 |       ~324000     | <em>TBD</em>  |
-| H₂O      | cc-pVTZ |    5 |   53 |        ~70000     | <em>TBD</em>  |</p>
-<p>TBD rows are tracked in <a href="https://github.com/trnsci/trnblas/issues/20">#20</a>.
-The <code>test_precision_envelope</code> test class in <code>tests/test_df_mp2_pyscf.py</code>
-populates these when run with <code>pytest -m "pyscf and slow"</code>.</p>
+<h3 id="measured-e_trnblas-e_pyscf-v054-trn12xlarge-neuronxcc-2245133">Measured |E_trnblas − E_pyscf| (v0.5.4, trn1.2xlarge, neuronxcc 2.24.5133)<a class="headerlink" href="#measured-e_trnblas-e_pyscf-v054-trn12xlarge-neuronxcc-2245133" title="Permanent link">&para;</a></h3>
+<p>All values from <code>pytest -m "pyscf and slow"</code> on hardware (2026-04-18, <a href="https://github.com/trnsci/trnblas/issues/20">#20</a>).</p>
+<p>| Molecule | Basis   | nocc | nvir | Pair-energy terms | |ΔE| Ha   |
+|----------|---------|-----:|-----:|------------------:|----------:|
+| H₂O      | sto-3g  |    5 |    2 |           100     | &lt; 1e-6    |
+| H₂O      | cc-pVDZ |    5 |   19 |         ~9000     | &lt; 1e-5    |
+| CH₄      | cc-pVDZ |    5 |   29 |        ~21000     | &lt; 1e-5    |
+| NH₃      | cc-pVDZ |    5 |   21 |        ~11000     | &lt; 1e-5    |
+| glycine  | sto-3g  |   20 |   10 |       ~160000     | 1.71e-08  |
+| glycine  | cc-pVDZ |   20 |   75 |      ~9000000     | <strong>3.51e-07</strong> |
+| (H₂O)₃  | sto-3g  |   15 |   12 |       ~324000     | 4.17e-08  |
+| H₂O      | cc-pVTZ |    5 |   53 |        ~70000     | <strong>1.99e-07</strong> |</p>
+<p>All 8 cases pass their tolerances. The <code>test_precision_envelope</code> test class in
+<code>tests/test_df_mp2_pyscf.py</code> covers all rows.</p>
 <h3 id="decision-gate-for-double-double-10-22">Decision gate for double-double (#10, #22)<a class="headerlink" href="#decision-gate-for-double-double-10-22" title="Permanent link">&para;</a></h3>
-<ul>
-<li>If |ΔE| &lt; 1 µHartree at cc-pVTZ and glycine/cc-pVDZ: FP32 is sufficient,
-  close <a href="https://github.com/trnsci/trnblas/issues/10">#10</a> as "not needed".</li>
-<li>If |ΔE| &gt; 10 µHartree: double-double emulation (four FP32 GEMMs per
-  effective FP64 GEMM) is warranted. See
-  <a href="https://github.com/trnsci/trnblas/issues/22">#22</a>.</li>
-</ul>
+<p><strong>Decision (2026-04-18):</strong> FP32 is sufficient. Both gate cases are well below
+the 1 µHartree threshold: glycine/cc-pVDZ = 3.51e-07 Ha and h2o/cc-pVTZ =
+1.99e-07 Ha. <a href="https://github.com/trnsci/trnblas/issues/10">#10</a> is closed as
+"not needed". <a href="https://github.com/trnsci/trnblas/issues/22">#22</a> (double-double
+emulation) is deferred indefinitely.</p>
+<p>For reference, the original gate:
+- |ΔE| &lt; 1 µHartree at cc-pVTZ and glycine/cc-pVDZ → FP32 sufficient (this outcome)
+- |ΔE| &gt; 10 µHartree → double-double emulation warranted</p>
 <p>The FP32 precision floor for a single GEMM (M×K×N) is approximately
 <code>sqrt(K) × machine_epsilon ≈ sqrt(K) × 6e-8</code>. For DF-MP2, the dominant
 accumulation is over the auxiliary basis P (K = naux), so the per-element
