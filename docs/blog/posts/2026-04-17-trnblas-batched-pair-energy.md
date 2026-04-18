@@ -222,16 +222,19 @@ batched-pair = −1.619249×10⁻⁴ Ha. Matches to FP32 noise.
   normally. Remaining constraint: 64 loaded energy NEFFs × 244 MB DMA spill
   ≈ 15.6 GB saturates the 16 GB device; HBM pressure becomes the frontier
   at large shapes (nocc=96+).
-- **[#20 — PySCF FP32 precision envelope.](https://github.com/trnsci/trnblas/issues/20)**
-  Glycine/cc-pVDZ and water trimer tests written
-  (`tests/test_df_mp2_pyscf.py`); hardware run pending. Decision gate
-  for [#22 (double-double)](https://github.com/trnsci/trnblas/issues/22).
+- **[#20 — PySCF FP32 precision envelope — closed.](https://github.com/trnsci/trnblas/issues/20)**
+  All 8 `test_precision_envelope` cases pass on hardware (2026-04-18).
+  Key gate values: glycine/cc-pVDZ = 3.51e-07 Ha, h2o/cc-pVTZ = 1.99e-07 Ha —
+  both well below 1 µHartree. **[#10 (double-double)](https://github.com/trnsci/trnblas/issues/10)
+  closed as "not needed"; [#22](https://github.com/trnsci/trnblas/issues/22)
+  deferred indefinitely.** FP32 is sufficient for DF-MP2 at current target
+  molecule/basis combinations.
 - **[#26 — tile autotuner](https://github.com/trnsci/trnblas/issues/26)**
   for `nki_gemm`. Sweep across six tile candidates; winner cached to EBS.
   Already landed in v0.5.0; medium-shape sweep numbers pending.
 - **[#25 — trn2 benchmarks.](https://github.com/trnsci/trnblas/issues/25)**
   Infrastructure provisioned in `infra/terraform-trn2/` (self-contained VPC,
-  sa-east-1). Hardware investigation deferred.
+  sa-east-1). Baseline run in progress — first trn2 timing data pending.
 
 ## Takeaway
 
