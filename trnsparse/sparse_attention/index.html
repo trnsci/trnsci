@@ -4402,6 +4402,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#autograd-v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Autograd (v0.5.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5346,6 +5357,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#autograd-v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Autograd (v0.5.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5561,6 +5583,24 @@ two-pass decomposition in <code>trnsparse/nki/kernels.py</code>:</p>
 <code>head_dim=256</code> requires K-tiling and is a follow-up.</p>
 <p>A runnable reference for both the naive and tiled paths is in
 <a href="https://github.com/trnsci/trnsparse/blob/main/examples/block_sparse_attention.py"><code>examples/block_sparse_attention.py</code></a>.</p>
+<h2 id="autograd-v050">Autograd (v0.5.0)<a class="headerlink" href="#autograd-v050" title="Permanent link">&para;</a></h2>
+<p><code>block_sparse_attention_tiled</code> is now differentiable. When any of Q, K, or V
+has <code>requires_grad=True</code>, the call is routed through <code>_AttnTiledFunction</code>,
+which provides a tiled backward using the Flash Attention delta identity.</p>
+<p><strong>Backward algorithm</strong> (single pass over nonzero blocks, no O(seq_len²) intermediate):</p>
+<div class="highlight"><pre><span></span><code>D_i = dO_i · O_i                   # row-wise dot — Flash &quot;delta&quot;
+For each stored block (m, ki):
+    P   = stable_softmax(Q_m @ K_ki.T * scale)
+    dP  = dO_m @ V_ki.T
+    dS  = P * (dP - D_m)           # softmax backward
+    dQ_m  += dS @ K_ki * scale
+    dK_ki += dS.T @ Q_m * scale
+    dV_ki += P.T @ dO_m
+</code></pre></div>
+<p><code>torch.autograd.gradcheck</code> passes at <code>atol=1e-3</code> for local-window and dilated
+patterns (float64, seq_len=256, head_dim=32).</p>
+<p><strong>NKI backward kernel</strong> is a follow-up (v0.5.x). The current backward runs on
+CPU/PyTorch even when the forward used the NKI kernel pair.</p>
 
 
 
