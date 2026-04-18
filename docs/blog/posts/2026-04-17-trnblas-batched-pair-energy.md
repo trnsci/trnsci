@@ -194,41 +194,47 @@ dispatch overheads that batched-pair avoids (256 × ~1.5 ms ≈ 384 ms).
 | Per-pair loop warm | 25.4 ms |
 | Speedup | **13.5×** |
 
-**Medium shape preliminary** (`nocc=64, nvir=448, naux=1536`, 4096 pairs,
-batched-pair NEFF compile blocked — 18 GB XLA graph, see above):
+**Medium shape** (`nocc=64, nvir=448, naux=1536`, 4096 pairs):
 
 | Energy path | Warm energy | Warm total |
 |---|---:|---:|
 | torch | 8.035 s | 9.795 s |
 | fused-gemm | 9.174 s | 10.877 s |
-| batched-pair (CPU fallback†) | 5.239 s | 7.111 s |
+| batched-pair (CPU fallback, v0.5.2†) | 5.239 s | 7.111 s |
+| **batched-pair (chunked NKI, v0.5.4)** | **1.536 s** | **4.784 s** |
 
-† CPU `torch.matmul` fallback, not NKI. Updated numbers pending chunked
-dispatch implementation (#46).
+† v0.5.2: NEFF compile failed (18 GB XLA graph exceeded disk); result was CPU
+`torch.matmul` fallback. v0.5.4 chunked dispatch (issue #46) resolved this:
+one `@nki.jit` call per i-row, 64 calls total, each processing all `nocc`
+j-pairs. Cold energy = 34 min (77 NEFF compilations, paid once); warm energy
+= 1.536 s = 64 dispatches × ~24 ms each. **5.2× faster than torch baseline.**
 
 **Energy cross-check:** torch / fused-gemm = −1.619250×10⁻⁴ Ha,
 batched-pair = −1.619249×10⁻⁴ Ha. Matches to FP32 noise.
 
 ## What's next
 
-- **Chunked batched-pair dispatch.** Process nocc² pairs in chunks of
-  ~256 per `@nki.jit` call — 16 dispatches for nocc=64 instead of 4096
-  (per-pair) or 1 (full-batch). Each chunk's XLA graph is ~240 MB
-  (manageable); 16 × ~100 ms overhead = 1.6 s (vs 409 s per-pair or
-  the ~18 GB graph that kills the compiler at medium scale). Open
-  empirical question: whether the compiled chunked kernel beats torch
-  at nocc=64 — preliminary CPU-fallback data suggest CPU is competitive
-  at that scale.
-- **[#20 — PySCF FP32 precision envelope.](https://github.com/trnsci/trnblas/issues/20)**
-  Glycine/cc-pVDZ and water trimer tests written
-  (`tests/test_df_mp2_pyscf.py`); hardware run pending. Decision gate
-  for [#22 (double-double)](https://github.com/trnsci/trnblas/issues/22).
+- **Chunked batched-pair dispatch — landed (v0.5.4).** The empirical question
+  is answered: chunked NKI dispatch (64 i-calls, each processing all nocc
+  j-pairs) achieves 1.536 s warm energy at medium shape — **5.2× faster than
+  torch** and 3.4× faster than the v0.5.2 CPU fallback. The 18 GB XLA graph
+  problem is solved; each chunk produces ~1.4 GB, compiling and caching
+  normally. Remaining constraint: 64 loaded energy NEFFs × 244 MB DMA spill
+  ≈ 15.6 GB saturates the 16 GB device; HBM pressure becomes the frontier
+  at large shapes (nocc=96+).
+- **[#20 — PySCF FP32 precision envelope — closed.](https://github.com/trnsci/trnblas/issues/20)**
+  All 8 `test_precision_envelope` cases pass on hardware (2026-04-18).
+  Key gate values: glycine/cc-pVDZ = 3.51e-07 Ha, h2o/cc-pVTZ = 1.99e-07 Ha —
+  both well below 1 µHartree. **[#10 (double-double)](https://github.com/trnsci/trnblas/issues/10)
+  closed as "not needed"; [#22](https://github.com/trnsci/trnblas/issues/22)
+  deferred indefinitely.** FP32 is sufficient for DF-MP2 at current target
+  molecule/basis combinations.
 - **[#26 — tile autotuner](https://github.com/trnsci/trnblas/issues/26)**
   for `nki_gemm`. Sweep across six tile candidates; winner cached to EBS.
   Already landed in v0.5.0; medium-shape sweep numbers pending.
 - **[#25 — trn2 benchmarks.](https://github.com/trnsci/trnblas/issues/25)**
   Infrastructure provisioned in `infra/terraform-trn2/` (self-contained VPC,
-  sa-east-1). Hardware investigation deferred.
+  sa-east-1). Baseline run in progress — first trn2 timing data pending.
 
 ## Takeaway
 
