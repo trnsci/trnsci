@@ -5162,6 +5162,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#thread-c-phase-1-driver-permutation-precompute-v014" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Thread C phase 1: driver permutation precompute (v0.14)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#version" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5470,6 +5481,72 @@ a pure Python change to <code>_fft_via_stockham_nki</code> in <code>fft_core.py<
 </code></pre></div>
 <p>After twiddle precomputation, B1 (fused kernel) recovers the remaining 10% permute
 overhead. Combined, they should realize the 1.6× speedup suggested by the probe data.</p>
+<hr />
+<h2 id="thread-c-phase-1-driver-permutation-precompute-v014">Thread C phase 1: driver permutation precompute (v0.14)<a class="headerlink" href="#thread-c-phase-1-driver-permutation-precompute-v014" title="Permanent link">&para;</a></h2>
+<p><strong>What changed:</strong> <code>_stockham_perm_indices()</code> precomputes flat <code>int64</code> pack/unpack index
+tensors for all stages on CPU before the stage loop. The per-stage pack/unpack sequence:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Old (2 materializing copies per stage):</span>
+<span class="n">re_groups</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">re</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+<span class="c1"># New (2 gather ops per stage):</span>
+<span class="n">re_groups</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="n">pack_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">re</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="n">unpack_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Constraint acknowledged:</strong> True SBUF-resident stage fusion (Thread C phase 2) is
+blocked for all dispatched N values (N &gt; 256) because <code>total_groups = B*N/4 &gt; PMAX</code>
+means the inter-stage permutation scatters elements across partition tiles. NKI's
+affine_range model requires contiguous partition addressing; cross-tile indirect
+scatter is not supported as of NKI 0.3.0.</p>
+<p><strong>Hardware result (v0.14, trn1, SDK 2.29, 2026-04-18):</strong> The gather approach is
+<strong>11–39% slower</strong> than <code>permute+contiguous</code> — a clear regression.</p>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>v0.13 permute (µs)</th>
+<th>v0.14 gather (µs)</th>
+<th>delta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>16</td>
+<td>3 121</td>
+<td>3 493</td>
+<td>+12%</td>
+</tr>
+<tr>
+<td>64</td>
+<td>4 322</td>
+<td>4 796</td>
+<td>+11%</td>
+</tr>
+<tr>
+<td>256</td>
+<td>5 700</td>
+<td>6 103</td>
+<td>+7%</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>6 850</td>
+<td>7 950</td>
+<td>+16%</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>8 632</td>
+<td>11 991</td>
+<td>+39%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why:</strong> Neuron's XLA backend has a highly-optimized transpose HLO that likely maps to
+a hardware DMA permute path. GatherOp with non-affine indices has no such fast path —
+it resolves to scalar loads from random HBM addresses. The driver reverts to
+<code>permute+contiguous</code>. Thread C phase 2 (SBUF-resident fusion) remains the only path to
+eliminating this overhead, and is blocked on NKI cross-partition scatter support.</p>
 <hr />
 <h2 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h2>
 <p>Profiling script: <code>scripts/run_neuron_profile.sh</code><br />
