@@ -2,490 +2,490 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://trnsci.dev/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/contributing/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/cuda_rosetta/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/deployment/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/developing_kernels/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/disclaimer/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/installation/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/libraries/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/nki_validation_status/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/roadmap/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trainium_positioning/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/why/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/AUTHOR_BRIEF/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/_template/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/hello-trnsci/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/the-dev-loop-just-got-a-lot-shorter/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnsparse-the-tile-is-the-unit-not-the-nonzero/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnblas-four-hypotheses-one-profiler-trace-and-why-148-is-the-correct-answer/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trntensor-when-the-kernel-boundary-is-the-api/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnsparse-the-attention-mask-is-a-bsrmatrix/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/trntensor-v030v070-dispatch-granularity-is-the-architecture/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/architecture/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/aws_setup/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/benchmarks/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/developing_kernels/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/installation/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/quickstart/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/api/level1/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/api/level2/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/api/level3/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/api/nki/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/design/fused_df_mp2_energy_kernel/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnblas/design/mp2_energy_profile_findings/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/architecture/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/aws_setup/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/benchmarks/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/developing_kernels/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/installation/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/quickstart/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/api/complex/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/api/fft/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/api/nki/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/api/nn/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/design-notes/fft-is-a-gemm/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/design-notes/kahan-characterization/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnfft/design-notes/kernel-profiling/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/architecture/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/aws_setup/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/benchmarks/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/developing_kernels/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/installation/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/quickstart/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/release/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/roadmap/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/stability/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/api/distributions/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/api/generator/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/api/nki/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/api/quasi/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/design/counter_partitioned_multichip/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnrand/design/sbuf_resident_generator/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/architecture/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/aws_setup/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/benchmarks/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/developing_kernels/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/installation/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/quickstart/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/api/eigen/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/api/factor/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/api/iterative/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsolver/api/nki/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/api/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/architecture/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/aws_setup/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/benchmarks/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/installation/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/iterative_solvers/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/migration_scipy/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/quickstart/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trnsparse/sparse_attention/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/architecture/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/aws_setup/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/benchmarks/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/contraction_patterns/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/developing_kernels/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/installation/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/quickstart/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/tutorial_df_mp2/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/api/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/api/decompose/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/api/einsum/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/api/nki/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/api/plan/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/api/quantum/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/trntensor/design/matmul_dispatch_findings/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/workflows/integration/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/workflows/quantum_chemistry/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/workflows/speech_enhancement/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/deep-dive/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnblas/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trntensor/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnrand/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnsparse/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/ecosystem/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnfft/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/announcements/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/page/2/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/deep-dive/page/2/</loc>
-         <lastmod>2026-04-19</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
 </urlset>
