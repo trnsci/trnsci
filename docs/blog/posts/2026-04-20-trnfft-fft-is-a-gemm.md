@@ -14,6 +14,8 @@ on Trainium, the bottleneck is not arithmetic but engine utilization and kernel
 launches. Whether that argument holds at a given N, and at what cost, is where
 most of the engineering work actually lived.
 
+<!-- more -->
+
 ## The problem
 
 cuFFT works by dispatching radix-2 (or mixed-radix) butterfly stages, each one
@@ -199,11 +201,6 @@ the cost of CPU roundtripping since Trainium's PSUM is always FP32.
 - **Multi-NeuronCore distribution.** Large N FFTs (N > 4096) could be distributed
   across NeuronCores by partitioning the batch dimension. This is the "future"
   item listed in CLAUDE.md since v0.11.
-- **Blog post for Phase 1.** The earlier butterfly validation work (v0.8–v0.11)
-  — hardware-validated NKI kernels, Kahan-compensated butterfly, simulator
-  dispatch — has a separate story worth telling, particularly the Bluestein
-  precision characterization.
-
 Issues tracking the above are open on [trnsci/trnsci](https://github.com/trnsci/trnsci/issues).
 
 ## Takeaway
