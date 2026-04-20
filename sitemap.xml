@@ -113,6 +113,10 @@
          <lastmod>2026-04-20</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnfft-fft-is-a-gemm-and-then-it-isnt/</loc>
+         <lastmod>2026-04-20</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-04-20</lastmod>
     </url>
@@ -449,6 +453,10 @@
          <lastmod>2026-04-20</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
+         <lastmod>2026-04-20</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/category/trnblas/</loc>
          <lastmod>2026-04-20</lastmod>
     </url>
@@ -466,10 +474,6 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/ecosystem/</loc>
-         <lastmod>2026-04-20</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
          <lastmod>2026-04-20</lastmod>
     </url>
     <url>
