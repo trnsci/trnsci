@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/why/">
+        <link rel="canonical" href="https://trnsci.dev/TECHNICAL_BRIEF/">
       
       
-        <link rel="prev" href="..">
-      
-      
-        <link rel="next" href="../cuda_rosetta/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>Why trnsci - trnsci</title>
+        <title>trnsci technical brief — post-FP64 positioning and architectural principles - trnsci</title>
       
     
     
@@ -78,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#why-trnsci-exists" class="md-skip">
+        <a href="#trnsci-technical-brief-post-fp64-positioning-and-architectural-principles" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Why trnsci
+              trnsci technical brief — post-FP64 positioning and architectural principles
             
           </span>
         </div>
@@ -214,11 +210,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../why/" class="md-tabs__link">
         
   
   
@@ -519,37 +513,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Why trnsci
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../why/" class="md-nav__link">
         
   
   
@@ -565,92 +532,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-practical-reason" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The practical reason
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-deeper-reason" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The deeper reason
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-trainium-actually-exposes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Trainium actually exposes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-fits-and-what-doesnt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What fits and what doesn't
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-api-contract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The API contract
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-this-is-not" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What this is not
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -5176,68 +5057,146 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-practical-reason" class="md-nav__link">
+  <a href="#shared-context-paste-for-all-six-libraries" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The practical reason
+        Shared context (paste for all six libraries)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shared context (paste for all six libraries)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-thesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The thesis
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#the-deeper-reason" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#four-architectural-principles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The deeper reason
+        Four architectural principles
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#what-trainium-actually-exposes" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#the-api-direction" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Trainium actually exposes
+        The API direction
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#what-fits-and-what-doesnt" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#what-changes-about-how-you-write-code" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What fits and what doesn't
+        What changes about how you write code
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#the-api-contract" class="md-nav__link">
+  <a href="#library-specific-sections" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The API contract
+        Library-specific sections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Library-specific sections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trnfft" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trnfft
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#what-this-is-not" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#trnblas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this is not
+        trnblas
       
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trnrand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trnrand
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trnsolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trnsolver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trnsparse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trnsparse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trntensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trntensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5261,45 +5220,71 @@
   
 
 
-<h1 id="why-trnsci-exists">Why trnsci exists<a class="headerlink" href="#why-trnsci-exists" title="Permanent link">&para;</a></h1>
-<h2 id="the-practical-reason">The practical reason<a class="headerlink" href="#the-practical-reason" title="Permanent link">&para;</a></h2>
-<p>A programmer targeting an NVIDIA GPU for a scientific workload reaches, by reflex, for the CUDA library ecosystem: cuFFT for transforms, cuBLAS for dense linear algebra, cuRAND for reproducible random draws, cuSOLVER for factorizations and eigendecomposition, cuSPARSE for sparse-matrix operations, cuTENSOR for general tensor contractions. Each library is decades of accumulated numerical care — stable algorithms, careful precision handling, tuned kernels.</p>
-<p>On AWS Trainium, there is no equivalent. The Neuron SDK ships NKI, a tile-level programming model for the NeuronCore engines, plus fused kernels for transformer training. That covers one workload very well. It does not cover what a computational scientist encounters most days: a spectral method, a density-fit correlation energy, a Monte Carlo integration, a sparse solver, a tensor decomposition.</p>
-<p>trnsci fills that gap: six libraries mirroring the CUDA cu* split, Python-first APIs with PyTorch fallback on any hardware, and NKI kernels underneath for Neuron acceleration. See the <a href="../cuda_rosetta/">CUDA → trnsci Rosetta stone</a> for the symbol-by-symbol mapping.</p>
-<h2 id="the-deeper-reason">The deeper reason<a class="headerlink" href="#the-deeper-reason" title="Permanent link">&para;</a></h2>
-<p>The practical reason is just software coverage. The deeper reason is architectural timing.</p>
-<p>Every major silicon roadmap from 2022 onward has converged on the same design: a <strong>tensor-native core with FP32 accumulate on BF16/FP8/FP4 inputs, FP64 either halved, emulated, or absent</strong>. On H100, FP64 tensor throughput is already 1:14.8 versus BF16. On B200 it is 1:61. On B300 Ultra, NVIDIA's own datasheets show FP64 tensor throughput under 1 TFLOPS; cuBLAS in CUDA 13 now emulates FP64 DGEMM via the Ozaki scheme on FP8 tensor cores. AMD halved FP64 matrix throughput from MI300X to MI355X in the same generation that added FP4/FP6. Google TPU has never exposed FP64. Intel Gaudi 3, Cerebras WSE-3, SambaNova SN40L — none.</p>
-<p>Trainium was designed without an FP64 legacy to protect. It is not late to this trend. It codified it in 2020, roughly five years before the industry caught up. Trainium3 (re:Invent 2025, 3nm, 2.52 PFLOPs FP8 per chip) extends this with MXFP8/MXFP4 microscaled formats — which are not incidental to scientific computing: per-block scale factors are exactly the structure that mixed-precision iterative refinement, Ozaki decomposition, and hierarchical-precision block methods have been assuming in theory for years.</p>
-<p>The numerical-analysis community has been building the framework for this hardware for over a decade. Buttari and Dongarra (2007) showed mixed-precision iterative refinement delivers FP64 accuracy at FP32+FP16 cost. Carson and Higham (2017–2018) generalized this to three-precision GMRES-IR with convergence to κ∞(A) ≲ 10⁷. Halko, Martinsson, and Tropp (2011) built randomized SVD on the observation that algorithms only need approximate arithmetic where statistical error dominates anyway. Connolly, Higham, and Mary proved stochastic rounding makes BF16 Krylov solvers converge to their theoretical floor where round-to-nearest stagnates. Ozaki, Ogita, and colleagues showed how to recover FP64 accuracy from FP8/BF16 tensor units via slice decomposition — which is now in cuBLAS.</p>
-<p>What was missing was a <strong>coherent library</strong> treating these ideas as the default API rather than exotic overlays on an FP64-centric LAPACK stack. trnsci is that library.</p>
-<h2 id="what-trainium-actually-exposes">What Trainium actually exposes<a class="headerlink" href="#what-trainium-actually-exposes" title="Permanent link">&para;</a></h2>
-<p>Trainium2's NeuronCore-v3 contains:</p>
-<ul>
-<li>A <strong>128×128 systolic array</strong> that accumulates BF16/FP8 matmul products <strong>into a dedicated FP32 PSUM buffer</strong> — the free wider accumulator the Carson–Higham framework has been asking accelerators to expose. Unlike NVIDIA tensor cores, PSUM is named, sized, and addressable by every other engine.</li>
-<li><strong>Per-instruction stochastic rounding in the ISA</strong> — not a runtime flag, a per-instruction argument in NKI. This turns BF16 Krylov convergence from aspirational to structural.</li>
-<li><strong>Deterministic static scheduling</strong> — the compiler schedules all instructions and DMAs; hardware semaphores synchronize engines. Bitwise reproducibility is a structural guarantee, not a ReproBLAS-style overlay.</li>
-<li><strong>Four independently-operating engines</strong> (Tensor, Vector, Scalar, GpSimd) that run concurrently — adaptive precision decisions (the Ozaki stopping criterion, GMRES-IR residual norm) can run on VectorE/GpSimdE while the TensorEngine runs the next matmul.</li>
-<li><strong>NKI</strong> — an open-source (Apache 2.0) MLIR-based Python DSL that exposes the full hardware surface, including <code>nisa.nc_matmul</code>, <code>nisa.activation</code> with rounding-mode control, direct SBUF/PSUM allocation, and GpSimd programming for arbitrary integer logic.</li>
-</ul>
-<p>Trainium3 adds 144 GB HBM3e at 4.9 TB/s, MXFP8/MXFP4 per-block microscaling, and a NeuronSwitch-v1 all-to-all fabric for 144-chip UltraServers. The MXFP formats are the hardware realization of the per-block precision assumptions that mixed-precision HODLR, BLR-LU, and progressive-precision multigrid have been writing theorems about.</p>
-<h2 id="what-fits-and-what-doesnt">What fits and what doesn't<a class="headerlink" href="#what-fits-and-what-doesnt" title="Permanent link">&para;</a></h2>
-<p>The thesis is not that all scientific computing belongs on Trainium. The honest verdicts:</p>
-<p><strong>Fits cleanly:</strong> dense linear algebra (LU, QR, Cholesky, SVD, eigensolvers), Krylov solvers (CG, GMRES, BiCGStab) with SR-enabled BF16 matvec, block-sparse at 128×128 (natural match to the systolic partition dimension), FFT via DFT-as-GEMM at small N and Stockham decompositions at larger N, Monte Carlo and QMC (SR-tolerant by construction), tensor contractions for quantum chemistry (DF-MP2 end-to-end matches PySCF to nanohartree), randomized NLA (RSVD, Hutch++ — only need approximate arithmetic where statistical error dominates).</p>
-<p><strong>Partial fit:</strong> general sparse SpMV (CSR is hostile to systolic arrays; BSR at 128×128 and hierarchical-matrix compression work well for structured sparsity), FFT at large N (precision accumulates across log₂(N) butterfly stages; compensated butterfly and iterative FFT refinement are the engineering response), classical CCSD(T) (correlated methods accumulate cancellation error that requires compensated summation everywhere).</p>
-<p><strong>Doesn't fit:</strong> long-trajectory molecular dynamics (10⁸–10¹² time steps accumulate roundoff that FP32 doesn't solve and BF16 makes worse), fully unstructured sparse SpMV (the PyTorch CPU fallback is the right choice there).</p>
-<p>trnsci says this explicitly in its documentation rather than pretending universal applicability. The areas that fit are a substantial fraction of scientific computing's FLOPs — dense LA, Krylov, randomized, MC, PDE discretization, tensor contractions — and they fit very well.</p>
-<h2 id="the-api-contract">The API contract<a class="headerlink" href="#the-api-contract" title="Permanent link">&para;</a></h2>
-<p>The long-term API direction is not a precision knob. It is a <strong>solve-to-target-error contract</strong>:</p>
+<h1 id="trnsci-technical-brief-post-fp64-positioning-and-architectural-principles">trnsci technical brief — post-FP64 positioning and architectural principles<a class="headerlink" href="#trnsci-technical-brief-post-fp64-positioning-and-architectural-principles" title="Permanent link">&para;</a></h1>
+<p><em>For sub-project maintainers. Paste the shared section plus your library's section into any agent context that involves architectural decisions, new kernel design, API additions, or benchmarking.</em></p>
+<hr />
+<h2 id="shared-context-paste-for-all-six-libraries">Shared context (paste for all six libraries)<a class="headerlink" href="#shared-context-paste-for-all-six-libraries" title="Permanent link">&para;</a></h2>
+<h3 id="the-thesis">The thesis<a class="headerlink" href="#the-thesis" title="Permanent link">&para;</a></h3>
+<p>trnsci is the reference implementation for <strong>post-FP64 scientific computing</strong> on AWS Trainium — not just cuX equivalents ported to Neuron. The numerical-analysis community has been building the framework for this hardware for over a decade (Carson–Higham iterative refinement, Ozaki-scheme FP64 emulation, Croci–Higham–Mary stochastic rounding, Halko–Martinsson–Tropp randomized NLA); trnsci is the library that treats these ideas as the default API rather than exotic overlays on an FP64-centric LAPACK stack.</p>
+<p>The competitive context: H100 FP64-tensor:BF16-tensor throughput is 1:14.8. B200 is 1:61. B300 Ultra is under 1:5000; cuBLAS in CUDA 13 now emulates FP64 DGEMM via the Ozaki scheme on FP8 tensor cores. Trainium was designed without an FP64 legacy to protect. It is not behind this trend — it codified it in 2020.</p>
+<p>The CUDA-equivalents framing gets users in the door and stays valid. The post-FP64 thesis is what the project is actually about.</p>
+<h3 id="four-architectural-principles">Four architectural principles<a class="headerlink" href="#four-architectural-principles" title="Permanent link">&para;</a></h3>
+<p>These affect how kernels should be designed, not just how the project is positioned.</p>
+<p><strong>1. PSUM is a free FP32 accumulator.</strong> PSUM is wider than SBUF (FP32 vs BF16/FP8), exclusively written by the systolic array (deterministic order), and addressable by every other engine. After a BF16 matmul writes into PSUM at FP32, VectorE can compute the BF16 split and the residual in-place — an error-free split — while the next TensorEngine matmul proceeds on the next tile. This is the Ogita–Rump–Oishi Dot2 construction at systolic scale. For iterative refinement, PSUM is the residual buffer at higher precision than the working computation. Kernels should use this deliberately, not accidentally.</p>
+<p><strong>2. Engine concurrency is free adaptivity.</strong> The four engines (Tensor, Vector, Scalar, GpSimd) run independently. Adaptive decisions — Ozaki stopping criteria, GMRES-IR residual norms, randomized sketch quality estimates — can run on VectorE/GpSimdE while the TensorEngine runs the next matmul. The marginal cost of adaptivity is near zero when it runs on the idle engine.</p>
+<p><strong>3. Stochastic rounding is in the ISA and should be used.</strong> Per-instruction SR is a first-class NKI primitive (<code>nisa.activation(..., round_mode="stochastic")</code>). Connolly–Higham–Mary (SIAM J. Sci. Comput., 2021) proved SR rounding errors are mean-zero, replacing Wilkinson's worst-case n·u error bound with a √n·u probabilistic bound. For BF16 (u ≈ 2⁻⁸), any dot product or reduction of length n ≥ ~300 needs SR for correct convergence — without it, BF16 Krylov stagnates. This is a correctness requirement, not an optimization.</p>
+<p><strong>4. Determinism is structural.</strong> The TensorEngine has a fixed reduction order; the compiler statically schedules all instructions. Bitwise reproducibility is a structural property of every trnsci kernel given a fixed seed — not a ReproBLAS-style overlay. Kernels should document their reproducibility guarantees explicitly.</p>
+<h3 id="the-api-direction">The API direction<a class="headerlink" href="#the-api-direction" title="Permanent link">&para;</a></h3>
+<p>The suite is building toward a <strong>solve-to-target-error contract</strong>, not a precision knob:</p>
 <div class="highlight"><pre><span></span><code><span class="n">x</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">target_forward_error</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
 </code></pre></div>
-<p>trnsci selects factorization precision, residual precision, Ozaki split count, IR iteration count, and SR policy automatically. The <code>info</code> struct returns achieved forward error, the theorems invoked to bound it, and the precision trajectory used. This is the operational realization of Higham's "accuracy as a resource" thesis and what serious HPC users actually want — LAPACK's <code>?GESV</code> is silent on achieved forward error and returns garbage on ill-conditioned inputs. trnsolver's existing <code>iterative_refinement=True</code> flag and trntensor's <code>precision=</code> kwarg are the in-place scaffolding; the unified <code>target_forward_error</code> contract across the suite is the Phase 2/3 API deliverable.</p>
-<h2 id="what-this-is-not">What this is not<a class="headerlink" href="#what-this-is-not" title="Permanent link">&para;</a></h2>
+<p>trnsci selects factorization precision, Ozaki split count, IR iteration count, and SR policy automatically. The <code>info</code> struct returns the achieved error bound, the theorems invoked, and the precision trajectory.</p>
+<p>The <code>precision=</code> kwarg (trnfft, trntensor), <code>iterative_refinement=True</code> (trnsolver), and return tuples <code>(x, iters, res)</code> (cg/gmres) are scaffolding for this. Every API addition should ask: does this fit the <code>target_forward_error</code> contract, or is it a dead end that adds precision knobs without accuracy guarantees?</p>
+<h3 id="what-changes-about-how-you-write-code">What changes about how you write code<a class="headerlink" href="#what-changes-about-how-you-write-code" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Not a replacement for the Neuron SDK's transformer kernels.</strong> LLM training has production-grade kernels already shipping; trnsci targets the orthogonal space.</li>
-<li><strong>Not a deep-learning framework.</strong> PyTorch or JAX for that.</li>
-<li><strong>Not a claim of faster FFTs than cuFFT on N=2²⁰.</strong> Trainium is sized for large sustained GEMMs; the per-op comparisons depend heavily on shape and context. The goal is certified accuracy at stated forward-error tolerances, not peak TFLOPS.</li>
-<li><strong>Not AWS-affiliated.</strong> trnsci is an independent open-source project under Apache 2.0. The benchmarks and architectural takes are third-party observations, not AWS product claims. See the <a href="../disclaimer/">disclaimer</a>.</li>
+<li><strong>Admit what doesn't fit.</strong> Long MD trajectories, general unstructured CSR SpMV, classical CCSD(T) — these are honest non-fits for this hardware. Saying so is more credible than pretending otherwise.</li>
+<li><strong>Name SR when you use it.</strong> If a kernel relies on stochastic rounding for convergence, say so in the docstring and in the blog post.</li>
+<li><strong>Benchmark achieved forward error, not just wall clock.</strong> A 10× faster result at 4 bits less precision is a different answer, not a 10× win.</li>
+<li><strong>Vintage-match comparisons.</strong> A10G vs trn1, H100 vs trn2, GB200 vs trn3. Not cherry-picked shapes where Trainium looks best.</li>
+<li><strong>The "What didn't work" section is more important than the benchmark table.</strong> Specific, nameable failures — 303 NEFF compile workdirs, distribution mean 0.31 vs 0.5, 215× slower than baseline — are the most valuable things the blog publishes.</li>
 </ul>
+<hr />
+<h2 id="library-specific-sections">Library-specific sections<a class="headerlink" href="#library-specific-sections" title="Permanent link">&para;</a></h2>
+<h3 id="trnfft">trnfft<a class="headerlink" href="#trnfft" title="Permanent link">&para;</a></h3>
+<p><strong>Fit:</strong> Partial. Fits well at small N via DFT-as-GEMM (the DFT matrix IS a matmul; one Tensor-engine call replaces log₂(N) butterfly stages). At larger N, error accumulates across log₂(N) butterfly stages — O(u log N) even before overflow. Compensated butterfly (<code>precision="kahan"</code>) addresses this; iterative FFT refinement (compute in BF16, estimate residual at FP32 via PSUM, refine) is the research direction.</p>
+<p><strong>Architectural fit:</strong> The partition-dim flattening across <code>total_groups × batch</code> is the right idiom for parallel butterfly stages. The four-engine concurrency (TE for twiddle multiply, VE for butterfly combination, DMA prefetching next twiddles) is the right kernel structure. Radix-4 exploits W₄ = {1,−1,i,−i} needing no multiplications; radix-8 exploits W₈'s irrational entries to earn Tensor Engine work.</p>
+<p><strong>What doesn't fit honestly:</strong> Non-power-of-2 FFTs via Bluestein chain three power-of-2 FFTs and accumulate error multiplicatively. <code>precision="double"</code> is the escape hatch, at the cost of CPU roundtripping. Don't claim Bluestein-at-BF16 is production-accurate for large N.</p>
+<p><strong>Phase 2 direction:</strong> Complete Kahan butterfly hardware characterization (#58). Iterative FFT refinement is a genuine research contribution — no one has published it on a production deterministic systolic array.</p>
+<hr />
+<h3 id="trnblas">trnblas<a class="headerlink" href="#trnblas" title="Permanent link">&para;</a></h3>
+<p><strong>Fit:</strong> Clean. Dense LU/QR/Cholesky/GEMM are the showcase workload. The fused DF-MP2 energy kernel is the current flagship: one NEFF, SBUF-resident intermediates through the full T*(2T−Tᵀ)/Δ expression, one HBM store per (i,j) pair.</p>
+<p><strong>Phase 2 keystone:</strong> trnblas#22 — double-double FP64 GEMM (compensated matmul exploiting PSUM as the FP32 accumulator). This unblocks the entire suite's Phase 2: trnsolver iterative refinement, trntensor <code>precision="dd"</code>, and the path to HPL-MxP. The Ozaki-scheme direction (adaptive split decomposition with VectorE residual estimation running concurrently with TensorEngine splits) is the long-term target.</p>
+<p><strong>HPL-MxP:</strong> A trnsci HPL-MxP submission on Trn2 UltraServer is a Phase 2/3 goal — the first Trainium-era HPL-MxP result. The recipe: LU factorization in BF16, FP32 PSUM residual via compensated matmul, GMRES-IR outer loop.</p>
+<p><strong>What doesn't fit honestly:</strong> The per-call 100 ms Neuron XLA dispatch overhead is real and shapes kernel granularity decisions (batched-pair vs per-pair). Don't claim dispatch improvements that aren't measured.</p>
+<hr />
+<h3 id="trnrand">trnrand<a class="headerlink" href="#trnrand" title="Permanent link">&para;</a></h3>
+<p><strong>Fit:</strong> Clean. Monte Carlo is famously low-precision-tolerant because statistical error (1/√N) usually dominates arithmetic error. SR is the correct default for any accumulation of random draws.</p>
+<p><strong>Architectural fit:</strong> GpSimd is the right home for Philox and Threefry — 8 fully-programmable 512-bit vector cores running straight-line integer arithmetic, none of which requires the Tensor Engine. Box-Muller transcendentals belong on VectorE. SBUF-resident output for downstream fusion (trnfft noise injection, trnblas stochastic trace) is the key performance argument.</p>
+<p><strong>Philox status:</strong> Blocked on aws-neuron-sdk#1308 (no exact integer arithmetic above 2²⁴). Threefry4×32-20 is the hardware-validated path — designed for exactly this class of hardware constraint. Philox validation reopens when AWS ships a bitwise-exact primitive.</p>
+<p><strong>What doesn't fit honestly:</strong> Don't publish Philox hardware benchmarks until aws-neuron-sdk#1308 resolves. The distribution mean 0.31 vs expected 0.5 is documented; pretending otherwise would be a credibility problem.</p>
+<hr />
+<h3 id="trnsolver">trnsolver<a class="headerlink" href="#trnsolver" title="Permanent link">&para;</a></h3>
+<p><strong>Fit:</strong> Clean for dense eigensolvers and Krylov. Jacobi's batched-sweep form (n/2 rotations commuting on disjoint pairs → one kernel dispatch per round → stable NEFF cache) is the canonical NKI-native eigensolver. Householder-QR for eigh and Schur fits once the NEFF compile graph is stable. GMRES-IR (BF16 inner solve, FP32 residual via PSUM, outer refinement) is the direction for general linear systems.</p>
+<p><strong>Carson–Higham framing:</strong> trnsolver's <code>solve_spd(iterative_refinement=True)</code> is already in the Carson–Higham three-precision regime (κ ≲ 10⁷). The Phase 2 goal is extending this to general systems + GMRES inner solve, and exposing it as <code>target_forward_error</code>.</p>
+<p><strong>Phase 2/3 opportunity:</strong> Randomized eigensolvers (Nakatsukasa–Tropp sRR, SIAM SIMAX 45(2), 2024) use non-orthogonal bases and only need subspace-embedding-quality arithmetic — exactly what BF16+FP32-accumulate provides. Reported 10× over MATLAB eigs at FP64; 50–100× play at BF16. Natural next API: <code>eigh_randomized(A, k, oversampling=10)</code>.</p>
+<p><strong>What doesn't fit honestly:</strong> NEFF compile overhead at 303 workdirs per test run is a documented result. Every architecture post should be honest that the simulator validates kernel math but only hardware validates host-integration shape.</p>
+<hr />
+<h3 id="trnsparse">trnsparse<a class="headerlink" href="#trnsparse" title="Permanent link">&para;</a></h3>
+<p><strong>Fit:</strong> Clean after BSR reformulation. The key architectural fact: the Tensor Engine is a 128×128 systolic array; <code>nisa.nc_matmul</code> consumes a 128×K×N tile. CSR's arbitrary-pattern indirect gather is hostile to systolic arrays. BSR at 128×128 — one <code>nc_matmul</code> per nonzero block — is the native format.</p>
+<p><strong>New pattern worth codifying:</strong> <code>chebyshev_bsr</code> and <code>richardson_bsr</code> are fixed-K iterations with <strong>no inner products</strong>. Unlike CG or GMRES, they do not require dot products of length n at each step. For low-precision regimes, SR-tolerant convergence without accumulating inner-product error is the correct design pattern. This should be documented as a principled choice, not an omission.</p>
+<p><strong>BLR/HODLR direction:</strong> For kernels, integral equations, covariance matrices, and dense-PDE discretizations, hierarchical-matrix compression maps cleanly — store off-diagonal low-rank blocks in BF16, diagonal blocks in FP32. Carson–Chen–Liu (SIAM J. Sci. Comput., 2024) proves the mixed-precision HODLR error stays bounded. This is the Phase 2+ opportunity.</p>
+<p><strong>What doesn't fit honestly:</strong> Fully unstructured CSR SpMV with near-diagonal structure (random graphs, FEM on unstructured meshes) is a shape mismatch. Recommend CPU fallback for those cases and say so.</p>
+<hr />
+<h3 id="trntensor">trntensor<a class="headerlink" href="#trntensor" title="Permanent link">&para;</a></h3>
+<p><strong>Fit:</strong> Clean. The DF-MP2 end-to-end pipeline — AO→MO transform, pair-energy contractions, elementwise denominators, reductions — is the current flagship workflow. The fused multi-step primitives (contract → SBUF-resident → contract) are the key design: what cuTENSOR hides behind an opaque Plan, NKI exposes as writable kernel source.</p>
+<p><strong>Dispatch granularity is the architecture.</strong> The ~100 ms Neuron XLA dispatch overhead (current, pre-SDK-2.30) determines kernel boundary decisions: one dispatch per loop, not one per iteration. The <code>_try_batched_multi_einsum</code> detection and K/M/N-tiling are both responses to this. Under <code>torch.compile</code> + neuron backend (SDK 2.30), the overhead drops to ~µs — kernel boundaries can be revisited then.</p>
+<p><strong><code>precision=</code> as scaffolding.</strong> The <code>precision=</code> kwarg (<code>fast</code>/<code>kahan</code>/<code>dd</code>) is scaffolding for the <code>target_forward_error</code> API direction. <code>precision="dd"</code> is gated on trnblas#22. When that lands, trntensor's multi-contraction path gets FP32-accuracy output from BF16 inputs via compensated matmul.</p>
+<p><strong>What doesn't fit honestly:</strong> 3+ operand einsums that fall through to <code>torch.einsum</code> lose both the optimal-order choice and the fused-DAG opportunity. Document this explicitly rather than claiming <code>einsum()</code> handles all cases.</p>
 
 
 
