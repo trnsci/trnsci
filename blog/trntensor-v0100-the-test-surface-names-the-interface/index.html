@@ -10,13 +10,11 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/trnfft-fft-is-a-gemm-and-then-it-isnt/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trntensor-v0100-the-test-surface-names-the-interface/">
       
       
-        <link rel="prev" href="../trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/">
+        <link rel="prev" href="../trnfft-fft-is-a-gemm-and-then-it-isnt/">
       
-      
-        <link rel="next" href="../trntensor-v0100-the-test-surface-names-the-interface/">
       
       
         
@@ -27,7 +25,7 @@
     
     
       
-        <title>trnfft: FFT is a GEMM, and then it isn't - trnsci</title>
+        <title>trntensor v0.10.0: the test surface names the interface - trnsci</title>
       
     
     
@@ -78,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trnfft-fft-is-a-gemm-and-then-it-isnt" class="md-skip">
+        <a href="#trntensor-v0100-the-test-surface-names-the-interface" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trnfft: FFT is a GEMM, and then it isn't
+              trntensor v0.10.0: the test surface names the interface
             
           </span>
         </div>
@@ -5105,44 +5103,16 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="The approach">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dft-gemm-v012" class="md-nav__link">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DFT-GEMM (v0.12)
+        Implementation
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stockham-radix-4-with-twiddle-precomputation-v013" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stockham radix-4 with twiddle precomputation (v0.13)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stockham-radix-8-with-tensor-engine-w8-v015" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stockham radix-8 with Tensor-engine W₈ (v0.15)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -5227,7 +5197,7 @@
                     <li class="md-nav__item">
                       <div class="md-nav__link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
-                        <time datetime="2026-04-20 00:00:00+00:00" class="md-ellipsis">April 20, 2026</time>
+                        <time datetime="2026-04-21 00:00:00+00:00" class="md-ellipsis">April 21, 2026</time>
                       </div>
                     </li>
                     
@@ -5239,7 +5209,7 @@
                             in
                             
                               <a href="../category/deep-dive/">Deep dive</a>, 
-                              <a href="../category/trnfft/">trnfft</a></span>
+                              <a href="../category/trntensor/">trntensor</a></span>
                         </div>
                       </li>
                     
@@ -5277,223 +5247,130 @@
   
 
 
-<h1 id="trnfft-fft-is-a-gemm-and-then-it-isnt">trnfft: FFT is a GEMM, and then it isn't<a class="headerlink" href="#trnfft-fft-is-a-gemm-and-then-it-isnt" title="Permanent link">&para;</a></h1>
-<p>trnfft v0.12–v0.15 shipped three new FFT dispatch paths — DFT-GEMM, Stockham
-radix-4 with twiddle precomputation, and Stockham radix-8 with a Tensor-engine
-W₈ kernel — producing 20–37% improvements over the butterfly baseline at medium
-and large N. The architectural argument running through all three is the same:
-on Trainium, the bottleneck is not arithmetic but engine utilization and kernel
-launches. Whether that argument holds at a given N, and at what cost, is where
-most of the engineering work actually lived.</p>
+<h1 id="trntensor-v0100-the-test-surface-names-the-interface">trntensor v0.10.0: the test surface names the interface<a class="headerlink" href="#trntensor-v0100-the-test-surface-names-the-interface" title="Permanent link">&para;</a></h1>
+<p>v0.9.0 gated reduce-parallel sharding behind <code>NotImplementedError</code> on both CPU and Trainium — <code>nki.collectives</code> wasn't in NKI 0.3.0 Stable and that was that. v0.10.0 lifts the gate on CPU: reduce-parallel sharding now dispatches through a named mock all-reduce, making the full Phase 4 test surface runnable without hardware. The mock is not a shortcut — it is documentation of the exact interface <code>nki.collectives.allreduce</code> will need to satisfy when SDK 2.30+ ships.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>cuFFT works by dispatching radix-2 (or mixed-radix) butterfly stages, each one
-a massively parallel warp-per-butterfly operation on the GPU. A Trainium port
-runs into two problems immediately.</p>
-<p>The first is cosmetic but structural: Trainium has no complex dtype. trnfft's
-<code>ComplexTensor</code> wraps a split real/imaginary pair and expresses every operation
-as four real FP32 tensor ops. That's the same Strassen-style identity the
-existing <code>_complex_gemm_kernel</code> already exploits:</p>
-<div class="highlight"><pre><span></span><code><span class="n">C_real</span> <span class="o">=</span> <span class="n">A_real</span> <span class="o">@</span> <span class="n">B_real</span> <span class="err">−</span> <span class="n">A_imag</span> <span class="o">@</span> <span class="n">B_imag</span>
-<span class="n">C_imag</span> <span class="o">=</span> <span class="n">A_real</span> <span class="o">@</span> <span class="n">B_imag</span> <span class="o">+</span> <span class="n">A_imag</span> <span class="o">@</span> <span class="n">B_real</span>
-</code></pre></div>
-<p>Four real matmuls, which maps cleanly to four <code>nisa.nc_matmul</code> accumulations
-into PSUM.</p>
-<p>The second problem is structural and not cosmetic: butterfly stages run on the
-Vector engine. Each stage is a twiddle multiply (FP32 element-wise) followed by
-a butterfly add/subtract. Both operations land on the Vector engine. The Tensor
-engine — the part of the chip with most of the compute throughput — never fires
-during an FFT.</p>
-<p>The question driving v0.12–v0.15: <em>is there a formulation of FFT that routes
-meaningfully through the Tensor engine?</em></p>
+<p>The v0.9.0 gate was unconditional. The <code>NotImplementedError</code> fired on CPU and on Trainium alike, which was defensible as a signal to the Neuron team (as noted in the <a href="https://trnsci.dev/blog/trntensor-v080v090-dispatch-owns-routing-and-placement/">v0.9.0 post</a>) but left a structural problem: the dispatch logic for contracted-dimension sharding was entirely untested. That logic is not trivial — it requires co-partitioning non-sharded operands along the contracted dimension, routing each shard's slice through the contraction, accumulating partial results, and then reducing across shards. Code that is never run in CI has zero validated structure.</p>
+<p>The gate prevented accidental use. It also prevented any test from exercising the path. v0.10.0 addresses this without pretending <code>nki.collectives</code> exists: introduce a named stand-in that makes the correctness invariant testable on CPU, and keep the hardware gate exactly where it was.</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p>The Tensor engine's native operation is <code>nc_matmul</code>: a batched systolic-array
-matrix multiply accumulating into a FP32 PSUM tile. Its partition dimension is
-fixed at 128; its free dimension goes to 512. At training workloads, the engine
-is fed with contiguous tiles of large matrices, and the per-launch overhead
-amortizes over thousands of multiply-accumulate operations.</p>
-<p>What the architecture suggests, then, depends on N.</p>
-<p><strong>Small N (≤ 256):</strong> the entire DFT fits in one systolic-array matmul. The DFT
-matrix W is N×N. For N=256, <code>(B, 256) @ (256, 256)</code> is a single <code>nc_matmul</code>
-call. One Tensor-engine launch replaces log₂(N) = 8 Vector-engine butterfly
-stages. The O(N²) arithmetic is usually cited as a reason not to do this; on
-Trainium, the one-launch/Tensor-engine advantage outweighs the FLOP count
-until the PSUM accumulation error floor binds — measured at N=256 in FP32.</p>
-<p><strong>Medium N (power-of-4, &gt; 256):</strong> one matmul can't cover the whole transform
-without exceeding the precision budget. Stockham radix-4 decomposes N into
-log₄(N) stages of 4-point DFTs. The critical observation: W₄ has coefficients
-{1, −1, i, −i}, meaning the W₄ matvec reduces to adds and sign flips. <em>No
-multiplications.</em> The Tensor engine is idle in each stage; the twiddle multiply
-(which does require real FP32 multiplications) dominates the per-stage cost.</p>
-<p><strong>Large N (power-of-8, &gt; 256):</strong> W₈ has entries exp(−2πi·j·k/8), which include
-±√2/2 ± i√2/2. These require actual multiplications. Using the Tensor engine for
-the W₈ matmul now earns its keep.</p>
-<p>The dispatch table that results:</p>
+<p>When <code>nki.collectives</code> is absent, the right response is not a silent fallback to an approximation. It is a named stand-in that validates the contract. <code>_mock_allreduce</code> is that stand-in: its docstring identifies <code>nki.collectives.allreduce</code> as the production replacement; its implementation (<code>torch.stack(partials).sum(0)</code>) proves the correctness invariant by constructing the reference result from first principles.</p>
+<p>The architecture also makes co-partitioning a first-class concern, not an implementation detail. Output-parallel dispatch — the output dimension is sharded — passes non-sharded operands in full to each shard, because no non-sharded operand carries the output dimension. Reduce-parallel dispatch breaks this assumption: when <code>A</code> is sharded along contracted index <code>j</code>, any non-sharded operand <code>B</code> that also carries <code>j</code> must be sliced to match each shard's <code>j</code>-extent. The contraction subscript shrinks in a way that output-parallel never required the dispatcher to think about.</p>
 <pre class="mermaid"><code>flowchart TD
-  A["trnfft.fft(x, N)"] --&gt; B{N ≤ 256?}
-  B --&gt;|yes| C["DFT-GEMM\none nc_matmul\nTensor engine"]
-  B --&gt;|no| D{N = 8^k?}
-  D --&gt;|yes| E["Radix-8 Stockham\nlog₈(N) stages\nVector twiddle + Tensor W₈"]
-  D --&gt;|no| F{N = 4^k?}
-  F --&gt;|yes| G["Radix-4 Stockham\nlog₄(N) stages\nVector twiddle + Vector W₄"]
-  F --&gt;|no| H["Butterfly\nlog₂(N) stages\nVector engine"]</code></pre>
+    entry["einsum() — ShardedTensor detected"]
+    entry --&gt; classify{"partition dim\nin output?"}
+    classify --&gt;|"yes"| outpar["output-parallel:\npass non-sharded operands in full\nper-shard dispatch → concat"]
+    classify --&gt;|"no"| rp_gate{"HAS_NKI?"}
+    rp_gate --&gt;|"True"| hw_err["NotImplementedError\n(SDK 2.30+)"]
+    rp_gate --&gt;|"False"| copart["co-partition non-sharded operands\nslice each along contracted dim"]
+    copart --&gt; loop["per-shard contraction loop\n(plain einsum per shard)"]
+    loop --&gt; mock["_mock_allreduce(partials)\ntorch.stack().sum(dim=0)"]
+    mock --&gt; result["dense result"]</code></pre>
+<p>The hardware gate stays. When <code>HAS_NKI=True</code>, reduce-parallel raises immediately. The mock path is strictly a CPU validation vehicle; it exists because the test surface is worth having before the primitive exists.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<h3 id="dft-gemm-v012">DFT-GEMM (v0.12)<a class="headerlink" href="#dft-gemm-v012" title="Permanent link">&para;</a></h3>
-<p><code>_fft_via_gemm</code> constructs the N×N DFT matrix W on CPU, transfers it once, and
-dispatches <code>complex_gemm(x, W)</code> — a single <code>nc_matmul</code> call per transform.
-Dispatch condition: <code>n &lt;= _DFT_GEMM_THRESHOLD</code> and <code>precision != "kahan"</code>.
-The threshold is precision-bound, not performance-bound: at N=512, FP32 PSUM
-accumulation exceeds the 1e-3 relative-error tolerance. N=256 stays inside it.</p>
-<h3 id="stockham-radix-4-with-twiddle-precomputation-v013">Stockham radix-4 with twiddle precomputation (v0.13)<a class="headerlink" href="#stockham-radix-4-with-twiddle-precomputation-v013" title="Permanent link">&para;</a></h3>
-<p>The initial radix-4 implementation computed twiddle factors per-stage inside the
-loop — one <code>torch.cos</code>/<code>torch.sin</code> + expand + CPU-to-device transfer per stage.
-Profiling revealed that twiddle recomputation was the dominant overhead term, not
-the kernel time or permute cost. The fix: precompute all log₄(N) twiddle tensors
-on CPU before the loop, transfer them as independent standalone tensors (slicing
-an XLA device tensor creates <code>DynamicSlice</code> HLO ops that bust the NEFF cache).
-This alone delivered the 6–9% improvement over butterfly that made radix-4 the
-default path for power-of-four N &gt; 256.</p>
-<h3 id="stockham-radix-8-with-tensor-engine-w8-v015">Stockham radix-8 with Tensor-engine W₈ (v0.15)<a class="headerlink" href="#stockham-radix-8-with-tensor-engine-w8-v015" title="Permanent link">&para;</a></h3>
-<p><code>stockham_radix8_w8_kernel</code> takes pre-twiddled <code>(total_groups, 8)</code> input and
-applies W₈ via four <code>nisa.nc_matmul</code> calls — the standard complex GEMM
-decomposition:</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">stockham_radix8_w8_kernel</span><span class="p">(</span><span class="n">a_re</span><span class="p">,</span> <span class="n">a_im</span><span class="p">,</span> <span class="n">w8_re</span><span class="p">,</span> <span class="n">w8_im</span><span class="p">):</span>
-    <span class="o">...</span>
-    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">n_partition_tiles</span><span class="p">):</span>
-        <span class="n">ar_t</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load_transpose2d</span><span class="p">(</span><span class="n">a_re</span><span class="p">[</span><span class="n">m_off</span><span class="p">:</span><span class="n">m_off</span> <span class="o">+</span> <span class="n">groups_chunk</span><span class="p">,</span> <span class="p">:</span><span class="mi">8</span><span class="p">])</span>
-        <span class="n">ai_t</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load_transpose2d</span><span class="p">(</span><span class="n">a_im</span><span class="p">[</span><span class="n">m_off</span><span class="p">:</span><span class="n">m_off</span> <span class="o">+</span> <span class="n">groups_chunk</span><span class="p">,</span> <span class="p">:</span><span class="mi">8</span><span class="p">])</span>
-        <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_cr</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">ar_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">w8_r</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_cr</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">ai_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">neg_w8_i</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_ci</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">ar_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">w8_i</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_ci</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">ai_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">w8_r</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="o">...</span>
+<p>Three additions in v0.10.0, each with a specific scope:</p>
+<ol>
+<li>
+<p><strong><code>shard_boundaries(st)</code></strong> — returns <code>(start, end)</code> pairs for each chunk in a <code>ShardedTensor</code>, computed from cumulative chunk shapes along the partition dimension. Needed so the co-partitioning loop can slice non-sharded operands to the correct extent.</p>
+</li>
+<li>
+<p><strong><code>_mock_allreduce(partials)</code></strong> — <code>torch.stack(partials).sum(dim=0)</code>. Named, not anonymous. The docstring is the contract: this function names <code>nki.collectives.allreduce</code> as the production replacement, specifies the argument shape (<code>list[Tensor]</code> with identical shapes), and states the semantics (sum reduction). The implementation is five characters of PyTorch; the name and docstring are the artifact.</p>
+</li>
+<li>
+<p><strong><code>_execute_sharded</code> refactor</strong> — the function that routes <code>ShardedTensor</code> einsums. v0.9.0 classified operands as output-parallel only; reduce-parallel raised immediately. v0.10.0 scans operands and classifies each <code>ShardedTensor</code> as <code>output_parallel</code> or <code>reduce_parallel</code> before entering the dispatch branch. The <code>HAS_NKI</code> gate fires for reduce-parallel only when hardware is present. Mixed output+reduce-parallel (one operand of each kind in a single einsum) raises <code>NotImplementedError("mixed ...")</code> — not yet implemented, deferred to v0.11.0.</p>
+</li>
+</ol>
+<p>The deliberate tradeoff: naming the mock makes the contract visible but creates two code paths that will diverge the moment <code>nki.collectives</code> lands. That divergence is the whole point — the mock stays as a CPU reference after the hardware path ships, because a test that only runs on hardware is a test that CI can't run.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p>Co-partitioning and mock dispatch loop (<code>trntensor/parallel.py</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">bounds</span> <span class="o">=</span> <span class="n">shard_boundaries</span><span class="p">(</span><span class="n">ref_shard</span><span class="p">)</span>
+
+<span class="n">partials</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">shard_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_shards</span><span class="p">):</span>
+    <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="n">shard_idx</span><span class="p">]</span>
+    <span class="n">dense_ops</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">op_idx</span><span class="p">,</span> <span class="n">op</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">operands</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">op_idx</span> <span class="ow">in</span> <span class="n">reduce_parallel</span><span class="p">:</span>
+            <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="n">shard_idx</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">ShardedTensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">shard_char</span> <span class="ow">in</span> <span class="n">input_terms</span><span class="p">[</span><span class="n">op_idx</span><span class="p">]:</span>
+            <span class="n">dim_in_op</span> <span class="o">=</span> <span class="n">input_terms</span><span class="p">[</span><span class="n">op_idx</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">shard_char</span><span class="p">)</span>
+            <span class="n">slices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="n">op</span><span class="o">.</span><span class="n">ndim</span>
+            <span class="n">slices</span><span class="p">[</span><span class="n">dim_in_op</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">slices</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+    <span class="n">partial</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="o">*</span><span class="n">dense_ops</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+    <span class="n">partials</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">partial</span><span class="p">)</span>
+
+<span class="k">return</span> <span class="n">_mock_allreduce</span><span class="p">(</span><span class="n">partials</span><span class="p">)</span>
 </code></pre></div>
-<p>W₈ is symmetric (W₈[j,k] = W₈[k,j] since j·k = k·j), so <code>W₈ = W₈ᵀ</code> and the
-matrix can be passed directly as the moving tile without transposition. The
-twiddle multiply runs on the XLA device as a PyTorch element-wise op before the
-kernel call — not in NKI — for a reason documented in the next section.</p>
+<p>The mock itself:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_mock_allreduce</span><span class="p">(</span><span class="n">partials</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mock all-reduce: sum partial contractions across simulated shards.</span>
+
+<span class="sd">    On Trainium, maps to nki.collectives.allreduce (arriving in SDK 2.30+).</span>
+<span class="sd">    Argument: list of same-shape tensors, one per shard.</span>
+<span class="sd">    Semantics: element-wise sum reduction across the list.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">partials</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<p>The co-partitioning loop handles three cases per operand: it is a reduce-parallel <code>ShardedTensor</code> (take <code>chunks[shard_idx]</code>), it is a dense operand that carries the contracted dimension (slice to <code>[start:end]</code> along that dimension), or neither (pass through). The third case covers dense operands on non-contracted dimensions, which is the same handling output-parallel used for all non-sharded operands.</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p><strong>The benchmarking saga.</strong> Nine consecutive hardware runs all returned a 17,997-byte
-JSON file — exactly SSM's 24,000-character <code>StandardOutputContent</code> limit applied
-to a base64-encoded 18 KB payload. pytest-benchmark stores every raw timing sample;
-a 5-benchmark JSON was ~500 KB. Nine different approaches to stripping the file
-before fetching — single-quote Python args, double-quote args, base64-encoded
-scripts, <code>set -e</code> compound commands — all silently succeeded at the SSM level
-while producing empty stdout. Root cause was never definitively identified (the
-strip script's file writes never persisted, for reasons the remote execution
-environment didn't surface). Fix: a single SSM command reads, strips, and
-base64-encodes the JSON in memory via Python, writing ~400 chars to stdout
-instead of 18 KB.</p>
-<p><strong>Thread C gather regression.</strong> Profiling showed the radix-4 driver's
-<code>reshape + permute + .contiguous() + reshape</code> chain costs ~97 µs per stage —
-~10% of total. The intuition: replace these four PyTorch ops with a single
-precomputed flat-index gather, reducing XLA graph nodes from 8 to 2 per stage.
-Hardware result: 11–39% <em>slower</em> across all tested N. Neuron's transpose HLO is
-a hardware-optimized DMA permute path; GatherOp with non-affine indices is not.
-The permute stays.</p>
-<p><strong>Radix-8 kernel-local scratch buffer.</strong> The initial radix-8 kernel used an
-internal <code>nl.ndarray(buffer=nl.shared_hbm)</code> scratch to bridge two phases:
-twiddle multiply (Vector engine, writes scratch) and W₈ matmul (Tensor engine,
-reads scratch via <code>nl.load_transpose2d</code>). This compiled and passed simulator
-tests, then failed NEFF compilation on hardware with no useful error. The
-constraint, discovered by inspection: <code>nl.load_transpose2d</code> in NKI 0.3.0 only
-accepts <em>function-argument</em> HBM tensors as its source — kernel-local allocations
-are not addressable. Fix: move twiddle multiply to the PyTorch driver as an
-element-wise XLA op, and make the NKI kernel W₈-only, taking external HBM
-tensors as input. A concrete upstream ask: <code>nl.load_transpose2d</code> should either
-accept kernel-local <code>shared_hbm</code> allocations or produce a compile-time error
-that names the constraint instead of failing silently.</p>
+<p><strong><code>TestReduceParallelError</code> silently broke.</strong> Existing tests in <code>test_parallel.py</code> expected <code>NotImplementedError</code> on CPU for contracted-dimension sharding. After lifting the gate, those tests would have passed silently — no exception raised, no assertion checked, green CI for the wrong reason. The fix monkeypatches <code>HAS_NKI=True</code> in the test scope:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_reduce_parallel_raises_on_hardware</span><span class="p">(</span><span class="n">monkeypatch</span><span class="p">):</span>
+    <span class="n">monkeypatch</span><span class="o">.</span><span class="n">setattr</span><span class="p">(</span><span class="s2">&quot;trntensor.parallel.HAS_NKI&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">A_sharded</span> <span class="o">=</span> <span class="n">scatter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_shards</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;nki.collectives&quot;</span><span class="p">):</span>
+        <span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A_sharded</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+</code></pre></div>
+<p>The lesson is not "don't use environment flags in dispatch." The lesson is: tests that assert on <em>absence of behavior</em> are tightly coupled to the runtime environment that produced the absence. When the environment changes, the tests must change explicitly, not silently adapt. A test that silently passes for a different reason than it was written is worse than a test that fails.</p>
+<p><strong>Mixed output+reduce-parallel deferred.</strong> A single einsum where one operand is output-parallel and another is reduce-parallel raises <code>NotImplementedError("mixed output+reduce-parallel sharding not yet implemented")</code>. This pattern does not appear in any current DF-MP2 formulation — the standard <code>einsum("pq,qr-&gt;pr", B_i, B_j)</code> pattern uses matching partition dimensions, so both operands classify the same way. Mixed sharding is filed as trntensor#30 scope, deferred to v0.11.0.</p>
+<p>There is an honest gap in the co-partitioning logic that the existing test suite does not exercise: uneven chunk sizes at the last shard when <code>tensor.shape[dim] % n_shards != 0</code>. <code>shard_boundaries</code> handles this correctly — it accumulates <code>chunk.shape[partition_dim]</code> rather than assuming uniform extent — but the boundary condition exposed a missing test for the <code>dim_in_op</code> slice when the non-sharded operand's matching dimension is not a multiple of <code>n_shards</code>. Added as a new test case; the co-partitioning loop was already correct.</p>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>Hardware bench: trn1.2xlarge, Neuron SDK 2.29.0, NKI 0.3.0, 2026-04-20.</p>
+<p>v0.10.0 adds no new hardware-executed paths. The table is about test coverage, not performance:</p>
 <table>
 <thead>
 <tr>
-<th>N</th>
-<th>DFT-GEMM (µs)</th>
-<th>Radix-8 (µs)</th>
-<th>Radix-4 (µs)</th>
-<th>Butterfly (µs)</th>
-<th>Auto-dispatch path</th>
+<th>Pattern</th>
+<th>Before v0.10.0</th>
+<th>After v0.10.0</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>64</td>
-<td>~1 883</td>
-<td>3 402</td>
-<td>4 254</td>
-<td>4 767</td>
-<td>DFT-GEMM</td>
+<td>Output-parallel (partition dim in output)</td>
+<td>Tested on CPU</td>
+<td>Tested on CPU</td>
 </tr>
 <tr>
-<td>256</td>
-<td>~1 882</td>
-<td>—</td>
-<td>5 446</td>
-<td>6 067</td>
-<td>DFT-GEMM</td>
+<td>Reduce-parallel (partition dim contracted)</td>
+<td><code>NotImplementedError</code> on CPU</td>
+<td>Mock allreduce on CPU</td>
 </tr>
 <tr>
-<td>512</td>
-<td>n/a</td>
-<td><strong>4 483</strong></td>
-<td>—</td>
-<td>~6 600 (est.)</td>
-<td>Radix-8</td>
+<td>Reduce-parallel (Trainium)</td>
+<td><code>NotImplementedError</code></td>
+<td><code>NotImplementedError</code> (SDK 2.30+)</td>
 </tr>
 <tr>
-<td>1024</td>
-<td>n/a</td>
-<td>—</td>
-<td>6 628</td>
-<td>7 399</td>
-<td>Radix-4</td>
-</tr>
-<tr>
-<td>4096</td>
-<td>n/a</td>
-<td><strong>5 917</strong></td>
-<td>8 424</td>
-<td>9 387</td>
-<td>Radix-8</td>
+<td>Mixed output+reduce-parallel</td>
+<td><code>NotImplementedError</code></td>
+<td><code>NotImplementedError</code> (v0.11.0)</td>
 </tr>
 </tbody>
 </table>
-<p>DFT-GEMM values at N=64/256 are from v0.12 on SDK 2.24; other values on SDK 2.29.
-N=512 butterfly is extrapolated from per-stage timing (~739 µs/stage × 9 stages).</p>
-<p><strong>Where Trainium is well-indexed for this:</strong> the Tensor engine maps naturally
-to both the small-N DFT-GEMM case (one large matmul) and the medium-N W₈ case
-(batched 8×8 matmuls across all groups simultaneously). The partition dimension
-absorbs all <code>total_groups</code> rows in one pass.</p>
-<p><strong>Where it is not well-indexed:</strong> N values that are not powers of 2, 4, or 8
-fall to the butterfly path, which stays Vector-engine throughout. Non-power-of-2
-FFTs use Bluestein's algorithm (three power-of-2 FFTs), which chains errors through
-the 3-FFT pipeline. <code>precision="double"</code> is the escape hatch for those paths, at
-the cost of CPU roundtripping since Trainium's PSUM is always FP32.</p>
+<p><code>test_parallel.py</code> test count: 22 → 28. The six new tests cover: basic contracted-dimension dispatch, B co-partitioned along the contracted dim, uneven shards (non-multiple-of-n_shards tensor size), 3-operand chain with one reduce-parallel operand, <code>HAS_NKI=True</code> gate still raises, mixed pattern raises.</p>
+<p>Dispatch overhead for the mock path: 6-shard reduce-parallel on <code>(48, 8)</code> × <code>(8, 12)</code> — 6 × 0.41 ms = 2.46 ms total, dominated by Python loop overhead rather than the contraction itself. This is a CPU mock, not a performance baseline; the number is here because a future post will need a before/after when the <code>nki.collectives</code> path lands.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Mixed-radix and N=1024 coverage.</strong> N=1024 = 4^5 and routes to radix-4 (5
-  stages). It is not a power of 8. A mixed radix-4 × radix-8 decomposition
-  (e.g. one radix-8 stage + two radix-4 stages) could cover it in 3 stages
-  instead of 5 while keeping the Tensor engine active.</li>
-<li><strong>Multi-NeuronCore distribution.</strong> Large N FFTs (N &gt; 4096) could be distributed
-  across NeuronCores by partitioning the batch dimension. This is the "future"
-  item listed in CLAUDE.md since v0.11.
-Issues tracking the above are open on <a href="https://github.com/trnsci/trnsci/issues">trnsci/trnsci</a>.</li>
+<li><strong>Phase 4.2 — hardware reduce-parallel</strong> (<a href="https://github.com/trnsci/trntensor/issues/30">trntensor#30</a>): when <code>nki.collectives</code> lands in SDK 2.30+, <code>_mock_allreduce</code> is replaced by the <code>nki.collectives.allreduce</code> call. The co-partitioning loop and the test suite do not change. The upgrade is one line.</li>
+<li><strong>Mixed output+reduce-parallel</strong> (v0.11.0, deferred from trntensor#30): the current gate is an explicit <code>NotImplementedError</code>; the co-partitioning logic would need to run two classification passes and merge the results.</li>
+<li><strong>Phase 5 — trn2 fused three-contraction kernel</strong> (<a href="https://github.com/trnsci/trntensor/issues/31">trntensor#31</a>): trn2 shared memory enables cross-kernel accumulation that trn1 cannot express; this phase needs trn2 hardware to validate.</li>
 </ul>
+<p>A concrete suggestion for the Neuron team: the SDK 2.30+ <code>nki.collectives.allreduce</code> interface should accept an <code>op</code> parameter (defaulting to <code>SUM</code>) and a list or tuple of tensors rather than requiring an explicit loop at the call site. trntensor's mock documents the call shape the library intends to use; reviewing it against the eventual API will surface any impedance mismatch before the hardware path ships.</p>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>FFT on Trainium is a problem about matching transform structure to engine
-capabilities, not about minimizing FLOP count. The DFT matrix IS a matmul —
-at small N, skipping the butterfly entirely and using one Tensor-engine call
-is the right answer. At larger N where O(N²) error is prohibitive, the question
-becomes which radix decomposition lets the Tensor engine participate in the
-per-stage computation. W₄ uses {1, −1, i, −i} and needs no multiplications;
-W₈ uses irrational entries and does. That distinction — not the stage count,
-not the arithmetic complexity — is what determined the dispatch hierarchy.
-The Tensor engine is idle during radix-4 stages; it is active during radix-8.
-Hardware validated both claims.</p>
+<p>The test surface is not scaffolding — it documents what the production implementation must do. <code>_mock_allreduce</code> names <code>nki.collectives.allreduce</code> before it exists; the co-partitioning tests document what distributed operand layout a reduce-parallel contraction requires; the <code>HAS_NKI</code> monkeypatch preserves the hardware contract while enabling CPU validation. When SDK 2.30+ ships, the upgrade path is a one-line swap: replace <code>_mock_allreduce</code> with the <code>nki.collectives</code> call. The test suite does not change — and that is the point. Tests that survive an implementation swap without modification are tests that described the contract, not the mechanism.</p>
 
 
 
