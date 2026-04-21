@@ -6,7 +6,7 @@ comments: true
 
 # trnsolver v0.10.0: Schur decomposition and the architecture of two-stage algorithms
 
-v0.10.0 ships `schur(A)` — `A = Q @ T @ Q.T`, T quasi-upper-triangular — closing the last open item in trnsolver's factorization table. The implementation uses Householder-QR throughout, and the reason that works on Trainium is the same reason the earlier Jacobi path for `eigh` eventually had to grow a second stage: two-stage algorithms present uniform-shape kernel calls, and uniform shapes keep the NEFF cache warm.
+v0.10.0 ships `schur(A)` — `A = Q @ T @ Q.T`, T quasi-upper-triangular — closing the last open item in trnsolver's factorization table. The implementation uses Householder-QR throughout, and the reason that works on Trainium is the same reason the [earlier Jacobi path for `eigh`](https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/) eventually had to grow a second stage: two-stage algorithms present uniform-shape kernel calls, and uniform shapes keep the NEFF cache warm.
 
 <!-- more -->
 
