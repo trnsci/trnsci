@@ -6,48 +6,62 @@ The detailed version of this roadmap, with tracking labels and cross-project dep
 
 ## Phase 1 — Single-chip correctness
 
-Every public API runs through a real NKI kernel on a trn1 or trn2 NeuronCore, matching the PyTorch reference within float tolerance. Today, across the suite, the NKI kernels are scaffolded but dispatch falls back to PyTorch. Phase 1 replaces the stubs with real kernels and validates them against published test vectors and cross-library integration demos.
+Every public API runs through a real NKI kernel on a trn1 or trn2 NeuronCore, matching the PyTorch reference within float tolerance. Phase 1 replaces dispatch stubs with real kernels and validates them against published test vectors and cross-library integration demos.
 
-**Data-parallel multi-chip** (replica per chip, embarrassingly parallel) falls out of Phase 1 automatically. No new code beyond a worker loop.
+**Data-parallel multi-chip** (replica per chip, embarrassingly parallel) falls out of Phase 1 automatically — no new code beyond a worker loop.
 
 ## Phase 2 — Precision and numerical validation
 
-Trainium's Tensor Engine is FP32-only. For workloads where that matters — quantum chemistry in particular — Phase 2 delivers double-double FP64 emulation, Kahan / Neumaier compensated summation for long reduction chains, and iterative-refinement variants where they beat the eigendecomposition-based approaches.
+The Carson–Higham three-precision iterative-refinement framework, Ozaki-scheme FP64 emulation on BF16/FP8 tensor units, and stochastic-rounding-enabled Krylov solvers. Concretely:
 
-Validation targets include DF-MP2 energies to nanohartree tolerance against PySCF, and long-chain FFT round-trips against scipy.
+- **trnblas#22 — double-double FP64 GEMM** (keystone). A `nc_matmul_compensated` kernel exploiting PSUM as a free FP32 accumulator to deliver FP32-accuracy output from BF16 inputs at ~2× the work of naive BF16 matmul. This unblocks trnsolver iterative refinement, trntensor `precision="dd"`, and the Phase 2 direction for every library that does linear algebra.
+- **Compensated reduction chains** (Kahan/Neumaier) in trnsolver cg/gmres inner products and trntensor contractions.
+- **SR-enabled BF16 Krylov** — stochastic rounding is already in the NKI ISA; wiring it as the default for long reductions (n ≫ √(1/u) ≈ 300 for BF16) turns convergence from aspirational to structural.
+- **`target_forward_error` API contract** — unify trnsolver's `iterative_refinement=True`, trntensor's `precision=`, and trnfft's `precision=` into a cross-package `target_forward_error` kwarg. The user states "solve to ε"; trnsci selects factorization precision, Ozaki split count, and IR iterations automatically, returning an achieved-error bound.
 
-Not every library needs Phase 2. `trnrand` is precision-neutral; `trnsparse` and `trntensor` inherit their precision story from `trnblas`.
+Validation targets: DF-MP2 to nanohartree against PySCF at aug-cc-pVDZ (currently passing at cc-pVDZ), and HPL-MxP single-node on Trn2.
 
-## Phase 3 — Single-chip performance
+## Phase 3 — Single-chip performance + randomized NLA flagship
 
-The NKI path becomes meaningfully faster than the PyTorch fallback and competitive on a per-dollar basis with NVIDIA on vintage-matched instances (A10G vs trn1, H100 vs trn2).
+**Performance:** NKI path becomes meaningfully faster than the PyTorch fallback and competitive per-dollar against vintage-matched NVIDIA instances (A10G vs Trn1, H100 vs Trn2, GB200 vs Trn3). Work per kernel: tile-shape sweeps, operand-stationarity choices, multi-engine scheduling, operation fusion, NEFF compile-cache reuse.
 
-Work in this phase is per-kernel: tile-shape sweeps, operand-stationarity choices, multi-engine scheduling, operation fusion, NEFF compile-cache reuse, plan and contraction-plan re-execution. Published benchmarks on each sub-project's docs page provide the CPU baseline, the vintage-matched GPU baseline, and the Trainium numbers side-by-side.
+**Randomized NLA flagship:** ship `rsvd`, `hutch_plus_plus`, and `sRR` (sketched Rayleigh–Ritz, Nakatsukasa–Tropp 2024) as named entry points — natural home in trnsolver or a new `trnrandla` sibling, using existing trnblas, trnrand, and trnsolver.qr primitives. The flagship benchmark: randomized SVD of a 10⁶-dimensional kernel matrix on Trn2 UltraServer at BF16, verified to FP32 accuracy via iterative refinement, with bitwise-reproducible output given a seed. This is the highest-visibility Phase 3 differentiator — no GPU library can match ISA-level SR + documented-deterministic systolic reduction + Ozaki adaptivity in one package.
+
+Additional Phase 3 targets: HPL-MxP multi-node submission on Trn2 UltraServer, BLR/HODLR direct solvers (trnsparse + trnblas frontal kernels), iterative FFT refinement research (trnfft Phase 2 research thread).
 
 ## Phase 4 — Model-parallel multi-chip
 
-Workloads whose tensors exceed a single chip's HBM — large-basis DF-MP2, N > 2^24 FFTs, sparse systems with >1B nonzeros — are sharded across NeuronCores within a chip and chips within an instance.
+Workloads whose tensors exceed a single chip's HBM — large-basis DF-MP2, N > 2²⁴ FFTs, sparse systems with >1B nonzeros — sharded across NeuronCores within a chip and chips within an instance. Introduces `ShardedTensor` abstractions, collective operations (blocked on `nki.collectives`, expected in Neuron SDK 2.30+), and dispatch glue transparent to the user. HPL-MxP UltraServer submission.
 
-This phase introduces sharded tensor abstractions, collective operations, and the dispatch glue that makes model-parallel operation transparent to the library user.
+Cross-instance (EFA-interconnected) multi-chip is a Phase 4 follow-up.
 
-Cross-instance (EFA-interconnected) multi-chip is a Phase 4 follow-up if demand warrants it.
+## Phase 5 — Generation-specific optimization + research
 
-## Phase 5 — Generation-specific optimization
+Trn1 (NeuronCore-v2) and Trn2/Trn3 (NeuronCore-v3) generation-specific fast paths: Trn3 MXFP8/MXFP4 microscaling as a native codepath for block-structured problems (directly applicable to mixed-precision HODLR and progressive-precision multigrid). Common Phase 3 paths stay the default; generation-specific paths are opt-in.
 
-trn1 (NeuronCore v2) and trn2 (NeuronCore v3) get fast paths that exploit their respective architectural strengths — trn2's larger SBUF, wider PSUM, and FP16 accumulate are the main levers today — without requiring the maintainer to track two separately tuned code paths.
+Research contributions back to the community: iterative FFT refinement theory, compensated systolic matmul error bounds (formal analysis for BF16+FP32-accum with ISA-level SR on a documented-deterministic array), SR-as-preconditioner analysis (Dexter et al. 2024 showed SR regularizes tall-skinny matrices — can this be formalized as a zero-memory preconditioner?), mixed-precision CCSD(T) cancellation analysis.
 
-The common Phase 3 path stays the default. Generation-specific paths are opt-in via backend selection or automatic based on runtime capability detection.
+New domains: mixed-precision multigrid (`trnpde` or trnsolver submodule, Phase 3+), scientific optimization — LBFGS/ADMM/trust-region Newton (trnsolver submodule, Phase 3+), FEAST eigensolver via contour integration (Phase 3, maps naturally onto Trn3 UltraServer's 144 chips across quadrature points).
+
+---
 
 ## Where each library is today
 
-As of 2026-04-13, two sub-projects have completed Phase 1 correctness: **trnfft** (butterfly + complex GEMM kernels, hardware-validated on trn1.2xlarge in v0.8.0) and **trnblas** (GEMM, SYRK, and fused MP2 energy reduction, hardware-validated with end-to-end DF-MP2 timings). **trnblas** additionally has PySCF validation against real chemistry at nanohartree tolerance on small molecules, which touches Phase 2 territory. **trnsolver** has published CPU baselines against LAPACK and scipy, which sets up Phase 3.
+*As of April 2026.*
 
-The remaining four sub-projects — **trnrand**, **trnsolver**, **trnsparse**, **trntensor** — have Phase 1 NKI code scaffolded in their respective `nki/dispatch.py` modules but have not yet had a hardware-validation run on trn1 / trn2. Closing the validation gap is the immediate next step across those four; progress is tracked in [trnsci/trnsci#1](https://github.com/trnsci/trnsci/issues/1).
-
-See each sub-project's docs (`trnsci.dev/<name>/`) for library-specific status.
+| Package | Version | Phase | Status |
+|---|---|---|---|
+| **trnfft** | v0.15.0 | Phase 1 ✓ / Phase 2 active | Hardware-validated on trn1.2xlarge (70/70 cases). DFT-as-GEMM fast path (up to 14× at N ≤ 256), Stockham radix-4/8 with Tensor-engine W₈, compensated butterfly in `precision="kahan"` mode. Iterative FFT refinement open as research. |
+| **trnblas** | v0.5.4 | Phase 1 ✓ | GEMM, SYRK, batched GEMM, fused DF-MP2 energy reduction hardware-validated. DF-MP2 matches PySCF to 10 µHa at cc-pVDZ on H₂O/CH₄/NH₃. FP32 precision sufficient to nanohartree at target molecules (trnblas#20 closed). Phase 2 next: double-double FP64 GEMM (trnblas#22). |
+| **trnsolver** | v0.9.0 | Phase 1 hardware-pending | Full API shipped: eigh, eigh_generalized, Cholesky/LU/QR/SVD/pinv, cg/gmres with iterative refinement (κ ≲ 10⁷, Carson–Higham regime), Schur decomposition. NKI Jacobi kernel simulator-validated; hardware validation pending. |
+| **trnsparse** | v0.4.3 | Phase 1 partial | BSRMatrix (128×128), bsr_spmm, screened_spmm, block-sparse attention, cg_bsr, chebyshev_bsr, richardson_bsr shipped. Hardware-validated via densify-then-GEMM path. Native BSR NKI kernel hardware validation pending. |
+| **trntensor** | v0.3.0 | Phase 1 hardware-pending | Einsum with greedy path planner, CP/Tucker/TT decompositions, homogeneous-contraction batching, `ShardedTensor` for output-parallel multi-chip, `to_xla`/`from_xla` residency. Hardware validation pending. |
+| **trnrand** | v0.4.1 | Phase 1 hardware-pending | Philox 4×32 and Threefry4×32-20 NKI kernels (Threefry hardware-validated for uniforms); Box-Muller NKI kernel; full distribution suite (normal, exponential, Bernoulli, etc.); Sobol/Halton/LHS QMC. Philox blocked on aws-neuron-sdk#1308. |
 
 ## How to follow along
 
-- Suite-wide coordination and cross-project dependencies: [issues on `trnsci/trnsci`](https://github.com/trnsci/trnsci/issues).
-- Per-library roadmap tracking: labels `phase-1-correctness` / `phase-2-precision` / `phase-3-perf` / `phase-4-multichip` / `phase-5-generation` on each sub-project's issue tracker.
-- Releases: each library versions independently. Current PyPI versions at [pypi.org/project/trnsci/](https://pypi.org/project/trnsci/).
+- Suite-wide coordination and cross-project dependencies: [issues on `trnsci/trnsci`](https://github.com/trnsci/trnsci/issues)
+- Per-library roadmap tracking: labels `phase-1-correctness` / `phase-2-precision` / `phase-3-perf` / `phase-4-multichip` / `phase-5-generation` on each sub-project's issue tracker
+- NKI-native migration tracking: [trnsci/trnsci#35](https://github.com/trnsci/trnsci/issues/35) — removing torch-xla, targeting Neuron SDK 2.30
+- Releases: each library versions independently. Current PyPI versions at [pypi.org/project/trnsci/](https://pypi.org/project/trnsci/)
+- Blog: [trnsci.dev/blog/](https://trnsci.dev/blog/) — retrospectives on shipped work, honest about what worked and what didn't

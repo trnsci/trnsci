@@ -38,7 +38,7 @@ repos:
     rev: v2.3.0
     hooks:
       - id: codespell
-        args: ["--ignore-words-list", "crate,nd,te,coo,bnd,BLAS,blas"]
+        args: ["--ignore-words-list", "crate,nd,te,coo,bnd,BLAS,blas,VectorE,TensorE,ScalarE,GpSimdE,GpSimd,SyncE"]
         exclude: "^(LICENSE|conda-recipes/|trnfft/|trnblas/|trnrand/|trnsolve/|trnsparse/|trntensor/)"
 
 # Sub-project directories (trnfft/, trnblas/, etc.) are excluded — each has
