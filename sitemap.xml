@@ -113,6 +113,10 @@
          <lastmod>2026-04-21</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/</loc>
+         <lastmod>2026-04-21</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/trntensor-v080v090-dispatch-owns-routing-and-placement/</loc>
          <lastmod>2026-04-21</lastmod>
     </url>
@@ -461,6 +465,10 @@
          <lastmod>2026-04-21</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
+         <lastmod>2026-04-21</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/category/trntensor/</loc>
          <lastmod>2026-04-21</lastmod>
     </url>
@@ -478,10 +486,6 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/ecosystem/</loc>
-         <lastmod>2026-04-21</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
          <lastmod>2026-04-21</lastmod>
     </url>
     <url>

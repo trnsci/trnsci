@@ -10,11 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/trnfft-fft-is-a-gemm-and-then-it-isnt/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/">
       
       
-        <link rel="prev" href="../trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/">
+        <link rel="prev" href="../trntensor-v080v090-dispatch-owns-routing-and-placement/">
       
+      
+        <link rel="next" href="../trnfft-fft-is-a-gemm-and-then-it-isnt/">
       
       
         
@@ -25,7 +27,7 @@
     
     
       
-        <title>trnfft: FFT is a GEMM, and then it isn't - trnsci</title>
+        <title>trnsolver v0.10.0: Schur decomposition and the architecture of two-stage algorithms - trnsci</title>
       
     
     
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trnfft-fft-is-a-gemm-and-then-it-isnt" class="md-skip">
+        <a href="#trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trnfft: FFT is a GEMM, and then it isn't
+              trnsolver v0.10.0: Schur decomposition and the architecture of two-stage algorithms
             
           </span>
         </div>
@@ -5103,44 +5105,16 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="The approach">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dft-gemm-v012" class="md-nav__link">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DFT-GEMM (v0.12)
+        Implementation
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stockham-radix-4-with-twiddle-precomputation-v013" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stockham radix-4 with twiddle precomputation (v0.13)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stockham-radix-8-with-tensor-engine-w8-v015" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stockham radix-8 with Tensor-engine W₈ (v0.15)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -5225,7 +5199,7 @@
                     <li class="md-nav__item">
                       <div class="md-nav__link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
-                        <time datetime="2026-04-20 00:00:00+00:00" class="md-ellipsis">April 20, 2026</time>
+                        <time datetime="2026-04-18 00:00:00+00:00" class="md-ellipsis">April 18, 2026</time>
                       </div>
                     </li>
                     
@@ -5237,7 +5211,7 @@
                             in
                             
                               <a href="../category/deep-dive/">Deep dive</a>, 
-                              <a href="../category/trnfft/">trnfft</a></span>
+                              <a href="../category/trnsolver/">trnsolver</a></span>
                         </div>
                       </li>
                     
@@ -5248,7 +5222,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              7 min read
+                              8 min read
                             
                           </span>
                         </div>
@@ -5275,223 +5249,134 @@
   
 
 
-<h1 id="trnfft-fft-is-a-gemm-and-then-it-isnt">trnfft: FFT is a GEMM, and then it isn't<a class="headerlink" href="#trnfft-fft-is-a-gemm-and-then-it-isnt" title="Permanent link">&para;</a></h1>
-<p>trnfft v0.12–v0.15 shipped three new FFT dispatch paths — DFT-GEMM, Stockham
-radix-4 with twiddle precomputation, and Stockham radix-8 with a Tensor-engine
-W₈ kernel — producing 20–37% improvements over the butterfly baseline at medium
-and large N. The architectural argument running through all three is the same:
-on Trainium, the bottleneck is not arithmetic but engine utilization and kernel
-launches. Whether that argument holds at a given N, and at what cost, is where
-most of the engineering work actually lived.</p>
+<h1 id="trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms">trnsolver v0.10.0: Schur decomposition and the architecture of two-stage algorithms<a class="headerlink" href="#trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms" title="Permanent link">&para;</a></h1>
+<p>v0.10.0 ships <code>schur(A)</code> — <code>A = Q @ T @ Q.T</code>, T quasi-upper-triangular — closing the last open item in trnsolver's factorization table. The implementation uses Householder-QR throughout, and the reason that works on Trainium is the same reason the <a href="https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">earlier Jacobi path for <code>eigh</code></a> eventually had to grow a second stage: two-stage algorithms present uniform-shape kernel calls, and uniform shapes keep the NEFF cache warm.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>cuFFT works by dispatching radix-2 (or mixed-radix) butterfly stages, each one
-a massively parallel warp-per-butterfly operation on the GPU. A Trainium port
-runs into two problems immediately.</p>
-<p>The first is cosmetic but structural: Trainium has no complex dtype. trnfft's
-<code>ComplexTensor</code> wraps a split real/imaginary pair and expresses every operation
-as four real FP32 tensor ops. That's the same Strassen-style identity the
-existing <code>_complex_gemm_kernel</code> already exploits:</p>
-<div class="highlight"><pre><span></span><code><span class="n">C_real</span> <span class="o">=</span> <span class="n">A_real</span> <span class="o">@</span> <span class="n">B_real</span> <span class="err">−</span> <span class="n">A_imag</span> <span class="o">@</span> <span class="n">B_imag</span>
-<span class="n">C_imag</span> <span class="o">=</span> <span class="n">A_real</span> <span class="o">@</span> <span class="n">B_imag</span> <span class="o">+</span> <span class="n">A_imag</span> <span class="o">@</span> <span class="n">B_real</span>
-</code></pre></div>
-<p>Four real matmuls, which maps cleanly to four <code>nisa.nc_matmul</code> accumulations
-into PSUM.</p>
-<p>The second problem is structural and not cosmetic: butterfly stages run on the
-Vector engine. Each stage is a twiddle multiply (FP32 element-wise) followed by
-a butterfly add/subtract. Both operations land on the Vector engine. The Tensor
-engine — the part of the chip with most of the compute throughput — never fires
-during an FFT.</p>
-<p>The question driving v0.12–v0.15: <em>is there a formulation of FFT that routes
-meaningfully through the Tensor engine?</em></p>
+<p>Symmetric <code>eigh</code> and general Schur decomposition solve different problems. <code>eigh</code> exploits symmetry; Jacobi's pairwise rotations are specifically designed for symmetric matrices where each rotation zeroes two off-diagonal entries simultaneously. General matrices have no such structure. The standard result for a general A is the Schur form: <code>A = Q T Q.T</code> where T is <em>quasi-upper-triangular</em> — upper triangular except for possible 2×2 blocks on the diagonal, each corresponding to a complex-conjugate eigenvalue pair of a real matrix. Recovering eigenvalues from T costs nothing extra; getting to T requires a different algorithm.</p>
+<p>cuSOLVER's <code>cusolverDnDgesvd</code> and <code>cusolverDnDsyevd</code> are both host-dispatched LAPACK wrappers. Trainium ships no LAPACK. The question is what dense-eigendecomposition algorithm looks natural on NKI.</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p>The Tensor engine's native operation is <code>nc_matmul</code>: a batched systolic-array
-matrix multiply accumulating into a FP32 PSUM tile. Its partition dimension is
-fixed at 128; its free dimension goes to 512. At training workloads, the engine
-is fed with contiguous tiles of large matrices, and the per-launch overhead
-amortizes over thousands of multiply-accumulate operations.</p>
-<p>What the architecture suggests, then, depends on N.</p>
-<p><strong>Small N (≤ 256):</strong> the entire DFT fits in one systolic-array matmul. The DFT
-matrix W is N×N. For N=256, <code>(B, 256) @ (256, 256)</code> is a single <code>nc_matmul</code>
-call. One Tensor-engine launch replaces log₂(N) = 8 Vector-engine butterfly
-stages. The O(N²) arithmetic is usually cited as a reason not to do this; on
-Trainium, the one-launch/Tensor-engine advantage outweighs the FLOP count
-until the PSUM accumulation error floor binds — measured at N=256 in FP32.</p>
-<p><strong>Medium N (power-of-4, &gt; 256):</strong> one matmul can't cover the whole transform
-without exceeding the precision budget. Stockham radix-4 decomposes N into
-log₄(N) stages of 4-point DFTs. The critical observation: W₄ has coefficients
-{1, −1, i, −i}, meaning the W₄ matvec reduces to adds and sign flips. <em>No
-multiplications.</em> The Tensor engine is idle in each stage; the twiddle multiply
-(which does require real FP32 multiplications) dominates the per-stage cost.</p>
-<p><strong>Large N (power-of-8, &gt; 256):</strong> W₈ has entries exp(−2πi·j·k/8), which include
-±√2/2 ± i√2/2. These require actual multiplications. Using the Tensor engine for
-the W₈ matmul now earns its keep.</p>
-<p>The dispatch table that results:</p>
-<pre class="mermaid"><code>flowchart TD
-  A["trnfft.fft(x, N)"] --&gt; B{N ≤ 256?}
-  B --&gt;|yes| C["DFT-GEMM\none nc_matmul\nTensor engine"]
-  B --&gt;|no| D{N = 8^k?}
-  D --&gt;|yes| E["Radix-8 Stockham\nlog₈(N) stages\nVector twiddle + Tensor W₈"]
-  D --&gt;|no| F{N = 4^k?}
-  F --&gt;|yes| G["Radix-4 Stockham\nlog₄(N) stages\nVector twiddle + Vector W₄"]
-  F --&gt;|no| H["Butterfly\nlog₂(N) stages\nVector engine"]</code></pre>
+<p>Start from the NEFF cache model, which the Phase 1 post covered for <code>eigh</code>: NKI 0.3.0 compiles per traced graph, not per kernel signature. A Python loop that presents a different computation graph each iteration — different slice indices, different scalar intermediates — triggers a recompile on every iteration. 303 separate NEFF compile workdirs in a single test run was the hardware result that shaped trnsolver's algorithm choices.</p>
+<p>The single-stage alternative for general Schur — apply QR iteration directly to A until it converges — has this problem at full strength. Each sweep touches the full n×n matrix but shifts the relevant update region by one column per step. The index arithmetic <code>A[k:, :]</code> changes every step. Different graph, different compile.</p>
+<p>The two-stage algorithm avoids this by separating the work:</p>
+<p><strong>Stage 1 — Hessenberg reduction.</strong> Apply n-2 Householder reflectors from both sides to reduce A to upper Hessenberg form H: <code>H[i,j] = 0</code> for <code>i &gt; j+1</code>. Each Householder step operates on the full n×n slice: <code>H[k+1:, k:] -= 2v(v' H[k+1:, k:])</code> and <code>H[:, k+1:] -= 2(H[:, k+1:] v) v'</code>. The active submatrix grows per step, but the outer slice shape is <code>H[k+1:n, :]</code> and <code>H[:n, k+1:]</code> — both fixed size-n indexing for a given n. One kernel per stage-1 step, one kernel shape.</p>
+<p><strong>Stage 2 — Francis implicit double-shift QR on H.</strong> Iterate on the Hessenberg form. Each sweep applies a sequence of 3-vector Householder reflectors at successive diagonal positions, chasing a bulge down the subdiagonal. The 3-vector Householder at position k — <code>P = I - 2pp'</code>, <code>p : (3,)</code> — is applied left (<code>H[k:k+3, col_start:] -= 2p(p'H)</code>) and right (<code>H[:row_end, k:k+3] -= 2(Hp)p'</code>). The step shape is fixed: a 3×n left application and an n×3 right application. Every step in every sweep has the same kernel signature for given n.</p>
+<pre class="mermaid"><code>flowchart LR
+    A["A (general n×n)"]
+    H["H (upper Hessenberg)"]
+    T["T (quasi-upper triangular)"]
+    A --&gt;|"Stage 1: n-2 Householder steps\nsame shape per step"| H
+    H --&gt;|"Stage 2: Francis QR sweeps\n3-vec Householder per step"| T</code></pre>
+<p>Compare to direct QR iteration on A: the active submatrix shrinks per deflation step in an unpredictable pattern. The NEFF cache sees a new graph on each outer-loop iteration. Stage 1 pays a one-time O(n³) cost to make stage 2's kernel shapes stable.</p>
+<p>The second payoff is FLOP count: QR iteration on an upper Hessenberg matrix costs O(n²) per sweep rather than O(n³). Hessenberg reduction is worth doing even without the NEFF argument.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<h3 id="dft-gemm-v012">DFT-GEMM (v0.12)<a class="headerlink" href="#dft-gemm-v012" title="Permanent link">&para;</a></h3>
-<p><code>_fft_via_gemm</code> constructs the N×N DFT matrix W on CPU, transfers it once, and
-dispatches <code>complex_gemm(x, W)</code> — a single <code>nc_matmul</code> call per transform.
-Dispatch condition: <code>n &lt;= _DFT_GEMM_THRESHOLD</code> and <code>precision != "kahan"</code>.
-The threshold is precision-bound, not performance-bound: at N=512, FP32 PSUM
-accumulation exceeds the 1e-3 relative-error tolerance. N=256 stays inside it.</p>
-<h3 id="stockham-radix-4-with-twiddle-precomputation-v013">Stockham radix-4 with twiddle precomputation (v0.13)<a class="headerlink" href="#stockham-radix-4-with-twiddle-precomputation-v013" title="Permanent link">&para;</a></h3>
-<p>The initial radix-4 implementation computed twiddle factors per-stage inside the
-loop — one <code>torch.cos</code>/<code>torch.sin</code> + expand + CPU-to-device transfer per stage.
-Profiling revealed that twiddle recomputation was the dominant overhead term, not
-the kernel time or permute cost. The fix: precompute all log₄(N) twiddle tensors
-on CPU before the loop, transfer them as independent standalone tensors (slicing
-an XLA device tensor creates <code>DynamicSlice</code> HLO ops that bust the NEFF cache).
-This alone delivered the 6–9% improvement over butterfly that made radix-4 the
-default path for power-of-four N &gt; 256.</p>
-<h3 id="stockham-radix-8-with-tensor-engine-w8-v015">Stockham radix-8 with Tensor-engine W₈ (v0.15)<a class="headerlink" href="#stockham-radix-8-with-tensor-engine-w8-v015" title="Permanent link">&para;</a></h3>
-<p><code>stockham_radix8_w8_kernel</code> takes pre-twiddled <code>(total_groups, 8)</code> input and
-applies W₈ via four <code>nisa.nc_matmul</code> calls — the standard complex GEMM
-decomposition:</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">stockham_radix8_w8_kernel</span><span class="p">(</span><span class="n">a_re</span><span class="p">,</span> <span class="n">a_im</span><span class="p">,</span> <span class="n">w8_re</span><span class="p">,</span> <span class="n">w8_im</span><span class="p">):</span>
-    <span class="o">...</span>
-    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">n_partition_tiles</span><span class="p">):</span>
-        <span class="n">ar_t</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load_transpose2d</span><span class="p">(</span><span class="n">a_re</span><span class="p">[</span><span class="n">m_off</span><span class="p">:</span><span class="n">m_off</span> <span class="o">+</span> <span class="n">groups_chunk</span><span class="p">,</span> <span class="p">:</span><span class="mi">8</span><span class="p">])</span>
-        <span class="n">ai_t</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load_transpose2d</span><span class="p">(</span><span class="n">a_im</span><span class="p">[</span><span class="n">m_off</span><span class="p">:</span><span class="n">m_off</span> <span class="o">+</span> <span class="n">groups_chunk</span><span class="p">,</span> <span class="p">:</span><span class="mi">8</span><span class="p">])</span>
-        <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_cr</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">ar_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">w8_r</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_cr</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">ai_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">neg_w8_i</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_ci</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">ar_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">w8_i</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">nisa</span><span class="o">.</span><span class="n">nc_matmul</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">psum_ci</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">ai_t</span><span class="p">,</span> <span class="n">moving</span><span class="o">=</span><span class="n">w8_r</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="o">...</span>
+<p>Three private functions, one public entry point.</p>
+<p><code>_hessenberg_reduce(A)</code> accumulates Q and reduces H in-place via n-2 successive Householder applications from both sides. The Householder vector v is built from the column below the current pivot; the sign convention <code>v[0] += sign(v[0]) * ‖v‖</code> avoids cancellation. The accumulated Q satisfies <code>A_orig = Q @ H @ Q.T</code>.</p>
+<p><code>_francis_qr_sweep(H, Q, lo, hi)</code> applies one Francis double-shift sweep on the active block <code>H[lo:hi+1, lo:hi+1]</code>. The shift is the implicit double shift from the trailing 2×2 eigenvalues; the starting vector is the first column of <code>H² - sH + tI</code> at row <code>lo</code>; the bulge-chase proceeds with 3-vector Householders at each step.</p>
+<p><code>_schur_iterate(H, Q, tol, max_sweeps)</code> is the outer deflation loop. When <code>|H[j,j-1]| ≤ tol * (|H[j-1,j-1]| + |H[j,j]|)</code>, zero the entry and shrink the active window. A 2×2 block with negative discriminant is left as-is (quasi-Schur block for a complex eigenvalue pair); one with non-negative discriminant is split by a Givens rotation.</p>
+<p>The public <code>schur(A, tol=1e-10)</code> calls <code>_hessenberg_reduce</code>, then <code>_schur_iterate</code>, and wraps the BF16/FP16 promotion via the standard <code>_to_fp32</code>/<code>_restore</code> shim.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_hessenberg_reduce</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">H</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:,</span> <span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="n">norm_x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">norm_x</span> <span class="o">&lt;</span> <span class="mf">1e-14</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">norm_x</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">norm_x</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">v</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">H</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:,</span> <span class="n">k</span><span class="p">:]</span> <span class="o">-=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span> <span class="o">@</span> <span class="n">H</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:,</span> <span class="n">k</span><span class="p">:])</span>
+        <span class="n">H</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">-=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">H</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">@</span> <span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">Q</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">-=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">Q</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">@</span> <span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">H</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># numerical cleanliness</span>
+    <span class="k">return</span> <span class="n">H</span><span class="p">,</span> <span class="n">Q</span>
 </code></pre></div>
-<p>W₈ is symmetric (W₈[j,k] = W₈[k,j] since j·k = k·j), so <code>W₈ = W₈ᵀ</code> and the
-matrix can be passed directly as the moving tile without transposition. The
-twiddle multiply runs on the XLA device as a PyTorch element-wise op before the
-kernel call — not in NKI — for a reason documented in the next section.</p>
+<p>The bulge-chase inner step in <code>_francis_qr_sweep</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">):</span>   <span class="c1"># note: range(lo, hi), not range(lo, hi-1)</span>
+    <span class="n">nr</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">hi</span> <span class="o">-</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">p0</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">]</span> <span class="k">if</span> <span class="n">nr</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="p">[</span><span class="n">p0</span><span class="p">,</span> <span class="n">p1</span><span class="p">])</span>
+    <span class="n">norm_p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">norm_p</span> <span class="o">&lt;</span> <span class="mf">1e-14</span><span class="p">:</span>
+        <span class="k">break</span>
+    <span class="c1"># Householder vector</span>
+    <span class="n">sign_p0</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">((),</span> <span class="o">...</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">sign_p0</span> <span class="o">*</span> <span class="n">norm_p</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">p</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="c1"># Left application — col_start = max(lo, k-1) to avoid below-subdiag fill</span>
+    <span class="n">col_start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">H</span><span class="p">[</span><span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">nr</span><span class="p">,</span> <span class="n">col_start</span><span class="p">:]</span> <span class="o">-=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span> <span class="o">@</span> <span class="n">H</span><span class="p">[</span><span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">nr</span><span class="p">,</span> <span class="n">col_start</span><span class="p">:])</span>
+    <span class="c1"># Right application — row_end = min(k + nr + 1, n) for Hessenberg locality</span>
+    <span class="n">row_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">H</span><span class="p">[:</span><span class="n">row_end</span><span class="p">,</span> <span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">nr</span><span class="p">]</span> <span class="o">-=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">H</span><span class="p">[:</span><span class="n">row_end</span><span class="p">,</span> <span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">nr</span><span class="p">]</span> <span class="o">@</span> <span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">Q</span><span class="p">[:,</span> <span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">nr</span><span class="p">]</span> <span class="o">-=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">Q</span><span class="p">[:,</span> <span class="n">k</span> <span class="p">:</span> <span class="n">k</span> <span class="o">+</span> <span class="n">nr</span><span class="p">]</span> <span class="o">@</span> <span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+</code></pre></div>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p><strong>The benchmarking saga.</strong> Nine consecutive hardware runs all returned a 17,997-byte
-JSON file — exactly SSM's 24,000-character <code>StandardOutputContent</code> limit applied
-to a base64-encoded 18 KB payload. pytest-benchmark stores every raw timing sample;
-a 5-benchmark JSON was ~500 KB. Nine different approaches to stripping the file
-before fetching — single-quote Python args, double-quote args, base64-encoded
-scripts, <code>set -e</code> compound commands — all silently succeeded at the SSM level
-while producing empty stdout. Root cause was never definitively identified (the
-strip script's file writes never persisted, for reasons the remote execution
-environment didn't surface). Fix: a single SSM command reads, strips, and
-base64-encodes the JSON in memory via Python, writing ~400 chars to stdout
-instead of 18 KB.</p>
-<p><strong>Thread C gather regression.</strong> Profiling showed the radix-4 driver's
-<code>reshape + permute + .contiguous() + reshape</code> chain costs ~97 µs per stage —
-~10% of total. The intuition: replace these four PyTorch ops with a single
-precomputed flat-index gather, reducing XLA graph nodes from 8 to 2 per stage.
-Hardware result: 11–39% <em>slower</em> across all tested N. Neuron's transpose HLO is
-a hardware-optimized DMA permute path; GatherOp with non-affine indices is not.
-The permute stays.</p>
-<p><strong>Radix-8 kernel-local scratch buffer.</strong> The initial radix-8 kernel used an
-internal <code>nl.ndarray(buffer=nl.shared_hbm)</code> scratch to bridge two phases:
-twiddle multiply (Vector engine, writes scratch) and W₈ matmul (Tensor engine,
-reads scratch via <code>nl.load_transpose2d</code>). This compiled and passed simulator
-tests, then failed NEFF compilation on hardware with no useful error. The
-constraint, discovered by inspection: <code>nl.load_transpose2d</code> in NKI 0.3.0 only
-accepts <em>function-argument</em> HBM tensors as its source — kernel-local allocations
-are not addressable. Fix: move twiddle multiply to the PyTorch driver as an
-element-wise XLA op, and make the NKI kernel W₈-only, taking external HBM
-tensors as input. A concrete upstream ask: <code>nl.load_transpose2d</code> should either
-accept kernel-local <code>shared_hbm</code> allocations or produce a compile-time error
-that names the constraint instead of failing silently.</p>
+<p>Implementation was iterative. Four bugs survived the initial version, each with a distinct failure mode.</p>
+<p><strong>Deflation window never updated.</strong> The outer <code>_schur_iterate</code> loop found a zero subdiagonal entry and zeroed <code>H[j, j-1]</code>, but the active window <code>[lo, hi]</code> was not updated. The next sweep re-exposed the zeroed entry and undid the deflation. Fix: rewrite the deflation scan to scan from <code>hi</code> downward and decrement <code>hi</code> when a deflation is found, before calling <code>_francis_qr_sweep</code>.</p>
+<p><strong>Left application used all columns.</strong> <code>H[k:k+nr, :]</code> rather than <code>H[k:k+nr, col_start:]</code>. Applying the Householder from <code>col = 0</code> rather than <code>col = max(lo, k-1)</code> introduced below-subdiagonal fill in column <code>k-1</code>, outside the active block. The RIGHT application (which only touches columns <code>k:k+nr</code>) doesn't correct this fill; it persists as a spurious subdiagonal entry that fails the quasi-triangular check. The one-line fix is <code>col_start = max(lo, k-1)</code>.</p>
+<p><strong>Loop range off by one.</strong> <code>range(lo, hi-1)</code> stopped the bulge chase one step early. After the last full step (k = hi-2), the RIGHT application places a nonzero at <code>H[hi, hi-2]</code>. Without the final step (k = hi-1, a 2-vector Householder), that entry is never zeroed. Fix: <code>range(lo, hi)</code>.</p>
+<p><strong>2×2 block deflation without eigenvalue check.</strong> When the active window shrank to <code>hi - lo == 1</code>, the original code unconditionally set <code>hi -= 2</code>, treating every 2×2 block as a quasi-Schur complex block. For SPD matrices (all real eigenvalues), this left 2×2 blocks with <code>|T[j+1,j]| ~ 0.001</code>. Fix: check the discriminant; if <code>((a-d)/2)² + bc ≥ 0</code>, the block has real eigenvalues — apply a Givens rotation to split it into 1×1 blocks.</p>
+<p>Each bug produced a characteristic failure: wrong reconstruction residual (~10), wrong reconstruction residual (~0.015), below-diagonal entries at <code>T[hi, hi-2]</code>, and large off-diagonal entries in T for symmetric inputs. That last one was hardest to diagnose because the <code>test_quasi_upper_triangular</code> test passed (no entry two or more below diagonal) while <code>test_symmetric_gives_diagonal</code> failed (entries exactly one below diagonal left in place).</p>
+<p>The AWS Neuron toolchain didn't surface any of these — the bugs are in pure Python/PyTorch host logic, not in the NKI layer. That's a Phase 1 observation worth preserving: simulator-based NKI development validates kernel math; host integration logic requires standard unit tests, nothing exotic.</p>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>Hardware bench: trn1.2xlarge, Neuron SDK 2.29.0, NKI 0.3.0, 2026-04-20.</p>
+<p>Pure-PyTorch host implementation vs scipy (LAPACK-backed, single-threaded), n × n random matrix, macOS, M3:</p>
 <table>
 <thead>
 <tr>
-<th>N</th>
-<th>DFT-GEMM (µs)</th>
-<th>Radix-8 (µs)</th>
-<th>Radix-4 (µs)</th>
-<th>Butterfly (µs)</th>
-<th>Auto-dispatch path</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">trnsolver (ms)</th>
+<th style="text-align: right;">scipy (ms)</th>
+<th style="text-align: right;">ratio</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>64</td>
-<td>~1 883</td>
-<td>3 402</td>
-<td>4 254</td>
-<td>4 767</td>
-<td>DFT-GEMM</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">56×</td>
 </tr>
 <tr>
-<td>256</td>
-<td>~1 882</td>
-<td>—</td>
-<td>5 446</td>
-<td>6 067</td>
-<td>DFT-GEMM</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">158</td>
+<td style="text-align: right;">0.54</td>
+<td style="text-align: right;">293×</td>
 </tr>
 <tr>
-<td>512</td>
-<td>n/a</td>
-<td><strong>4 483</strong></td>
-<td>—</td>
-<td>~6 600 (est.)</td>
-<td>Radix-8</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">591</td>
+<td style="text-align: right;">3.9</td>
+<td style="text-align: right;">150×</td>
 </tr>
 <tr>
-<td>1024</td>
-<td>n/a</td>
-<td>—</td>
-<td>6 628</td>
-<td>7 399</td>
-<td>Radix-4</td>
-</tr>
-<tr>
-<td>4096</td>
-<td>n/a</td>
-<td><strong>5 917</strong></td>
-<td>8 424</td>
-<td>9 387</td>
-<td>Radix-8</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">2,347</td>
+<td style="text-align: right;">8.9</td>
+<td style="text-align: right;">265×</td>
 </tr>
 </tbody>
 </table>
-<p>DFT-GEMM values at N=64/256 are from v0.12 on SDK 2.24; other values on SDK 2.29.
-N=512 butterfly is extrapolated from per-stage timing (~739 µs/stage × 9 stages).</p>
-<p><strong>Where Trainium is well-indexed for this:</strong> the Tensor engine maps naturally
-to both the small-N DFT-GEMM case (one large matmul) and the medium-N W₈ case
-(batched 8×8 matmuls across all groups simultaneously). The partition dimension
-absorbs all <code>total_groups</code> rows in one pass.</p>
-<p><strong>Where it is not well-indexed:</strong> N values that are not powers of 2, 4, or 8
-fall to the butterfly path, which stays Vector-engine throughout. Non-power-of-2
-FFTs use Bluestein's algorithm (three power-of-2 FFTs), which chains errors through
-the 3-FFT pipeline. <code>precision="double"</code> is the escape hatch for those paths, at
-the cost of CPU roundtripping since Trainium's PSUM is always FP32.</p>
+<p>The gap is large. This is Phase 1 (correctness); the NKI Hessenberg kernel closes most of it. LAPACK's <code>dgees</code> is a highly-optimized FORTRAN implementation compiled with vectorizing compilers, cache-tuned blocking, and decades of numerical refinement. A clean Python baseline being 150–300× slower is unsurprising. The trnsparse Phase 1 post noted the same pattern when scipy outperformed the NKI SpMM path at current shapes.</p>
+<p>What the table doesn't show: reconstruction accuracy. All 91 tests pass at <code>atol=1e-4</code> or better; <code>test_quasi_upper_triangular</code> is at <code>atol=1e-4</code>; <code>test_q_orthogonal</code> at <code>atol=1e-5</code>. The correctness gate is the Phase 1 deliverable.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Mixed-radix and N=1024 coverage.</strong> N=1024 = 4^5 and routes to radix-4 (5
-  stages). It is not a power of 8. A mixed radix-4 × radix-8 decomposition
-  (e.g. one radix-8 stage + two radix-4 stages) could cover it in 3 stages
-  instead of 5 while keeping the Tensor engine active.</li>
-<li><strong>Multi-NeuronCore distribution.</strong> Large N FFTs (N &gt; 4096) could be distributed
-  across NeuronCores by partitioning the batch dimension. This is the "future"
-  item listed in CLAUDE.md since v0.11.
-Issues tracking the above are open on <a href="https://github.com/trnsci/trnsci/issues">trnsci/trnsci</a>.</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/28">Phase 3 — NKI Hessenberg kernel</a>. Stage 1 (<code>_hessenberg_reduce</code>) maps to n-2 Householder matmuls of the form <code>H[k+1:n, k:n] -= 2v(v'H)</code>. Each matmul is a full-width rank-1 update on a full-column-width slice — a fixed-shape <code>nisa.nc_matmul</code> with the Householder vector v SBUF-resident. This is the natural Phase 3 entry point: same reasoning as the <code>inv_sqrt_spd_ns</code> Newton-Schulz path (all-GEMM, SBUF-resident intermediate).</p>
+</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/29">Phase 4 — multi-chip Schur</a>. Stage 2 parallelizes less cleanly than Jacobi's disjoint rotations. The bulge chase in Francis QR is inherently sequential within a sweep. Cross-chip work for Schur is more likely at the sweep level (multiple active blocks) than at the rotation level.</p>
+</li>
+<li>
+<p><a href="https://github.com/trnsci/trnsolver/issues/30">Phase 5 — trn2 tuning</a>. trn2's larger SBUF changes the optimal Householder tile size for stage 1.</p>
+</li>
 </ul>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>FFT on Trainium is a problem about matching transform structure to engine
-capabilities, not about minimizing FLOP count. The DFT matrix IS a matmul —
-at small N, skipping the butterfly entirely and using one Tensor-engine call
-is the right answer. At larger N where O(N²) error is prohibitive, the question
-becomes which radix decomposition lets the Tensor engine participate in the
-per-stage computation. W₄ uses {1, −1, i, −i} and needs no multiplications;
-W₈ uses irrational entries and does. That distinction — not the stage count,
-not the arithmetic complexity — is what determined the dispatch hierarchy.
-The Tensor engine is idle during radix-4 stages; it is active during radix-8.
-Hardware validated both claims.</p>
+<p>Two-stage algorithms — reduce to canonical form, then iterate on that form — pay twice on Trainium: once by reducing the per-iteration FLOP count from O(n³) to O(n²), and once by presenting uniform-shape kernel calls at both stages. The first payoff is classical numerical linear algebra. The second is specific to NKI's compile model. Hessenberg reduction followed by implicit-shift QR isn't the obvious choice for "port cuSOLVER to NKI"; it's the choice the hardware's dispatch semantics reward.</p>
+<p><code>schur</code> is host-only in v0.10.0, and the numbers make that gap visible. The NKI Hessenberg kernel is Phase 3; it's not blocked on hardware validation, only on the decision to invest the implementation time. For quantum-chemistry workloads that currently handle Schur via scipy on the host, the intermediate answer is: <code>trnsolver.schur</code> is available, the API is stable, and the acceleration path is clear.</p>
 
 
 
