@@ -264,6 +264,64 @@ over-speed.md against trnsci/trnsci. Frontmatter:
 Scott (suite director) will review.
 ```
 
+### trnsolver — v0.10.0 Schur retrospective / Householder-QR pivot
+
+```
+You maintain trnsolver, a library in the trnsci scientific computing suite
+for AWS Trainium (trnsci.dev). trnsolver is the cuSOLVER-equivalent —
+eigendecomposition, matrix factorizations, iterative solvers. In v0.10.0 you
+shipped `schur(A)` via Householder Hessenberg reduction + Francis implicit
+double-shift QR, closing the last item in the Factorizations "Deferred"
+column. A Phase 1 post (2026-04-14-trnsolver-jacobi-for-trainium.md)
+covered the Jacobi `eigh` path; this is the second post.
+
+Frame the post around the architectural lesson that runs from v0.1.0 Jacobi
+to v0.4.0 Householder-QR pivot to v0.10.0 Schur. The core claim: two-stage
+algorithms (reduce to canonical form, then iterate on that form) are a better
+match for NKI's NEFF cache model than single-stage approaches, because both
+stages present uniform-shape kernel calls. The first post showed why Jacobi's
+batched-sweep form keeps the cache warm; this post shows why the same logic —
+uniform kernel shapes — eventually vindicated Householder-QR for `eigh` and
+made Schur's Householder approach the natural choice.
+
+Load-bearing architectural angles worth exploring:
+
+  - Hessenberg reduction has n-2 Householder steps; by operating on full n×n
+    matrix slices each step has a fixed kernel signature even as the active
+    submatrix grows. Contrast with direct Schur iteration (each step touches a
+    different lower-right submatrix → changing shape → NEFF miss).
+  - Francis QR's bulge-chase is a series of identical 3×3 Householder
+    applications at successive positions. The active window changes, but the
+    step kernel (3-vector Householder applied left and right) is fixed.
+  - This two-stage structure pays twice: fewer FLOPs per QR iteration (O(n²)
+    on Hessenberg vs O(n³) on full matrix), AND uniform kernel shapes.
+  - Honest: the current implementation is host-only PyTorch; the NKI
+    Hessenberg kernel is Phase 3. Numbers show the cost of that gap.
+
+"What didn't work" is rich: deflation window management, col_start restriction
+(LEFT application must not fill below-subdiagonal outside the active block),
+loop range off-by-one (range(lo, hi) not range(lo, hi-1)), 2×2 block handling
+needing a discriminant check. Each is a concisely nameable bug.
+
+Benchmark table: trnsolver vs scipy at n ∈ {32, 64, 128, 256}. Be honest —
+the Python implementation is 50–265x slower than LAPACK-backed scipy. Frame
+as Phase 1 (correctness) exactly as trnsparse did for its v0.2.0 numbers.
+
+Before writing: read docs/blog/AUTHOR_BRIEF.md. Usual rules — authorless, nine
+sections, architecture-first. Cross-link the Phase 1 post (don't retell it).
+
+Open the PR as docs/blog/posts/2026-04-18-trnsolver-schur-householder-qr.md
+against trnsci/trnsci. Frontmatter:
+
+  ---
+  date: 2026-04-18
+  categories: [Deep dive, trnsolver]
+  comments: true
+  ---
+
+Scott (suite director) will review for editorial consistency before merge.
+```
+
 ---
 
 ## Queued — activate when Phase 1 hardware-validates
