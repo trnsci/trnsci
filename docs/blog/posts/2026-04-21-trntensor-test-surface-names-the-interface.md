@@ -12,7 +12,7 @@ v0.9.0 gated reduce-parallel sharding behind `NotImplementedError` on both CPU a
 
 ## The problem
 
-The v0.9.0 gate was unconditional. The `NotImplementedError` fired on CPU and on Trainium alike, which was defensible as a signal to the Neuron team (as noted in the [v0.9.0 post](https://trnsci.dev/blog/dispatch-owns-routing-and-placement/)) but left a structural problem: the dispatch logic for contracted-dimension sharding was entirely untested. That logic is not trivial — it requires co-partitioning non-sharded operands along the contracted dimension, routing each shard's slice through the contraction, accumulating partial results, and then reducing across shards. Code that is never run in CI has zero validated structure.
+The v0.9.0 gate was unconditional. The `NotImplementedError` fired on CPU and on Trainium alike, which was defensible as a signal to the Neuron team (as noted in the [v0.9.0 post](https://trnsci.dev/blog/trntensor-v080v090-dispatch-owns-routing-and-placement/)) but left a structural problem: the dispatch logic for contracted-dimension sharding was entirely untested. That logic is not trivial — it requires co-partitioning non-sharded operands along the contracted dimension, routing each shard's slice through the contraction, accumulating partial results, and then reducing across shards. Code that is never run in CI has zero validated structure.
 
 The gate prevented accidental use. It also prevented any test from exercising the path. v0.10.0 addresses this without pretending `nki.collectives` exists: introduce a named stand-in that makes the correctness invariant testable on CPU, and keep the hardware gate exactly where it was.
 
