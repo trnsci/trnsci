@@ -10,31 +10,29 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/category/deep-dive/page/2/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">
       
       
-        <link rel="prev" href="../../../announcements/">
+        <link rel="prev" href="../trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">
       
-      
-        <link rel="next" href="../../../ecosystem/">
       
       
         
       
       
-      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Deep dive - trnsci</title>
+        <title>trntensor v0.12.0: the last NotImplementedError — completing the sharding contract - trnsci</title>
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../stylesheets/blog.css">
+      <link rel="stylesheet" href="../../stylesheets/blog.css">
     
-    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#deep-dive" class="md-skip">
+        <a href="#trntensor-v0120-the-last-notimplementederror-completing-the-sharding-contract" class="md-skip">
           Skip to content
         </a>
       
@@ -92,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../../../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -112,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Deep dive
+              trntensor v0.12.0: the last NotImplementedError — completing the sharding contract
             
           </span>
         </div>
@@ -197,7 +195,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../.." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -216,7 +214,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../why/" class="md-tabs__link">
+      <a href="../../why/" class="md-tabs__link">
         
   
   
@@ -235,7 +233,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../cuda_rosetta/" class="md-tabs__link">
+      <a href="../../cuda_rosetta/" class="md-tabs__link">
         
   
   
@@ -254,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../trainium_positioning/" class="md-tabs__link">
+      <a href="../../trainium_positioning/" class="md-tabs__link">
         
   
   
@@ -273,7 +271,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../roadmap/" class="md-tabs__link">
+      <a href="../../roadmap/" class="md-tabs__link">
         
   
   
@@ -292,7 +290,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../nki_validation_status/" class="md-tabs__link">
+      <a href="../../nki_validation_status/" class="md-tabs__link">
         
   
   
@@ -315,7 +313,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../../../" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -337,7 +335,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../installation/" class="md-tabs__link">
+        <a href="../../installation/" class="md-tabs__link">
           
   
   
@@ -359,7 +357,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../workflows/integration/" class="md-tabs__link">
+        <a href="../../workflows/integration/" class="md-tabs__link">
           
   
   
@@ -388,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../../../trnfft/" class="md-tabs__link">
+        <a href="../../trnfft/" class="md-tabs__link">
           
   
   
@@ -411,7 +409,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../contributing/" class="md-tabs__link">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -430,7 +428,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../../disclaimer/" class="md-tabs__link">
+      <a href="../../disclaimer/" class="md-tabs__link">
         
   
   
@@ -454,7 +452,9 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -465,7 +465,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../../../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -495,7 +495,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../.." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -522,7 +522,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../why/" class="md-nav__link">
+      <a href="../../why/" class="md-nav__link">
         
   
   
@@ -549,7 +549,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../cuda_rosetta/" class="md-nav__link">
+      <a href="../../cuda_rosetta/" class="md-nav__link">
         
   
   
@@ -576,7 +576,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trainium_positioning/" class="md-nav__link">
+      <a href="../../trainium_positioning/" class="md-nav__link">
         
   
   
@@ -603,7 +603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../roadmap/" class="md-nav__link">
+      <a href="../../roadmap/" class="md-nav__link">
         
   
   
@@ -630,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../nki_validation_status/" class="md-nav__link">
+      <a href="../../nki_validation_status/" class="md-nav__link">
         
   
   
@@ -687,7 +687,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -728,8 +728,6 @@
                 
   
   
-    
-  
   
   
     
@@ -765,11 +763,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
         
           
           <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="">
@@ -790,7 +788,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -810,7 +808,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../announcements/" class="md-nav__link">
+      <a href="../category/announcements/" class="md-nav__link">
         
   
   
@@ -837,19 +835,10 @@
   
   
     
-      
-    
   
   
     <li class="md-nav__item">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="../../" class="md-nav__link md-nav__link--active">
+      <a href="../category/deep-dive/" class="md-nav__link">
         
   
   
@@ -865,7 +854,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -880,7 +868,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../ecosystem/" class="md-nav__link">
+      <a href="../category/ecosystem/" class="md-nav__link">
         
   
   
@@ -910,7 +898,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnblas/" class="md-nav__link">
+      <a href="../category/trnblas/" class="md-nav__link">
         
   
   
@@ -940,7 +928,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnfft/" class="md-nav__link">
+      <a href="../category/trnfft/" class="md-nav__link">
         
   
   
@@ -970,7 +958,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnrand/" class="md-nav__link">
+      <a href="../category/trnrand/" class="md-nav__link">
         
   
   
@@ -1000,7 +988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsolver/" class="md-nav__link">
+      <a href="../category/trnsolver/" class="md-nav__link">
         
   
   
@@ -1030,7 +1018,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trnsparse/" class="md-nav__link">
+      <a href="../category/trnsparse/" class="md-nav__link">
         
   
   
@@ -1060,7 +1048,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../trntensor/" class="md-nav__link">
+      <a href="../category/trntensor/" class="md-nav__link">
         
   
   
@@ -1161,7 +1149,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -1189,7 +1177,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../deployment/" class="md-nav__link">
+      <a href="../../deployment/" class="md-nav__link">
         
   
   
@@ -1284,7 +1272,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/integration/" class="md-nav__link">
+      <a href="../../workflows/integration/" class="md-nav__link">
         
   
   
@@ -1312,7 +1300,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/speech_enhancement/" class="md-nav__link">
+      <a href="../../workflows/speech_enhancement/" class="md-nav__link">
         
   
   
@@ -1340,7 +1328,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../workflows/quantum_chemistry/" class="md-nav__link">
+      <a href="../../workflows/quantum_chemistry/" class="md-nav__link">
         
   
   
@@ -1476,7 +1464,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnfft/" class="md-nav__link ">
+            <a href="../../trnfft/" class="md-nav__link ">
               
   
   
@@ -1520,7 +1508,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/installation/" class="md-nav__link">
+      <a href="../../trnfft/installation/" class="md-nav__link">
         
   
   
@@ -1548,7 +1536,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/quickstart/" class="md-nav__link">
+      <a href="../../trnfft/quickstart/" class="md-nav__link">
         
   
   
@@ -1638,7 +1626,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/fft/" class="md-nav__link">
+      <a href="../../trnfft/api/fft/" class="md-nav__link">
         
   
   
@@ -1666,7 +1654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/complex/" class="md-nav__link">
+      <a href="../../trnfft/api/complex/" class="md-nav__link">
         
   
   
@@ -1694,7 +1682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/nn/" class="md-nav__link">
+      <a href="../../trnfft/api/nn/" class="md-nav__link">
         
   
   
@@ -1722,7 +1710,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/api/nki/" class="md-nav__link">
+      <a href="../../trnfft/api/nki/" class="md-nav__link">
         
   
   
@@ -1758,7 +1746,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/architecture/" class="md-nav__link">
+      <a href="../../trnfft/architecture/" class="md-nav__link">
         
   
   
@@ -1786,7 +1774,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/benchmarks/" class="md-nav__link">
+      <a href="../../trnfft/benchmarks/" class="md-nav__link">
         
   
   
@@ -1870,7 +1858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnfft/aws_setup/" class="md-nav__link">
+      <a href="../../trnfft/aws_setup/" class="md-nav__link">
         
   
   
@@ -1953,7 +1941,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnblas/" class="md-nav__link ">
+            <a href="../../trnblas/" class="md-nav__link ">
               
   
   
@@ -1997,7 +1985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/installation/" class="md-nav__link">
+      <a href="../../trnblas/installation/" class="md-nav__link">
         
   
   
@@ -2025,7 +2013,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/quickstart/" class="md-nav__link">
+      <a href="../../trnblas/quickstart/" class="md-nav__link">
         
   
   
@@ -2115,7 +2103,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level1/" class="md-nav__link">
+      <a href="../../trnblas/api/level1/" class="md-nav__link">
         
   
   
@@ -2143,7 +2131,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level2/" class="md-nav__link">
+      <a href="../../trnblas/api/level2/" class="md-nav__link">
         
   
   
@@ -2171,7 +2159,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/level3/" class="md-nav__link">
+      <a href="../../trnblas/api/level3/" class="md-nav__link">
         
   
   
@@ -2199,7 +2187,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/api/nki/" class="md-nav__link">
+      <a href="../../trnblas/api/nki/" class="md-nav__link">
         
   
   
@@ -2235,7 +2223,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/architecture/" class="md-nav__link">
+      <a href="../../trnblas/architecture/" class="md-nav__link">
         
   
   
@@ -2319,7 +2307,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/developing_kernels/" class="md-nav__link">
+      <a href="../../trnblas/developing_kernels/" class="md-nav__link">
         
   
   
@@ -2413,7 +2401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
         
   
   
@@ -2441,7 +2429,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
+      <a href="../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
         
   
   
@@ -2477,7 +2465,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/benchmarks/" class="md-nav__link">
+      <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
   
   
@@ -2561,7 +2549,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnblas/aws_setup/" class="md-nav__link">
+      <a href="../../trnblas/aws_setup/" class="md-nav__link">
         
   
   
@@ -2650,7 +2638,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnrand/" class="md-nav__link ">
+            <a href="../../trnrand/" class="md-nav__link ">
               
   
   
@@ -2694,7 +2682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/installation/" class="md-nav__link">
+      <a href="../../trnrand/installation/" class="md-nav__link">
         
   
   
@@ -2722,7 +2710,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/quickstart/" class="md-nav__link">
+      <a href="../../trnrand/quickstart/" class="md-nav__link">
         
   
   
@@ -2812,7 +2800,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/generator/" class="md-nav__link">
+      <a href="../../trnrand/api/generator/" class="md-nav__link">
         
   
   
@@ -2840,7 +2828,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/distributions/" class="md-nav__link">
+      <a href="../../trnrand/api/distributions/" class="md-nav__link">
         
   
   
@@ -2868,7 +2856,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/quasi/" class="md-nav__link">
+      <a href="../../trnrand/api/quasi/" class="md-nav__link">
         
   
   
@@ -2896,7 +2884,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/api/nki/" class="md-nav__link">
+      <a href="../../trnrand/api/nki/" class="md-nav__link">
         
   
   
@@ -2932,7 +2920,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/architecture/" class="md-nav__link">
+      <a href="../../trnrand/architecture/" class="md-nav__link">
         
   
   
@@ -3016,7 +3004,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/developing_kernels/" class="md-nav__link">
+      <a href="../../trnrand/developing_kernels/" class="md-nav__link">
         
   
   
@@ -3110,7 +3098,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+      <a href="../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
         
   
   
@@ -3138,7 +3126,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+      <a href="../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
         
   
   
@@ -3174,7 +3162,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/roadmap/" class="md-nav__link">
+      <a href="../../trnrand/roadmap/" class="md-nav__link">
         
   
   
@@ -3202,7 +3190,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/benchmarks/" class="md-nav__link">
+      <a href="../../trnrand/benchmarks/" class="md-nav__link">
         
   
   
@@ -3286,7 +3274,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/aws_setup/" class="md-nav__link">
+      <a href="../../trnrand/aws_setup/" class="md-nav__link">
         
   
   
@@ -3322,7 +3310,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/release/" class="md-nav__link">
+      <a href="../../trnrand/release/" class="md-nav__link">
         
   
   
@@ -3350,7 +3338,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnrand/stability/" class="md-nav__link">
+      <a href="../../trnrand/stability/" class="md-nav__link">
         
   
   
@@ -3423,7 +3411,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnsolver/" class="md-nav__link ">
+            <a href="../../trnsolver/" class="md-nav__link ">
               
   
   
@@ -3467,7 +3455,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/installation/" class="md-nav__link">
+      <a href="../../trnsolver/installation/" class="md-nav__link">
         
   
   
@@ -3495,7 +3483,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/quickstart/" class="md-nav__link">
+      <a href="../../trnsolver/quickstart/" class="md-nav__link">
         
   
   
@@ -3585,7 +3573,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/eigen/" class="md-nav__link">
+      <a href="../../trnsolver/api/eigen/" class="md-nav__link">
         
   
   
@@ -3613,7 +3601,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/factor/" class="md-nav__link">
+      <a href="../../trnsolver/api/factor/" class="md-nav__link">
         
   
   
@@ -3641,7 +3629,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/iterative/" class="md-nav__link">
+      <a href="../../trnsolver/api/iterative/" class="md-nav__link">
         
   
   
@@ -3669,7 +3657,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/api/nki/" class="md-nav__link">
+      <a href="../../trnsolver/api/nki/" class="md-nav__link">
         
   
   
@@ -3705,7 +3693,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/architecture/" class="md-nav__link">
+      <a href="../../trnsolver/architecture/" class="md-nav__link">
         
   
   
@@ -3733,7 +3721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/benchmarks/" class="md-nav__link">
+      <a href="../../trnsolver/benchmarks/" class="md-nav__link">
         
   
   
@@ -3817,7 +3805,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/aws_setup/" class="md-nav__link">
+      <a href="../../trnsolver/aws_setup/" class="md-nav__link">
         
   
   
@@ -3909,7 +3897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsolver/developing_kernels/" class="md-nav__link">
+      <a href="../../trnsolver/developing_kernels/" class="md-nav__link">
         
   
   
@@ -3994,7 +3982,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trnsparse/" class="md-nav__link ">
+            <a href="../../trnsparse/" class="md-nav__link ">
               
   
   
@@ -4038,7 +4026,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/installation/" class="md-nav__link">
+      <a href="../../trnsparse/installation/" class="md-nav__link">
         
   
   
@@ -4066,7 +4054,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../../trnsparse/quickstart/" class="md-nav__link">
         
   
   
@@ -4094,7 +4082,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/api/" class="md-nav__link">
+      <a href="../../trnsparse/api/" class="md-nav__link">
         
   
   
@@ -4122,7 +4110,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/architecture/" class="md-nav__link">
+      <a href="../../trnsparse/architecture/" class="md-nav__link">
         
   
   
@@ -4150,7 +4138,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../../trnsparse/migration_scipy/" class="md-nav__link">
         
   
   
@@ -4178,7 +4166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../../trnsparse/benchmarks/" class="md-nav__link">
         
   
   
@@ -4206,7 +4194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/iterative_solvers/" class="md-nav__link">
+      <a href="../../trnsparse/iterative_solvers/" class="md-nav__link">
         
   
   
@@ -4234,7 +4222,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/sparse_attention/" class="md-nav__link">
+      <a href="../../trnsparse/sparse_attention/" class="md-nav__link">
         
   
   
@@ -4318,7 +4306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../../trnsparse/aws_setup/" class="md-nav__link">
         
   
   
@@ -4399,7 +4387,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trntensor/" class="md-nav__link ">
+            <a href="../../trntensor/" class="md-nav__link ">
               
   
   
@@ -4443,7 +4431,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/installation/" class="md-nav__link">
+      <a href="../../trntensor/installation/" class="md-nav__link">
         
   
   
@@ -4471,7 +4459,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/quickstart/" class="md-nav__link">
+      <a href="../../trntensor/quickstart/" class="md-nav__link">
         
   
   
@@ -4532,7 +4520,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../../../trntensor/api/" class="md-nav__link ">
+            <a href="../../trntensor/api/" class="md-nav__link ">
               
   
   
@@ -4576,7 +4564,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/einsum/" class="md-nav__link">
+      <a href="../../trntensor/api/einsum/" class="md-nav__link">
         
   
   
@@ -4604,7 +4592,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/plan/" class="md-nav__link">
+      <a href="../../trntensor/api/plan/" class="md-nav__link">
         
   
   
@@ -4632,7 +4620,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/decompose/" class="md-nav__link">
+      <a href="../../trntensor/api/decompose/" class="md-nav__link">
         
   
   
@@ -4660,7 +4648,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/quantum/" class="md-nav__link">
+      <a href="../../trntensor/api/quantum/" class="md-nav__link">
         
   
   
@@ -4688,7 +4676,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/api/nki/" class="md-nav__link">
+      <a href="../../trntensor/api/nki/" class="md-nav__link">
         
   
   
@@ -4724,7 +4712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/architecture/" class="md-nav__link">
+      <a href="../../trntensor/architecture/" class="md-nav__link">
         
   
   
@@ -4752,7 +4740,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/benchmarks/" class="md-nav__link">
+      <a href="../../trntensor/benchmarks/" class="md-nav__link">
         
   
   
@@ -4838,7 +4826,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/tutorial_df_mp2/" class="md-nav__link">
+      <a href="../../trntensor/tutorial_df_mp2/" class="md-nav__link">
         
   
   
@@ -4866,7 +4854,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/contraction_patterns/" class="md-nav__link">
+      <a href="../../trntensor/contraction_patterns/" class="md-nav__link">
         
   
   
@@ -4958,7 +4946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../trntensor/aws_setup/" class="md-nav__link">
+      <a href="../../trntensor/aws_setup/" class="md-nav__link">
         
   
   
@@ -5009,7 +4997,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../contributing/" class="md-nav__link">
+      <a href="../../contributing/" class="md-nav__link">
         
   
   
@@ -5036,7 +5024,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../disclaimer/" class="md-nav__link">
+      <a href="../../disclaimer/" class="md-nav__link">
         
   
   
@@ -5064,6 +5052,8 @@
             
             
               
+                
+              
               <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
@@ -5076,6 +5066,102 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-architecture-suggests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the architecture suggests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The approach
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-didnt-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What didn't work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Numbers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's next
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#takeaway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Takeaway
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -5083,334 +5169,286 @@
             
           
           
-  <div class="md-content" data-md-component="content">
-    <div class="md-content__inner">
-      <header class="md-typeset">
-        <h1 id="deep-dive">Deep dive<a class="headerlink" href="#deep-dive" title="Permanent link">&para;</a></h1>
-      </header>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-15 00:00:00+00:00">April 15, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
             
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trnblas/" class="md-meta__link">trnblas</a></li>
-        
-        
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+                        <time datetime="2026-04-22 00:00:00+00:00" class="md-ellipsis">April 22, 2026</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../category/deep-dive/">Deep dive</a>, 
+                              <a href="../category/trntensor/">trntensor</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              8 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
           
-          <li class="md-meta__item">
-            
-              7 min read
-            
-          </li>
-        
-        
-      </ul>
-      
+        </div>
+      </div>
     </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnblas-four-hypotheses-one-profiler-trace-and-why-148-is-the-correct-answer"><a class="toclink" href="../../../../trnblas-four-hypotheses-one-profiler-trace-and-why-148-is-the-correct-answer/">trnblas: four hypotheses, one profiler trace, and why 1.48× is the correct answer</a></h2>
-<p>The <a href="https://trnsci.dev/blog/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">previous trnblas post</a> shipped with a 1.48× speedup on the fused MP2 energy reduction and an open admission: the kernel underperforms the 3× RFC target, four hypotheses exist for why, and none had been tested against hardware. One Neuron Profiler 2.0 trace later, the answer is in — Vector Engine at 96.45% active, Tensor Engine at 0.000002%, HBM reads matching the analytical prediction to the byte. The 1.48× ceiling is an exact Amdahl prediction, and the kernel is near-optimal on its own step.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trnblas-four-hypotheses-one-profiler-trace-and-why-148-is-the-correct-answer/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-15 00:00:00+00:00">April 15, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trnrand/" class="md-meta__link">trnrand</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              9 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so"><a class="toclink" href="../../../../trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">trnrand: RNG is a four-engine workload, if the silicon lets you say so</a></h2>
-<p>trnrand 0.3.0 shipped this week with the Philox 4×32-10 counter-based PRNG
-and the Box-Muller transform targeted at two non-Tensor-Engine resources on
-Trainium: GpSimd for the integer multiply-XOR rounds, and the Vector Engine
-for the <code>cos</code>/<code>sin</code>/<code>log</code>/<code>sqrt</code> pairs that turn uniforms into normals. The
-kernels compile, dispatch, and run the correct Python algorithm end to end.
-They do not currently produce correct numerical output, for a specific and
-reproducible reason that traces back to an NKI platform property — not to
-the kernel design. This is a retrospective about what the four-engine
-framing does for RNG, what shipped in 0.3.0, and the one integer-primitive
-gap that stands between the current state and hardware-validated Philox.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-15 00:00:00+00:00">April 15, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              9 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-when-the-kernel-boundary-is-the-api"><a class="toclink" href="../../../../trntensor-when-the-kernel-boundary-is-the-api/">trntensor: when the kernel boundary is the API</a></h2>
-<p>trntensor Phase 1 landed. The 2-index and batched <code>nc_matmul</code> NKI kernels validate on trn1. <code>ContractionPlan.backend</code> now reports <code>"nki"</code> when shapes qualify, <code>"pytorch"</code> otherwise — plan-time transparency about where work will actually land. And two fused multi-step primitives — a DF-MP2 correlation-energy kernel and a 4-index AO→MO integral transform — run contract → elementwise → reduce and contract → SBUF-resident → contract as single NKI programs.</p>
-<p>The architectural point isn't "einsum on Trainium." It's that the kernel boundary is the design surface: what cuTENSOR hides behind a <code>Plan</code> object, NKI asks you to lay out in source. More work, but also where a tensor library can become a cuTENSOR superset rather than a port.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trntensor-when-the-kernel-boundary-is-the-api/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trnblas/" class="md-meta__link">trnblas</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              9 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel"><a class="toclink" href="../../../../trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">trnblas: fusing DF-MP2 energy reduction into one NKI kernel</a></h2>
-<p>trnblas v0.4.0 shipped hardware-validated NKI kernels for GEMM, SYRK,
-and a fused MP2 energy reduction on trn1. End-to-end density-fitted MP2
-matches PySCF to 10 µHa (1×10⁻⁵ Ha) on H₂O, CH₄, and NH₃ at cc-pVDZ.
-The interesting story isn't the GEMM. It's the fused energy kernel — a
-single NKI pass that holds the contraction, the orbital-denominator
-division, and the scalar sum-reduction SBUF-resident, and how the choice
-to build it looks nothing like a cuBLAS port.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine"><a class="toclink" href="../../../../trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">trnfft: FFT on hardware that doesn't want to be an FFT engine</a></h2>
-<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision. All of it is hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trnsolver/" class="md-meta__link">trnsolver</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              9 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice"><a class="toclink" href="../../../../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice</a></h2>
-<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trnsparse/" class="md-meta__link">trnsparse</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnsparse-the-tile-is-the-unit-not-the-nonzero"><a class="toclink" href="../../../../trnsparse-the-tile-is-the-unit-not-the-nonzero/">trnsparse: the tile is the unit, not the nonzero</a></h2>
-<p>trnsparse shipped its first hardware-validated NKI SpMM kernel in v0.2.0, and the benchmark table was publicly worse than scipy across every configuration. That's not a failure — it's the evidence that led to the reframe v0.3.0 ships on: <strong>Trainium's sparse primitive isn't CSR, it's the 128×128 Tensor Engine tile</strong>. The CUDA sparse playbook is the wrong starting point for this hardware.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trnsparse-the-tile-is-the-unit-not-the-nonzero/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
+    <article class="md-content__inner md-typeset">
       
         
-          
+  
 
 
 
-<nav class="md-pagination">
-  <a class="md-pagination__link" href="../../">1</a> <span class="md-pagination__current">2</span>
-</nav>
-        
+  
+  
+
+
+<h1 id="trntensor-v0120-the-last-notimplementederror-completing-the-sharding-contract">trntensor v0.12.0: the last NotImplementedError — completing the sharding contract<a class="headerlink" href="#trntensor-v0120-the-last-notimplementederror-completing-the-sharding-contract" title="Permanent link">&para;</a></h1>
+<p>v0.12.0 closes the last <code>NotImplementedError</code> on the CPU-testable sharding surface. The <code>_execute_sharded</code> function could already name two operand types — output-parallel (sharding dimension maps to an output index) and reduce-parallel (sharding dimension maps to a contracted index) — but a single einsum containing both kinds raised <code>NotImplementedError("Mixed…")</code>. v0.12.0 replaces that raise with a nested dispatch loop. The architectural story is that Trainium's multi-chip topology named this loop structure before the code existed to implement it.</p>
+<!-- more -->
+
+<h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
+<p>Phase 4 of trntensor introduced <code>ShardedTensor</code> and output-parallel einsum dispatch in <a href="https://trnsci.dev/blog/trntensor-v080v090-dispatch-owns-routing-and-placement/">v0.9.0</a>. <a href="https://trnsci.dev/blog/trntensor-v0100-the-test-surface-names-the-interface/">v0.10.0</a> lifted the reduce-parallel gate on CPU, replacing <code>NotImplementedError</code> with <code>_mock_allreduce</code> and proving the correctness contract without hardware. <a href="https://trnsci.dev/blog/trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">v0.11.0</a> added <code>precision="sr"</code> at the PSUM→SBUF boundary.</p>
+<p>What none of those releases addressed: the mixed case. An einsum like <code>"ij,jk,ki-&gt;i"</code> can have one operand sharded along output dimension <code>i</code> (output-parallel) and another sharded along contracted dimension <code>j</code> (reduce-parallel). The two operands don't disagree about anything fundamental. They use different protocols — output-parallel operands scatter their output; reduce-parallel operands contribute partial sums that need all-reducing — but there's nothing in the classification logic that forbids combining them. The <code>NotImplementedError</code> was a placeholder for the work, not an architectural limit.</p>
+<p>The real problem: writing the mixed path before the two pure paths existed would have been premature. Getting output-parallel correct, then getting reduce-parallel correct, creates the primitives the mixed path composes. v0.12.0 assembles the final piece.</p>
+<h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
+<p>Trainium's multi-chip topology makes the loop structure obvious once the classification is in place. Consider a 2-chip-by-2-chip grid:</p>
+<ul>
+<li><strong>Output-parallel dimension</strong>: different chips hold different slices of the output. No communication needed between chips in this dimension — each chip owns its output slice independently. Embarrassingly parallel.</li>
+<li><strong>Reduce-parallel dimension</strong>: multiple chips hold partial sums for the same output element. Communication required: every chip must contribute its partial before any chip has the final result. This is the <code>nki.collectives.allreduce</code> dimension.</li>
+</ul>
+<p>The nested loop mirrors this topology exactly. The outer loop iterates over output shards — the free dimension, no communication cost. The inner loop iterates over reduce shards — the cost dimension, one all-reduce per output shard.</p>
+<pre class="mermaid"><code>graph TD
+    subgraph "Output shard s=0"
+        P00["partial(s=0,t=0)"]
+        P01["partial(s=0,t=1)"]
+        P02["partial(s=0,t=2)"]
+        AR0["_mock_allreduce → chunk₀"]
+        P00 --&gt; AR0; P01 --&gt; AR0; P02 --&gt; AR0
+    end
+    subgraph "Output shard s=1"
+        P10["partial(s=1,t=0)"]
+        P11["partial(s=1,t=1)"]
+        P12["partial(s=1,t=2)"]
+        AR1["_mock_allreduce → chunk₁"]
+        P10 --&gt; AR1; P11 --&gt; AR1; P12 --&gt; AR1
+    end
+    AR0 --&gt; ST["ShardedTensor(partition_dim=out_dim)"]
+    AR1 --&gt; ST</code></pre>
+<p>Columns are reduce shards — they're summed. Rows are output shards — they're assembled. The grid is <code>out_n_shards × rp_n</code>; those two dimensions are independent, and neither constrains the other.</p>
+<p>On CPU, the inner loop cost is <code>torch.stack(partials).sum(0)</code> — <code>_mock_allreduce</code>, free for testing purposes. On Trainium (HAS_NKI=True), the same path raises <code>NotImplementedError</code> pointing at <code>nki.collectives.allreduce</code> (SDK 2.30+), same as the pure reduce-parallel case. The CPU mock makes the full mixed-path test suite runnable in CI today; the hardware swap is one function call when the SDK ships.</p>
+<p>The architecture named the loops. The code followed.</p>
+<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
+<p>The design is deliberate about where each concern lives:</p>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Where handled</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operand classification (output-parallel vs. reduce-parallel)</td>
+<td><code>_execute_sharded</code> scan, before the dispatch branch</td>
+</tr>
+<tr>
+<td>Output shard iteration</td>
+<td>Outer loop in mixed dispatch — free dimension</td>
+</tr>
+<tr>
+<td>Reduce shard iteration</td>
+<td>Inner loop — cost dimension, feeds <code>_mock_allreduce</code></td>
+</tr>
+<tr>
+<td>Co-partitioning when op spans both dimensions</td>
+<td>Per-operand slice logic inside the inner loop</td>
+</tr>
+<tr>
+<td>Hardware gate</td>
+<td><code>HAS_NKI</code> check, fires for any reduce-parallel path</td>
+</tr>
+</tbody>
+</table>
+<p>The co-partitioning concern is the subtlety. An output-parallel operand chunk (shape <code>(M_s, J_full)</code>) paired with a reduce shard <code>(J_t, K)</code> has mismatched <code>j</code> dimensions unless the chunk is also sliced along <code>j</code>. The inner loop must check whether an output-parallel chunk spans the contracted dimension and, if so, slice it to match the current reduce shard's extent before passing both to the recursive <code>einsum()</code> call.</p>
+<p>Without this, <code>einsum("ij,jk-&gt;ik", A_sharded_i, B_sharded_j)</code> raises a shape mismatch in the inner contraction. The fix is three lines. Finding it required being explicit about what "output-parallel" actually means — it means the partition dimension maps to an output index, not that the operand carries no contracted dimensions.</p>
+<p>3-operand chains work naturally: the inner <code>einsum()</code> call receives dense tensors and dispatches through <code>_execute_path</code>, which handles multi-operand contractions via the greedy path planner added in v0.6.0.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p>The nested dispatch loop (<code>trntensor/parallel.py</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">output_chunks</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">out_s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">out_n_shards</span><span class="p">):</span>
+    <span class="n">partials</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">rp_t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rp_n</span><span class="p">):</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="n">rp_t</span><span class="p">]</span>
+        <span class="n">dense_ops</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">op_idx</span><span class="p">,</span> <span class="n">op</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">operands</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">op_idx</span> <span class="ow">in</span> <span class="n">output_parallel</span><span class="p">:</span>
+                <span class="n">chunk</span> <span class="o">=</span> <span class="n">output_parallel</span><span class="p">[</span><span class="n">op_idx</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="n">out_s</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">shard_char</span> <span class="ow">in</span> <span class="n">input_terms</span><span class="p">[</span><span class="n">op_idx</span><span class="p">]:</span>   <span class="c1"># co-partition if spans reduce dim</span>
+                    <span class="n">slices</span><span class="p">[</span><span class="n">dim_in_chunk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+                    <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">slices</span><span class="p">)])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">op_idx</span> <span class="ow">in</span> <span class="n">reduce_parallel</span><span class="p">:</span>
+                <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reduce_parallel</span><span class="p">[</span><span class="n">op_idx</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="n">rp_t</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">shard_char</span> <span class="ow">in</span> <span class="n">input_terms</span><span class="p">[</span><span class="n">op_idx</span><span class="p">]:</span>     <span class="c1"># co-partition plain tensor</span>
+                <span class="n">slices</span><span class="p">[</span><span class="n">dim_in_op</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+                <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">slices</span><span class="p">)])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">partial</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="o">*</span><span class="n">dense_ops</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+        <span class="n">partials</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">partial</span><span class="p">)</span>
+    <span class="n">output_chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_mock_allreduce</span><span class="p">(</span><span class="n">partials</span><span class="p">))</span>
+<span class="k">return</span> <span class="n">ShardedTensor</span><span class="p">(</span><span class="n">output_chunks</span><span class="p">,</span> <span class="n">partition_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">)</span>
+</code></pre></div>
+<p>The operand dispatch inside the inner loop handles four cases: output-parallel <code>ShardedTensor</code> with co-partitioning needed, output-parallel <code>ShardedTensor</code> without it, reduce-parallel <code>ShardedTensor</code>, and plain dense operand that needs co-partitioning. The fourth case covers operands that are neither sharded type but still carry the contracted dimension — they participate in the reduce dimension's slicing without being a <code>ShardedTensor</code> themselves.</p>
+<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
+<p><strong>The co-partitioning gap.</strong> The first implementation of the inner loop took the output-parallel chunk and passed it directly to the inner <code>einsum()</code> without checking whether it also spanned the contracted dimension. The resulting shape mismatch error was clear enough (<code>size mismatch for dimension j: 64 vs 8</code>), but the fix required understanding why the error occurred: "output-parallel" describes the relationship between the partition dimension and the <em>output</em> index, not the relationship between the operand and the contraction. An output-parallel operand can carry contracted dimensions too, and if the reduce-parallel shard covers only a slice of that contracted dimension, the output-parallel chunk must be sliced to match. Three lines, once the concept was clear.</p>
+<p><strong>The test inversion.</strong> <code>test_mixed_output_reduce_raises</code> had to become <code>test_mixed_cpu_no_longer_raises</code>. That test existed to document the gap — it asserted that the mixed path wasn't implemented yet. The moment the feature landed, the test inverted: a test that had been passing by asserting <code>NotImplementedError</code> was now passing by asserting the opposite. The right action was to delete it and write the positive test. A test that documents absence is not a test of a contract; it's a test of a placeholder. When the placeholder is replaced, the test's job is done and it should go with it.</p>
+<p><strong>Tolerance differences.</strong> 2-operand mixed paths test at <code>atol=1e-5</code>. 3-operand chains test at <code>atol=1e-4</code>. The looser tolerance for 3-operand paths is not a precision regression; it reflects float32 accumulation across multiple <code>_execute_path</code> steps. The greedy path planner decomposes multi-operand contractions into binary steps, and each step accumulates floating-point rounding independently. The 3-operand tests exercise this path deliberately; the tolerance reflects what the composition actually produces, not an aspirational bound.</p>
+<p><strong>Toolchain note.</strong> The hardware mixed-path (<code>HAS_NKI=True</code>) raises <code>NotImplementedError</code> pointing at <code>nki.collectives.allreduce</code> in SDK 2.30+. That interface hasn't shipped yet, which means the hardware mixed path has had zero actual test coverage beyond the gate check. The CPU mock path has been tested. The NKI compiler path through <code>nki.collectives</code> will need to be validated on hardware when SDK 2.30+ is available. A concrete ask for the Neuron team: the <code>nki.collectives.allreduce</code> interface should accept a list or tuple of tensors and an <code>op</code> parameter defaulting to <code>SUM</code> — the mock documents exactly the calling convention trntensor intends to use, and reviewing it against the eventual API before it ships would surface any impedance mismatch early.</p>
+<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
+<p>v0.12.0 adds no new hardware-executed paths. The table is about test coverage:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Before v0.12.0</th>
+<th>After v0.12.0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Output-parallel (partition dim in output)</td>
+<td>Tested on CPU</td>
+<td>Tested on CPU</td>
+</tr>
+<tr>
+<td>Reduce-parallel (partition dim contracted)</td>
+<td>Mock allreduce on CPU</td>
+<td>Mock allreduce on CPU</td>
+</tr>
+<tr>
+<td>Mixed output+reduce-parallel</td>
+<td><code>NotImplementedError</code> on CPU</td>
+<td>Nested loop on CPU</td>
+</tr>
+<tr>
+<td>Any reduce-parallel (Trainium)</td>
+<td><code>NotImplementedError</code> (SDK 2.30+)</td>
+<td><code>NotImplementedError</code> (SDK 2.30+)</td>
+</tr>
+</tbody>
+</table>
+<p><code>TestMixedParallel</code> adds 6 tests: basic 2-operand, 3-operand chain, output shard count verification, uneven chunk sizes, <code>HAS_NKI=True</code> gate still raises, <code>alpha</code> kwarg propagation. Total passing: 133 → 139. Skipped (simulator): 12.</p>
+<p>Mixed-path tolerance: <code>atol=1e-5</code> (2-operand), <code>atol=1e-4</code> (3-operand). Both are float32 accumulation artifacts, not NKI precision differences — there is no NKI path here yet.</p>
+<p>Dispatch overhead for the mock mixed path: for a 2-shard output-parallel × 3-shard reduce-parallel case on <code>(16, 8)</code> × <code>(8, 12)</code>, the outer loop runs 2 × 3 = 6 <code>einsum()</code> calls plus 2 <code>_mock_allreduce</code> invocations. Python loop overhead dominates at these sizes. This number will not matter in production — on hardware, the outer loop is chip-local work and the inner loop is the <code>nki.collectives.allreduce</code> call, which is a hardware collective.</p>
+<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>SDK 2.30+ (<code>nki.collectives.allreduce</code>)</strong>: when this lands, <code>_mock_allreduce</code> is replaced by the <code>nki.collectives</code> call in both the reduce-parallel path (v0.10.0) and the mixed path (v0.12.0). One function swap. The tests do not change. This is the completion of the arc that began with v0.10.0: name the operation, mock the hardware, prove the contract, swap the implementation when the SDK ships.</li>
+<li><strong><code>precision="dd"</code> (double-double)</strong>: gated on trnblas Phase 2 double-double GEMM kernels (<a href="https://github.com/trnsci/trnblas/issues/22">trnblas#22</a>). Scaffolding is in <code>ContractionPlan.precision</code>; raises <code>NotImplementedError</code> until trnblas ships. When it does, trntensor's multi-contraction path gets FP32-accuracy output from BF16 inputs via compensated matmul.</li>
+</ul>
+<p>Live roadmap: <a href="https://trnsci.dev/roadmap/">trnsci.dev/roadmap/</a>. Suite tracker: <a href="https://github.com/trnsci/trnsci/issues/1">trnsci/trnsci#1</a>.</p>
+<h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
+<p>v0.10.0 through v0.12.0 is a three-release arc with a single through-line: name the operation, mock the hardware, prove the contract. <code>_mock_allreduce</code>, <code>_stochastic_round_cpu</code>, and the mixed nested loop are all named for what they represent — a contract with the hardware — not for what they are, which is CPU stand-ins. The naming discipline matters because it determines what has to change when SDK 2.30+ ships: one function call in two places, no test changes. The CPU-testable sharding surface is now complete. All three patterns — output-parallel, reduce-parallel, mixed — run in CI. What's left is swapping the mocks for the hardware collectives when the SDK ships. The architecture named the loops; the implementation followed; the tests will survive the swap unchanged.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+
+
+  <h2 id="__comments">Comments</h2>
+
+  <script src="https://giscus.app/client.js"
+          data-repo="trnsci/trnsci"
+          data-repo-id="R_kgDOSA365w"
+          data-category="General"
+          data-category-id="DIC_kwDOSA36584C66kJ"
+          data-mapping="pathname"
+          data-strict="0"
+          data-reactions-enabled="1"
+          data-emit-metadata="0"
+          data-input-position="bottom"
+          data-theme="preferred_color_scheme"
+          data-lang="en"
+          data-loading="lazy"
+          crossorigin="anonymous"
+          async>
+  </script><script>
+    document$.subscribe(function() {
+      var palette = __md_get("__palette")
+      if (palette && typeof palette.color === "object") {
+        var theme = palette.color.scheme === "slate" ? "dark" : "light"
+        var frame = document.querySelector(".giscus-frame")
+        if (frame) {
+          frame.contentWindow.postMessage(
+            { giscus: { setConfig: { theme } } },
+            "https://giscus.app"
+          )
+        }
+      }
+    })
+  </script>
+
       
-    </div>
+    </article>
   </div>
 
           
@@ -5451,10 +5489,10 @@ to build it looks nothing like a cuBLAS port.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
