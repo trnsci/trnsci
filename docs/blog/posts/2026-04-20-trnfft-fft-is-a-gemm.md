@@ -181,6 +181,21 @@ Hardware bench: trn1.2xlarge, Neuron SDK 2.29.0, NKI 0.3.0, 2026-04-20.
 DFT-GEMM values at N=64/256 are from v0.12 on SDK 2.24; other values on SDK 2.29.
 N=512 butterfly is extrapolated from per-stage timing (~739 µs/stage × 9 stages).
 
+**Forward error** matters as much as wall-clock time. The `precision="fast"` butterfly
+accumulates O(u log₂N) FP32 rounding error; `precision="kahan"` (Dekker 2Prod
+compensated complex multiply) cuts it by 7–8× at no algorithmic change:
+
+| N    | fast rel error | kahan rel error | improvement |
+| ---- | -------------- | --------------- | ----------- |
+| 256  | 1.41e-6        | 1.92e-7         | 7.3×        |
+| 512  | 2.15e-6        | 2.69e-7         | 8.0×        |
+| 1024 | 2.04e-6        | 3.02e-7         | 6.8×        |
+| 4096 | 3.60e-6        | 4.55e-7         | 7.9×        |
+
+Both paths are below 1e-3. Use `set_precision("kahan")` when your forward-error
+budget is tight — iterative solvers, spectral methods, anything that chains
+multiple FFTs.
+
 **Where Trainium is well-indexed for this:** the Tensor engine maps naturally
 to both the small-N DFT-GEMM case (one large matmul) and the medium-N W₈ case
 (batched 8×8 matmuls across all groups simultaneously). The partition dimension
@@ -194,13 +209,18 @@ the cost of CPU roundtripping since Trainium's PSUM is always FP32.
 
 ## What's next
 
-- **Mixed-radix and N=1024 coverage.** N=1024 = 4^5 and routes to radix-4 (5
-  stages). It is not a power of 8. A mixed radix-4 × radix-8 decomposition
-  (e.g. one radix-8 stage + two radix-4 stages) could cover it in 3 stages
-  instead of 5 while keeping the Tensor engine active.
-- **Multi-NeuronCore distribution.** Large N FFTs (N > 4096) could be distributed
-  across NeuronCores by partitioning the batch dimension. This is the "future"
-  item listed in CLAUDE.md since v0.11.
+- **Mixed-radix Stockham shipped (v0.16).** N=1024 ([8,8,4,4], 4 stages, −15% vs
+  radix-4) and N=2048 ([8,8,8,4], 4 stages, first Stockham coverage) are live.
+  `_mixed_radix_plan(n)` finds the optimal `[8^a, 4^b]` decomposition for any
+  power-of-2 N.
+- **Iterative FFT refinement (research direction).** Compute FFT in BF16 using the
+  Tensor engine; use the FP32 PSUM accumulator as a residual buffer; apply one
+  correction step. The result: BF16 throughput, near-FP32 accuracy — enabled by
+  PSUM being a structural FP32 accumulator that no one has exploited for FFT on a
+  production deterministic systolic array. This is the next post.
+- **Multi-NeuronCore distribution.** Large N FFTs (N > 4096) partitioned across
+  NeuronCores. Linear speedup with core count; CLAUDE.md "future" since v0.11.
+
 Issues tracking the above are open on [trnsci/trnsci](https://github.com/trnsci/trnsci/issues).
 
 ## Takeaway
