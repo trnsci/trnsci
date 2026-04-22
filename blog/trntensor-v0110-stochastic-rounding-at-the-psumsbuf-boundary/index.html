@@ -10,13 +10,11 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/trntensor-v0100-the-test-surface-names-the-interface/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">
       
       
-        <link rel="prev" href="../trnfft-fft-is-a-gemm-and-then-it-isnt/">
+        <link rel="prev" href="../trntensor-v0100-the-test-surface-names-the-interface/">
       
-      
-        <link rel="next" href="../trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">
       
       
         
@@ -27,7 +25,7 @@
     
     
       
-        <title>trntensor v0.10.0: the test surface names the interface - trnsci</title>
+        <title>trntensor v0.11.0: stochastic rounding at the PSUM→SBUF boundary - trnsci</title>
       
     
     
@@ -78,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trntensor-v0100-the-test-surface-names-the-interface" class="md-skip">
+        <a href="#trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trntensor v0.10.0: the test surface names the interface
+              trntensor v0.11.0: stochastic rounding at the PSUM→SBUF boundary
             
           </span>
         </div>
@@ -5222,7 +5220,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              7 min read
+                              8 min read
                             
                           </span>
                         </div>
@@ -5249,130 +5247,155 @@
   
 
 
-<h1 id="trntensor-v0100-the-test-surface-names-the-interface">trntensor v0.10.0: the test surface names the interface<a class="headerlink" href="#trntensor-v0100-the-test-surface-names-the-interface" title="Permanent link">&para;</a></h1>
-<p>v0.9.0 gated reduce-parallel sharding behind <code>NotImplementedError</code> on both CPU and Trainium — <code>nki.collectives</code> wasn't in NKI 0.3.0 Stable and that was that. v0.10.0 lifts the gate on CPU: reduce-parallel sharding now dispatches through a named mock all-reduce, making the full Phase 4 test surface runnable without hardware. The mock is not a shortcut — it is documentation of the exact interface <code>nki.collectives.allreduce</code> will need to satisfy when SDK 2.30+ ships.</p>
+<h1 id="trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary">trntensor v0.11.0: stochastic rounding at the PSUM→SBUF boundary<a class="headerlink" href="#trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary" title="Permanent link">&para;</a></h1>
+<p>v0.11.0's headline is one argument: <code>precision="sr"</code> on a matmul dispatch call. The architectural story is that Trainium's PSUM buffer makes stochastic rounding a one-instruction hardware primitive instead of an external library. Anyone using trntensor for iterative BF16 workloads — Krylov solvers, iterative refinement, or long batched contractions — should care about this.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>The v0.9.0 gate was unconditional. The <code>NotImplementedError</code> fired on CPU and on Trainium alike, which was defensible as a signal to the Neuron team (as noted in the <a href="https://trnsci.dev/blog/trntensor-v080v090-dispatch-owns-routing-and-placement/">v0.9.0 post</a>) but left a structural problem: the dispatch logic for contracted-dimension sharding was entirely untested. That logic is not trivial — it requires co-partitioning non-sharded operands along the contracted dimension, routing each shard's slice through the contraction, accumulating partial results, and then reducing across shards. Code that is never run in CI has zero validated structure.</p>
-<p>The gate prevented accidental use. It also prevented any test from exercising the path. v0.10.0 addresses this without pretending <code>nki.collectives</code> exists: introduce a named stand-in that makes the correctness invariant testable on CPU, and keep the hardware gate exactly where it was.</p>
+<p>BF16 has a unit roundoff u ≈ 2⁻⁸ ≈ 0.0039. For a dot product of length K with round-nearest accumulation, Wilkinson's bound gives a worst-case error of K·u. At K=512, that's a worst-case error of ~2.0 per output element — and it's directional, not random. Coherent rounding bias across tiles accumulates. Krylov methods with BF16 accumulation stagnate without correction for K ≥ ~300, not because BF16 can't represent the answer, but because round-nearest introduces a systematic deflection that each iteration reinforces rather than cancels.</p>
+<p>The standard GPU response involves either promoting to FP32/TF32 for the full computation — which changes the memory and bandwidth economics — or layering a compensated-summation library like ReproBLAS over the standard BLAS calls. Neither is a one-instruction fix. On BF16 FMA chains, rounding error is distributed: each multiply-add step rounds separately, and there is no single accumulated-FP32 accumulator to intercept.</p>
+<p>The cuBLAS model for this workload is a patch on top of the normal path. CUDA 13's FP64 DGEMM emulation via Ozaki on FP8 tensor cores is the same post-FP64 design arriving through a different route — compensated accumulation as an explicit layer rather than a native one.</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p>When <code>nki.collectives</code> is absent, the right response is not a silent fallback to an approximation. It is a named stand-in that validates the contract. <code>_mock_allreduce</code> is that stand-in: its docstring identifies <code>nki.collectives.allreduce</code> as the production replacement; its implementation (<code>torch.stack(partials).sum(0)</code>) proves the correctness invariant by constructing the reference result from first principles.</p>
-<p>The architecture also makes co-partitioning a first-class concern, not an implementation detail. Output-parallel dispatch — the output dimension is sharded — passes non-sharded operands in full to each shard, because no non-sharded operand carries the output dimension. Reduce-parallel dispatch breaks this assumption: when <code>A</code> is sharded along contracted index <code>j</code>, any non-sharded operand <code>B</code> that also carries <code>j</code> must be sliced to match each shard's <code>j</code>-extent. The contraction subscript shrinks in a way that output-parallel never required the dispatcher to think about.</p>
-<pre class="mermaid"><code>flowchart TD
-    entry["einsum() — ShardedTensor detected"]
-    entry --&gt; classify{"partition dim\nin output?"}
-    classify --&gt;|"yes"| outpar["output-parallel:\npass non-sharded operands in full\nper-shard dispatch → concat"]
-    classify --&gt;|"no"| rp_gate{"HAS_NKI?"}
-    rp_gate --&gt;|"True"| hw_err["NotImplementedError\n(SDK 2.30+)"]
-    rp_gate --&gt;|"False"| copart["co-partition non-sharded operands\nslice each along contracted dim"]
-    copart --&gt; loop["per-shard contraction loop\n(plain einsum per shard)"]
-    loop --&gt; mock["_mock_allreduce(partials)\ntorch.stack().sum(dim=0)"]
-    mock --&gt; result["dense result"]</code></pre>
-<p>The hardware gate stays. When <code>HAS_NKI=True</code>, reduce-parallel raises immediately. The mock path is strictly a CPU validation vehicle; it exists because the test surface is worth having before the primitive exists.</p>
+<p>Trainium's Tensor Engine accumulates BF16 multiply-adds into a FP32 PSUM buffer. This is not a software choice; it is determined by the systolic array's data path. The K-reduction across an entire tile completes in FP32. The downcast from FP32 PSUM to BF16 SBUF is one explicit step at the end.</p>
+<p>This is not how a GPU FMA chain works. On a GPU, rounding is distributed across K steps. No single FP32 accumulator exists to intercept. Fixing round-nearest bias on a GPU requires either the full-FP32 promotion or a compensated-summation overlay — both add overhead, and neither is one instruction.</p>
+<p>On Trainium, the PSUM buffer is architecturally separate from SBUF. The downcast step is explicit and programmable. That structure creates exactly one controlled place to apply stochastic rounding: the PSUM→SBUF boundary at the end of each (m,n) tile.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Before["Before v0.11.0"]
+        direction LR
+        A1["BF16 inputs\n(SBUF)"] --&gt; TE1["Tensor Engine\nbf16 × bf16 → fp32"]
+        TE1 --&gt;|"K-reduction\nfull fp32"| PSUM1["PSUM\n(fp32 accumulator)"]
+        PSUM1 --&gt;|"nisa.tensor_copy\nround-nearest"| SBUF1["BF16 output\n(SBUF)"]
+    end
+
+    subgraph After["After v0.11.0 — use_sr=True"]
+        direction LR
+        A2["BF16 inputs\n(SBUF)"] --&gt; TE2["Tensor Engine\nbf16 × bf16 → fp32"]
+        TE2 --&gt;|"K-reduction\nfull fp32"| PSUM2["PSUM\n(fp32 accumulator)"]
+        PSUM2 --&gt;|"nisa.activation\nround_mode='stochastic'"| SBUF2["BF16 output\n(SBUF)"]
+    end</code></pre>
+<p>The PSUM buffer existed before v0.11.0. The FP32 K-reduction existed before v0.11.0. What v0.11.0 adds is the awareness that one parameter change at the PSUM→SBUF step turns round-nearest into mean-zero SR. The hardware had the primitive; the library just didn't surface it.</p>
+<p>This matters specifically because Connolly–Higham–Mary (SIAM J. Sci. Comput., 2021) establishes that SR replaces the worst-case K·u bound with a mean-zero √K·u probabilistic bound. The √K scaling is the critical difference for iterative methods: √K·u grows slower than K·u, and the mean-zero property means errors don't accumulate coherently across iterations. For K=512 in BF16: worst-case round-nearest error ~2.0; SR mean error ~0.063 (14.5×√512 × 2⁻⁸). The gap is not marginal.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<p>Three additions in v0.10.0, each with a specific scope:</p>
-<ol>
-<li>
-<p><strong><code>shard_boundaries(st)</code></strong> — returns <code>(start, end)</code> pairs for each chunk in a <code>ShardedTensor</code>, computed from cumulative chunk shapes along the partition dimension. Needed so the co-partitioning loop can slice non-sharded operands to the correct extent.</p>
-</li>
-<li>
-<p><strong><code>_mock_allreduce(partials)</code></strong> — <code>torch.stack(partials).sum(dim=0)</code>. Named, not anonymous. The docstring is the contract: this function names <code>nki.collectives.allreduce</code> as the production replacement, specifies the argument shape (<code>list[Tensor]</code> with identical shapes), and states the semantics (sum reduction). The implementation is five characters of PyTorch; the name and docstring are the artifact.</p>
-</li>
-<li>
-<p><strong><code>_execute_sharded</code> refactor</strong> — the function that routes <code>ShardedTensor</code> einsums. v0.9.0 classified operands as output-parallel only; reduce-parallel raised immediately. v0.10.0 scans operands and classifies each <code>ShardedTensor</code> as <code>output_parallel</code> or <code>reduce_parallel</code> before entering the dispatch branch. The <code>HAS_NKI</code> gate fires for reduce-parallel only when hardware is present. Mixed output+reduce-parallel (one operand of each kind in a single einsum) raises <code>NotImplementedError("mixed ...")</code> — not yet implemented, deferred to v0.11.0.</p>
-</li>
-</ol>
-<p>The deliberate tradeoff: naming the mock makes the contract visible but creates two code paths that will diverge the moment <code>nki.collectives</code> lands. That divergence is the whole point — the mock stays as a CPU reference after the hardware path ships, because a test that only runs on hardware is a test that CI can't run.</p>
-<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>Co-partitioning and mock dispatch loop (<code>trntensor/parallel.py</code>):</p>
-<div class="highlight"><pre><span></span><code><span class="n">bounds</span> <span class="o">=</span> <span class="n">shard_boundaries</span><span class="p">(</span><span class="n">ref_shard</span><span class="p">)</span>
-
-<span class="n">partials</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">shard_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_shards</span><span class="p">):</span>
-    <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="n">shard_idx</span><span class="p">]</span>
-    <span class="n">dense_ops</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">op_idx</span><span class="p">,</span> <span class="n">op</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">operands</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">op_idx</span> <span class="ow">in</span> <span class="n">reduce_parallel</span><span class="p">:</span>
-            <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="n">shard_idx</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">ShardedTensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">shard_char</span> <span class="ow">in</span> <span class="n">input_terms</span><span class="p">[</span><span class="n">op_idx</span><span class="p">]:</span>
-            <span class="n">dim_in_op</span> <span class="o">=</span> <span class="n">input_terms</span><span class="p">[</span><span class="n">op_idx</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">shard_char</span><span class="p">)</span>
-            <span class="n">slices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="n">op</span><span class="o">.</span><span class="n">ndim</span>
-            <span class="n">slices</span><span class="p">[</span><span class="n">dim_in_op</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
-            <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">slices</span><span class="p">)])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">dense_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
-    <span class="n">partial</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="o">*</span><span class="n">dense_ops</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
-    <span class="n">partials</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">partial</span><span class="p">)</span>
-
-<span class="k">return</span> <span class="n">_mock_allreduce</span><span class="p">(</span><span class="n">partials</span><span class="p">)</span>
-</code></pre></div>
-<p>The mock itself:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_mock_allreduce</span><span class="p">(</span><span class="n">partials</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mock all-reduce: sum partial contractions across simulated shards.</span>
-
-<span class="sd">    On Trainium, maps to nki.collectives.allreduce (arriving in SDK 2.30+).</span>
-<span class="sd">    Argument: list of same-shape tensors, one per shard.</span>
-<span class="sd">    Semantics: element-wise sum reduction across the list.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">partials</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-</code></pre></div>
-<p>The co-partitioning loop handles three cases per operand: it is a reduce-parallel <code>ShardedTensor</code> (take <code>chunks[shard_idx]</code>), it is a dense operand that carries the contracted dimension (slice to <code>[start:end]</code> along that dimension), or neither (pass through). The third case covers dense operands on non-contracted dimensions, which is the same handling output-parallel used for all non-sharded operands.</p>
-<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p><strong><code>TestReduceParallelError</code> silently broke.</strong> Existing tests in <code>test_parallel.py</code> expected <code>NotImplementedError</code> on CPU for contracted-dimension sharding. After lifting the gate, those tests would have passed silently — no exception raised, no assertion checked, green CI for the wrong reason. The fix monkeypatches <code>HAS_NKI=True</code> in the test scope:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_reduce_parallel_raises_on_hardware</span><span class="p">(</span><span class="n">monkeypatch</span><span class="p">):</span>
-    <span class="n">monkeypatch</span><span class="o">.</span><span class="n">setattr</span><span class="p">(</span><span class="s2">&quot;trntensor.parallel.HAS_NKI&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-    <span class="n">A_sharded</span> <span class="o">=</span> <span class="n">scatter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_shards</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;nki.collectives&quot;</span><span class="p">):</span>
-        <span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A_sharded</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-</code></pre></div>
-<p>The lesson is not "don't use environment flags in dispatch." The lesson is: tests that assert on <em>absence of behavior</em> are tightly coupled to the runtime environment that produced the absence. When the environment changes, the tests must change explicitly, not silently adapt. A test that silently passes for a different reason than it was written is worse than a test that fails.</p>
-<p><strong>Mixed output+reduce-parallel deferred.</strong> A single einsum where one operand is output-parallel and another is reduce-parallel raises <code>NotImplementedError("mixed output+reduce-parallel sharding not yet implemented")</code>. This pattern does not appear in any current DF-MP2 formulation — the standard <code>einsum("pq,qr-&gt;pr", B_i, B_j)</code> pattern uses matching partition dimensions, so both operands classify the same way. Mixed sharding is filed as trntensor#30 scope, deferred to v0.11.0.</p>
-<p>There is an honest gap in the co-partitioning logic that the existing test suite does not exercise: uneven chunk sizes at the last shard when <code>tensor.shape[dim] % n_shards != 0</code>. <code>shard_boundaries</code> handles this correctly — it accumulates <code>chunk.shape[partition_dim]</code> rather than assuming uniform extent — but the boundary condition exposed a missing test for the <code>dim_in_op</code> slice when the non-sharded operand's matching dimension is not a multiple of <code>n_shards</code>. Added as a new test case; the co-partitioning loop was already correct.</p>
-<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p>v0.10.0 adds no new hardware-executed paths. The table is about test coverage, not performance:</p>
+<p><code>precision="sr"</code> is a new value on the existing <code>precision</code> parameter at the <code>einsum()</code> call site. The routing is deliberate:</p>
 <table>
 <thead>
 <tr>
-<th>Pattern</th>
-<th>Before v0.10.0</th>
-<th>After v0.10.0</th>
+<th><code>precision=</code></th>
+<th>Strategies reached</th>
+<th>PSUM→SBUF step</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Output-parallel (partition dim in output)</td>
-<td>Tested on CPU</td>
-<td>Tested on CPU</td>
+<td><code>"fast"</code> (default)</td>
+<td>matmul, bmm, torch, path</td>
+<td><code>nisa.tensor_copy</code> (round-nearest)</td>
 </tr>
 <tr>
-<td>Reduce-parallel (partition dim contracted)</td>
-<td><code>NotImplementedError</code> on CPU</td>
-<td>Mock allreduce on CPU</td>
+<td><code>"sr"</code></td>
+<td>matmul only</td>
+<td><code>nisa.activation(..., round_mode="stochastic")</code></td>
 </tr>
 <tr>
-<td>Reduce-parallel (Trainium)</td>
-<td><code>NotImplementedError</code></td>
-<td><code>NotImplementedError</code> (SDK 2.30+)</td>
-</tr>
-<tr>
-<td>Mixed output+reduce-parallel</td>
-<td><code>NotImplementedError</code></td>
-<td><code>NotImplementedError</code> (v0.11.0)</td>
+<td><code>"dd"</code></td>
+<td>matmul only (gated, trnblas#22)</td>
+<td>double-double accumulation (future)</td>
 </tr>
 </tbody>
 </table>
-<p><code>test_parallel.py</code> test count: 22 → 28. The six new tests cover: basic contracted-dimension dispatch, B co-partitioned along the contracted dim, uneven shards (non-multiple-of-n_shards tensor size), 3-operand chain with one reduce-parallel operand, <code>HAS_NKI=True</code> gate still raises, mixed pattern raises.</p>
-<p>Dispatch overhead for the mock path: 6-shard reduce-parallel on <code>(48, 8)</code> × <code>(8, 12)</code> — 6 × 0.41 ms = 2.46 ms total, dominated by Python loop overhead rather than the contraction itself. This is a CPU mock, not a performance baseline; the number is here because a future post will need a before/after when the <code>nki.collectives</code> path lands.</p>
+<p><code>"sr"</code> is a no-op for <code>"bmm"</code>, <code>"torch"</code>, and <code>"path"</code> strategies. Those strategies do not go through the NKI matmul kernel and have no PSUM buffer to apply SR at. This scoping is intentional, not a gap. Applying SR to a <code>torch.einsum</code> result would be noise injection, not rounding control — there is no FP32 accumulator to round from.</p>
+<p>The <code>ContractionPlan</code> carries <code>precision</code> forward to <code>_execute_matmul</code>, which passes <code>use_sr=(plan.precision == "sr")</code> to <code>nki_matmul</code>. The <code>sr</code> semantics are: on hardware, <code>nisa.activation(..., round_mode="stochastic")</code> at the per-tile PSUM→SBUF boundary; on CPU, <code>_stochastic_round_cpu</code> applied to the FP32 <code>torch.matmul</code> result before downcast. The CPU mock enables <code>precision="sr"</code> to be tested in CI without hardware.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p>The kernel change (<code>trntensor/nki/_kernels.py</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Both paths allocate the same c_sbuf — the branch is only in how PSUM is written.</span>
+<span class="n">c_sbuf</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">tile_m</span><span class="p">,</span> <span class="n">tile_n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">sbuf</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">use_sr</span><span class="p">:</span>
+    <span class="n">nisa</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span>
+        <span class="n">psum</span><span class="p">,</span>
+        <span class="n">bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">out_dtype</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">round_mode</span><span class="o">=</span><span class="s2">&quot;stochastic&quot;</span><span class="p">,</span>
+        <span class="n">dst</span><span class="o">=</span><span class="n">c_sbuf</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">nisa</span><span class="o">.</span><span class="n">tensor_copy</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">psum</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="n">c_sbuf</span><span class="p">)</span>
+</code></pre></div>
+<p><code>nisa.activation</code> with <code>round_mode="stochastic"</code> is a NKI 0.3.0 / Neuron SDK 2.29+ primitive. The call site replaces one line (<code>tensor_copy</code>) with one call. No tiling logic changes. No accumulation loop changes. The entire SR difference is at this one boundary.</p>
+<p>The CPU mock (<code>trntensor/nki/dispatch.py</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_stochastic_round_cpu</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CPU stochastic rounding from float32 to dtype.</span>
+
+<span class="sd">    Named stand-in for the per-tile nisa.activation(..., round_mode=&#39;stochastic&#39;)</span>
+<span class="sd">    applied at the PSUM→SBUF boundary in the NKI matmul kernel. Enables</span>
+<span class="sd">    precision=&#39;sr&#39; to be tested on CPU without hardware.</span>
+
+<span class="sd">    Mean rounding error is zero (Connolly–Higham–Mary, SIAM J. Sci. Comput. 2021).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">dtype</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="n">x32</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+    <span class="n">x_lo</span> <span class="o">=</span> <span class="n">x32</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">x_lo_f</span> <span class="o">=</span> <span class="n">x_lo</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+    <span class="n">ulp</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_lo_f</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span><span class="o">.</span><span class="n">clamp_min</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">tiny</span><span class="p">)</span>
+    <span class="n">x_hi</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_lo_f</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x32</span> <span class="o">-</span> <span class="n">x_lo_f</span><span class="p">)</span> <span class="o">*</span> <span class="n">ulp</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">x_hi_f</span> <span class="o">=</span> <span class="n">x_hi</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+    <span class="n">gap</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_hi_f</span> <span class="o">-</span> <span class="n">x_lo_f</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">clamp_min</span><span class="p">(</span><span class="mf">1e-38</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="p">((</span><span class="n">x32</span> <span class="o">-</span> <span class="n">x_lo_f</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">/</span> <span class="n">gap</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">rand_like</span><span class="p">(</span><span class="n">x32</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">p</span><span class="p">,</span> <span class="n">x_hi</span><span class="p">,</span> <span class="n">x_lo</span><span class="p">)</span>
+</code></pre></div>
+<p>Like <code>_mock_allreduce</code> from <a href="https://trnsci.dev/blog/trntensor-test-surface-names-the-interface/">v0.10.0</a>, the name is the documentation. The docstring identifies the production primitive and the paper that guarantees the statistical contract. The implementation is the correctness proof.</p>
+<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
+<p><strong>Testing SR correctness requires statistics, not point equality.</strong> The initial test approach was <code>assert_close(sr_result, fast_result)</code>, which fails correctly — but for the wrong reason. A single SR sample is <em>supposed</em> to differ from round-nearest; that's the point. <code>assert_close</code> failing on a SR result isn't evidence SR is broken; it's evidence SR ran.</p>
+<p>The right test measures the distributional property. <code>test_sr_mean_zero_bias</code> in <code>TestPrecisionSR</code> uses <code>torch.ones(128, 512) @ torch.ones(512, 128)</code> — a (128, 128) output where each element is exactly 512.0 in FP32. BF16 can't represent 512.0 exactly (it can, as it happens — but the test uses a biased input precisely because "exact" values aren't the interesting case). For random inputs, <code>test_sr_result_close_to_fast</code> runs 20 samples and checks that <code>|mean(SR) - fast| &lt; 0.05 * |fast|</code>. A single sample can be arbitrarily far; 20 samples converge. The test suite is measuring a distribution, not an output.</p>
+<p><strong><code>precision="sr"</code> scope is kernel-level, not einsum-level.</strong> An early design considered applying SR inside <code>_execute_contraction</code> to the result of any einsum call, regardless of strategy. That's wrong. SR means something specific: rounding from FP32 PSUM to BF16 SBUF at the tile boundary. Applied to the final result of a <code>torch.einsum</code> call, it's random quantization noise applied to an output that was never an FP32 accumulator. The <code>"sr"</code> parameter now propagates to the kernel level and is silently downgraded to round-nearest for strategies that don't go through <code>nki_matmul</code>. The plan logs this explicitly: <code>"Only applies to the matmul strategy; other strategies use fast rounding."</code></p>
+<p><strong><code>_stochastic_round_cpu</code> ULP edge case.</strong> When <code>x32</code> is exactly representable in the target dtype, <code>x_lo_f == x32</code>: the distance from <code>x_lo</code> is zero, and the probability <code>p</code> should be 0 (no rounding needed). The <code>clamp_min(1e-38)</code> on <code>gap</code> guards against division-by-zero at that case. Without it, <code>gap</code> is 0.0, <code>p</code> is NaN, and <code>torch.where</code> selects from <code>x_hi</code> on NaN comparison (undefined behavior). The clamp costs nothing; the NaN was silent and intermittent, surfacing only on round numbers in test inputs.</p>
+<p><strong>Toolchain gap: the CPU simulator doesn't support <code>round_mode</code> in <code>nisa.activation</code>.</strong> When running under <code>TRNTENSOR_USE_SIMULATOR=1</code>, the simulator path does not support <code>round_mode="stochastic"</code> — it falls through to <code>_stochastic_round_cpu</code> via the same <code>HAS_NKI=False</code> branch. This means simulator runs test the statistical contract of SR but do not validate the actual MLIR path that fires on hardware. The hardware SR path requires a real trn1 instance with NKI 0.3.0 / SDK 2.29+. A concrete ask for the Neuron team: the CPU simulator should support all <code>round_mode</code> variants in <code>nisa.activation</code>. Regression-testing the SR path without hardware access is blocked on this. The <a href="https://trnsci.dev/blog/the-dev-loop-just-got-a-lot-shorter/">NKI 0.3.0 simulator release</a> added substantial coverage; <code>round_mode</code> support would close the remaining gap for SR-correctness CI.</p>
+<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
+<p>No hardware benchmark table for v0.11.0. <code>precision="sr"</code> on a real trn1 instance is the correct path for measuring both the error-distribution improvement and the per-tile latency overhead of <code>nisa.activation</code> vs <code>nisa.tensor_copy</code>. That run hasn't happened yet — the simulator gap described above means the hardware path has not been validated beyond the NKI API call being syntactically correct against the SDK 2.29 headers.</p>
+<p>What the CPU tests measure and what they don't:</p>
+<table>
+<thead>
+<tr>
+<th>What is tested</th>
+<th>Test</th>
+<th>What it validates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SR produces mean-zero error</td>
+<td><code>test_sr_mean_zero_bias</code> (20 samples)</td>
+<td>Statistical contract of <code>_stochastic_round_cpu</code></td>
+</tr>
+<tr>
+<td>SR result close to fast-rounding mean</td>
+<td><code>test_sr_result_close_to_fast</code></td>
+<td>Distribution width — samples don't diverge wildly</td>
+</tr>
+<tr>
+<td><code>precision="sr"</code> no-ops for non-matmul</td>
+<td><code>test_sr_noop_for_bmm</code></td>
+<td>Scoping is correct in the dispatcher</td>
+</tr>
+<tr>
+<td><code>precision="sr"</code> propagates through path</td>
+<td><code>test_sr_propagates_through_path</code></td>
+<td>End-to-end plan → kernel plumbing is wired</td>
+</tr>
+</tbody>
+</table>
+<p>What a hardware run would show: per-tile latency of <code>nisa.activation(..., round_mode="stochastic")</code> vs <code>nisa.tensor_copy</code>, and whether the mean-zero property holds at the PSUM level (which has different rounding structure than the mock's FP32→BF16 step). The mock is an accurate stand-in for the statistical contract; it is not a stand-in for the hardware timing.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Phase 4.2 — hardware reduce-parallel</strong> (<a href="https://github.com/trnsci/trntensor/issues/30">trntensor#30</a>): when <code>nki.collectives</code> lands in SDK 2.30+, <code>_mock_allreduce</code> is replaced by the <code>nki.collectives.allreduce</code> call. The co-partitioning loop and the test suite do not change. The upgrade is one line.</li>
-<li><strong>Mixed output+reduce-parallel</strong> (v0.11.0, deferred from trntensor#30): the current gate is an explicit <code>NotImplementedError</code>; the co-partitioning logic would need to run two classification passes and merge the results.</li>
-<li><strong>Phase 5 — trn2 fused three-contraction kernel</strong> (<a href="https://github.com/trnsci/trntensor/issues/31">trntensor#31</a>): trn2 shared memory enables cross-kernel accumulation that trn1 cannot express; this phase needs trn2 hardware to validate.</li>
+<li><strong>v0.12.0 — mixed output+reduce-parallel sharding</strong> (<a href="https://github.com/trnsci/trntensor/issues/30">trntensor#30</a>): the <code>NotImplementedError("mixed output+reduce-parallel sharding not yet implemented")</code> from v0.10.0 is the next deferred item. The two-shard-type classification is already in <code>_execute_sharded</code>; the missing piece is merging the classification passes.</li>
+<li><strong>SDK 2.30+ — <code>nki.collectives.allreduce</code></strong>: when this lands, <code>_mock_allreduce</code> from v0.10.0 becomes a one-line hardware swap. Same pattern as v0.11.0's <code>_stochastic_round_cpu</code> relationship to <code>nisa.activation</code>.</li>
+<li><strong><code>precision="dd"</code> (double-double)</strong>: gated on trnblas Phase 2 double-double GEMM kernels (<a href="https://github.com/trnsci/trnblas/issues/22">trnblas#22</a>). When those land, trntensor's multi-contraction path gets FP32-accuracy output from BF16 inputs via compensated matmul. SR and DD are complementary: SR corrects the PSUM→SBUF boundary; DD adds a full compensated accumulation layer for the cases where SR's √K·u bound still isn't tight enough.</li>
+<li><strong>Hardware SR validation</strong>: the simulator gap makes this a manual step. It will happen on a trn1 instance when the scheduler permits; until then, v0.11.0 ships as an API-complete, CPU-tested release with the hardware path pending.</li>
 </ul>
-<p>A concrete suggestion for the Neuron team: the SDK 2.30+ <code>nki.collectives.allreduce</code> interface should accept an <code>op</code> parameter (defaulting to <code>SUM</code>) and a list or tuple of tensors rather than requiring an explicit loop at the call site. trntensor's mock documents the call shape the library intends to use; reviewing it against the eventual API will surface any impedance mismatch before the hardware path ships.</p>
+<p>Live roadmap: <a href="https://trnsci.dev/roadmap/">trnsci.dev/roadmap/</a>. Suite tracker: <a href="https://github.com/trnsci/trnsci/issues/1">trnsci/trnsci#1</a>.</p>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>The test surface is not scaffolding — it documents what the production implementation must do. <code>_mock_allreduce</code> names <code>nki.collectives.allreduce</code> before it exists; the co-partitioning tests document what distributed operand layout a reduce-parallel contraction requires; the <code>HAS_NKI</code> monkeypatch preserves the hardware contract while enabling CPU validation. When SDK 2.30+ ships, the upgrade path is a one-line swap: replace <code>_mock_allreduce</code> with the <code>nki.collectives</code> call. The test suite does not change — and that is the point. Tests that survive an implementation swap without modification are tests that described the contract, not the mechanism.</p>
+<p>The architectural insight in v0.11.0 is not that stochastic rounding is a good idea — that's Connolly–Higham–Mary (2021). The insight is that Trainium's PSUM buffer makes SR a one-instruction hardware primitive rather than a software overlay. On a GPU FMA chain, rounding is distributed across K steps; fixing it requires either full-FP32 promotion or a compensated-summation library. On Trainium, the FP32 K-reduction completes in PSUM before any downcast happens. SR at the PSUM→SBUF boundary costs one <code>nisa.activation</code> call per tile. The silicon codified this separation — PSUM as FP32 accumulator, SBUF as the typed output — in 2020. v0.11.0 is the dispatch layer catching up to what the hardware already offered.</p>
 
 
 

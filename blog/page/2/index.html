@@ -5093,6 +5093,57 @@
             in
             
               <a href="../../category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="../../category/trnrand/" class="md-meta__link">trnrand</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              9 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so"><a class="toclink" href="../../trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">trnrand: RNG is a four-engine workload, if the silicon lets you say so</a></h2>
+<p>trnrand 0.3.0 shipped this week with the Philox 4×32-10 counter-based PRNG
+and the Box-Muller transform targeted at two non-Tensor-Engine resources on
+Trainium: GpSimd for the integer multiply-XOR rounds, and the Vector Engine
+for the <code>cos</code>/<code>sin</code>/<code>log</code>/<code>sqrt</code> pairs that turn uniforms into normals. The
+kernels compile, dispatch, and run the correct Python algorithm end to end.
+They do not currently produce correct numerical output, for a specific and
+reproducible reason that traces back to an NKI platform property — not to
+the kernel design. This is a retrospective about what the four-engine
+framing does for RNG, what shipped in 0.3.0, and the one integer-primitive
+gap that stands between the current state and hardware-validated Philox.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-04-15 00:00:00+00:00">April 15, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../../category/deep-dive/" class="md-meta__link">Deep dive</a>, 
               <a href="../../category/trntensor/" class="md-meta__link">trntensor</a></li>
         
         
