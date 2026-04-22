@@ -564,6 +564,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#why-trainium-specifically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Trainium specifically
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#who-is-this-for" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5163,6 +5174,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#why-trainium-specifically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Trainium specifically
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#who-is-this-for" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5216,7 +5238,7 @@
 
 
 <h1 id="trnsci">trnsci<a class="headerlink" href="#trnsci" title="Permanent link">&para;</a></h1>
-<p>Scientific computing libraries for AWS Trainium.</p>
+<p>Scientific computing libraries for AWS Trainium — the reference implementation for the post-FP64 era.</p>
 <p>NVIDIA CUDA programmers reach for <strong>cuFFT</strong>, <strong>cuBLAS</strong>, <strong>cuRAND</strong>, <strong>cuSOLVER</strong>, <strong>cuSPARSE</strong>, and <strong>cuTENSOR</strong> when they need fast numerical primitives. The AWS Neuron SDK ships none of these. <code>trnsci</code> is six libraries that fill the gap:</p>
 <table>
 <thead>
@@ -5235,57 +5257,72 @@
 <tr>
 <td><a href="trnblas/">trnblas</a></td>
 <td>cuBLAS</td>
-<td>BLAS Levels 1–3, batched GEMM</td>
+<td>BLAS Levels 1–3, batched GEMM, DF-MP2 energy</td>
 </tr>
 <tr>
 <td><a href="trnrand/">trnrand</a></td>
 <td>cuRAND</td>
-<td>Philox PRNG, Sobol/Halton QMC</td>
+<td>Philox/Threefry PRNG, Sobol/Halton QMC</td>
 </tr>
 <tr>
 <td><a href="trnsolve/">trnsolver</a></td>
 <td>cuSOLVER</td>
-<td>Cholesky/LU/QR, Jacobi eigh, CG/GMRES</td>
+<td>Cholesky/LU/QR/SVD, Jacobi eigh, CG/GMRES with iterative refinement</td>
 </tr>
 <tr>
 <td><a href="trnsparse/">trnsparse</a></td>
 <td>cuSPARSE</td>
-<td>CSR/COO, SpMV, SpMM, Schwarz screening</td>
+<td>BSR-128 SpMM, Schwarz screening, block-sparse attention</td>
 </tr>
 <tr>
 <td><a href="trntensor/">trntensor</a></td>
 <td>cuTENSOR</td>
-<td>Einstein summation with planning, CP/Tucker</td>
+<td>Einstein summation with path planning, CP/Tucker/TT, multi-chip sharding</td>
 </tr>
 </tbody>
 </table>
 <h2 id="what-is-this-for">What is this for<a class="headerlink" href="#what-is-this-for" title="Permanent link">&para;</a></h2>
-<p>Workloads that don't fit into a deep-learning framework but still need fast linear algebra on accelerator hardware. Signal processing, quantum chemistry, Monte Carlo, spectral methods, sparse linear systems — all of them routinely depend on cuFFT, cuBLAS, and siblings. <code>trnsci</code> brings the same primitives to Trainium, with a PyTorch-first API and optional NKI kernels underneath.</p>
+<p>Two things at once.</p>
+<p><strong>Practically:</strong> workloads that depend on the CUDA cu* libraries — signal processing, quantum chemistry, Monte Carlo, sparse linear systems, tensor contractions — and need to run on Trainium without per-project rewrites.</p>
+<p><strong>Architecturally:</strong> every major silicon roadmap from 2022 onward has converged on tensor-native cores with FP32 accumulate on BF16/FP8/FP4 inputs and FP64 either halved, emulated, or absent. On H100 the FP64:BF16 throughput ratio is already 1:14.8; on B200 it is 1:61; cuBLAS in CUDA 13 now emulates FP64 DGEMM via the Ozaki scheme on FP8 tensor cores. Trainium was designed without an FP64 legacy to protect — it codified this architecture in 2020. trnsci is the library that treats the mixed-precision numerical-analysis literature (Carson–Higham iterative refinement, Ozaki-scheme FP64 emulation, stochastic rounding, randomized NLA) as the default API rather than an exotic overlay on an FP64-centric BLAS stack.</p>
+<p>See <a href="why/">why trnsci exists</a> for the full argument.</p>
+<h2 id="why-trainium-specifically">Why Trainium specifically<a class="headerlink" href="#why-trainium-specifically" title="Permanent link">&para;</a></h2>
+<p>The post-FP64 argument applies to every accelerator vendor. What makes Trainium the right target for a library built on that argument is that every feature the mixed-precision numerical-analysis community has spent a decade asking for is already present — and exposed to the programmer:</p>
+<ul>
+<li><strong>PSUM is a named, addressable FP32 accumulator.</strong> The 128×128 systolic array always writes its K-reduction result into PSUM in FP32, and every other engine (Vector, Scalar, GpSimd) can read and write PSUM. On NVIDIA tensor cores, the FP32 accumulator is hidden inside the WMMA abstraction. On Trainium it is named, sized, and programmable. This is what makes error-free transformations at systolic scale practical rather than theoretical.</li>
+<li><strong>Stochastic rounding is in the ISA.</strong> Per-instruction, controllable via <code>nisa.activation(..., round_mode="stochastic")</code>. Connolly–Higham–Mary (2021) proved SR replaces the worst-case K·u Krylov error bound with a mean-zero √K·u probabilistic bound — which is what makes BF16 iterative solvers converge rather than stagnate. On NVIDIA, SR requires a third-party library or a CUDA kernel. On Trainium it is one argument.</li>
+<li><strong>Determinism is structural.</strong> The compiler statically schedules all instructions and DMAs. Every kernel produces bitwise-identical output given a fixed seed — not as a ReproBLAS-style overlay, but as a default.</li>
+<li><strong>The compiler is open-source.</strong> NKI's MLIR backend (Apache 2.0) is public. Formal error bounds require inspecting the reduction order; on Trainium it is documented and stable.</li>
+<li><strong>Trainium3 adds per-block microscaling (MXFP8/MXFP4).</strong> These are the hardware realization of the per-block precision assumptions that mixed-precision HODLR, BLR-LU, and progressive-precision multigrid have been writing theorems about for years.</li>
+</ul>
+<p>No other shipping accelerator — H100, B200, MI300X, TPU Trillium, Gaudi 3 — exposes all five of these simultaneously with an open-source compiler. NVIDIA has PSUM-equivalent accumulators (hidden), no public SR ISA, and a proprietary compiler. AMD has none of the five. Google has none. Trainium is not missing FP64; it is the architecture the post-FP64 literature has been designing algorithms for. trnsci is the library that makes that concrete.</p>
 <h2 id="who-is-this-for">Who is this for<a class="headerlink" href="#who-is-this-for" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>CUDA programmers</strong> who want the mental model they already have to map onto Trainium. See the <a href="cuda_rosetta/">CUDA → trnsci Rosetta stone</a>.</li>
-<li><strong>Trainium programmers</strong> who want a scientific-computing library stack that isn't deep-learning-specific.</li>
+<li><strong>CUDA programmers</strong> migrating scientific workloads to Trainium. The <a href="cuda_rosetta/">CUDA → trnsci Rosetta stone</a> maps cu* symbols to their trnsci counterparts.</li>
+<li><strong>HPC and computational-science researchers</strong> who need certified accuracy at stated forward-error tolerances rather than a precision knob and a prayer.</li>
+<li><strong>Trainium programmers</strong> who want a scientific-computing library stack that exploits the hardware's architectural strengths — PSUM as a free FP32 accumulator, stochastic rounding in the ISA, deterministic dataflow — rather than working around them.</li>
 </ul>
 <h2 id="get-started">Get started<a class="headerlink" href="#get-started" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnsci<span class="o">[</span>all<span class="o">]</span>
 </code></pre></div>
-<p>Try the cross-library integration demo:</p>
+<p>Try the cross-library integration demo (composes trnblas, trnsolver, trntensor, and trnsparse into an end-to-end DF-MP2 energy evaluation, validated against PySCF to nanohartree tolerance):</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:trnsci/trnsci.git
 <span class="nb">cd</span><span class="w"> </span>trnsci
 make<span class="w"> </span>install-dev
 python<span class="w"> </span>examples/quantum_chemistry/df_mp2_synthetic.py<span class="w"> </span>--demo
 </code></pre></div>
 <h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
-<p>Phase 1 has landed across all six libraries. NKI paths run end-to-end and are exercised in CI via the NKI CPU simulator on every PR. Hardware validation on trn1 is complete for <strong>trnfft</strong> (butterfly FFT + complex GEMM, 70/70 benchmark cases) and <strong>trnblas</strong> (GEMM/SYRK + fused DF-MP2 energy, PySCF agreement to 10 µHa on H₂O / CH₄ / NH₃ at cc-pVDZ). <strong>trnsolver</strong>, <strong>trnsparse</strong>, and <strong>trntensor</strong> are simulator-validated with hardware runs in progress. <strong>trnrand</strong> is simulator-validated and blocked on a named upstream NKI integer-multiply issue (<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1308">aws-neuron-sdk#1308</a>); the PyTorch fallback is the default until that lands.</p>
+<p>Phase 1 has landed across all six libraries. NKI paths run end-to-end and are exercised in CI via the NKI CPU simulator on every PR. Hardware validation on trn1 is complete for <strong>trnfft</strong> (butterfly FFT + complex GEMM, 70/70 benchmark cases) and <strong>trnblas</strong> (GEMM/SYRK + fused DF-MP2 energy, PySCF agreement to 10 µHa on H₂O / CH₄ / NH₃ at cc-pVDZ). <strong>trnsolver</strong>, <strong>trnsparse</strong>, and <strong>trntensor</strong> are simulator-validated with hardware runs in progress. <strong>trnrand</strong> ships a hardware-validated Threefry4×32 path; Philox is blocked on a named upstream integer-multiply issue (<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1308">aws-neuron-sdk#1308</a>).</p>
 <p>PyTorch fallback works end-to-end on any machine, with or without Neuron hardware. The <a href="nki_validation_status/">NKI validation status page</a> carries the per-library detail.</p>
 <p>Read more:</p>
 <ul>
-<li><a href="why/">Why this exists</a></li>
-<li><a href="trainium_positioning/">Trainium's place between SMs and TPUs</a></li>
+<li><a href="why/">Why this exists</a> — the post-FP64 thesis</li>
+<li><a href="trainium_positioning/">Trainium as a numerical-computing substrate</a> — PSUM, SR, determinism, competitive context</li>
 <li><a href="cuda_rosetta/">CUDA → trnsci library mapping</a></li>
+<li><a href="roadmap/">Roadmap</a></li>
 <li><a href="workflows/integration/">Cross-library integration example</a></li>
 </ul>
-<p>Follow the <a href="blog/">blog</a> for monthly suite digests and technical deep-dives from the sub-project libraries.</p>
+<p>Follow the <a href="blog/">blog</a> for technical deep-dives from the sub-project libraries.</p>
 
 
 
