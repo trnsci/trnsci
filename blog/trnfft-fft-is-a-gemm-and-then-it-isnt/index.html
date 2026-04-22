@@ -5250,7 +5250,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              7 min read
+                              8 min read
                             
                           </span>
                         </div>
@@ -5463,6 +5463,48 @@ that names the constraint instead of failing silently.</p>
 </table>
 <p>DFT-GEMM values at N=64/256 are from v0.12 on SDK 2.24; other values on SDK 2.29.
 N=512 butterfly is extrapolated from per-stage timing (~739 µs/stage × 9 stages).</p>
+<p><strong>Forward error</strong> matters as much as wall-clock time. The <code>precision="fast"</code> butterfly
+accumulates O(u log₂N) FP32 rounding error; <code>precision="kahan"</code> (Dekker 2Prod
+compensated complex multiply) cuts it by 7–8× at no algorithmic change:</p>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>fast rel error</th>
+<th>kahan rel error</th>
+<th>improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256</td>
+<td>1.41e-6</td>
+<td>1.92e-7</td>
+<td>7.3×</td>
+</tr>
+<tr>
+<td>512</td>
+<td>2.15e-6</td>
+<td>2.69e-7</td>
+<td>8.0×</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>2.04e-6</td>
+<td>3.02e-7</td>
+<td>6.8×</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>3.60e-6</td>
+<td>4.55e-7</td>
+<td>7.9×</td>
+</tr>
+</tbody>
+</table>
+<p>Both paths are below 1e-3. Use <code>set_precision("kahan")</code> when your forward-error
+budget is tight — iterative solvers, spectral methods, anything that chains
+multiple FFTs.</p>
 <p><strong>Where Trainium is well-indexed for this:</strong> the Tensor engine maps naturally
 to both the small-N DFT-GEMM case (one large matmul) and the medium-N W₈ case
 (batched 8×8 matmuls across all groups simultaneously). The partition dimension
@@ -5474,15 +5516,19 @@ the 3-FFT pipeline. <code>precision="double"</code> is the escape hatch for thos
 the cost of CPU roundtripping since Trainium's PSUM is always FP32.</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Mixed-radix and N=1024 coverage.</strong> N=1024 = 4^5 and routes to radix-4 (5
-  stages). It is not a power of 8. A mixed radix-4 × radix-8 decomposition
-  (e.g. one radix-8 stage + two radix-4 stages) could cover it in 3 stages
-  instead of 5 while keeping the Tensor engine active.</li>
-<li><strong>Multi-NeuronCore distribution.</strong> Large N FFTs (N &gt; 4096) could be distributed
-  across NeuronCores by partitioning the batch dimension. This is the "future"
-  item listed in CLAUDE.md since v0.11.
-Issues tracking the above are open on <a href="https://github.com/trnsci/trnsci/issues">trnsci/trnsci</a>.</li>
+<li><strong>Mixed-radix Stockham shipped (v0.16).</strong> N=1024 ([8,8,4,4], 4 stages, −15% vs
+  radix-4) and N=2048 ([8,8,8,4], 4 stages, first Stockham coverage) are live.
+  <code>_mixed_radix_plan(n)</code> finds the optimal <code>[8^a, 4^b]</code> decomposition for any
+  power-of-2 N.</li>
+<li><strong>Iterative FFT refinement (research direction).</strong> Compute FFT in BF16 using the
+  Tensor engine; use the FP32 PSUM accumulator as a residual buffer; apply one
+  correction step. The result: BF16 throughput, near-FP32 accuracy — enabled by
+  PSUM being a structural FP32 accumulator that no one has exploited for FFT on a
+  production deterministic systolic array. This is the next post.</li>
+<li><strong>Multi-NeuronCore distribution.</strong> Large N FFTs (N &gt; 4096) partitioned across
+  NeuronCores. Linear speedup with core count; CLAUDE.md "future" since v0.11.</li>
 </ul>
+<p>Issues tracking the above are open on <a href="https://github.com/trnsci/trnsci/issues">trnsci/trnsci</a>.</p>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
 <p>FFT on Trainium is a problem about matching transform structure to engine
 capabilities, not about minimizing FLOP count. The DFT matrix IS a matmul —
