@@ -2,16 +2,18 @@
 
 A reference map between NVIDIA CUDA numerical libraries and their `trnsci` equivalents. If you're porting a CUDA codebase to Trainium, start here.
 
+One framing note before the symbol table: the CUDA cu\* libraries were designed for a hardware generation where FP64 was the native precision. Trainium was designed for the generation after that — BF16/FP8 tensor units with FP32 accumulate in addressable PSUM, stochastic rounding in the ISA, and no FP64 path to protect. This means the porting story is not purely mechanical symbol replacement. For workloads that relied on cuBLAS DGEMM's native FP64, the trnsci equivalent is GMRES-IR with BF16 factorization and FP32 residual via PSUM — which delivers the same Carson–Higham accuracy guarantee at lower cost. For workloads that used cuRAND for reproducible MC, trnrand's seeded Philox/Threefry paths preserve that contract. The table below maps symbols; [why trnsci exists](why.md) explains when the mapping is direct and when the algorithm changes.
+
 ## Library mapping
 
 | CUDA | `trnsci` | Scope | Notes |
 |---|---|---|---|
-| [cuFFT](https://docs.nvidia.com/cuda/cufft/) | [trnfft](https://github.com/trnsci/trnfft) | FFT, complex tensors, STFT | Trainium has no complex dtype — split real/imag |
-| [cuBLAS](https://docs.nvidia.com/cuda/cublas/) | [trnblas](https://github.com/trnsci/trnblas) | BLAS Levels 1–3, batched GEMM | FP32-only; FP64 via double-double is future work |
-| [cuRAND](https://docs.nvidia.com/cuda/curand/) | [trnrand](https://github.com/trnsci/trnrand) | Philox PRNG, Sobol/Halton QMC | Counter-based, stateless |
-| [cuSOLVER](https://docs.nvidia.com/cuda/cusolver/) | [trnsolver](https://github.com/trnsci/trnsolver) | Factorizations, eigendecomposition | Jacobi for `eigh` (tile-friendly) |
-| [cuSPARSE](https://docs.nvidia.com/cuda/cusparse/) | [trnsparse](https://github.com/trnsci/trnsparse) | Sparse formats, SpMV/SpMM | Gather-matmul-scatter over DMA + Tensor Engine |
-| [cuTENSOR](https://docs.nvidia.com/cuda/cutensor/) | [trntensor](https://github.com/trnsci/trntensor) | Einstein summation with planning | Dispatch to matmul / bmm / einsum / NKI |
+| [cuFFT](https://docs.nvidia.com/cuda/cufft/) | [trnfft](https://github.com/trnsci/trnfft) | FFT, complex tensors, STFT | No complex dtype — split real/imag; DFT-as-GEMM fast path at small N |
+| [cuBLAS](https://docs.nvidia.com/cuda/cublas/) | [trnblas](https://github.com/trnsci/trnblas) | BLAS Levels 1–3, batched GEMM | BF16+FP32-accum (PSUM); FP64 accuracy via GMRES-IR or Ozaki (Phase 2) |
+| [cuRAND](https://docs.nvidia.com/cuda/curand/) | [trnrand](https://github.com/trnsci/trnrand) | Philox/Threefry PRNG, Sobol/Halton QMC | Counter-based, stateless; GpSimd engine target |
+| [cuSOLVER](https://docs.nvidia.com/cuda/cusolver/) | [trnsolver](https://github.com/trnsci/trnsolver) | Factorizations, eigendecomposition, Krylov | Jacobi `eigh` (tile-native); GMRES-IR for solve to κ ≲ 10⁷ |
+| [cuSPARSE](https://docs.nvidia.com/cuda/cusparse/) | [trnsparse](https://github.com/trnsci/trnsparse) | Sparse formats, SpMV/SpMM | BSR-128 is the native compute format; CSR is interop |
+| [cuTENSOR](https://docs.nvidia.com/cuda/cutensor/) | [trntensor](https://github.com/trnsci/trntensor) | Einstein summation with planning, decompositions | Fused multi-contraction kernels; PSUM-resident intermediates |
 
 ## Per-library detail
 
