@@ -5103,6 +5103,51 @@
             in
             
               <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trnfft/" class="md-meta__link">trnfft</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              6 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnfft-the-fp32-accumulator-you-didnt-know-you-had"><a class="toclink" href="../../trnfft-the-fp32-accumulator-you-didnt-know-you-had/">trnfft: the FP32 accumulator you didn't know you had</a></h2>
+<p>trnfft v0.17 ships two new precision modes — <code>"bf16"</code> and <code>"bf16_refined"</code> — for the
+DFT-GEMM fast path. The headline numbers: 1.4–1.5× faster than FP32 at N=64–256 on trn1,
+with near-FP32 accuracy after one correction step. The mechanism is an architectural
+property of Trainium that was already present in every kernel, just never exploited.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnfft-the-fp32-accumulator-you-didnt-know-you-had/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
               <a href="../trntensor/" class="md-meta__link">trntensor</a></li>
         
         
@@ -5125,6 +5170,48 @@
     
       <nav class="md-post__action">
         <a href="../../trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trntensor/" class="md-meta__link">trntensor</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              6 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trntensor-v0130-precision-all-the-way-down"><a class="toclink" href="../../trntensor-v0130-precision-all-the-way-down/">trntensor v0.13.0: precision all the way down</a></h2>
+<p><a href="https://trnsci.dev/blog/trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">v0.11.0</a> introduced <code>precision="sr"</code> and wired it to <code>_execute_matmul</code>. Two dispatch paths were never connected: <code>_execute_bmm</code> silently ran at fast rounding regardless of what the caller asked for, and <code>multi_einsum</code> had no <code>precision=</code> parameter at all. v0.13.0 closes both gaps. The fix was small; the reason it matters is architectural.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trntensor-v0130-precision-all-the-way-down/">
           Continue reading
         </a>
       </nav>
@@ -5431,96 +5518,6 @@ actually beats chunk-GEMM.</p>
     
       <nav class="md-post__action">
         <a href="../../trntensor-v030v070-dispatch-granularity-is-the-architecture/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-16 00:00:00+00:00">April 16, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trnrand/" class="md-meta__link">trnrand</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm"><a class="toclink" href="../../trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm/">trnrand: the integer-multiply gap pointed to a better algorithm</a></h2>
-<p>The <a href="https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">previous trnrand post</a> closed with:
-"the silicon just needs one more op to let the library say it out loud."
-<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1308">aws-neuron-sdk#1308</a>
-is still open. trnrand 0.4.0 ships hardware-validated uniform RNG on trn1 anyway
-— not by fixing Philox, but by using Threefry4x32-20, the PRNG Salmon et al.
-designed in the same SC'11 paper for hardware without fast integer multiply.
-The library said it out loud without waiting for the op.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-16 00:00:00+00:00">April 16, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trnsparse/" class="md-meta__link">trnsparse</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              5 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnsparse-the-attention-mask-is-a-bsrmatrix"><a class="toclink" href="../../trnsparse-the-attention-mask-is-a-bsrmatrix/">trnsparse: the attention mask is a BSRMatrix</a></h2>
-<p>trnsparse v0.4.2 added a block-sparse attention primitive without writing a new kernel. The mechanism is straightforward in hindsight — <code>BSRMatrix</code> already stores a matrix as 128×128 blocks plus a block-level sparsity pattern, and the post-softmax attention weight matrix with a local-window mask is exactly that structure — but the implication took a moment to land: trnsparse, built as a quantum-chemistry cuSPARSE replacement, already spoke transformer.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trnsparse-the-attention-mask-is-a-bsrmatrix/">
           Continue reading
         </a>
       </nav>

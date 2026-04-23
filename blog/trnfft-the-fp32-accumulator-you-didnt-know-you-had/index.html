@@ -6,35 +6,33 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Suite digests and technical deep-dives from the trnsci scientific computing suite for AWS Trainium.">
+        <meta name="description" content="Scientific computing libraries for AWS Trainium">
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trnfft-the-fp32-accumulator-you-didnt-know-you-had/">
       
       
-        <link rel="prev" href="../nki_validation_status/">
+        <link rel="prev" href="../trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">
       
-      
-        <link rel="next" href="category/announcements/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Blog - trnsci</title>
+        <title>trnfft: the FP32 accumulator you didn't know you had - trnsci</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/blog.css">
+      <link rel="stylesheet" href="../../stylesheets/blog.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trnsci-blog" class="md-skip">
+        <a href="#trnfft-the-fp32-accumulator-you-didnt-know-you-had" class="md-skip">
           Skip to content
         </a>
       
@@ -92,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-header__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -112,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Blog
+              trnfft: the FP32 accumulator you didn't know you had
             
           </span>
         </div>
@@ -197,7 +195,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -216,7 +214,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../why/" class="md-tabs__link">
+      <a href="../../why/" class="md-tabs__link">
         
   
   
@@ -235,7 +233,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../cuda_rosetta/" class="md-tabs__link">
+      <a href="../../cuda_rosetta/" class="md-tabs__link">
         
   
   
@@ -254,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../trainium_positioning/" class="md-tabs__link">
+      <a href="../../trainium_positioning/" class="md-tabs__link">
         
   
   
@@ -273,7 +271,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../roadmap/" class="md-tabs__link">
+      <a href="../../roadmap/" class="md-tabs__link">
         
   
   
@@ -292,7 +290,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../nki_validation_status/" class="md-tabs__link">
+      <a href="../../nki_validation_status/" class="md-tabs__link">
         
   
   
@@ -315,7 +313,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -337,7 +335,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
+        <a href="../../installation/" class="md-tabs__link">
           
   
   
@@ -359,7 +357,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../workflows/integration/" class="md-tabs__link">
+        <a href="../../workflows/integration/" class="md-tabs__link">
           
   
   
@@ -388,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../trnfft/" class="md-tabs__link">
+        <a href="../../trnfft/" class="md-tabs__link">
           
   
   
@@ -411,7 +409,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link">
+      <a href="../../contributing/" class="md-tabs__link">
         
   
   
@@ -430,7 +428,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../disclaimer/" class="md-tabs__link">
+      <a href="../../disclaimer/" class="md-tabs__link">
         
   
   
@@ -456,7 +454,7 @@
               
                 
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -467,7 +465,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
+    <a href="../.." title="trnsci" class="md-nav__button md-logo" aria-label="trnsci" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -497,7 +495,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -524,7 +522,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../why/" class="md-nav__link">
+      <a href="../../why/" class="md-nav__link">
         
   
   
@@ -551,7 +549,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../cuda_rosetta/" class="md-nav__link">
+      <a href="../../cuda_rosetta/" class="md-nav__link">
         
   
   
@@ -578,7 +576,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trainium_positioning/" class="md-nav__link">
+      <a href="../../trainium_positioning/" class="md-nav__link">
         
   
   
@@ -605,7 +603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../roadmap/" class="md-nav__link">
+      <a href="../../roadmap/" class="md-nav__link">
         
   
   
@@ -632,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../nki_validation_status/" class="md-nav__link">
+      <a href="../../nki_validation_status/" class="md-nav__link">
         
   
   
@@ -689,7 +687,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -707,7 +705,7 @@
             </a>
             
               
-              <label class="md-nav__link md-nav__link--active" for="__nav_7" id="__nav_7_label" tabindex="">
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -810,7 +808,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/announcements/" class="md-nav__link">
+      <a href="../category/announcements/" class="md-nav__link">
         
   
   
@@ -840,7 +838,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/deep-dive/" class="md-nav__link">
+      <a href="../category/deep-dive/" class="md-nav__link">
         
   
   
@@ -870,7 +868,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/ecosystem/" class="md-nav__link">
+      <a href="../category/ecosystem/" class="md-nav__link">
         
   
   
@@ -900,7 +898,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/trnblas/" class="md-nav__link">
+      <a href="../category/trnblas/" class="md-nav__link">
         
   
   
@@ -930,7 +928,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/trnfft/" class="md-nav__link">
+      <a href="../category/trnfft/" class="md-nav__link">
         
   
   
@@ -960,7 +958,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/trnrand/" class="md-nav__link">
+      <a href="../category/trnrand/" class="md-nav__link">
         
   
   
@@ -990,7 +988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/trnsolver/" class="md-nav__link">
+      <a href="../category/trnsolver/" class="md-nav__link">
         
   
   
@@ -1020,7 +1018,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/trnsparse/" class="md-nav__link">
+      <a href="../category/trnsparse/" class="md-nav__link">
         
   
   
@@ -1050,7 +1048,7 @@
   
   
     <li class="md-nav__item">
-      <a href="category/trntensor/" class="md-nav__link">
+      <a href="../category/trntensor/" class="md-nav__link">
         
   
   
@@ -1151,7 +1149,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -1179,7 +1177,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../deployment/" class="md-nav__link">
+      <a href="../../deployment/" class="md-nav__link">
         
   
   
@@ -1274,7 +1272,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../workflows/integration/" class="md-nav__link">
+      <a href="../../workflows/integration/" class="md-nav__link">
         
   
   
@@ -1302,7 +1300,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../workflows/speech_enhancement/" class="md-nav__link">
+      <a href="../../workflows/speech_enhancement/" class="md-nav__link">
         
   
   
@@ -1330,7 +1328,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../workflows/quantum_chemistry/" class="md-nav__link">
+      <a href="../../workflows/quantum_chemistry/" class="md-nav__link">
         
   
   
@@ -1466,7 +1464,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnfft/" class="md-nav__link ">
+            <a href="../../trnfft/" class="md-nav__link ">
               
   
   
@@ -1510,7 +1508,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/installation/" class="md-nav__link">
+      <a href="../../trnfft/installation/" class="md-nav__link">
         
   
   
@@ -1538,7 +1536,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/quickstart/" class="md-nav__link">
+      <a href="../../trnfft/quickstart/" class="md-nav__link">
         
   
   
@@ -1628,7 +1626,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/api/fft/" class="md-nav__link">
+      <a href="../../trnfft/api/fft/" class="md-nav__link">
         
   
   
@@ -1656,7 +1654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/api/complex/" class="md-nav__link">
+      <a href="../../trnfft/api/complex/" class="md-nav__link">
         
   
   
@@ -1684,7 +1682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/api/nn/" class="md-nav__link">
+      <a href="../../trnfft/api/nn/" class="md-nav__link">
         
   
   
@@ -1712,7 +1710,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/api/nki/" class="md-nav__link">
+      <a href="../../trnfft/api/nki/" class="md-nav__link">
         
   
   
@@ -1748,7 +1746,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/architecture/" class="md-nav__link">
+      <a href="../../trnfft/architecture/" class="md-nav__link">
         
   
   
@@ -1776,7 +1774,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/benchmarks/" class="md-nav__link">
+      <a href="../../trnfft/benchmarks/" class="md-nav__link">
         
   
   
@@ -1860,7 +1858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnfft/aws_setup/" class="md-nav__link">
+      <a href="../../trnfft/aws_setup/" class="md-nav__link">
         
   
   
@@ -1943,7 +1941,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnblas/" class="md-nav__link ">
+            <a href="../../trnblas/" class="md-nav__link ">
               
   
   
@@ -1987,7 +1985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/installation/" class="md-nav__link">
+      <a href="../../trnblas/installation/" class="md-nav__link">
         
   
   
@@ -2015,7 +2013,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/quickstart/" class="md-nav__link">
+      <a href="../../trnblas/quickstart/" class="md-nav__link">
         
   
   
@@ -2105,7 +2103,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/api/level1/" class="md-nav__link">
+      <a href="../../trnblas/api/level1/" class="md-nav__link">
         
   
   
@@ -2133,7 +2131,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/api/level2/" class="md-nav__link">
+      <a href="../../trnblas/api/level2/" class="md-nav__link">
         
   
   
@@ -2161,7 +2159,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/api/level3/" class="md-nav__link">
+      <a href="../../trnblas/api/level3/" class="md-nav__link">
         
   
   
@@ -2189,7 +2187,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/api/nki/" class="md-nav__link">
+      <a href="../../trnblas/api/nki/" class="md-nav__link">
         
   
   
@@ -2225,7 +2223,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/architecture/" class="md-nav__link">
+      <a href="../../trnblas/architecture/" class="md-nav__link">
         
   
   
@@ -2309,7 +2307,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/developing_kernels/" class="md-nav__link">
+      <a href="../../trnblas/developing_kernels/" class="md-nav__link">
         
   
   
@@ -2403,7 +2401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
         
   
   
@@ -2431,7 +2429,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
+      <a href="../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
         
   
   
@@ -2467,7 +2465,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/benchmarks/" class="md-nav__link">
+      <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
   
   
@@ -2551,7 +2549,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnblas/aws_setup/" class="md-nav__link">
+      <a href="../../trnblas/aws_setup/" class="md-nav__link">
         
   
   
@@ -2640,7 +2638,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnrand/" class="md-nav__link ">
+            <a href="../../trnrand/" class="md-nav__link ">
               
   
   
@@ -2684,7 +2682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/installation/" class="md-nav__link">
+      <a href="../../trnrand/installation/" class="md-nav__link">
         
   
   
@@ -2712,7 +2710,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/quickstart/" class="md-nav__link">
+      <a href="../../trnrand/quickstart/" class="md-nav__link">
         
   
   
@@ -2802,7 +2800,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/api/generator/" class="md-nav__link">
+      <a href="../../trnrand/api/generator/" class="md-nav__link">
         
   
   
@@ -2830,7 +2828,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/api/distributions/" class="md-nav__link">
+      <a href="../../trnrand/api/distributions/" class="md-nav__link">
         
   
   
@@ -2858,7 +2856,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/api/quasi/" class="md-nav__link">
+      <a href="../../trnrand/api/quasi/" class="md-nav__link">
         
   
   
@@ -2886,7 +2884,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/api/nki/" class="md-nav__link">
+      <a href="../../trnrand/api/nki/" class="md-nav__link">
         
   
   
@@ -2922,7 +2920,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/architecture/" class="md-nav__link">
+      <a href="../../trnrand/architecture/" class="md-nav__link">
         
   
   
@@ -3006,7 +3004,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/developing_kernels/" class="md-nav__link">
+      <a href="../../trnrand/developing_kernels/" class="md-nav__link">
         
   
   
@@ -3100,7 +3098,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
+      <a href="../../trnrand/design/sbuf_resident_generator/" class="md-nav__link">
         
   
   
@@ -3128,7 +3126,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
+      <a href="../../trnrand/design/counter_partitioned_multichip/" class="md-nav__link">
         
   
   
@@ -3164,7 +3162,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/roadmap/" class="md-nav__link">
+      <a href="../../trnrand/roadmap/" class="md-nav__link">
         
   
   
@@ -3192,7 +3190,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/benchmarks/" class="md-nav__link">
+      <a href="../../trnrand/benchmarks/" class="md-nav__link">
         
   
   
@@ -3276,7 +3274,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/aws_setup/" class="md-nav__link">
+      <a href="../../trnrand/aws_setup/" class="md-nav__link">
         
   
   
@@ -3312,7 +3310,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/release/" class="md-nav__link">
+      <a href="../../trnrand/release/" class="md-nav__link">
         
   
   
@@ -3340,7 +3338,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnrand/stability/" class="md-nav__link">
+      <a href="../../trnrand/stability/" class="md-nav__link">
         
   
   
@@ -3413,7 +3411,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnsolver/" class="md-nav__link ">
+            <a href="../../trnsolver/" class="md-nav__link ">
               
   
   
@@ -3457,7 +3455,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/installation/" class="md-nav__link">
+      <a href="../../trnsolver/installation/" class="md-nav__link">
         
   
   
@@ -3485,7 +3483,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/quickstart/" class="md-nav__link">
+      <a href="../../trnsolver/quickstart/" class="md-nav__link">
         
   
   
@@ -3575,7 +3573,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/api/eigen/" class="md-nav__link">
+      <a href="../../trnsolver/api/eigen/" class="md-nav__link">
         
   
   
@@ -3603,7 +3601,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/api/factor/" class="md-nav__link">
+      <a href="../../trnsolver/api/factor/" class="md-nav__link">
         
   
   
@@ -3631,7 +3629,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/api/iterative/" class="md-nav__link">
+      <a href="../../trnsolver/api/iterative/" class="md-nav__link">
         
   
   
@@ -3659,7 +3657,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/api/nki/" class="md-nav__link">
+      <a href="../../trnsolver/api/nki/" class="md-nav__link">
         
   
   
@@ -3695,7 +3693,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/architecture/" class="md-nav__link">
+      <a href="../../trnsolver/architecture/" class="md-nav__link">
         
   
   
@@ -3723,7 +3721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/benchmarks/" class="md-nav__link">
+      <a href="../../trnsolver/benchmarks/" class="md-nav__link">
         
   
   
@@ -3807,7 +3805,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/aws_setup/" class="md-nav__link">
+      <a href="../../trnsolver/aws_setup/" class="md-nav__link">
         
   
   
@@ -3899,7 +3897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsolver/developing_kernels/" class="md-nav__link">
+      <a href="../../trnsolver/developing_kernels/" class="md-nav__link">
         
   
   
@@ -3984,7 +3982,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trnsparse/" class="md-nav__link ">
+            <a href="../../trnsparse/" class="md-nav__link ">
               
   
   
@@ -4028,7 +4026,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/installation/" class="md-nav__link">
+      <a href="../../trnsparse/installation/" class="md-nav__link">
         
   
   
@@ -4056,7 +4054,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/quickstart/" class="md-nav__link">
+      <a href="../../trnsparse/quickstart/" class="md-nav__link">
         
   
   
@@ -4084,7 +4082,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/api/" class="md-nav__link">
+      <a href="../../trnsparse/api/" class="md-nav__link">
         
   
   
@@ -4112,7 +4110,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/architecture/" class="md-nav__link">
+      <a href="../../trnsparse/architecture/" class="md-nav__link">
         
   
   
@@ -4140,7 +4138,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/migration_scipy/" class="md-nav__link">
+      <a href="../../trnsparse/migration_scipy/" class="md-nav__link">
         
   
   
@@ -4168,7 +4166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/benchmarks/" class="md-nav__link">
+      <a href="../../trnsparse/benchmarks/" class="md-nav__link">
         
   
   
@@ -4196,7 +4194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/iterative_solvers/" class="md-nav__link">
+      <a href="../../trnsparse/iterative_solvers/" class="md-nav__link">
         
   
   
@@ -4224,7 +4222,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/sparse_attention/" class="md-nav__link">
+      <a href="../../trnsparse/sparse_attention/" class="md-nav__link">
         
   
   
@@ -4308,7 +4306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trnsparse/aws_setup/" class="md-nav__link">
+      <a href="../../trnsparse/aws_setup/" class="md-nav__link">
         
   
   
@@ -4389,7 +4387,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trntensor/" class="md-nav__link ">
+            <a href="../../trntensor/" class="md-nav__link ">
               
   
   
@@ -4433,7 +4431,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/installation/" class="md-nav__link">
+      <a href="../../trntensor/installation/" class="md-nav__link">
         
   
   
@@ -4461,7 +4459,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/quickstart/" class="md-nav__link">
+      <a href="../../trntensor/quickstart/" class="md-nav__link">
         
   
   
@@ -4522,7 +4520,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../trntensor/api/" class="md-nav__link ">
+            <a href="../../trntensor/api/" class="md-nav__link ">
               
   
   
@@ -4566,7 +4564,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/einsum/" class="md-nav__link">
+      <a href="../../trntensor/api/einsum/" class="md-nav__link">
         
   
   
@@ -4594,7 +4592,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/plan/" class="md-nav__link">
+      <a href="../../trntensor/api/plan/" class="md-nav__link">
         
   
   
@@ -4622,7 +4620,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/decompose/" class="md-nav__link">
+      <a href="../../trntensor/api/decompose/" class="md-nav__link">
         
   
   
@@ -4650,7 +4648,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/quantum/" class="md-nav__link">
+      <a href="../../trntensor/api/quantum/" class="md-nav__link">
         
   
   
@@ -4678,7 +4676,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/api/nki/" class="md-nav__link">
+      <a href="../../trntensor/api/nki/" class="md-nav__link">
         
   
   
@@ -4714,7 +4712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/architecture/" class="md-nav__link">
+      <a href="../../trntensor/architecture/" class="md-nav__link">
         
   
   
@@ -4742,7 +4740,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/benchmarks/" class="md-nav__link">
+      <a href="../../trntensor/benchmarks/" class="md-nav__link">
         
   
   
@@ -4828,7 +4826,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/tutorial_df_mp2/" class="md-nav__link">
+      <a href="../../trntensor/tutorial_df_mp2/" class="md-nav__link">
         
   
   
@@ -4856,7 +4854,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/contraction_patterns/" class="md-nav__link">
+      <a href="../../trntensor/contraction_patterns/" class="md-nav__link">
         
   
   
@@ -4948,7 +4946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../trntensor/aws_setup/" class="md-nav__link">
+      <a href="../../trntensor/aws_setup/" class="md-nav__link">
         
   
   
@@ -4999,7 +4997,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../contributing/" class="md-nav__link">
+      <a href="../../contributing/" class="md-nav__link">
         
   
   
@@ -5026,7 +5024,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../disclaimer/" class="md-nav__link">
+      <a href="../../disclaimer/" class="md-nav__link">
         
   
   
@@ -5068,6 +5066,102 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-architecture-suggests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the architecture suggests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The approach
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-didnt-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What didn't work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Numbers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's next
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#takeaway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Takeaway
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -5075,460 +5169,302 @@
             
           
           
-  <div class="md-content" data-md-component="content">
-    <div class="md-content__inner">
-      <header class="md-typeset">
-        <h1 id="trnsci-blog">trnsci blog<a class="headerlink" href="#trnsci-blog" title="Permanent link">&para;</a></h1>
-<p>Three tracks: monthly suite digests, bylined technical deep-dives from sub-project maintainers when non-trivial work ships, and occasional thinking pieces about Trainium's place in the accelerator landscape.</p>
-      </header>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
             
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+                        <time datetime="2026-04-22 00:00:00+00:00" class="md-ellipsis">April 22, 2026</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../category/deep-dive/">Deep dive</a>, 
+                              <a href="../category/trnfft/">trnfft</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              6 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
           
-          <li class="md-meta__item">
-            
-              6 min read
-            
-          </li>
-        
-        
-      </ul>
-      
+        </div>
+      </div>
     </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-the-fp32-accumulator-you-didnt-know-you-had"><a class="toclink" href="trnfft-the-fp32-accumulator-you-didnt-know-you-had/">trnfft: the FP32 accumulator you didn't know you had</a></h2>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+  
+  
+
+
+<h1 id="trnfft-the-fp32-accumulator-you-didnt-know-you-had">trnfft: the FP32 accumulator you didn't know you had<a class="headerlink" href="#trnfft-the-fp32-accumulator-you-didnt-know-you-had" title="Permanent link">&para;</a></h1>
 <p>trnfft v0.17 ships two new precision modes — <code>"bf16"</code> and <code>"bf16_refined"</code> — for the
 DFT-GEMM fast path. The headline numbers: 1.4–1.5× faster than FP32 at N=64–256 on trn1,
 with near-FP32 accuracy after one correction step. The mechanism is an architectural
 property of Trainium that was already present in every kernel, just never exploited.</p>
+<!-- more -->
 
-    
-      <nav class="md-post__action">
-        <a href="trnfft-the-fp32-accumulator-you-didnt-know-you-had/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0120-the-last-notimplementederror-completing-the-sharding-contract"><a class="toclink" href="trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">trntensor v0.12.0: the last NotImplementedError — completing the sharding contract</a></h2>
-<p>v0.12.0 closes the last <code>NotImplementedError</code> on the CPU-testable sharding surface. The <code>_execute_sharded</code> function could already name two operand types — output-parallel (sharding dimension maps to an output index) and reduce-parallel (sharding dimension maps to a contracted index) — but a single einsum containing both kinds raised <code>NotImplementedError("Mixed…")</code>. v0.12.0 replaces that raise with a nested dispatch loop. The architectural story is that Trainium's multi-chip topology named this loop structure before the code existed to implement it.</p>
+<h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
+<p>BF16 on neural network hardware is a throughput story. A BF16 Tensor Engine tile fits
+twice as many elements as an FP32 tile in the same systolic array pass — roughly 2× the
+arithmetic operations per second. For large matrix multiplications (the workload the
+Tensor Engine was designed for), that theoretical 2× translates almost directly to wall-
+clock throughput.</p>
+<p>FFT at small N is not that workload. At N=256, the DFT matrix is 256×256 = 65,536
+complex entries. The one-matmul DFT-GEMM path (<code>W @ x</code>) dispatches a single <code>nc_matmul</code>
+call and returns — the bottleneck is launch overhead and memory bandwidth, not arithmetic.
+The standard BF16 story (2× arithmetic → 2× throughput) doesn't hold when you're memory-
+bound.</p>
+<p>The more interesting question: if BF16 doesn't give 2× throughput, what does it give, and
+is there a way to get accuracy back?</p>
+<h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
+<p>The Tensor Engine accumulates into PSUM at FP32 regardless of input dtype. This is a
+hardware invariant: every <code>nisa.nc_matmul</code> call, whether its inputs are FP32, BF16, or
+FP16, writes to a FP32 PSUM tile. The PSUM is wider than the SBUF (FP32 vs BF16/FP8) by
+design — it's the place where accumulated rounding errors are suppressed.</p>
+<p>The existing <code>_complex_gemm_kernel</code> throws this away. Lines 190–192 of <code>dispatch.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">a_real</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+    <span class="n">cr_sbuf</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">cr_sbuf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">a_real</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>   <span class="c1"># ← discards FP32 PSUM</span>
+    <span class="n">ci_sbuf</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">ci_sbuf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">a_real</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+</code></pre></div>
+<p>The kernel casts the FP32 PSUM back to the input dtype before storing. For FP32 inputs
+this is a no-op. For BF16 inputs, it rounds the accumulated FP32 result back to BF16 —
+discarding the accumulation precision that the hardware worked to maintain.</p>
+<p>The architectural suggestion: skip the cast. Store the FP32 PSUM directly.</p>
+<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
+<p><code>_complex_gemm_kernel_bf16</code> is a two-line diff from the existing kernel. The output HBM
+buffers are allocated as <code>nl.float32</code> instead of <code>a_real.dtype</code>, and the <code>nl.cast</code> block
+is removed. The nc_matmul calls, the PSUM accumulation, the tile tiling logic — all
+unchanged.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Output is always FP32, regardless of BF16 input dtype</span>
+<span class="n">c_real</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+<span class="n">c_imag</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
+<span class="c1"># ... nc_matmul accumulation unchanged ...</span>
+<span class="n">nisa</span><span class="o">.</span><span class="n">tensor_copy</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">cr_sbuf</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="n">psum_cr</span><span class="p">)</span>
+<span class="c1"># No nl.cast — FP32 PSUM goes directly to output</span>
+<span class="n">nl</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">c_real</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">cr_sbuf</span><span class="p">)</span>
+</code></pre></div>
+<p>The driver <code>_fft_via_gemm_bf16</code> quantises <code>x</code> and <code>W</code> to BF16 before the call. One
+subtlety: <code>W</code> entries are computed in FP32 then quantised, not computed in BF16 directly.
+Computing the DFT angles in BF16 introduces quantisation in the exponent (k × j can reach
+3969 at N=64; BF16 represents that as 3968, giving a ~0.1 radian angle error). Computing
+in FP32 and rounding the cosine/sine values gives ~4e-3 entry error, which is what BF16
+accuracy means.</p>
+<p><strong><code>precision="bf16_refined"</code> — one iterative correction step:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">X̂</span> <span class="o">=</span> <span class="n">fft_bf16</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c1"># BF16 → FP32 PSUM → FP32 output</span>
+<span class="n">r</span>  <span class="o">=</span> <span class="n">x_fp32</span> <span class="err">−</span> <span class="n">IFFT</span><span class="p">(</span><span class="n">X̂</span><span class="p">)</span>   <span class="c1"># FP32 residual: what the BF16 path got wrong</span>
+<span class="n">X̂</span>  <span class="o">=</span> <span class="n">X̂</span> <span class="o">+</span> <span class="n">fft_bf16</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>    <span class="c1"># correction (residual is small → BF16 ok)</span>
+</code></pre></div>
+<p>The residual <code>r</code> corrects for the BF16 <code>W</code> quantisation error. After one step, the error
+drops from ~1e-3 (BF16 <code>W</code>) to near-FP32 levels. The residual is small by construction —
+the BF16 path already gets within ~1e-3 — so applying BF16 compute to it introduces only
+~1e-3 × 1e-3 = 1e-6 of additional error. The correction converges.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p>The CPU fallback for <code>complex_gemm_bf16</code> casts BF16 inputs to FP32 before <code>complex_matmul</code>
+to simulate the FP32 PSUM behaviour. On CPU, PyTorch's BF16 <code>torch.matmul</code> accumulates in
+BF16 (no FP32 PSUM), giving ~50% relative error at N=64. The cast fixes this and makes
+the CPU path a faithful simulator of hardware behaviour — same ~1e-3 accuracy from BF16
+<code>W</code> quantisation, same FP32 output, just slower.</p>
+<p>The dispatch adds two new precision modes before the existing <code>"fast"</code> DFT-GEMM check:</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;bf16&quot;</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">_DFT_GEMM_THRESHOLD</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">_fft_via_gemm_bf16</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">inverse</span><span class="p">)</span>
 
-    
-      <nav class="md-post__action">
-        <a href="trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              6 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0130-precision-all-the-way-down"><a class="toclink" href="trntensor-v0130-precision-all-the-way-down/">trntensor v0.13.0: precision all the way down</a></h2>
-<p><a href="https://trnsci.dev/blog/trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">v0.11.0</a> introduced <code>precision="sr"</code> and wired it to <code>_execute_matmul</code>. Two dispatch paths were never connected: <code>_execute_bmm</code> silently ran at fast rounding regardless of what the caller asked for, and <code>multi_einsum</code> had no <code>precision=</code> parameter at all. v0.13.0 closes both gaps. The fix was small; the reason it matters is architectural.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trntensor-v0130-precision-all-the-way-down/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-21 00:00:00+00:00">April 21, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary"><a class="toclink" href="trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">trntensor v0.11.0: stochastic rounding at the PSUM→SBUF boundary</a></h2>
-<p>v0.11.0's headline is one argument: <code>precision="sr"</code> on a matmul dispatch call. The architectural story is that Trainium's PSUM buffer makes stochastic rounding a one-instruction hardware primitive instead of an external library. Anyone using trntensor for iterative BF16 workloads — Krylov solvers, iterative refinement, or long batched contractions — should care about this.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-21 00:00:00+00:00">April 21, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              7 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0100-the-test-surface-names-the-interface"><a class="toclink" href="trntensor-v0100-the-test-surface-names-the-interface/">trntensor v0.10.0: the test surface names the interface</a></h2>
-<p>v0.9.0 gated reduce-parallel sharding behind <code>NotImplementedError</code> on both CPU and Trainium — <code>nki.collectives</code> wasn't in NKI 0.3.0 Stable and that was that. v0.10.0 lifts the gate on CPU: reduce-parallel sharding now dispatches through a named mock all-reduce, making the full Phase 4 test surface runnable without hardware. The mock is not a shortcut — it is documentation of the exact interface <code>nki.collectives.allreduce</code> will need to satisfy when SDK 2.30+ ships.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trntensor-v0100-the-test-surface-names-the-interface/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-20 00:00:00+00:00">April 20, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-fft-is-a-gemm-and-then-it-isnt"><a class="toclink" href="trnfft-fft-is-a-gemm-and-then-it-isnt/">trnfft: FFT is a GEMM, and then it isn't</a></h2>
-<p>trnfft v0.12–v0.15 shipped three new FFT dispatch paths — DFT-GEMM, Stockham
-radix-4 with twiddle precomputation, and Stockham radix-8 with a Tensor-engine
-W₈ kernel — producing 20–37% improvements over the butterfly baseline at medium
-and large N. The architectural argument running through all three is the same:
-on Trainium, the bottleneck is not arithmetic but engine utilization and kernel
-launches. Whether that argument holds at a given N, and at what cost, is where
-most of the engineering work actually lived.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trnfft-fft-is-a-gemm-and-then-it-isnt/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-18 00:00:00+00:00">April 18, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnsolver/" class="md-meta__link">trnsolver</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms"><a class="toclink" href="trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/">trnsolver v0.10.0: Schur decomposition and the architecture of two-stage algorithms</a></h2>
-<p>v0.10.0 ships <code>schur(A)</code> — <code>A = Q @ T @ Q.T</code>, T quasi-upper-triangular — closing the last open item in trnsolver's factorization table. The implementation uses Householder-QR throughout, and the reason that works on Trainium is the same reason the <a href="https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">earlier Jacobi path for <code>eigh</code></a> eventually had to grow a second stage: two-stage algorithms present uniform-shape kernel calls, and uniform shapes keep the NEFF cache warm.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-18 00:00:00+00:00">April 18, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              7 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v080v090-dispatch-owns-routing-and-placement"><a class="toclink" href="trntensor-v080v090-dispatch-owns-routing-and-placement/">trntensor v0.8.0–v0.9.0: dispatch owns routing and placement</a></h2>
-<p>v0.8.0 closed a gap where every binary step in a 3+ operand chain bypassed the dispatch layer entirely — calling <code>torch.einsum</code> directly, invisible to the FLOP threshold and the NKI kernel, silently skipping up to 134 GFLOP of Tensor Engine work per chain. v0.9.0 added the first multi-chip abstraction: <code>ShardedTensor</code> and output-parallel einsum dispatch, the foundation for DF-MP2 with basis sets that don't fit in single-chip HBM. Both changes are the same insight applied at different scales: the dispatch layer is where decisions about <em>what code runs</em> and <em>where data lives</em> belong.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trntensor-v080v090-dispatch-owns-routing-and-placement/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-17 00:00:00+00:00">April 17, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnblas/" class="md-meta__link">trnblas</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              9 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move"><a class="toclink" href="trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move/">trnblas Phase 3: from 215× slower to 3.6× faster in one kernel boundary move</a></h2>
-<p>The <a href="https://trnsci.dev/blog/trnblas-four-hypotheses-one-profiler-trace-and-why-148-is-the-correct-answer/">Phase 2 profiler post</a>
-closed with an unexpected conclusion: the fused MP2 energy kernel hits its
-Amdahl ceiling, the remaining gap to the 3× target lives entirely in the
-step that surrounds it, and the only lever left is the kernel <em>boundary</em>.
-Phase 3 moved the boundary. The result is a 3.6× end-to-end speedup over
-the torch baseline at the small bench shape — the first energy path that
-actually beats chunk-GEMM.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-17 00:00:00+00:00">April 17, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              7 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v030v070-dispatch-granularity-is-the-architecture"><a class="toclink" href="trntensor-v030v070-dispatch-granularity-is-the-architecture/">trntensor v0.3.0–v0.7.0: dispatch granularity is the architecture</a></h2>
-<p><a href="https://trnsci.dev/blog/trntensor-when-the-kernel-boundary-is-the-api/">Phase 1</a> shipped fused NKI primitives for DF-MP2 and the 4-index AO→MO transform — single-program kernels that outperform the equivalent multi-dispatch CUDA plan sequences in HBM traffic. That architectural argument held. What didn't hold was the assumption that per-contraction dispatch was an acceptable cost in a workload that runs 4,096 of them. Phase 2 through v0.7.0 fixed that, and the fix is the same idea one level up: the dispatch boundary should be at the loop, not the iteration.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trntensor-v030v070-dispatch-granularity-is-the-architecture/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-      
-        
-          
+<span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;bf16_refined&quot;</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">_DFT_GEMM_THRESHOLD</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">_fft_iterative_refinement</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">inverse</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<p>Both modes are no-ops for N &gt; 256 (fall through to the existing Stockham/butterfly paths).
+The DFT-GEMM threshold is the natural boundary: beyond N=256, the O(N²) matmul work
+dominates and BF16's throughput advantage shrinks further.</p>
+<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
+<p><strong>BF16 angle computation.</strong> The first implementation used <code>torch.arange(n, dtype=torch.bfloat16)</code>
+to build the DFT angle tensor. For N=64, the outer product <code>k×j</code> reaches 3969. BF16
+has 7 mantissa bits — integers above ~128 lose precision, and 3969 is represented as 3968.
+The resulting angle error is <code>2π × 1/64 ≈ 0.098 rad</code>, which gives ~40% relative error
+in the DFT output. The fix was to compute angles in FP32 and quantise the final W entries,
+not the angle indices.</p>
+<p><strong>CPU BF16 accumulation.</strong> On CPU, <code>torch.matmul</code> with BF16 inputs accumulates in BF16
+(no systolic array PSUM). The initial test showed 43% relative error at N=64 on CPU —
+indistinguishable from "broken." The fix: the CPU fallback casts to FP32 before the matmul.
+This makes the CPU path test the right thing (BF16 <code>W</code> quantisation error, not BF16
+accumulation error), but it's a reminder that the FP32 PSUM property is a hardware
+feature — it cannot be assumed on CPU.</p>
+<p><strong>The 2× throughput claim.</strong> The theoretical 2× BF16 speedup assumed arithmetic-bound
+compute. At N=64–256, the DFT-GEMM path is memory-bandwidth and launch-overhead bound.
+Measured speedup is 1.4–1.5×, not 2×. For the BF16 path to show 2×, the problem would
+need to be larger (N &gt; 1024) or more compute-bound. The measured result is still a
+meaningful win, just not the theoretical ceiling.</p>
+<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
+<p>Hardware bench: trn1.2xlarge, Neuron SDK 2.29.0, NKI 0.3.0, 2026-04-22.</p>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th><code>"bf16"</code> (µs)</th>
+<th><code>"fast"</code> FP32 (µs)</th>
+<th>Speedup</th>
+<th><code>"bf16"</code> rel error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>64</td>
+<td>1 189</td>
+<td>~1 833</td>
+<td>~1.5×</td>
+<td>~2e-3</td>
+</tr>
+<tr>
+<td>128</td>
+<td>1 208</td>
+<td>—</td>
+<td>—</td>
+<td>~3e-3</td>
+</tr>
+<tr>
+<td>256</td>
+<td>1 310</td>
+<td>~1 882</td>
+<td>~1.4×</td>
+<td>~4e-3</td>
+</tr>
+</tbody>
+</table>
+<p>FP32 baseline from v0.12 on SDK 2.24. BF16 rel error measured on CPU with BF16-quantised
+W (same regime as hardware).</p>
+<p>The <code>"bf16_refined"</code> path costs approximately 2× the <code>"bf16"</code> path (one forward + one IFFT
++ one forward) and drives rel error to ~1e-6 (near-FP32). Total wall-clock: ~2.4–2.6 ms
+at N=256, comparable to FP32 DFT-GEMM (~1.9 ms) but with BF16 throughput for all the
+compute and FP32 accuracy for the output.</p>
+<p><strong>Where this is well-indexed:</strong> spectral methods and signal processing pipelines where
+multiple FFTs are chained — the BF16 path gives 1.4× speedup per FFT stage, and <code>"bf16_refined"</code>
+gives near-FP32 accuracy when chain accumulation matters.</p>
+<p><strong>Where it is not well-indexed:</strong> very small N (&lt; 64) where PSUM startup dominates; large
+N (&gt; 256) where BF16 <code>W</code> quantisation error grows with the larger DFT matrix; applications
+requiring the full FP64 accuracy of <code>precision="double"</code>.</p>
+<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Ozaki-scheme FP64 emulation from BF16 inputs.</strong> The Ozaki scheme represents each
+  input as a sum of BF16 partial values, accumulates each partial matmul into FP32 PSUM,
+  and combines. Applied to DFT-GEMM, this would give near-FP64 accuracy (≈1e-14) using
+  a sequence of BF16 matmuls — the same PSUM-as-accumulator principle, applied to each
+  Ozaki component. This is the <code>target_forward_error=1e-10</code> API direction.</li>
+<li><strong>Multi-NeuronCore distribution</strong> for large N (N &gt; 4096). Linear speedup with core count
+  by partitioning the batch dimension across NeuronCores.</li>
+</ul>
+<p>Issues tracking the above are open on <a href="https://github.com/trnsci/trnsci/issues">trnsci/trnsci</a>.</p>
+<h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
+<p>The FP32 PSUM accumulator was always there. Every previous kernel built it, used it, then
+threw it away by casting back to the input dtype. Keeping the FP32 output costs zero
+additional compute — it is the compute that was already happening. The BF16 precision mode
+is one line of kernel code shorter than the FP32 mode. The 1.4× speedup comes from
+computing in BF16, not from a new algorithm. The near-FP32 accuracy from <code>"bf16_refined"</code>
+comes from applying the same BF16 compute once more to a small residual. Both are direct
+consequences of the systolic array accumulating into a FP32 accumulator that no GPU with
+an FP64 legacy would have prioritised.</p>
 
 
 
-<nav class="md-pagination">
-  <span class="md-pagination__current">1</span> <a class="md-pagination__link" href="page/2/">2</a> <a class="md-pagination__link" href="page/3/">3</a>
-</nav>
-        
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+
+
+  <h2 id="__comments">Comments</h2>
+
+  <script src="https://giscus.app/client.js"
+          data-repo="trnsci/trnsci"
+          data-repo-id="R_kgDOSA365w"
+          data-category="General"
+          data-category-id="DIC_kwDOSA36584C66kJ"
+          data-mapping="pathname"
+          data-strict="0"
+          data-reactions-enabled="1"
+          data-emit-metadata="0"
+          data-input-position="bottom"
+          data-theme="preferred_color_scheme"
+          data-lang="en"
+          data-loading="lazy"
+          crossorigin="anonymous"
+          async>
+  </script><script>
+    document$.subscribe(function() {
+      var palette = __md_get("__palette")
+      if (palette && typeof palette.color === "object") {
+        var theme = palette.color.scheme === "slate" ? "dark" : "light"
+        var frame = document.querySelector(".giscus-frame")
+        if (frame) {
+          frame.contentWindow.postMessage(
+            { giscus: { setConfig: { theme } } },
+            "https://giscus.app"
+          )
+        }
+      }
+    })
+  </script>
+
       
-    </div>
+    </article>
   </div>
 
           
@@ -5569,10 +5505,10 @@ actually beats chunk-GEMM.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
