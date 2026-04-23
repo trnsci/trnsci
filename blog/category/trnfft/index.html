@@ -5097,6 +5097,52 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-04-23 00:00:00+00:00">April 23, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="./" class="md-meta__link">trnfft</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              5 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnfft-the-missing-dtype-and-the-80-cliff"><a class="toclink" href="../../trnfft-the-missing-dtype-and-the-80-cliff/">trnfft: the missing dtype and the 80× cliff</a></h2>
+<p>The first working version of trnfft's NKI butterfly kernel passed every correctness test.
+It was also 80× slower than the PyTorch fallback for batched STFT — a regression so large
+the benchmark was assumed to be broken. It wasn't. The kernel was calling NKI once per
+batch row in a Python loop, paying full XLA graph compilation overhead for each row.</p>
+<p>That discovery, and the fix, is what Phase 1 is mostly about.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnfft-the-missing-dtype-and-the-80-cliff/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
         
           <li class="md-meta__item">
