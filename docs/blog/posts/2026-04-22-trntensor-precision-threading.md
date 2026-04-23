@@ -110,7 +110,7 @@ Total tests: 139 → 142. Tolerances: bmm atol=0.3 for K=64 BF16 (tighter than t
 `precision=` is now wired end-to-end. Two gates remain before the scaffolding becomes fully operational:
 
 - **`precision="dd"` (trnblas#22)**: when trnblas Phase 2 double-double GEMM kernels land, `_execute_contraction`'s `NotImplementedError` for `"dd"` becomes a call to trnblas. The routing through `_try_batched_multi_einsum`'s `return None` path is already in place — `"dd"` will fall to the per-contraction loop and reach `_execute_contraction` without any further changes.
-- **`nki.collectives.allreduce` (SDK 2.30+)**: the one-line swap that replaces `_mock_allreduce` in `_execute_sharded`, completing reduce-parallel and mixed sharding on hardware. Covered in [v0.12.0](https://trnsci.dev/blog/trntensor-v0120-mixed-sharding/).
+- **`nki.collectives.allreduce` (SDK 2.30+)**: the one-line swap that replaces `_mock_allreduce` in `_execute_sharded`, completing reduce-parallel and mixed sharding on hardware. Covered in [v0.12.0](https://trnsci.dev/blog/trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/).
 
 Live roadmap: [trnsci.dev/roadmap/](https://trnsci.dev/roadmap/). Suite tracker: [trnsci/trnsci#1](https://github.com/trnsci/trnsci/issues/1).
 
