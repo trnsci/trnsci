@@ -11,6 +11,8 @@ DFT-GEMM fast path. The headline numbers: 1.4–1.5× faster than FP32 at N=64�
 with near-FP32 accuracy after one correction step. The mechanism is an architectural
 property of Trainium that was already present in every kernel, just never exploited.
 
+<!-- more -->
+
 ## The problem
 
 BF16 on neural network hardware is a throughput story. A BF16 Tensor Engine tile fits
