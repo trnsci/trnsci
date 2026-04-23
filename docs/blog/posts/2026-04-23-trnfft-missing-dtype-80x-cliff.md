@@ -13,6 +13,8 @@ batch row in a Python loop, paying full XLA graph compilation overhead for each 
 
 That discovery, and the fix, is what Phase 1 is mostly about.
 
+<!-- more -->
+
 ## The problem
 
 Trainium has no complex dtype. The first consequence is obvious: every complex multiply
