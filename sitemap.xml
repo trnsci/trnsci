@@ -153,6 +153,10 @@
          <lastmod>2026-04-25</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trntensor-v0140-four-modes-four-mocks--completing-the-precision-contract/</loc>
+         <lastmod>2026-04-25</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-04-25</lastmod>
     </url>
@@ -489,11 +493,11 @@
          <lastmod>2026-04-25</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
+         <loc>https://trnsci.dev/blog/category/trntensor/</loc>
          <lastmod>2026-04-25</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/trntensor/</loc>
+         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
          <lastmod>2026-04-25</lastmod>
     </url>
     <url>
@@ -530,6 +534,10 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/deep-dive/page/2/</loc>
+         <lastmod>2026-04-25</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/deep-dive/page/3/</loc>
          <lastmod>2026-04-25</lastmod>
     </url>
 </urlset>
