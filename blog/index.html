@@ -5088,6 +5088,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-04-27 00:00:00+00:00">April 27, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="category/trnsparse/" class="md-meta__link">trnsparse</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              7 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsparse-what-trainium-thinks-a-sparse-matrix-is"><a class="toclink" href="trnsparse-what-trainium-thinks-a-sparse-matrix-is/">trnsparse: what Trainium thinks a sparse matrix is</a></h2>
+<p>Block-sparse attention on a systolic array requires rethinking the data structure before touching the kernel. trnsparse v0.6.0 ships forward and backward NKI attention kernels, K-tiling for head_dim &gt; 128, and — after a week fighting NKI 0.3.0's changed API — a simulator CI gate that actually tests the kernels rather than silently substituting PyTorch.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="trnsparse-what-trainium-thinks-a-sparse-matrix-is/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-25 00:00:00+00:00">April 25, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5468,48 +5510,6 @@ most of the engineering work actually lived.</p>
     
       <nav class="md-post__action">
         <a href="trnfft-fft-is-a-gemm-and-then-it-isnt/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-18 00:00:00+00:00">April 18, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnsolver/" class="md-meta__link">trnsolver</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms"><a class="toclink" href="trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/">trnsolver v0.10.0: Schur decomposition and the architecture of two-stage algorithms</a></h2>
-<p>v0.10.0 ships <code>schur(A)</code> — <code>A = Q @ T @ Q.T</code>, T quasi-upper-triangular — closing the last open item in trnsolver's factorization table. The implementation uses Householder-QR throughout, and the reason that works on Trainium is the same reason the <a href="https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">earlier Jacobi path for <code>eigh</code></a> eventually had to grow a second stage: two-stage algorithms present uniform-shape kernel calls, and uniform shapes keep the NEFF cache warm.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/">
           Continue reading
         </a>
       </nav>
