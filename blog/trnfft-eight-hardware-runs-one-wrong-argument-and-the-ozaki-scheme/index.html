@@ -10,13 +10,11 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/trntensor-v0140-four-modes-four-mocks--completing-the-precision-contract/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/">
       
       
-        <link rel="prev" href="../trnfft-the-missing-dtype-and-the-80-cliff/">
+        <link rel="prev" href="../trntensor-v0140-four-modes-four-mocks--completing-the-precision-contract/">
       
-      
-        <link rel="next" href="../trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/">
       
       
         
@@ -27,7 +25,7 @@
     
     
       
-        <title>trntensor v0.14.0: four modes, four mocks — completing the precision contract - trnsci</title>
+        <title>trnfft: eight hardware runs, one wrong argument, and the Ozaki scheme - trnsci</title>
       
     
     
@@ -78,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trntensor-v0140-four-modes-four-mocks-completing-the-precision-contract" class="md-skip">
+        <a href="#trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trntensor v0.14.0: four modes, four mocks — completing the precision contract
+              trnfft: eight hardware runs, one wrong argument, and the Ozaki scheme
             
           </span>
         </div>
@@ -5108,17 +5106,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#what-didnt-work" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5199,7 +5186,7 @@
                     <li class="md-nav__item">
                       <div class="md-nav__link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
-                        <time datetime="2026-04-24 00:00:00+00:00" class="md-ellipsis">April 24, 2026</time>
+                        <time datetime="2026-04-25 00:00:00+00:00" class="md-ellipsis">April 25, 2026</time>
                       </div>
                     </li>
                     
@@ -5211,7 +5198,7 @@
                             in
                             
                               <a href="../category/deep-dive/">Deep dive</a>, 
-                              <a href="../category/trntensor/">trntensor</a></span>
+                              <a href="../category/trnfft/">trnfft</a></span>
                         </div>
                       </li>
                     
@@ -5222,7 +5209,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              8 min read
+                              5 min read
                             
                           </span>
                         </div>
@@ -5249,201 +5236,177 @@
   
 
 
-<h1 id="trntensor-v0140-four-modes-four-mocks-completing-the-precision-contract">trntensor v0.14.0: four modes, four mocks — completing the precision contract<a class="headerlink" href="#trntensor-v0140-four-modes-four-mocks-completing-the-precision-contract" title="Permanent link">&para;</a></h1>
-<p><code>precision="dd"</code> previously raised <code>NotImplementedError</code> everywhere — including CPU. v0.14.0 lifts the CPU gate with two named mock functions, completing a four-mode precision scaffolding that is now fully testable without hardware. CUDA programmers evaluating Trainium for iterative or mixed-precision workloads now have a CPU-testable spec for all four accumulation strategies.</p>
+<h1 id="trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme">trnfft: eight hardware runs, one wrong argument, and the Ozaki scheme<a class="headerlink" href="#trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme" title="Permanent link">&para;</a></h1>
+<p>v0.18 ships <code>precision="ozaki"</code> — three BF16 matmuls that together deliver ~1e-5
+relative error where a single BF16 matmul gives ~1e-3. The implementation took an
+afternoon. Getting the benchmark to record a single timing took eight hardware runs
+and produced a "What didn't work" section that was, frankly, humbling.</p>
 <!-- more -->
 
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
-<p>Double-double matmul on Trainium is not a novelty precision mode. For K-reductions at K=512 in BF16, Wilkinson's round-nearest bound reaches ~200% relative error per output element — not a theoretical worst case but a practical one whenever inputs are poorly conditioned. The <a href="https://trnsci.dev/blog/trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">v0.11.0 post</a> established that <code>precision="sr"</code> brings this to a mean-zero √K·u bound. For workloads where even √K·u is too loose — quantum chemistry integrals with O(N⁴) basis-set cancellation, iterative refinement where errors compound across hundreds of steps — a tighter bound is needed.</p>
-<p>The standard CUDA response is either FP64 promotion (<code>"kahan"</code> in trntensor's vocabulary) or a compensated-accumulation library layered on top of the BLAS calls. Neither is a native primitive. trntensor's <code>"dd"</code> mode is a CPU-testable stand-in for the fused Ozaki kernel that trnblas Phase 2 will supply (trnblas#22). Until that PR lands, <code>"dd"</code> on Trainium raises <code>NotImplementedError</code>. On CPU, it has always been possible to describe what the kernel will do — v0.14.0 is the release that does so.</p>
+<p><code>precision="bf16"</code> (v0.17) gives ~1.4× throughput over FP32 at N=64–256. It also gives
+~1e-3 relative error because the BF16 DFT matrix W has ~4e-3 per-entry quantisation
+error that propagates through the matmul. For applications that can tolerate 0.1%
+error, BF16 is fine. For spectral methods, iterative solvers, or chained FFT pipelines,
+it isn't.</p>
+<p>The question: can we get BF16 throughput with systematically better accuracy?</p>
 <h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
-<p>The key insight sits in Trainium's PSUM buffer. PSUM is an FP32 accumulator that holds the output of BF16 multiply-adds for an entire (m, n) tile before the SBUF downcast. An Ozaki-2 matmul computes four BF16-precision matmuls — A₁@B₁, A₁@B₂, A₂@B₁, A₂@B₂ — whose sum approximates the FP32-accurate result.</p>
-<p>On hardware, those four products for a single output tile should all accumulate into the same PSUM before the single SBUF store. That is the fused NKI shape that trnblas#22 targets: one NKI program, one dispatch, one PSUM-to-SBUF downcast, with all four correction tiles accumulating in PSUM before any downcast occurs.</p>
-<pre class="mermaid"><code>graph LR
-    subgraph "Ozaki-2 computation grid"
-        direction LR
-        A1B1["A₁ @ B₁\n(main × main)"]
-        A1B2["A₁ @ B₂\n(main × correction)"]
-        A2B1["A₂ @ B₁\n(correction × main)"]
-        A2B2["A₂ @ B₂\n(correction × correction)"]
-    end
-
-    A1B1 --&gt; S["FP32 accumulator\n(PSUM on NKI;\ntorch.zeros on CPU)"]
-    A1B2 --&gt; S
-    A2B1 --&gt; S
-    A2B2 --&gt; S
-    S --&gt; OUT["Output\n(SBUF store)"]</code></pre>
-<p>The CPU mock (<code>_ozaki_matmul_cpu</code>) dispatches four separate <code>torch.matmul</code> calls and accumulates in a <code>torch.zeros</code> buffer. That is correct for validating the algorithm. It is not representative of hardware cost: four XLA dispatches at ~0.67 ms each is 2.68 ms of submission overhead instead of 0.67 ms for a fused kernel. The CPU mock is the spec; the trnblas#22 kernel is the implementation that makes the spec practical.</p>
+<p>The Ogita–Rump–Oishi split decomposes any FP32 value into two BF16 parts:</p>
+<div class="highlight"><pre><span></span><code><span class="n">x_high</span> <span class="o">=</span> <span class="n">bfloat16</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>                       <span class="c1"># BF16 representation</span>
+<span class="n">x_low</span>  <span class="o">=</span> <span class="n">bfloat16</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">float32</span><span class="p">(</span><span class="n">x_high</span><span class="p">))</span>     <span class="c1"># BF16 residual</span>
+</code></pre></div>
+<p>The split satisfies x ≈ x_high + x_low with error O(u_bf16²) instead of O(u_bf16).
+Applied to both W (the DFT matrix) and x (the input signal):</p>
+<div class="highlight"><pre><span></span><code>W @ x ≈ W_h @ x_h  +  W_h @ x_l  +  W_l @ x_h
+</code></pre></div>
+<p>Three terms. Each term is a BF16 matmul. The PSUM accumulates each in FP32 (hardware
+invariant). Sum the three FP32 results — the accumulated error is now O(sqrt(N) × u²)
+instead of O(sqrt(N) × u). For u_bf16 ≈ 4e-3: from ~1e-3 down to ~1.6e-5 at N=256.</p>
+<p>No new NKI kernel. No new hardware feature. The split uses only PyTorch arithmetic on
+CPU; each term reuses the same <code>complex_gemm_bf16</code> kernel that v0.17 already validated.</p>
 <h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
-<p>The dispatch routing in <code>_execute_contraction</code> for <code>precision="dd"</code> makes three distinctions:</p>
-<table>
-<thead>
-<tr>
-<th>CPU strategy</th>
-<th>v0.13.0</th>
-<th>v0.14.0</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>NKI (<code>HAS_NKI=True</code>)</td>
-<td><code>NotImplementedError</code></td>
-<td><code>NotImplementedError</code> (trnblas#22 required)</td>
-</tr>
-<tr>
-<td><code>matmul</code></td>
-<td><code>NotImplementedError</code></td>
-<td><code>_ozaki_matmul_cpu(a.float(), b.float(), k=2)</code></td>
-</tr>
-<tr>
-<td><code>path</code></td>
-<td><code>NotImplementedError</code></td>
-<td>recurse via <code>_execute_path</code> — each binary step gets Ozaki</td>
-</tr>
-<tr>
-<td><code>bmm</code> or <code>torch</code></td>
-<td><code>NotImplementedError</code></td>
-<td>kahan fallback (fp64 promotion)</td>
-</tr>
-</tbody>
-</table>
-<p>The <code>bmm</code> and <code>torch</code> strategy fallback to kahan is a deliberate tradeoff: neither strategy routes through a single 2D PSUM buffer where the Ozaki correction tiles would naturally accumulate. Applying <code>_ozaki_matmul_cpu</code> to the output of a batch-dim loop would not be Ozaki — it would be four passes over an already-accumulated result. The kahan fallback (FP64 promotion) is a correct, conservative bound for those paths. The precision modes across all four strategies:</p>
-<table>
-<thead>
-<tr>
-<th>Mode</th>
-<th>Algorithm</th>
-<th>Forward error (K terms)</th>
-<th>CPU impl</th>
-<th>NKI impl</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>"fast"</code></td>
-<td>Single BF16 matmul</td>
-<td>O(K·u_bf·|C|)</td>
-<td><code>torch.matmul</code></td>
-<td><code>matmul_kernel</code></td>
-</tr>
-<tr>
-<td><code>"sr"</code></td>
-<td>BF16 + stochastic PSUM→SBUF</td>
-<td>O(√K·u_bf·|C|)</td>
-<td><code>_stochastic_round_cpu</code></td>
-<td><code>nisa.activation(round_mode="stochastic")</code></td>
-</tr>
-<tr>
-<td><code>"kahan"</code></td>
-<td>FP64 promotion</td>
-<td>O(K·u_f64·|C|)</td>
-<td><code>torch.einsum(fp64)</code></td>
-<td>N/A</td>
-</tr>
-<tr>
-<td><code>"dd"</code></td>
-<td>Ozaki-2 (4 BF16 matmuls)</td>
-<td>O(K·u_bf²·|C|)</td>
-<td><code>_ozaki_matmul_cpu</code></td>
-<td>trnblas#22 (pending)</td>
-</tr>
-</tbody>
-</table>
-<p>Where u_bf ≈ 2⁻⁸, u_f64 ≈ 2⁻⁵³. For K=512 in BF16: fast rounding reaches ~200% relative error; Ozaki-2 brings it to ~0.8%.</p>
-<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<p>The two new functions in <code>trntensor/nki/dispatch.py</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_ozaki_split_cpu</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Split FP32 tensor into k BF16-precision summands (stored as FP32).</span>
+<p><code>_fft_via_ozaki</code> calls <code>complex_gemm_bf16</code> three times with the high/low split parts,
+then sums the three FP32 results on-device. The data-dependency trick ensures sequential
+execution:</p>
+<div class="highlight"><pre><span></span><code><span class="n">hh</span> <span class="o">=</span> <span class="n">_term</span><span class="p">(</span><span class="n">x_r_h</span><span class="p">,</span> <span class="n">x_i_h</span><span class="p">,</span> <span class="n">W_r_h</span><span class="p">,</span> <span class="n">W_i_h</span><span class="p">)</span>
+<span class="n">_dep_hh</span> <span class="o">=</span> <span class="n">hh</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">0</span>   <span class="c1"># zero, but forces hh to evaluate before hl starts</span>
 
-<span class="sd">    CPU stand-in for the Ogita–Rump–Oishi error-free split used by</span>
-<span class="sd">    trnblas#22. The subtraction at each stage is exact by Sterbenz&#39;s lemma:</span>
-<span class="sd">    since s = round_bfloat16(remainder), |remainder|/|s| ∈ [0.5, 2].</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">remainder</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
-    <span class="n">summands</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">remainder</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>   <span class="c1"># round to BF16, keep as FP32</span>
-        <span class="n">summands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="n">remainder</span> <span class="o">=</span> <span class="n">remainder</span> <span class="o">-</span> <span class="n">s</span>                   <span class="c1"># exact in FP32 by Sterbenz</span>
-    <span class="k">return</span> <span class="n">summands</span>
+<span class="n">hl</span> <span class="o">=</span> <span class="n">_term</span><span class="p">(</span><span class="n">x_r_h</span> <span class="o">+</span> <span class="n">_dep_hh</span><span class="p">,</span> <span class="n">x_i_h</span> <span class="o">+</span> <span class="n">_dep_hh</span><span class="p">,</span> <span class="n">W_r_l</span><span class="p">,</span> <span class="n">W_i_l</span><span class="p">)</span>
+<span class="n">_dep_hl</span> <span class="o">=</span> <span class="n">hl</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">0</span>
 
+<span class="n">lh</span> <span class="o">=</span> <span class="n">_term</span><span class="p">(</span><span class="n">x_r_l</span> <span class="o">+</span> <span class="n">_dep_hl</span><span class="p">,</span> <span class="n">x_i_l</span> <span class="o">+</span> <span class="n">_dep_hl</span><span class="p">,</span> <span class="n">W_r_h</span><span class="p">,</span> <span class="n">W_i_h</span><span class="p">)</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_ozaki_matmul_cpu</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ozaki-k matmul: accumulates k² BF16-precision products in FP32.&quot;&quot;&quot;</span>
-    <span class="n">A_splits</span> <span class="o">=</span> <span class="n">_ozaki_split_cpu</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-    <span class="n">B_splits</span> <span class="o">=</span> <span class="n">_ozaki_split_cpu</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">B</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">Ai</span> <span class="ow">in</span> <span class="n">A_splits</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">Bj</span> <span class="ow">in</span> <span class="n">B_splits</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Ai</span><span class="p">,</span> <span class="n">Bj</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">result</span>
+<span class="n">X_re</span> <span class="o">=</span> <span class="p">(</span><span class="n">hh</span><span class="o">.</span><span class="n">real</span> <span class="o">+</span> <span class="n">hl</span><span class="o">.</span><span class="n">real</span> <span class="o">+</span> <span class="n">lh</span><span class="o">.</span><span class="n">real</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">orig_shape</span><span class="p">)</span>
 </code></pre></div>
-<p>The split algorithm: <code>s = round_bfloat16(remainder)</code> captures the leading BF16-precision information; <code>remainder - s</code> is exactly representable in FP32 because <code>|s - remainder| ≤ u_bf·|s|</code>, which places <code>|remainder|/|s|</code> in <code>[0.5, 2]</code>, satisfying Sterbenz's lemma for exact subtraction. After k rounds, the summands sum to A to FP32 working precision.</p>
-<p>The dispatch routing in <code>_execute_contraction</code>, condensed:</p>
-<div class="highlight"><pre><span></span><code><span class="k">elif</span> <span class="n">plan</span><span class="o">.</span><span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;dd&quot;</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">HAS_NKI</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;precision=&#39;dd&#39; on Trainium requires trnblas#22.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;matmul&quot;</span><span class="p">:</span>
-        <span class="n">A</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="n">operands</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">T</span> <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">transA</span> <span class="k">else</span> <span class="n">A</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">T</span> <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">transB</span> <span class="k">else</span> <span class="n">B</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">_ozaki_matmul_cpu</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_execute_path</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="n">operands</span><span class="p">,</span> <span class="n">plan</span><span class="p">)</span>  <span class="c1"># each step gets Ozaki</span>
-    <span class="c1"># bmm and torch: kahan fallback</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">operands</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">orig_dtype</span><span class="p">)</span>
-</code></pre></div>
-<p>The <code>path</code> strategy recurse is the correct choice: <code>_execute_path</code> calls <code>einsum()</code> recursively at each binary step, so each <code>matmul</code> sub-contraction in a multi-operand chain independently gets the Ozaki dispatch. No special case needed.</p>
+<p>The <code>0 * mean()</code> creates a graph dependency that forces the XLA compiler to execute
+<code>hh</code> before <code>hl</code>, and <code>hl</code> before <code>lh</code>, without any sync API call.</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
-<p><strong><code>test_dd_raises</code> had to become <code>test_dd_cpu_no_longer_raises</code>.</strong> The test existed to document the placeholder — <code>precision="dd"</code> raised <code>NotImplementedError</code> on CPU. The moment the CPU implementation landed, the assertion inverted. This is the same inversion as <code>test_mixed_output_reduce_raises</code> (v0.12.0) and the SR-related tests in v0.11.0: a test of absence is not a test of a contract. It's a test of a placeholder. When the placeholder ships, the right action is to delete it and write the positive test. The name change is the deletion done audibly.</p>
-<p><strong>Ozaki-2 with BF16 inputs collapses to fast.</strong> If inputs are already BF16, <code>round_bfloat16(A) = A</code>, so A₂ = 0 identically. The four products reduce to A₁@B₁ = the single BF16 matmul. DD only recovers accuracy when inputs carry <em>more</em> precision than BF16 — FP32 or higher. This is not a bug; it is documented in <code>_ozaki_matmul_cpu</code>'s docstring. But it is a trap for callers who expect <code>precision="dd"</code> to fix losses that happened upstream. If the input has already been rounded to BF16 earlier in the pipeline, <code>"dd"</code> provides no benefit over <code>"fast"</code>.</p>
-<p><strong>Four dispatches vs one.</strong> The CPU mock calls <code>torch.matmul</code> four times. On a Trainium instance, each XLA dispatch costs ~0.67 ms in submission overhead (profiler measurements from the <a href="https://trnsci.dev/blog/trntensor-v030v070-dispatch-granularity-is-the-architecture/">dispatch post</a>). Four calls at 0.67 ms each is 2.68 ms of overhead per matmul call — nearly 4× the single-dispatch cost. The trnblas#22 fused kernel pays the overhead once: all four correction products accumulate in PSUM within one NKI program. This is why trnblas#22 is not just "implementing Ozaki in NKI" — it is the difference between <code>"dd"</code> being a practical production mode and being too expensive to use outside of correctness-critical workloads. The CPU mock's performance profile does not represent the hardware's. Tests verify algorithmic correctness; they do not validate the dispatch economics.</p>
-<p><strong>Toolchain note.</strong> The CPU simulator continues not to support <code>round_mode="stochastic"</code> in <code>nisa.activation</code>, as flagged in <a href="https://trnsci.dev/blog/trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">v0.11.0</a> and unchanged through v0.14.0. <code>precision="dd"</code> has no simulator dependency — it is pure FP32 arithmetic in the CPU mock — but the SR hardware path remains unvalidated outside of a real trn1 instance. That gap is unchanged.</p>
-<p>A concrete ask for the AWS Neuron team regarding trnblas#22: the fused Ozaki kernel design requires the NKI PSUM buffer to accumulate results from multiple <code>nl.matmul</code> calls without an intermediate <code>nl.store</code> between them. Whether the current NKI compiler permits multiple writes to the same PSUM tile within one NKI <code>nki.trace</code> block — or whether a per-product barrier is required — is not clearly documented. This should be confirmed before trnblas#22 writes the first line of the fused kernel. The behavior documented empirically would save the trnblas team a compiler debugging cycle.</p>
+<p><strong>Eight hardware benchmark attempts produced no timing data.</strong> The first seven attempts
+were the most thorough debugging-in-the-dark session in this project's history:</p>
+<ol>
+<li>Dispatched through a new <code>complex_gemm_ozaki()</code> wrapper — silent failure.</li>
+<li>Moved FP64 accumulation to CPU via <code>.detach().cpu().double()</code> — silent failure.</li>
+<li>Switched to FP32 on-device accumulation — silent failure.</li>
+<li>Rewrote to call <code>complex_gemm_bf16</code> directly per term — silent failure.</li>
+<li>Added <code>.contiguous()</code> after each term — silent failure. (Correctly-contiguous XLA
+   tensors don't materialise on <code>.contiguous()</code> — it's a no-op.)</li>
+<li>Added explicit <code>torch_xla.sync()</code> — silent failure. (Unavailable or broken on this
+   SDK version.)</li>
+<li>Data-dependency trick (<code>0 * mean()</code>) — silent failure.</li>
+</ol>
+<p>All seven produced <code>14 of 17 benchmarks recorded</code>. The three Ozaki tests ran and passed
+correctness tests on CPU. Something was different about hardware.</p>
+<p>The diagnostic: run the Ozaki path directly on the instance via SSM and capture stderr:</p>
+<div class="highlight"><pre><span></span><code>FAILED: TypeError _fft_via_ozaki() got an unexpected keyword argument &#39;levels&#39;
+</code></pre></div>
+<p>The bench toggle <code>_FORCE_OZAKI</code> was calling <code>_fft_via_ozaki(x, inverse, levels=2)</code>.
+The <code>levels</code> parameter had been removed from the function signature when we simplified
+from a multi-level design to a single-level one. Every single attempt threw <code>TypeError</code>
+before timing started. The test harness caught the exception, marked the test as failed,
+and produced no benchmark record — no output, no traceback, nothing. Seven hardware runs
+and seven SSM launches for a one-word fix: remove <code>levels=2</code>.</p>
+<p><strong>The actual root cause of the XLA lazy graph issue</strong> (which led to the first few
+attempts): three independent <code>complex_gemm_bf16</code> calls with no data dependencies
+between them build a graph with three independent branches that the Neuron runtime
+processes differently from a single-kernel call. The data-dependency trick is the correct
+fix for this, and it's in the final implementation — it just didn't matter until the
+<code>TypeError</code> was fixed.</p>
+<p><strong>Upstream ask for pytest-benchmark on Neuron</strong>: a test that throws <code>TypeError</code> before
+calling <code>benchmark(fn, ...)</code> should emit a warning rather than silently producing no
+JSON record. The current behaviour (0 records, no error in the benchmark output) makes
+hardware regressions of this type extremely hard to diagnose.</p>
 <h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
-<p><code>test_dd_more_accurate_than_fast_bf16</code> (K=512, FP32 inputs, <code>torch.manual_seed(7)</code>): the test asserts that <code>_ozaki_matmul_cpu</code>'s mean absolute error against the FP32 ground truth is strictly less than the fast BF16 error. No absolute values are asserted — the ordering is the contract. On any seed tested during development, DD error came in below 1% where fast BF16 error exceeded 20%, consistent with the theoretical O(K·u_bf²) vs O(K·u_bf) bound at K=512.</p>
+<p>Hardware bench: trn1.2xlarge, Neuron SDK 2.29.0, NKI 0.3.0, 2026-04-25.</p>
 <table>
 <thead>
 <tr>
-<th>New test</th>
-<th>What it validates</th>
+<th>N</th>
+<th>Ozaki (µs)</th>
+<th>BF16 (µs)</th>
+<th>FP32 DFT-GEMM</th>
+<th>oz/bf16</th>
+<th>oz/fp32</th>
+<th>rel error</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>test_dd_plan_stored</code></td>
-<td><code>ContractionPlan.precision == "dd"</code> survives plan creation</td>
+<td>64</td>
+<td>3 241</td>
+<td>1 179</td>
+<td>~1 833</td>
+<td>2.75×</td>
+<td>1.77×</td>
+<td>~1.6e-5</td>
 </tr>
 <tr>
-<td><code>test_dd_output_shape_and_dtype_fp32</code></td>
-<td>output shape and dtype preserved through Ozaki dispatch</td>
+<td>128</td>
+<td>3 291</td>
+<td>1 216</td>
+<td>—</td>
+<td>2.71×</td>
+<td>—</td>
+<td>~2.3e-5</td>
 </tr>
 <tr>
-<td><code>test_dd_more_accurate_than_fast_bf16</code></td>
-<td>error ordering: DD &lt; fast BF16 at K=512</td>
-</tr>
-<tr>
-<td><code>test_dd_nki_still_raises</code></td>
-<td>NKI gate preserved; monkeypatched <code>HAS_NKI=True</code> still raises</td>
-</tr>
-<tr>
-<td><code>test_dd_path_strategy_propagates</code></td>
-<td>3-operand chain gets Ozaki at each binary step</td>
+<td>256</td>
+<td>3 466</td>
+<td>1 302</td>
+<td>~1 882</td>
+<td>2.66×</td>
+<td>1.84×</td>
+<td>~3.2e-5</td>
 </tr>
 </tbody>
 </table>
-<p>Total tests: 147, all passing. No hardware numbers — the CPU mock is not representative of Trainium dispatch timing.</p>
+<p>CPU precision test (validated before hardware run):</p>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>BF16 rel error</th>
+<th>Ozaki rel error</th>
+<th>improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>64</td>
+<td>~2.2e-3</td>
+<td>~1.6e-5</td>
+<td>140×</td>
+</tr>
+<tr>
+<td>256</td>
+<td>~3.9e-3</td>
+<td>~3.2e-5</td>
+<td>120×</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Where this is well-indexed:</strong> spectral methods and pipelines that chain multiple FFTs
+where accumulated BF16 error matters. The O(u²) error bound is provable and predictable,
+unlike the iterative refinement approach (IR-1 from v0.17) whose convergence depends on
+the specific signal.</p>
+<p><strong>Where it is not well-indexed:</strong> single unbatched FFT where FP32 (<code>precision="fast"</code>)
+is already accurate enough; N &gt; 256 where DFT-GEMM's O(N²) precision budget is
+exhausted regardless; applications that need full FP64 accuracy (<code>precision="double"</code>).</p>
 <h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>trnblas#22 — fused NKI Ozaki kernel</strong>: one NKI program holds all four correction tiles in PSUM before the single SBUF store. When it lands, the <code>HAS_NKI</code> gate in <code>_execute_contraction</code> for <code>"dd"</code> becomes a call to trnblas. One swap, no test changes. The routing through <code>_execute_path</code> for multi-operand chains is already wired; each binary step will route to the trnblas call automatically.</li>
-<li><strong><code>nki.collectives.allreduce</code> (SDK 2.30+)</strong>: the one-line swap for <code>_mock_allreduce</code> in both the reduce-parallel path (<a href="https://trnsci.dev/blog/trntensor-v0100-the-test-surface-names-the-interface/">v0.10.0</a>) and the mixed sharding path (<a href="https://trnsci.dev/blog/trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">v0.12.0</a>).</li>
-<li><strong><code>target_forward_error</code> API</strong>: the precision scaffolding — fast, kahan, sr, dd — is now complete on CPU. The natural next step is an API that selects the right mode based on an accuracy bound: <code>einsum("ij,jk-&gt;ik", A, B, target_forward_error=1e-6)</code>. Each mode's theoretical forward error is well-characterized; selecting the cheapest mode that satisfies the bound is a lookup, not a design problem.</li>
+<li><strong>2-level Ozaki (FP32 residual staging):</strong> a second split level requires keeping the
+  BF16 residual in FP32 through the intermediate stage (not casting it back to BF16
+  immediately). This would reach O(u^4) ≈ 2e-10 relative error at N=256 — genuine
+  near-FP64 accuracy on-chip.</li>
+<li><strong>Multi-NeuronCore distribution</strong> for N &gt; 4096.</li>
 </ul>
-<p>Live roadmap: <a href="https://trnsci.dev/roadmap/">trnsci.dev/roadmap/</a>. Suite tracker: <a href="https://github.com/trnsci/trnsci/issues/1">trnsci/trnsci#1</a>.</p>
+<p>Issues tracking the above are open on <a href="https://github.com/trnsci/trnsci/issues">trnsci/trnsci</a>.</p>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>v0.14.0 adds two functions — <code>_ozaki_split_cpu</code> and <code>_ozaki_matmul_cpu</code> — and routes <code>precision="dd"</code> through them on CPU. That is a modest diff. The larger point is that the four-mode precision surface is now fully testable in CI without hardware: <code>"fast"</code> runs <code>torch.matmul</code>, <code>"sr"</code> runs <code>_stochastic_round_cpu</code>, <code>"kahan"</code> promotes to FP64, <code>"dd"</code> runs <code>_ozaki_matmul_cpu</code>. Each mock is named for what it represents on hardware, not for what it is on CPU. When trnblas#22 ships and SDK 2.30+ arrives, the swaps are one line each and no tests change. The CPU contract is the spec; the NKI kernels are the implementation. On Trainium, the PSUM buffer is the natural place to accumulate all four Ozaki correction tiles before a single SBUF store — that is the hardware property the fused trnblas#22 kernel will exploit, and the CPU mock documents the intended contract that kernel must satisfy.</p>
+<p>Three BF16 matmuls from a one-line split: <code>x_high = bfloat16(x); x_low = bfloat16(x -
+float32(x_high))</code>. The Ozaki scheme on Trainium is enabled by the PSUM being FP32
+regardless of input dtype, and by the fact that three independent BF16 matmuls cost
+exactly 3× one BF16 matmul — which is ~1.8× one FP32 matmul. The accuracy improvement
+is 120–140× over single-pass BF16. The implementation is 40 lines of Python with no new
+NKI kernel. The debugging took longer than the implementation. That's the project.</p>
 
 
 

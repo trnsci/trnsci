@@ -5088,6 +5088,51 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-04-25 00:00:00+00:00">April 25, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="category/trnfft/" class="md-meta__link">trnfft</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              5 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme"><a class="toclink" href="trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/">trnfft: eight hardware runs, one wrong argument, and the Ozaki scheme</a></h2>
+<p>v0.18 ships <code>precision="ozaki"</code> — three BF16 matmuls that together deliver ~1e-5
+relative error where a single BF16 matmul gives ~1e-3. The implementation took an
+afternoon. Getting the benchmark to record a single timing took eight hardware runs
+and produced a "What didn't work" section that was, frankly, humbling.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-24 00:00:00+00:00">April 24, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5465,48 +5510,6 @@ most of the engineering work actually lived.</p>
     
       <nav class="md-post__action">
         <a href="trnsolver-v0100-schur-decomposition-and-the-architecture-of-two-stage-algorithms/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-18 00:00:00+00:00">April 18, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              7 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v080v090-dispatch-owns-routing-and-placement"><a class="toclink" href="trntensor-v080v090-dispatch-owns-routing-and-placement/">trntensor v0.8.0–v0.9.0: dispatch owns routing and placement</a></h2>
-<p>v0.8.0 closed a gap where every binary step in a 3+ operand chain bypassed the dispatch layer entirely — calling <code>torch.einsum</code> directly, invisible to the FLOP threshold and the NKI kernel, silently skipping up to 134 GFLOP of Tensor Engine work per chain. v0.9.0 added the first multi-chip abstraction: <code>ShardedTensor</code> and output-parallel einsum dispatch, the foundation for DF-MP2 with basis sets that don't fit in single-chip HBM. Both changes are the same insight applied at different scales: the dispatch layer is where decisions about <em>what code runs</em> and <em>where data lives</em> belong.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trntensor-v080v090-dispatch-owns-routing-and-placement/">
           Continue reading
         </a>
       </nav>
