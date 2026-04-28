@@ -16,7 +16,7 @@ The four-mode precision surface — `"fast"`, `"sr"`, `"dd"`, `"kahan"` — was 
 
 The CUDA analogy is `cublasMath_t` — the caller picks `CUBLAS_TENSOR_OP_MATH` vs `CUBLAS_PEDANTIC_MATH` vs `CUBLAS_DEFAULT_MATH` based on some mix of empirical testing and vague intuition. trntensor's four modes had the same shape: named, documented, but without a bridge from "I need my contraction to be accurate to 1%" to "which mode achieves that."
 
-The [v0.13.0 post](https://trnsci.dev/blog/trntensor-v0130-precision-all-the-way-down/) closes the precision-threading gaps. The [v0.14.0 post](https://trnsci.dev/blog/trntensor-v0140-four-modes-four-mocks-completing-the-precision-contract/) completes the CPU test surface. v0.15.0 closes the gap between a user's accuracy requirement and the mode that satisfies it.
+The [v0.13.0 post](https://trnsci.dev/blog/trntensor-v0130-precision-all-the-way-down/) closes the precision-threading gaps. The [v0.14.0 post](https://trnsci.dev/blog/trntensor-v0140-four-modes-four-mocks--completing-the-precision-contract/) completes the CPU test surface. v0.15.0 closes the gap between a user's accuracy requirement and the mode that satisfies it.
 
 ## What the architecture suggests
 
