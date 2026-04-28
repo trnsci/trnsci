@@ -165,6 +165,10 @@
          <lastmod>2026-04-28</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trntensor-v0150-the-caller-specifies-the-error-the-library-picks-the-mode/</loc>
+         <lastmod>2026-04-28</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-04-28</lastmod>
     </url>
@@ -505,11 +509,11 @@
          <lastmod>2026-04-28</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
+         <loc>https://trnsci.dev/blog/category/trntensor/</loc>
          <lastmod>2026-04-28</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/trntensor/</loc>
+         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
          <lastmod>2026-04-28</lastmod>
     </url>
     <url>

@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/trnblas/benchmarks/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trntensor-v0150-the-caller-specifies-the-error-the-library-picks-the-mode/">
       
       
-        <link rel="prev" href="../design/mp2_energy_profile_findings/">
+        <link rel="prev" href="../trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/">
       
       
-        <link rel="next" href="../aws_setup/">
+        <link rel="next" href="../trnsparse-what-trainium-thinks-a-sparse-matrix-is/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Benchmarks - trnsci</title>
+        <title>trntensor v0.15.0: the caller specifies the error; the library picks the mode - trnsci</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#benchmarks" class="md-skip">
+        <a href="#trntensor-v0150-the-caller-specifies-the-error-the-library-picks-the-mode" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Benchmarks
+              trntensor v0.15.0: the caller specifies the error; the library picks the mode
             
           </span>
         </div>
@@ -309,11 +309,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../blog/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -375,8 +377,6 @@
   
   
   
-    
-  
   
     
     
@@ -384,12 +384,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../../trnfft/" class="md-tabs__link">
           
   
@@ -456,7 +454,9 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -656,6 +656,8 @@
       
   
   
+    
+  
   
   
     
@@ -671,20 +673,23 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../blog/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -702,13 +707,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -754,17 +759,20 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
         
           
-          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="">
             
   
   
@@ -802,7 +810,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/announcements/" class="md-nav__link">
+      <a href="../category/announcements/" class="md-nav__link">
         
   
   
@@ -832,7 +840,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/deep-dive/" class="md-nav__link">
+      <a href="../category/deep-dive/" class="md-nav__link">
         
   
   
@@ -862,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/ecosystem/" class="md-nav__link">
+      <a href="../category/ecosystem/" class="md-nav__link">
         
   
   
@@ -892,7 +900,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnblas/" class="md-nav__link">
+      <a href="../category/trnblas/" class="md-nav__link">
         
   
   
@@ -922,7 +930,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnfft/" class="md-nav__link">
+      <a href="../category/trnfft/" class="md-nav__link">
         
   
   
@@ -952,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnrand/" class="md-nav__link">
+      <a href="../category/trnrand/" class="md-nav__link">
         
   
   
@@ -982,7 +990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnsolver/" class="md-nav__link">
+      <a href="../category/trnsolver/" class="md-nav__link">
         
   
   
@@ -1012,7 +1020,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trnsparse/" class="md-nav__link">
+      <a href="../category/trnsparse/" class="md-nav__link">
         
   
   
@@ -1042,7 +1050,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../blog/category/trntensor/" class="md-nav__link">
+      <a href="../category/trntensor/" class="md-nav__link">
         
   
   
@@ -1354,10 +1362,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -1377,22 +1383,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -1410,7 +1413,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1452,13 +1455,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1484,7 +1484,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_1" id="__nav_10_1_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -1901,8 +1901,6 @@
                 
   
   
-    
-  
   
   
     
@@ -1934,21 +1932,18 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../trnblas/" class="md-nav__link ">
               
   
   
@@ -1966,13 +1961,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_2" id="__nav_10_2_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1992,7 +1987,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../../trnblas/installation/" class="md-nav__link">
         
   
   
@@ -2020,7 +2015,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/" class="md-nav__link">
+      <a href="../../trnblas/quickstart/" class="md-nav__link">
         
   
   
@@ -2110,7 +2105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/level1/" class="md-nav__link">
+      <a href="../../trnblas/api/level1/" class="md-nav__link">
         
   
   
@@ -2138,7 +2133,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/level2/" class="md-nav__link">
+      <a href="../../trnblas/api/level2/" class="md-nav__link">
         
   
   
@@ -2166,7 +2161,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/level3/" class="md-nav__link">
+      <a href="../../trnblas/api/level3/" class="md-nav__link">
         
   
   
@@ -2194,7 +2189,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/nki/" class="md-nav__link">
+      <a href="../../trnblas/api/nki/" class="md-nav__link">
         
   
   
@@ -2230,7 +2225,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+      <a href="../../trnblas/architecture/" class="md-nav__link">
         
   
   
@@ -2314,7 +2309,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../developing_kernels/" class="md-nav__link">
+      <a href="../../trnblas/developing_kernels/" class="md-nav__link">
         
   
   
@@ -2408,7 +2403,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../design/fused_df_mp2_energy_kernel/" class="md-nav__link">
+      <a href="../../trnblas/design/fused_df_mp2_energy_kernel/" class="md-nav__link">
         
   
   
@@ -2436,7 +2431,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../design/mp2_energy_profile_findings/" class="md-nav__link">
+      <a href="../../trnblas/design/mp2_energy_profile_findings/" class="md-nav__link">
         
   
   
@@ -2469,37 +2464,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Benchmarks
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../trnblas/benchmarks/" class="md-nav__link">
         
   
   
@@ -2515,203 +2483,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#nki-gemm-per-call-kernel-timing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        NKI GEMM — per-call kernel timing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nki-trsm-per-call-timing-19" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        NKI TRSM — per-call timing (#19)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nki-syrk-per-call-timing-18" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        NKI SYRK — per-call timing (#18)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nki-batched-gemm" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        NKI batched GEMM
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#df-mp2-energy-step-3-way-kernel-comparison" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DF-MP2 energy step — 3-way kernel comparison
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#reading-this-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reading this table
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#neff-cache-warmup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        NEFF cache warmup
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#reproducing-locally" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reproducing locally
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tile-shape-autotuner-v050" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tile-shape autotuner (v0.5.0)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Tile-shape autotuner (v0.5.0)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How it works
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#measured-numbers-trn12xlarge-warm-neff-cache" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Measured numbers (trn1.2xlarge, warm NEFF cache)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#fused-gemmenergy-kernel-v051" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fused GEMM+energy kernel (v0.5.1)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#batched-pair-energy-kernel-v052-43" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Batched-pair energy kernel (v0.5.2, #43)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#out-of-scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Out of scope
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2780,7 +2551,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../aws_setup/" class="md-nav__link">
+      <a href="../../trnblas/aws_setup/" class="md-nav__link">
         
   
   
@@ -2858,13 +2629,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2890,7 +2658,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -3634,13 +3402,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -3666,7 +3431,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_4" id="__nav_10_4_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -4208,13 +3973,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -4240,7 +4002,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_5" id="__nav_10_5_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -4616,13 +4378,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -4648,7 +4407,7 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="">
+              <label class="md-nav__link " for="__nav_10_6" id="__nav_10_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -5295,6 +5054,8 @@
             
             
               
+                
+              
               <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
@@ -5314,10 +5075,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#nki-gemm-per-call-kernel-timing" class="md-nav__link">
+  <a href="#the-problem" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NKI GEMM — per-call kernel timing
+        The problem
       
     </span>
   </a>
@@ -5325,10 +5086,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nki-trsm-per-call-timing-19" class="md-nav__link">
+  <a href="#what-the-architecture-suggests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NKI TRSM — per-call timing (#19)
+        What the architecture suggests
       
     </span>
   </a>
@@ -5336,10 +5097,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nki-syrk-per-call-timing-18" class="md-nav__link">
+  <a href="#the-approach" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NKI SYRK — per-call timing (#18)
+        The approach
       
     </span>
   </a>
@@ -5347,10 +5108,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nki-batched-gemm" class="md-nav__link">
+  <a href="#implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NKI batched GEMM
+        Implementation
       
     </span>
   </a>
@@ -5358,10 +5119,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#df-mp2-energy-step-3-way-kernel-comparison" class="md-nav__link">
+  <a href="#what-didnt-work" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DF-MP2 energy step — 3-way kernel comparison
+        What didn't work
       
     </span>
   </a>
@@ -5369,38 +5130,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
+  <a href="#numbers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#reading-this-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reading this table
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#neff-cache-warmup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        NEFF cache warmup
+        Numbers
       
     </span>
   </a>
@@ -5408,10 +5141,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reproducing-locally" class="md-nav__link">
+  <a href="#whats-next" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reproducing locally
+        What's next
       
     </span>
   </a>
@@ -5419,71 +5152,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tile-shape-autotuner-v050" class="md-nav__link">
+  <a href="#takeaway" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tile-shape autotuner (v0.5.0)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Tile-shape autotuner (v0.5.0)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How it works
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#measured-numbers-trn12xlarge-warm-neff-cache" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Measured numbers (trn1.2xlarge, warm NEFF cache)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#fused-gemmenergy-kernel-v051" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fused GEMM+energy kernel (v0.5.1)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#batched-pair-energy-kernel-v052-43" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Batched-pair energy kernel (v0.5.2, #43)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#out-of-scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Out of scope
+        Takeaway
       
     </span>
   </a>
@@ -5499,577 +5171,298 @@
             
           
           
-            <div class="md-content" data-md-component="content">
-              
-              <article class="md-content__inner md-typeset">
-                
-                  
-
-
-  
-  
-
-
-<h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
-<div class="admonition warning">
-<p class="admonition-title">v0.4.x trn1 numbers were CPU torch.matmul, not NKI (fixed in v0.4.3)</p>
-<p>Releases v0.4.0 / v0.4.1 / v0.4.2 published "trn1 NKI" tables in this
-page and in <a href="https://github.com/trnsci/trnblas/blob/main/CHANGELOG.md">CHANGELOG</a>.
-A PJRT-plugin path resolution bug (our SSM runners didn't put the
-Neuron venv's <code>bin/</code> on <code>$PATH</code>) caused every NKI dispatch to fail
-with <code>FileNotFoundError: 'libneuronpjrt-path'</code>; the
-<code>_nki_*_impl.try/except</code> wrappers silently fell back to
-<code>torch.matmul</code> for every one of those runs. As a result, each "trn1
-NKI" warm number on this page through v0.4.2 reflects <strong>trn1's
-8-vCPU Xeon</strong>, not the Trainium Tensor Engine.</p>
-<p>Fix landed in v0.4.3 (commit <code>d1b481f</code>): PATH prepend in SSM
-runners + <code>NkiFallbackWarning</code> + <code>test_nki_really_runs.py</code> that
-forces <code>TRNBLAS_REQUIRE_NKI=1</code>. The tables below are re-measured
-from the same commit under real NKI dispatch (NEFF compile visible
-on cold, 10-15000× cold/warm ratios confirm the kernel actually
-runs).</p>
-<p>The MP2 energy kernel (<code>trnblas.nki.nki_mp2_energy</code>) turned out to
-have a partition-limit bug that was masked by the silent fallback;
-its tests are skipped pending rewrite (tracked in
-<a href="https://github.com/trnsci/trnblas/issues/15">#15</a>). Not in the
-production DF-MP2 path.</p>
-</div>
-<p>All numbers on <code>trn1.2xlarge</code>, <code>neuronxcc 2.24.5133</code>, warm NEFF cache
-unless noted.</p>
-<h2 id="nki-gemm-per-call-kernel-timing">NKI GEMM — per-call kernel timing<a class="headerlink" href="#nki-gemm-per-call-kernel-timing" title="Permanent link">&para;</a></h2>
-<p>Warm cache, mean of 5 calls. Aligned shapes (multiples of 128). Real
-NKI dispatch verified — <code>test_compile_vs_cache_timing[1024³]</code> reports
-<code>cold=26.7ms warm=2.3ms speedup=11.8×</code>, which is a NEFF-compile
-signature not reproducible on CPU.</p>
-<table>
-<thead>
-<tr>
-<th>Shape (M×K×N)</th>
-<th style="text-align: right;">Warm</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>512 × 512 × 512</td>
-<td style="text-align: right;">1.3 ms</td>
-</tr>
-<tr>
-<td>1024 × 1024 × 1024</td>
-<td style="text-align: right;">2.3 ms</td>
-</tr>
-</tbody>
-</table>
-<h2 id="nki-trsm-per-call-timing-19">NKI TRSM — per-call timing (#19)<a class="headerlink" href="#nki-trsm-per-call-timing-19" title="Permanent link">&para;</a></h2>
-<p><code>trnblas.trsm</code> on Trainium uses a blocked panel algorithm: diagonal
-panels solved via <code>torch.linalg.solve_triangular</code> (tiny P×P, intrinsically
-sequential); trailing off-diagonal updates run through <code>nki_gemm</code>
-(dominant work for large M). Block size fixed at 128; autotuning is
-Phase 3 work (#26). Correctness: 7/7 <code>@pytest.mark.neuron</code> tests pass
-on trn1 across <code>{lower, upper} × {trans, not}</code> + unit-diag.</p>
-<p>Warm-cache per-call timings (mean of 5, using the DF-MP2 call pattern
-<code>uplo="lower", trans=True</code>; real NKI + trailing GEMM, v0.4.3-measured):</p>
-<table>
-<thead>
-<tr>
-<th>Shape (M × N)</th>
-<th style="text-align: right;">trn1 NKI warm</th>
-<th style="text-align: right;">trn1 TFLOPS</th>
-<th style="text-align: right;">A10G warm</th>
-<th style="text-align: right;">A10G TFLOPS</th>
-<th style="text-align: right;">A10G vs trn1</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>512 × 512</td>
-<td style="text-align: right;">5.59 ms</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.21 ms</td>
-<td style="text-align: right;">0.65</td>
-<td style="text-align: right;">27×</td>
-</tr>
-<tr>
-<td>1024 × 512</td>
-<td style="text-align: right;">13.27 ms</td>
-<td style="text-align: right;">0.04</td>
-<td style="text-align: right;">0.36 ms</td>
-<td style="text-align: right;">1.50</td>
-<td style="text-align: right;">37×</td>
-</tr>
-<tr>
-<td>1024 × 1024</td>
-<td style="text-align: right;">18.72 ms</td>
-<td style="text-align: right;">0.06</td>
-<td style="text-align: right;">0.47 ms</td>
-<td style="text-align: right;">2.29</td>
-<td style="text-align: right;">40×</td>
-</tr>
-<tr>
-<td>2048 × 512</td>
-<td style="text-align: right;">35.82 ms</td>
-<td style="text-align: right;">0.06</td>
-<td style="text-align: right;">0.81 ms</td>
-<td style="text-align: right;">2.67</td>
-<td style="text-align: right;">44×</td>
-</tr>
-</tbody>
-</table>
-<p>Cold (first call, includes NEFF compile of each trailing-GEMM tile
-signature): 5.8–12.8 s.</p>
-<p>Lower TFLOPS than GEMM/SYRK is inherent to TRSM — the sequential
-panel solve limits parallelism. On trn1 the blocked structure adds
-Python-loop + per-block <code>nki_gemm</code> dispatch overhead on top; closing
-that gap is a Phase 3 follow-up (autotuner #26 and eventually a pure
-NKI substitution kernel).</p>
-<h2 id="nki-syrk-per-call-timing-18">NKI SYRK — per-call timing (#18)<a class="headerlink" href="#nki-syrk-per-call-timing-18" title="Permanent link">&para;</a></h2>
-<p><code>trnblas.syrk</code> on Trainium dispatches to a dedicated kernel (single-A
-HBM load via two <code>load_transpose2d</code> calls) rather than
-<code>gemm(A, A.T)</code>. Correctness: 7/7 <code>@pytest.mark.neuron</code> tests pass on
-trn1; outputs match <code>torch.matmul(A, A.T)</code> to <code>atol=1e-3, rtol=1e-4</code>.</p>
-<p>Warm-cache per-call timings and effective TFLOPS (mean of 5 runs on
-real NKI, v0.4.3-measured):</p>
-<table>
-<thead>
-<tr>
-<th>Shape (M×K)</th>
-<th style="text-align: right;">trn1 NKI warm</th>
-<th style="text-align: right;">trn1 TFLOPS</th>
-<th style="text-align: right;">A10G warm</th>
-<th style="text-align: right;">A10G TFLOPS</th>
-<th style="text-align: right;">A10G vs trn1</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>512×512</td>
-<td style="text-align: right;">2.14 ms</td>
-<td style="text-align: right;">0.13</td>
-<td style="text-align: right;">0.11 ms</td>
-<td style="text-align: right;">2.39</td>
-<td style="text-align: right;">19×</td>
-</tr>
-<tr>
-<td>1024×512</td>
-<td style="text-align: right;">6.21 ms</td>
-<td style="text-align: right;">0.17</td>
-<td style="text-align: right;">0.16 ms</td>
-<td style="text-align: right;">6.90</td>
-<td style="text-align: right;">39×</td>
-</tr>
-<tr>
-<td>1024×1024</td>
-<td style="text-align: right;">5.71 ms</td>
-<td style="text-align: right;">0.38</td>
-<td style="text-align: right;">0.21 ms</td>
-<td style="text-align: right;">10.07</td>
-<td style="text-align: right;">27×</td>
-</tr>
-<tr>
-<td>2048×512</td>
-<td style="text-align: right;">23.89 ms</td>
-<td style="text-align: right;">0.18</td>
-<td style="text-align: right;">0.53 ms</td>
-<td style="text-align: right;">8.11</td>
-<td style="text-align: right;">45×</td>
-</tr>
-</tbody>
-</table>
-<p>Cold (first call, includes NEFF compile): 1.6–11.4 s depending on shape.</p>
-<p>Same pattern as the DF-MP2 end-to-end: the NKI kernel is correct and
-well-tiled, but A10G's cuBLAS remains ~30× faster per-call on
-Ampere-era single-GPU hardware at these sizes. Reproducible:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_neuron_tests.sh<span class="w">     </span><span class="c1"># trn1 correctness</span>
-<span class="c1"># Then ad-hoc:</span>
-python<span class="w"> </span>examples/bench_syrk.py<span class="w">                     </span><span class="c1"># cpu</span>
-python<span class="w"> </span>examples/bench_syrk.py<span class="w"> </span>--device<span class="w"> </span>cuda<span class="w">       </span><span class="c1"># on a g5.xlarge</span>
-</code></pre></div>
-<h2 id="nki-batched-gemm">NKI batched GEMM<a class="headerlink" href="#nki-batched-gemm" title="Permanent link">&para;</a></h2>
-<p>Warm cache, batch=32 of 256×128×256. Per-slice cost after the first is
-HBM transfer + Tensor Engine dispatch only (NEFF cache hit).</p>
-<table>
-<thead>
-<tr>
-<th>Metric</th>
-<th style="text-align: right;">Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Total</td>
-<td style="text-align: right;">39.3 ms</td>
-</tr>
-<tr>
-<td>Per-slice</td>
-<td style="text-align: right;">1.23 ms</td>
-</tr>
-</tbody>
-</table>
-<h2 id="df-mp2-energy-step-3-way-kernel-comparison">DF-MP2 energy step — 3-way kernel comparison<a class="headerlink" href="#df-mp2-energy-step-3-way-kernel-comparison" title="Permanent link">&para;</a></h2>
-<p><strong>Small shape (nbasis=128, nocc=16, nvir=112, naux=384 — 256 pairs),
-trn1.2xlarge, warm NEFF cache, v0.5.2:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Energy path</th>
-<th style="text-align: right;">Warm energy</th>
-<th style="text-align: right;">Warm total</th>
-<th style="text-align: right;">vs torch</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>torch (chunk-GEMM baseline)</td>
-<td style="text-align: right;">0.018 s</td>
-<td style="text-align: right;">0.096 s</td>
-<td style="text-align: right;">1×</td>
-</tr>
-<tr>
-<td>fused-gemm (per-pair, v0.5.1)</td>
-<td style="text-align: right;">0.381 s</td>
-<td style="text-align: right;">0.454 s</td>
-<td style="text-align: right;">21× slower</td>
-</tr>
-<tr>
-<td><strong>batched-pair (v0.5.2)</strong></td>
-<td style="text-align: right;"><strong>0.005 s</strong></td>
-<td style="text-align: right;"><strong>0.081 s</strong></td>
-<td style="text-align: right;"><strong>3.6× faster</strong></td>
-</tr>
-</tbody>
-</table>
-<p>The batched-pair kernel is the first energy path that beats the chunk-GEMM
-torch baseline end-to-end on the energy step. Cold energy (first call,
-includes NEFF compile): 6.7 s for batched-pair — paid once per instance
-lifetime, amortised across all subsequent calls.</p>
-<p>Energies agree to FP32 noise: torch / fused-gemm = -1.619250e-04,
-batched-pair = -1.619249e-04.</p>
-<p><strong>Medium shape (nbasis=512, nocc=64, nvir=448, naux=1536 — 4096 pairs),
-trn1.2xlarge, warm NEFF cache:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Energy path</th>
-<th>Version</th>
-<th style="text-align: right;">Warm energy</th>
-<th style="text-align: right;">Warm total</th>
-<th style="text-align: right;">vs torch</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>torch (chunk-GEMM baseline)</td>
-<td>v0.5.2</td>
-<td style="text-align: right;">8.035 s</td>
-<td style="text-align: right;">9.795 s</td>
-<td style="text-align: right;">1×</td>
-</tr>
-<tr>
-<td>fused-gemm (per-pair)</td>
-<td>v0.5.2</td>
-<td style="text-align: right;">9.174 s</td>
-<td style="text-align: right;">10.877 s</td>
-<td style="text-align: right;">1.11× slower</td>
-</tr>
-<tr>
-<td>batched-pair (CPU fallback†)</td>
-<td>v0.5.2</td>
-<td style="text-align: right;">5.239 s</td>
-<td style="text-align: right;">7.111 s</td>
-<td style="text-align: right;">1.38× faster</td>
-</tr>
-<tr>
-<td><strong>batched-pair (chunked NKI‡)</strong></td>
-<td><strong>v0.5.4</strong></td>
-<td style="text-align: right;"><strong>1.536 s</strong></td>
-<td style="text-align: right;"><strong>4.784 s</strong></td>
-<td style="text-align: right;"><strong>5.2× faster</strong></td>
-</tr>
-</tbody>
-</table>
-<p>† v0.5.2: NEFF compile for medium-shape batched-pair kernel failed — <code>nl.affine_range</code>
-traces all loop iterations eagerly at compile time, producing an 18 GB XLA graph IR that
-exceeded the trn1 root volume's 16 GB free space. The warm row used the
-cached-failed-NEFF path → torch.matmul fallback on CPU.</p>
-<p>‡ v0.5.4: Chunked dispatch (issue #46) — outer <code>i</code>-loop moved to Python; one
-<code>@nki.jit</code> call per i-row processes all <code>nocc</code> j-pairs. 64 i-dispatches × ~24 ms
-each = 1.536 s warm energy (XLA dispatch overhead dominates; Tensor Engine executes
-each kernel in ~1 ms). Cold energy = 34 min (77 NEFF compilations at ~27 s each;
-paid once per instance lifetime). <strong>Device HBM note (confirmed 2026-04-21):</strong> at
-medium shape, all 64 loaded energy NEFFs remain resident after the cold pass —
-12.6 GB DMA spill + 900 MB model code = 15.9 GB total. A warm pass in the same
-process fails with <code>Failed to allocate 1.500GB (usage: tensors)</code> — no headroom
-remains. Warm timing must be measured in a separate process that loads from the
-EBS NEFF cache; <code>run_bench.sh</code> does this via <code>--passes cold</code> then <code>--passes warm</code>.</p>
-<p>Energies agree to FP32 noise: -2.487220e+00 (torch), -2.487219e+00 (fused-gemm),
--2.487221e+00 (batched-pair fallback), -2.487218e+00 (chunked NKI).</p>
-<p><strong>Reading the medium numbers:</strong> The chunked dispatch closes the medium-shape gap —
-5.2× faster than torch chunk-GEMM, 3.4× faster than the v0.5.2 CPU fallback.
-Each i-dispatch is ~24 ms (XLA overhead + ~1 ms Tensor Engine execution), so
-64 dispatches costs 1.536 s instead of the 409 s that a per-pair loop would require.
-The full-batch kernel's 18 GB XLA graph is replaced by 64 × ~1.4 GB graphs that
-compile and cache normally.</p>
-<h2 id="df-mp2-end-to-end-trainium1-vs-nvidia-a10g">DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G<a class="headerlink" href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" title="Permanent link">&para;</a></h2>
-<p>Synthetic inputs, same seed, same three shapes on both platforms.
-Energy matches bit-for-bit within fp32 reduction-order noise.</p>
-<p><strong>Vintage parity:</strong> Trainium1 launched Oct 2022; NVIDIA A10G
-(GA102 Ampere) launched Apr 2021 — closest single-GPU match on AWS.
-A10G via <code>g5.xlarge</code> (~$1/hr), trn1 via <code>trn1.2xlarge</code> (~$1.34/hr).</p>
-<table>
-<thead>
-<tr>
-<th>Shape</th>
-<th style="text-align: right;">Flops</th>
-<th style="text-align: right;">trn1 compile-cold</th>
-<th style="text-align: right;">trn1 EBS-warm‡</th>
-<th style="text-align: right;">trn1 HBM-warm</th>
-<th style="text-align: right;">A10G warm</th>
-<th style="text-align: right;">A10G vs trn1</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>small (128/16/384)</td>
-<td style="text-align: right;">3.4 G</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">0.091 s</td>
-<td style="text-align: right;">0.001 s</td>
-<td style="text-align: right;">91×</td>
-</tr>
-<tr>
-<td>medium (512/64/1536)</td>
-<td style="text-align: right;">2 757 G</td>
-<td style="text-align: right;"><strong>2100.4 s</strong>††</td>
-<td style="text-align: right;"><strong>119.8 s</strong>‡‡</td>
-<td style="text-align: right;"><strong>4.784 s</strong>†</td>
-<td style="text-align: right;">0.266 s</td>
-<td style="text-align: right;"><strong>18×</strong></td>
-</tr>
-<tr>
-<td>large (768/96/2304)</td>
-<td style="text-align: right;">20 352 G</td>
-<td style="text-align: right;"><strong>174.5 s</strong>†††</td>
-<td style="text-align: right;"><strong>80.5 s</strong>§</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">2.018 s</td>
-<td style="text-align: right;"><strong>40×</strong></td>
-</tr>
-</tbody>
-</table>
-<p>†† Medium compile-cold (2026-04-22, empty cache): chol 32.4 s, half 24.6 s, metric 2.0 s,
-energy 2041.3 s = <strong>2100.4 s total</strong> (77 unique NEFF compilations at ~27 s each). Prior
-measurement of 238.5 s (2026-04-21) was from a partially-warm EBS cache where GEMM/SYRK/TRSM
-NEFFs hit cache and only the energy kernel compiled fresh.</p>
-<p>‡ <strong>EBS-warm</strong> = fresh process, all NEFFs loaded from EBS NEFF cache (no compilation),
-but not yet resident in device HBM. This is the timing experienced by any fresh process
-after the instance has been used at least once at this shape.</p>
-<p>‡‡ Medium EBS-warm (2026-04-22, fresh compilation): chol 11.5 s, half 9.1 s, metric 0.5 s,
-energy 98.7 s = 119.8 s total. Energy still ~99 s because 64 NEFFs load serially at
-~1.5 s/NEFF ≈ 96 s DMA + kernel time.</p>
-<p>† HBM-warm = NEFFs already resident in device HBM (in-process second pass). Energy step
-costs only the kernel dispatch: 64 i-dispatches × ~24 ms = 1.536 s. v0.5.4 chunked
-dispatch. <strong>HBM-warm is not reproducible at medium via a separate process:</strong> after the
-cold pass, 64 energy NEFFs + GEMM/SYRK/TRSM NEFFs fill 15.9 GB of the 16 GB HBM, leaving
-no headroom for tensor allocation in a second pass. The 4.784 s warm figure is from an
-earlier tracing run; current architecture cannot re-measure it without HBM OOM.</p>
-<p>††† Large compile-cold (2026-04-24, empty energy cache): chol 38.5 s, half 96.5 s,
-metric 3.8 s, <strong>energy 35.6 s (PyTorch CPU fallback†††‡)</strong>, total 174.5 s. Half-transform
-96.5 s reflects GEMM NEFF compilation for large matrices. E = −4.351185×10¹ Ha.</p>
-<p>†††‡ <strong>Large energy uses PyTorch CPU fallback, not NKI.</strong> <code>_j_batched_kernel</code> inner loop
-tile count <code>N_A × N_B × N_K = 6 × 6 × 18 = 648</code> exceeds the NeuronCore NRT hardware
-load limit (~192; medium's <code>4 × 4 × 12 = 192</code> loads cleanly). Confirmed: j_chunk = 32,
-16, 1 all fail with <code>NRT_RESOURCE</code>. The dispatch proactively detects this and returns
-<code>_torch_batched_pair_energy</code> immediately (avoids ~30 min of wasted NEFF compilation).
-Chol, half-transform, and metric steps use NKI; energy alone falls back to trn1 CPUs.</p>
-<p>§ Large EBS-warm (2026-04-24): chol 12.5 s (NKI), half 30.4 s (NKI EBS load),
-metric 2.0 s (NKI), energy 35.5 s (PyTorch CPU, same as cold — no cache benefit), total
-80.5 s. The 40× A10G gap reflects the energy step running on trn1 CPUs vs A10G cuBLAS.</p>
-<p>† v0.5.4 chunked dispatch. Prior v0.5.3 used CPU fallback (9.910 s). The 18× gap vs A10G
-is down from 37× in v0.5.3.</p>
-<p><strong>Energy bit-exact across platforms:</strong> E_MP2 matches to fp32 noise for
-small (-1.619250e-04) and medium (-2.487218) under real NKI dispatch.</p>
-<h3 id="reading-this-table">Reading this table<a class="headerlink" href="#reading-this-table" title="Permanent link">&para;</a></h3>
-<p>At medium with v0.5.4 chunked dispatch, <strong>cuBLAS on A10G is ~18× faster than
-trnblas NKI on trn1</strong> — down from 37× with the v0.5.3 CPU fallback. The chunked
-dispatch (64 NKI calls at ~25 ms each) produces 1.536 s warm energy vs 8.035 s
-torch baseline, bringing the end-to-end total to 4.784 s. At small, the gap
-balloons to 91× because NKI dispatch overhead dominates the actual ~3 GFlops of
-compute.</p>
-<p><strong>The XLA dispatch overhead is the honest ceiling.</strong> Each chunked i-call costs
-~24 ms (fixed XLA overhead) + ~1 ms (Tensor Engine execution). At medium shape,
-64 calls = 1.6 s of dispatch overhead out of the 1.536 s energy step — the
-hardware is effectively executing for 64 ms and idling for 1.472 s waiting for
-the host. Reducing dispatch count (larger chunks, fewer i-rows per call) requires
-solving the XLA graph size problem for larger batches — which is the remaining
-Phase 3 frontier.</p>
-<p>Closing the A10G gap further requires either batching more pairs per dispatch
-(reduces dispatch count) or investing in trn2 (2× NeuronCores, lower per-call
-overhead). See <a href="https://github.com/trnsci/trnblas/issues/25">#25 — trn2 benchmarks</a>
-and <a href="https://github.com/trnsci/trnblas/issues/26">#26 — tile autotuner</a>.</p>
-<h2 id="neff-cache-warmup">NEFF cache warmup<a class="headerlink" href="#neff-cache-warmup" title="Permanent link">&para;</a></h2>
-<p>Same suite run twice on a freshly started instance:</p>
-<table>
-<thead>
-<tr>
-<th>Pass</th>
-<th style="text-align: right;">Wall time</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Cold (first run after instance start)</td>
-<td style="text-align: right;">7.01s</td>
-</tr>
-<tr>
-<td>Warm (NEFF cache hit + warm XLA graph)</td>
-<td style="text-align: right;">2.52s (2.8× faster)</td>
-</tr>
-</tbody>
-</table>
-<p>The cache at <code>/var/tmp/neuron-compile-cache/</code> persists across instance
-stop/start (EBS-backed), so kernel compile cost is paid exactly once
-per shape per cache lifetime.</p>
-<h2 id="reproducing-locally">Reproducing locally<a class="headerlink" href="#reproducing-locally" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Micro-benchmark harness (CPU baselines + NKI when available):</span>
-pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-only
-
-<span class="c1"># Full DF-MP2 bench on trn1 (provisions + runs + stops instance):</span>
-<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_df_mp2_bench.sh<span class="w"> </span>--shape<span class="w"> </span>medium
-
-<span class="c1"># Same workload on A10G (cuBLAS reference for the same vintage):</span>
-<span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>./scripts/run_cuda_bench.sh<span class="w"> </span>--shape<span class="w"> </span>medium
-</code></pre></div>
-<p>See <a href="../aws_setup/">AWS Setup</a> for the one-time Terraform provisioning
-for each instance (<code>infra/terraform/</code> for trn1, <code>infra/terraform-cuda/</code>
-for the A10G).</p>
-<h2 id="tile-shape-autotuner-v050">Tile-shape autotuner (v0.5.0)<a class="headerlink" href="#tile-shape-autotuner-v050" title="Permanent link">&para;</a></h2>
-<p><code>nki_gemm</code> now sweeps six tile candidates <code>{64,128} × {128} × {128,256,512}</code> on
-the first call per shape bucket and caches the winner to
-<code>/var/tmp/trnblas-autotune/cache.json</code> (overrideable via <code>TRNBLAS_AUTOTUNE_CACHE</code>).</p>
-<h3 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Step</th>
-<th>Detail</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Shape bucket</td>
-<td><code>ceil_pow2(M) × ceil_pow2(K) × ceil_pow2(N)</code> — all shapes in a DF-MP2 run land in the same bucket</td>
-</tr>
-<tr>
-<td>Sweep</td>
-<td>3 warm runs per candidate; candidates that don't evenly divide the padded shape are skipped</td>
-</tr>
-<tr>
-<td>Winner</td>
-<td>Stored in-process in <code>_autotune_mem</code>; written to JSON cache</td>
-</tr>
-<tr>
-<td>Cache hit</td>
-<td>Same bucket → dict lookup only, no re-sweep</td>
-</tr>
-<tr>
-<td>Escape hatch</td>
-<td><code>TRNBLAS_AUTOTUNE=0</code> → fixed <code>(128,128,512)</code>, identical to v0.4.x</td>
-</tr>
-</tbody>
-</table>
-<p>The sweep runs once per shape bucket per instance lifetime (the cache file persists
-on EBS across stop/start). DF-MP2's <code>nocc²</code> pair loop sees zero sweep overhead after
-the first call.</p>
-<h3 id="measured-numbers-trn12xlarge-warm-neff-cache">Measured numbers (trn1.2xlarge, warm NEFF cache)<a class="headerlink" href="#measured-numbers-trn12xlarge-warm-neff-cache" title="Permanent link">&para;</a></h3>
-<p>Hardware sweep timings are recorded after the first DF-MP2 bench run with v0.5.0.
-Numbers will be added here once the hardware run completes
-(<a href="https://github.com/trnsci/trnblas/issues/26">#26</a> tracking).</p>
-<h2 id="fused-gemmenergy-kernel-v051">Fused GEMM+energy kernel (v0.5.1)<a class="headerlink" href="#fused-gemmenergy-kernel-v051" title="Permanent link">&para;</a></h2>
-<p><code>nki_fused_gemm_energy(b_i, b_j, eps_occ_i, eps_occ_j, eps_vir)</code> fuses the
-two GEMMs (T and T_T) and the VE energy expression into a single <code>@nki.jit</code>.
-Eliminates the <code>(nvir, nvir)</code> T_flat HBM round-trip.</p>
-<p><strong>Measured on trn1 (small shape: nocc=16, 256 pairs):</strong></p>
-<table>
-<thead>
-<tr>
-<th>Path</th>
-<th>Warm energy step</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Chunk-GEMM baseline</td>
-<td>0.13 s</td>
-</tr>
-<tr>
-<td>Per-pair fused (#41, v0.5.1)</td>
-<td>27.8 s</td>
-</tr>
-</tbody>
-</table>
-<p>The per-pair kernel is correct (energies match to 6 significant figures) but
-<strong>215× slower</strong> — root cause is Neuron XLA's ~100ms per-NEFF-dispatch
-overhead multiplied by 256 pairs. Fixed in v0.5.2 below.</p>
-<h2 id="batched-pair-energy-kernel-v052-43">Batched-pair energy kernel (v0.5.2, #43)<a class="headerlink" href="#batched-pair-energy-kernel-v052-43" title="Permanent link">&para;</a></h2>
-<p><code>nki_batched_pair_energy(B, eps_occ, eps_vir)</code> computes all NOCC² pair
-energies in a single <code>@nki.jit</code> dispatch, reducing overhead from O(nocc²) to
-O(1).</p>
-<p><strong>Measured on trn1 (SHA <code>7dabe88</code>, warm NEFF cache, nocc=4 / 16 pairs):</strong></p>
-<table>
-<thead>
-<tr>
-<th>Metric</th>
-<th style="text-align: right;">Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Batched warm</td>
-<td style="text-align: right;">1.9 ms</td>
-</tr>
-<tr>
-<td>Per-pair loop (16 pairs, warm)</td>
-<td style="text-align: right;">25.4 ms</td>
-</tr>
-<tr>
-<td>Speedup (warm cache)</td>
-<td style="text-align: right;"><strong>13.5×</strong></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Reading the 13.5× number:</strong> With a warm NEFF cache each <code>nki_fused_gemm_energy</code>
-call takes ~1.6 ms (Tensor Engine compute only). 16 pairs × 1.6ms = 25.4ms vs
-one batched dispatch at 1.9ms. In production on a cold instance (first DF-MP2
-call, nocc=16 / 256 pairs), each per-pair invocation costs ~100ms → 256 × 100ms
-= 25.6s vs one batched dispatch → speedup ~1340×. The Spike B measurement
-(800× at NOCC=4, 16 pairs) used the cold-cache scenario.</p>
-<p>All 10 <code>TestBatchedPairEnergy</code> tests passed on trn1 (aligned, unaligned,
-vs-fused-gemm cross-check, zero-B). Total suite: 62/62.</p>
-<h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>cuBLAS head-to-head at batched-pair scale:</strong> planned once PR #44 merges
-  and trn1 numbers are available.</li>
-<li><strong>trn2 benchmarks:</strong> infrastructure provisioned (<code>infra/terraform-trn2/</code>),
-  hardware investigation deferred (<a href="https://github.com/trnsci/trnblas/issues/25">#25</a>).</li>
-</ul>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                
-              </article>
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
             </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+                        <time datetime="2026-04-27 00:00:00+00:00" class="md-ellipsis">April 27, 2026</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../category/deep-dive/">Deep dive</a>, 
+                              <a href="../category/trntensor/">trntensor</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              7 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
           
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+  
+  
+
+
+<h1 id="trntensor-v0150-the-caller-specifies-the-error-the-library-picks-the-mode">trntensor v0.15.0: the caller specifies the error; the library picks the mode<a class="headerlink" href="#trntensor-v0150-the-caller-specifies-the-error-the-library-picks-the-mode" title="Permanent link">&para;</a></h1>
+<p>The precision scaffolding built across v0.11.0–v0.14.0 gave trntensor four accumulation modes. v0.15.0 gives the caller a single number. The question "which mode?" is now the library's problem, not the caller's.</p>
+<!-- more -->
+
+<h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
+<p>The four-mode precision surface — <code>"fast"</code>, <code>"sr"</code>, <code>"dd"</code>, <code>"kahan"</code> — was complete after v0.14.0, but complete in the way a toolbox is complete: every tool was there, and using the right one correctly was entirely on the caller. Selecting <code>precision="sr"</code> for a BF16 K=512 contraction is correct, but it requires knowing that K=512 with BF16 unit roundoff (u = 2⁻⁸) means fast rounding's Wilkinson bound reaches ~200% relative error, while stochastic rounding brings it down to ~8.8% in expectation. Most callers don't carry this arithmetic in their head.</p>
+<p>The CUDA analogy is <code>cublasMath_t</code> — the caller picks <code>CUBLAS_TENSOR_OP_MATH</code> vs <code>CUBLAS_PEDANTIC_MATH</code> vs <code>CUBLAS_DEFAULT_MATH</code> based on some mix of empirical testing and vague intuition. trntensor's four modes had the same shape: named, documented, but without a bridge from "I need my contraction to be accurate to 1%" to "which mode achieves that."</p>
+<p>The <a href="https://trnsci.dev/blog/trntensor-v0130-precision-all-the-way-down/">v0.13.0 post</a> closes the precision-threading gaps. The <a href="https://trnsci.dev/blog/trntensor-v0140-four-modes-four-mocks--completing-the-precision-contract/">v0.14.0 post</a> completes the CPU test surface. v0.15.0 closes the gap between a user's accuracy requirement and the mode that satisfies it.</p>
+<h2 id="what-the-architecture-suggests">What the architecture suggests<a class="headerlink" href="#what-the-architecture-suggests" title="Permanent link">&para;</a></h2>
+<p>The four precision modes map to four concrete facts about Trainium's hardware:</p>
+<ol>
+<li><strong><code>"fast"</code></strong>: BF16 multiply-adds accumulate into FP32 PSUM. One NKI matmul dispatch. Error: K·u_bf.</li>
+<li><strong><code>"sr"</code></strong>: same kernel, stochastic PSUM→SBUF downcast via <code>nisa.activation(round_mode="stochastic")</code>. No extra dispatch cost. Error: √K·u_bf (mean-zero, statistical).</li>
+<li><strong><code>"dd"</code></strong>: Ozaki-2 — four BF16 matmul dispatches whose sum approximates the FP32-accurate result. On hardware: one fused NKI program (trnblas#22) that holds all four correction tiles in PSUM before the single SBUF store. Error: K·u_bf².</li>
+<li><strong><code>"kahan"</code></strong>: FP64 promotion before contraction. Error: K·u_f64.</li>
+</ol>
+<p>Each mode has a known theoretical error bound. Those bounds exist independent of any particular caller or workload. The natural step is to expose them as the selector itself: given a dtype, a K, and a target error, the cheapest-sufficient mode is a lookup, not a judgment call.</p>
+<p>This is what makes <code>target_forward_error=</code> a hardware-informed API, not just a convenience wrapper. The table below is the hardware's cost/accuracy tradeoff expressed in the caller's units:</p>
+<table>
+<thead>
+<tr>
+<th>K</th>
+<th><code>"fast"</code> (K·u)</th>
+<th><code>"sr"</code> (√K·u)</th>
+<th><code>"dd"</code> (K·u²)</th>
+<th><code>"kahan"</code> (K·u_f64)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4</td>
+<td>0.016</td>
+<td>0.008</td>
+<td>6×10⁻⁵</td>
+<td>4.4×10⁻¹⁵</td>
+</tr>
+<tr>
+<td>64</td>
+<td>0.25</td>
+<td>0.031</td>
+<td>9.8×10⁻⁴</td>
+<td>7.1×10⁻¹⁴</td>
+</tr>
+<tr>
+<td>512</td>
+<td>2.0</td>
+<td>0.088</td>
+<td>7.8×10⁻³</td>
+<td>5.7×10⁻¹³</td>
+</tr>
+</tbody>
+</table>
+<p>Values for BF16 (u = 2⁻⁸). <code>"sr"</code> and <code>"dd"</code> are only considered for BF16 and FP16 inputs — those are the dtypes where NKI stochastic rounding and Ozaki splitting are meaningful.</p>
+<p>K=512, BF16, <code>target_forward_error=0.1</code>: fast bound is 2.0 (fails), sr bound is 0.088 (passes). Selection: <code>"sr"</code>.</p>
+<h2 id="the-approach">The approach<a class="headerlink" href="#the-approach" title="Permanent link">&para;</a></h2>
+<p><code>select_precision_for_error(dtype, K, target)</code> walks the four modes in cost order and returns the first whose bound satisfies the target. A new <code>target_forward_error</code> kwarg on <code>einsum()</code> computes K from the subscript and operand shapes, calls the selector, then proceeds with the selected precision as if the caller had specified it explicitly. Passing both <code>precision=</code> and <code>target_forward_error=</code> raises <code>ValueError</code>.</p>
+<p>The selector is a public API function (<code>trntensor.select_precision_for_error</code>), available independently of <code>einsum()</code>. Callers who want to inspect the selection — "what mode would a K=512 BF16 contraction get at target=0.05?" — can query it without running the full contraction.</p>
+<p>One deliberate tradeoff: the K computation for multi-operand chains uses the product of all contracted indices in the full subscript. For <code>"ij,jk,kl-&gt;il"</code>, K = j_size × k_size. This is conservative for chains where the contractions happen in sequence — the actual worst-case error for a sequence of binary contractions is lower than the product-of-all-contracted-indices bound. The library accepts this conservatism because underestimating accuracy needs is the wrong failure mode. Choosing a mode that's one step more expensive than strictly necessary is an acceptable penalty; choosing one that's one step less expensive and silently delivering worse accuracy than the caller specified is not.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<p><code>select_precision_for_error</code> in <code>trntensor/plan.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">select_precision_for_error</span><span class="p">(</span><span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">target_forward_error</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">_UNIT_ROUNDOFF</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">_UNIT_ROUNDOFF</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">])</span>
+    <span class="n">u_f64</span> <span class="o">=</span> <span class="n">_UNIT_ROUNDOFF</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">K</span> <span class="o">*</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">target_forward_error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;fast&quot;</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">_SR_DD_DTYPES</span> <span class="ow">and</span> <span class="n">K</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">target_forward_error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;sr&quot;</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">_SR_DD_DTYPES</span> <span class="ow">and</span> <span class="n">K</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">target_forward_error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;dd&quot;</span>
+    <span class="k">if</span> <span class="n">K</span> <span class="o">*</span> <span class="n">u_f64</span> <span class="o">&lt;=</span> <span class="n">target_forward_error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;kahan&quot;</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Cannot achieve target_forward_error=</span><span class="si">{</span><span class="n">target_forward_error</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2"> for &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, dtype=</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">. &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Best available: &#39;kahan&#39; (K·u_f64 ≈ </span><span class="si">{</span><span class="n">K</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">u_f64</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">).&quot;</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>The dispatch block in <code>einsum()</code> that invokes it:</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">target_forward_error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">precision</span> <span class="o">!=</span> <span class="s2">&quot;fast&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Cannot specify both &#39;precision&#39; and &#39;target_forward_error&#39;. &quot;</span>
+            <span class="s2">&quot;Use one or the other.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">_input_str</span><span class="p">,</span> <span class="n">_output_str</span> <span class="o">=</span> <span class="n">_parse_subscripts</span><span class="p">(</span><span class="n">subscripts</span><span class="p">)</span>
+    <span class="n">_size_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">_term</span><span class="p">,</span> <span class="n">_op</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_input_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">),</span> <span class="n">operands</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_c</span><span class="p">,</span> <span class="n">_s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_term</span><span class="p">,</span> <span class="n">_op</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="n">_size_map</span><span class="p">[</span><span class="n">_c</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_s</span><span class="p">)</span>
+    <span class="n">_contracted</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_size_map</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_output_str</span><span class="p">}</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_contracted</span><span class="p">:</span>
+        <span class="n">K</span> <span class="o">*=</span> <span class="n">_size_map</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+    <span class="n">eff_dtype</span> <span class="o">=</span> <span class="n">_resolve_dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">operands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="k">if</span> <span class="n">operands</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">precision</span> <span class="o">=</span> <span class="n">select_precision_for_error</span><span class="p">(</span><span class="n">eff_dtype</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">target_forward_error</span><span class="p">)</span>
+</code></pre></div>
+<p>After this block, <code>precision</code> holds the selected mode and the rest of <code>einsum()</code> proceeds normally — same routing, same dispatch paths, no special cases downstream.</p>
+<h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
+<p><strong>SR's bound is statistical, not worst-case.</strong> The Connolly–Higham–Mary result (SIAM J. Sci. Comput. 2021) gives <code>"sr"</code> a mean-zero error with standard deviation √K·u. <code>select_precision_for_error</code> uses √K·u as the SR threshold, but this is a probabilistic bound, not a Wilkinson worst-case. There is a small probability — formally e^{-c·K} for any constant c &gt; 0 — of exceeding it. For workloads where a probabilistic bound is acceptable (DF-MP2 energy contributions, iterative solvers with redundancy), SR is the right choice at this target. For workloads where the bound must hold deterministically on every call, <code>"dd"</code> is the correct selection. The <code>select_precision_for_error</code> docstring makes this distinction explicit, and the table column is labeled "Expected (statistical)" for <code>"sr"</code>. The API doesn't hide the distinction, but it also doesn't force every caller to reason about it upfront — for most scientific computing workloads at intermediate K values, √K·u in expectation is a useful contract.</p>
+<p><strong>The K overestimate for path strategy.</strong> As noted above, K for a 3-operand chain is computed as the product of all contracted indices, which can be a conservative overestimate. A caller with <code>"ij,jk,kl-&gt;il"</code> at j=32, k=64 gets K=2048, which pushes the fast bound to 8.0 for BF16 — triggering SR or DD selection even if the sequential binary contractions would each have a much smaller effective K. Tighter K accounting per binary step is future work. The conservative choice is safe; the cost is occasionally using a more expensive mode than necessary.</p>
+<p><strong>Toolchain note, unchanged.</strong> The CPU simulator still does not support <code>round_mode="stochastic"</code> in <code>nisa.activation</code>. This gap was flagged in the <a href="https://trnsci.dev/blog/trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">v0.11.0 post</a> and remains open. <code>target_forward_error=</code> selections that route to <code>"sr"</code> run <code>_stochastic_round_cpu</code> in CI; the hardware path through <code>nisa.activation(..., round_mode="stochastic")</code> is unvalidated outside a real trn1 instance. The Neuron team request from v0.11.0 stands: simulator support for <code>round_mode</code> would close this for CI. This is worth repeating here because <code>target_forward_error=</code> is likely to route more code through SR than the explicit <code>precision="sr"</code> kwarg ever did — the automation makes the untested path easier to reach.</p>
+<h2 id="numbers">Numbers<a class="headerlink" href="#numbers" title="Permanent link">&para;</a></h2>
+<p>The error-bound table in "What the architecture suggests" is the quantitative content of this release. No hardware timing is available — v0.15.0 adds no new NKI kernel paths; it routes to existing ones.</p>
+<p>The test that best demonstrates the end-to-end contract is <code>test_very_tight_selects_kahan</code>: K=16, BF16, <code>target_forward_error=1e-5</code>. The selector walks all four modes:</p>
+<ul>
+<li>fast: 16 × 2⁻⁸ ≈ 0.063 &gt; 1e-5</li>
+<li>sr: 4 × 2⁻⁸ ≈ 0.016 &gt; 1e-5</li>
+<li>dd: 16 × (2⁻⁸)² ≈ 2.4×10⁻⁴ &gt; 1e-5</li>
+<li>kahan: 16 × 2⁻⁵³ ≈ 1.8×10⁻¹⁵ &lt; 1e-5 → selected</li>
+</ul>
+<p>The test then verifies the result is numerically identical to <code>precision="kahan"</code> output. The selector reached the right answer; the execution path is unchanged.</p>
+<table>
+<thead>
+<tr>
+<th>New test</th>
+<th>What it validates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test_large_k_bf16_selects_sr</code></td>
+<td>K=512 BF16, target=0.1 → <code>"sr"</code> selected; correct shape and dtype</td>
+</tr>
+<tr>
+<td><code>test_small_k_selects_fast</code></td>
+<td>K=4 BF16, target=0.1 → <code>"fast"</code> selected</td>
+</tr>
+<tr>
+<td><code>test_tight_target_selects_dd</code></td>
+<td>K=64 BF16, target=0.003 → <code>"dd"</code> selected</td>
+</tr>
+<tr>
+<td><code>test_very_tight_selects_kahan</code></td>
+<td>K=16 BF16, target=1e-5 → <code>"kahan"</code>; result identical to explicit kahan</td>
+</tr>
+<tr>
+<td><code>test_ambiguous_raises</code></td>
+<td><code>precision=</code> + <code>target_forward_error=</code> together raises <code>ValueError</code></td>
+</tr>
+<tr>
+<td><code>test_impossible_target_raises</code></td>
+<td>target=1e-20 raises <code>ValueError</code> naming <code>"kahan"</code> as best available</td>
+</tr>
+</tbody>
+</table>
+<p>Total tests: 153, all passing (6 new in <code>TestTargetForwardError</code>).</p>
+<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
+<p><code>target_forward_error=</code> in <code>einsum()</code> is the first concrete realization of the suite-level direction. The natural extensions:</p>
+<ul>
+<li><strong><code>multi_einsum(*contractions, target_forward_error=ε)</code></strong>: each contraction selects its own mode based on its own K and dtype. The per-contraction loop in <code>multi_einsum</code> already calls <code>einsum()</code> for each step; threading <code>target_forward_error=</code> through is straightforward.</li>
+<li><strong>Adaptive error estimation</strong>: rather than static Wilkinson bounds, measure actual residuals using Trainium's idle-engine concurrency (VectorE can run alongside Tensor Engine GEMMs). Escalate precision only when the measured residual exceeds the target, amortizing the cost of higher-precision modes across the cases that actually need them.</li>
+<li><strong><code>solve(A, b, target_forward_error=ε)</code></strong> (trnsolver): the suite-level API direction. trntensor's contraction-level <code>target_forward_error=</code> is the building block; trnsolver's factorization and solve paths need the same contract at the linear-algebra level.</li>
+<li><strong>trnblas#22 and SDK 2.30+</strong>: the two hardware gates that complete the NKI side of the precision arc. When trnblas#22 lands, <code>"dd"</code> on Trainium becomes a single fused NKI program instead of a <code>NotImplementedError</code>. When SDK 2.30+ arrives, reduce-parallel sharding completes. <code>target_forward_error=</code> selections that route to <code>"dd"</code> will automatically benefit from the trnblas#22 path with no API changes.</li>
+</ul>
+<p>Live roadmap: <a href="https://trnsci.dev/roadmap/">trnsci.dev/roadmap/</a>. Suite tracker: <a href="https://github.com/trnsci/trnsci/issues/1">trnsci/trnsci#1</a>.</p>
+<h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
+<p>The precision scaffolding across v0.11.0–v0.14.0 — stochastic rounding, mixed sharding, precision threading, Ozaki-2 CPU mocks — was four releases of laying infrastructure. v0.15.0 is one release that puts a door in front of it. Callers who previously had to know that K=512 with BF16 means fast rounding's bound reaches 200% relative error now write <code>target_forward_error=0.1</code> and get stochastic rounding automatically. The hardware facts are still there — the table is still in the docstring — but they no longer have to live in the caller's head. For the suite-level arc toward <code>solve(A, b, target_forward_error=ε)</code>, the contraction layer needed to speak in error bounds before the solver layer could. That part is done.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+
+
+  <h2 id="__comments">Comments</h2>
+
+  <script src="https://giscus.app/client.js"
+          data-repo="trnsci/trnsci"
+          data-repo-id="R_kgDOSA365w"
+          data-category="General"
+          data-category-id="DIC_kwDOSA36584C66kJ"
+          data-mapping="pathname"
+          data-strict="0"
+          data-reactions-enabled="1"
+          data-emit-metadata="0"
+          data-input-position="bottom"
+          data-theme="preferred_color_scheme"
+          data-lang="en"
+          data-loading="lazy"
+          crossorigin="anonymous"
+          async>
+  </script><script>
+    document$.subscribe(function() {
+      var palette = __md_get("__palette")
+      if (palette && typeof palette.color === "object") {
+        var theme = palette.color.scheme === "slate" ? "dark" : "light"
+        var frame = document.querySelector(".giscus-frame")
+        if (frame) {
+          frame.contentWindow.postMessage(
+            { giscus: { setConfig: { theme } } },
+            "https://giscus.app"
+          )
+        }
+      }
+    })
+  </script>
+
+      
+    </article>
+  </div>
+
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>

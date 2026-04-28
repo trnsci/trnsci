@@ -5392,20 +5392,22 @@
 since it's reused across all auxiliary basis indices <code>P</code>.</p>
 <h2 id="known-gaps">Known gaps<a class="headerlink" href="#known-gaps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Level 3 NKI coverage is partial.</strong> As of v0.4.0, <code>gemm</code>, <code>batched_gemm</code>,
-  and the custom <code>nki_mp2_energy</code> reduction have NKI kernels. <code>symm</code>, <code>syrk</code>,
-  <code>trsm</code>, <code>trmm</code> still dispatch straight to PyTorch — these are the next
-  targets (tracked for v0.5.0). <code>syrk</code> and <code>trsm</code> appear in the DF-MP2 hot
-  path (metric construction, Cholesky-based metric inversion).</li>
-<li><strong><code>nki_mp2_energy</code> matches torch at medium, doesn't beat it.</strong> Kernel is
-  correct; perf is gated by per-(i, j) dispatch/load overhead. Phase 2
-  restructuring (batch multiple (i, j) per dispatch) is open under
-  <a href="https://github.com/trnsci/trnblas/issues/15">#15</a>.</li>
-<li><strong>No FP64.</strong> Trainium's Tensor Engine maxes out at FP32. See
-  <a href="#precision-envelope">Precision envelope</a> below for the measured FP32 vs
-  PySCF-FP64 picture. Double-double emulation is gated on whether cc-pVTZ or
-  larger basis sets exceed µHartree
-  (<a href="https://github.com/trnsci/trnblas/issues/10">#10</a>).</li>
+<li><strong>Level 3 NKI coverage is partial.</strong> <code>gemm</code>, <code>batched_gemm</code>, <code>syrk</code>, and
+  <code>trsm</code> (left-side blocked) have NKI kernels. <code>symm</code> and <code>trmm</code> still
+  dispatch straight to PyTorch. Neither is in the DF-MP2 hot path.</li>
+<li><strong>Batched-pair energy (v0.5.2–v0.5.4) solved the dispatch overhead.</strong>
+  <code>nki_batched_pair_energy</code>
+  (<a href="https://github.com/trnsci/trnblas/issues/43">#43</a>,
+  <a href="https://github.com/trnsci/trnblas/issues/46">#46</a>) replaces the nocc²-loop
+  dispatch with a single <code>@nki.jit</code> call (small shape) or chunked i-loop
+  (medium/large). Warm: <strong>3.6× faster than torch at small shape, 5.2× at
+  medium shape.</strong></li>
+<li><strong>No FP64.</strong> Trainium's Tensor Engine maxes out at FP32.
+  <strong>Decision (2026-04-18):</strong> FP32 is sufficient — both gate cases are well
+  below 1 µHartree.
+  <a href="https://github.com/trnsci/trnblas/issues/10">#10</a> closed "not needed";
+  <a href="https://github.com/trnsci/trnblas/issues/22">#22</a> (double-double) deferred
+  indefinitely. See <a href="#precision-envelope">Precision envelope</a> below.</li>
 <li><strong>Level 1/2 are PyTorch-only.</strong> The Tensor Engine is wasted on vector ops;
   Level 3 is where NKI acceleration pays off. Not planned to change.</li>
 </ul>
