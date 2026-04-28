@@ -11,6 +11,8 @@ relative error where a single BF16 matmul gives ~1e-3. The implementation took a
 afternoon. Getting the benchmark to record a single timing took eight hardware runs
 and produced a "What didn't work" section that was, frankly, humbling.
 
+<!-- more -->
+
 ## The problem
 
 `precision="bf16"` (v0.17) gives ~1.4× throughput over FP32 at N=64–256. It also gives
