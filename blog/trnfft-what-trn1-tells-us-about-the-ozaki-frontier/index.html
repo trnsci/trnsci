@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://trnsci.dev/blog/trnfft-correcting-the-ozaki-precision-claim/">
+        <link rel="canonical" href="https://trnsci.dev/blog/trnfft-what-trn1-tells-us-about-the-ozaki-frontier/">
       
       
         <link rel="prev" href="../trntensor-v0160-extending-the-precision-contract-to-multi_einsum/">
@@ -27,7 +27,7 @@
     
     
       
-        <title>trnfft: correcting the Ozaki precision claim - trnsci</title>
+        <title>trnfft: what trn1 tells us about the Ozaki frontier - trnsci</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trnfft-correcting-the-ozaki-precision-claim" class="md-skip">
+        <a href="#trnfft-what-trn1-tells-us-about-the-ozaki-frontier" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              trnfft: correcting the Ozaki precision claim
+              trnfft: what trn1 tells us about the Ozaki frontier
             
           </span>
         </div>
@@ -5086,10 +5086,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-the-architecture-actually-does" class="md-nav__link">
+  <a href="#the-product-precision-constraint" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the architecture actually does
+        The product-precision constraint
       
     </span>
   </a>
@@ -5097,10 +5097,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-this-means-for-the-library" class="md-nav__link">
+  <a href="#why-nvidias-ozaki-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this means for the library
+        Why NVIDIA's Ozaki works
       
     </span>
   </a>
@@ -5108,10 +5108,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-a-hardware-ozaki-would-require" class="md-nav__link">
+  <a href="#what-the-api-does-now" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What a hardware Ozaki would require
+        What the API does now
       
     </span>
   </a>
@@ -5119,10 +5119,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
+  <a href="#the-post-fp64-thesis-sharpened" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What's next
+        The post-FP64 thesis, sharpened
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-actually-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's actually next
       
     </span>
   </a>
@@ -5200,7 +5211,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              4 min read
+                              5 min read
                             
                           </span>
                         </div>
@@ -5227,13 +5238,14 @@
   
 
 
-<h1 id="trnfft-correcting-the-ozaki-precision-claim">trnfft: correcting the Ozaki precision claim<a class="headerlink" href="#trnfft-correcting-the-ozaki-precision-claim" title="Permanent link">&para;</a></h1>
-<p>Two earlier posts — <a href="https://trnsci.dev/blog/trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/">v0.18</a> and
-<a href="https://trnsci.dev/blog/trnfft-the-residual-must-stay-fp32/">v0.19</a> — claimed that the Ozaki scheme
-delivers O(sqrt(N)·u_bf16²) ≈ 1.6e-5 and O(sqrt(N)·u_bf16⁴) ≈ 2e-9 relative error
-on Trainium hardware. The hardware measurements say otherwise. Both modes give ~1.7e-3
-— the same as a single-pass BF16 DFT-GEMM. This post corrects the record and explains
-why.</p>
+<h1 id="trnfft-what-trn1-tells-us-about-the-ozaki-frontier">trnfft: what trn1 tells us about the Ozaki frontier<a class="headerlink" href="#trnfft-what-trn1-tells-us-about-the-ozaki-frontier" title="Permanent link">&para;</a></h1>
+<p>The <a href="../2026-04-25-trnfft-ozaki-eight-runs/">v0.18</a> and <a href="../2026-04-28-trnfft-two-level-ozaki/">v0.19</a>
+posts claimed hardware precision of O(sqrt(N)·u_bf16²) ≈ 1.6e-5 and O(sqrt(N)·u_bf16⁴) ≈ 2e-9
+for the Ozaki modes. The trn1 hardware measurement says those numbers are wrong — both modes
+deliver ~1.7e-3, equivalent to single-pass BF16. But the conclusion is not "Ozaki is a dead end."
+NVIDIA shipped Ozaki-style FP64 emulation in cuBLAS in October 2025, with 1.5–3× speedups in
+ecTrans, BerkeleyGW, and Quantum Espresso at maintained accuracy. The difference between
+NVIDIA's working result and trnfft's non-result is one thing: hardware generation.</p>
 <!-- more -->
 
 <h2 id="the-measurement">The measurement<a class="headerlink" href="#the-measurement" title="Permanent link">&para;</a></h2>
@@ -5242,7 +5254,7 @@ why.</p>
 <thead>
 <tr>
 <th>mode</th>
-<th>hardware rel error (N=64)</th>
+<th>trn1 rel error (N=64)</th>
 <th>theoretical</th>
 <th>CPU rel error (N=64)</th>
 </tr>
@@ -5268,69 +5280,81 @@ why.</p>
 </tr>
 </tbody>
 </table>
-<p>On CPU the scheme works exactly as theorised — ozaki is ~140× better than bf16, ozaki_hq
-is a further ~100× better. On hardware, all three modes give the same result.</p>
-<h2 id="what-the-architecture-actually-does">What the architecture actually does<a class="headerlink" href="#what-the-architecture-actually-does" title="Permanent link">&para;</a></h2>
-<p>The Ogita–Rump–Oishi scheme improves precision by decomposing W and x into BF16 high/low
-parts and summing multiple BF16 matmuls. The precision gain depends on a specific
-assumption: <strong>the error in each matmul is dominated by the BF16 quantization of the
-inputs, not by arithmetic rounding inside the matmul itself.</strong></p>
-<p>That assumption holds on CPU, where the <code>complex_gemm_bf16</code> fallback promotes BF16 inputs
-to FP32 before calling <code>torch.matmul</code>. Every product <code>W_h[i,k] × x_h[k,j]</code> is computed
-in FP32 — no per-product rounding beyond what BF16 quantization already introduced. The
-split terms (W_h@x_l, W_l@x_h) accurately cancel the input quantization error.</p>
-<p>On Trainium, <code>nc_matmul</code> with BF16 stationary and BF16 moving inputs accumulates into
-FP32 PSUM. The PSUM does prevent accumulation error, as advertised. But each individual
-product <code>W_h[i,k] × x_h[k,j]</code> is computed <strong>in BF16</strong> before being added to the FP32
-accumulator. That per-product BF16 rounding introduces ~u_bf16 of error per product,
-and N products sum to ~sqrt(N)·u_bf16 total error — indistinguishable from the single-pass
-BF16 result. The split terms can't cancel errors they can't observe.</p>
-<div class="highlight"><pre><span></span><code>CPU:      BF16(W_h) × BF16(x_h) → FP32 product → FP32 PSUM  ✓ Ozaki works
-Hardware: BF16(W_h) × BF16(x_h) → BF16 product → FP32 PSUM  ✗ per-product error dominates
+<p>On CPU the scheme works exactly as theorised — ozaki is ~140× better than bf16, ozaki_hq a
+further ~100× better. On trn1 hardware, all three modes give the same result.</p>
+<h2 id="the-product-precision-constraint">The product-precision constraint<a class="headerlink" href="#the-product-precision-constraint" title="Permanent link">&para;</a></h2>
+<p>The Ozaki scheme improves precision by decomposing W and x into BF16 high/low parts and
+summing correction matmuls. The precision gain depends on one property: <strong>the error in each
+matmul is dominated by BF16 input quantization, not by arithmetic rounding inside the
+matmul itself.</strong></p>
+<p>On trn1, <code>nc_matmul</code> with BF16 inputs rounds each product to BF16 before PSUM accumulation.
+Each product <code>W_h[i,k] × x_h[k,j]</code> acquires ~u_bf16 of rounding error at the multiply —
+before the FP32 PSUM sees it. The FP32 PSUM prevents accumulation error, which is real.
+But the bottleneck moved upstream. The split terms can't cancel errors they can't observe.</p>
+<div class="highlight"><pre><span></span><code>CPU:   BF16(W) × BF16(x) → FP32 product → FP32 PSUM   ✓ input error captured by split
+trn1:  BF16(W) × BF16(x) → BF16 product → FP32 PSUM   ✗ product rounding dominates
+trn2+: BF16(W) × BF16(x) → FP32 product → FP32 PSUM   ? TF32 product precision — test needed
 </code></pre></div>
-<p>The "free FP32 accumulator" is real and prevents accumulation error. But it is not enough:
-the bottleneck is not accumulation, it is the per-product multiply.</p>
-<h2 id="what-this-means-for-the-library">What this means for the library<a class="headerlink" href="#what-this-means-for-the-library" title="Permanent link">&para;</a></h2>
-<p><strong>Throughput numbers are unaffected.</strong> The timing benchmarks in v0.18/v0.19 are correct:
-ozaki takes ~2.7× BF16 latency and ozaki_hq takes ~5.3×. Three and six BF16 matmuls
-are genuinely being dispatched and timed. The data-dependency trick works. The XLA lazy
-graph executes sequentially. The Ozaki path runs exactly as implemented.</p>
-<p><strong>The precision claim is wrong for hardware.</strong> On Trainium, <code>precision="ozaki"</code> and
-<code>precision="ozaki_hq"</code> deliver ~1.7e-3 relative error — the same as <code>precision="bf16"</code>.
-The extra matmuls cost time without buying accuracy. The modes are not harmful (the results
-are correct FFTs), but the precision marketing was based on CPU measurements and does not
-transfer.</p>
-<p><strong>The right precision path for hardware remains <code>precision="double"</code></strong>: route through
-CPU, use FP64 arithmetic, pay the roundtrip cost. That is the only mode that actually
-delivers near-FP64 accuracy on this hardware today.</p>
-<h2 id="what-a-hardware-ozaki-would-require">What a hardware Ozaki would require<a class="headerlink" href="#what-a-hardware-ozaki-would-require" title="Permanent link">&para;</a></h2>
-<p>For the Ozaki scheme to work on Trainium, the Tensor Engine would need to compute
-BF16 × BF16 products in FP32 (or higher) before accumulation into PSUM. That is:
-mixed-precision multiply-accumulate where inputs are BF16 but the partial product is FP32.</p>
-<p>This is a concrete hardware request: <strong>BF16 input matmul with FP32 product precision
-and FP32 PSUM.</strong> The result would be identical to what Tensor Cores with TF32 accumulation
-provide in CUDA. If Trainium 2 (trn2) exposes this path via NKI, the Ozaki scheme would
-work as theorised without any code change — only the hardware behavior needs to change.</p>
-<p>Until then, the ozaki and ozaki_hq modes are available for CPU correctness testing and
-future hardware validation, but should not be used in production with the expectation of
-hardware precision improvement.</p>
-<h2 id="whats-next">What's next<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong><code>precision="double"</code> remains the hardware precision path.</strong> No change to the API.</li>
-<li><strong>NKI upstream ask:</strong> filed. Request: <code>nc_matmul</code> option to compute BF16 × BF16
-  products at FP32 precision before FP32 PSUM accumulation.</li>
-<li><strong>Ozaki as a CPU preprocessing step:</strong> if inputs are small enough to fit in CPU SRAM,
-  running the DFT-GEMM on CPU in FP64 and then transferring to Trainium is faster than
-  <code>precision="double"</code> for batch workloads. This is a dispatch optimization, not an
-  algorithm change. Tracked as a future improvement.</li>
-</ul>
+<h2 id="why-nvidias-ozaki-works">Why NVIDIA's Ozaki works<a class="headerlink" href="#why-nvidias-ozaki-works" title="Permanent link">&para;</a></h2>
+<p>NVIDIA's cuBLAS FP64 emulation on Blackwell uses INT8 Tensor Cores where each product of two
+low-precision inputs accumulates at higher precision before reaching the FP32 accumulator.
+The Ozaki correction terms have something to capture because the per-product precision
+<em>exceeds</em> the input precision. The same logic held on A100/H100 TF32: 7-bit BF16 inputs,
+10-bit TF32 products, FP32 PSUM. Ozaki works because the 3-bit product precision gap is
+what the split addresses.</p>
+<p>trn1 has no such gap: 7-bit BF16 products from 7-bit BF16 inputs leave nothing for the
+correction to capture. trn2's TF32 support means it likely has the gap. "Likely" is not a
+precision table — the same characterization test that exposed the trn1 constraint will answer
+the trn2 question.</p>
+<h2 id="what-the-api-does-now">What the API does now<a class="headerlink" href="#what-the-api-does-now" title="Permanent link">&para;</a></h2>
+<p>The ozaki modes stay; the wrapper becomes hardware-aware.</p>
+<p>On trn1, calling <code>precision="ozaki"</code> or <code>"ozaki_hq"</code> now emits a <code>RuntimeWarning</code> and falls
+back to <code>precision="bf16"</code>. The warning text names the constraint (BF16-product PSUM), the
+cost (3–6× BF16 latency with no accuracy gain), and the path forward (run
+<code>TestOzakiHQCharacterization</code> on your instance type; call
+<code>trnfft.set_ozaki_product_precision_verified(True)</code> to suppress after confirming).</p>
+<p>On trn2, if the characterization test shows ozaki_err ≪ bf16_err, the modes enable natively
+with no warning. That result also retroactively validates the v0.18/v0.19 accuracy claims —
+they were describing hardware that didn't exist yet on the AWS Trainium roadmap.</p>
+<p>trn3 with MXFP8/MXFP4 tensor cores is the Trainium analog of Blackwell's INT8 path: the
+Ozaki-II higher-order splits that NVIDIA named as a continuing development priority become
+the primary trnfft route to FP64-class accuracy.</p>
+<p>This is the generational structure NVIDIA navigated: Ampere (BF16 products, Ozaki doesn't
+work), Hopper (TF32 products, Ozaki works), Blackwell (INT8 products, Ozaki-II). trnsci is
+at the Ampere moment on Trainium silicon.</p>
+<h2 id="the-post-fp64-thesis-sharpened">The post-FP64 thesis, sharpened<a class="headerlink" href="#the-post-fp64-thesis-sharpened" title="Permanent link">&para;</a></h2>
+<p>The reframe after this exercise is not "only FP32-sufficient workloads." It's sharper:
+<strong>FP64-class accuracy on accelerators is an algorithmic property of low-precision tensor
+matmul plus correction, not a property of native FP64 hardware.</strong> The entire industry is
+moving this way. The FP64:FP32 ratio on consumer GPUs degraded from 1:8 to 1:64 on Ampere
+while the AI boom eroded the datacenter-GPU exception. NVIDIA's October 2025 cuBLAS release
+is proof the migration is complete at the top end — native FP64 is retreating from hardware
+into algorithm.</p>
+<p>trnsci is documenting the same migration on AWS silicon, one generation behind. The trnfft
+saga isn't the project being wrong about post-FP64. It's hitting the same generational
+constraint NVIDIA Ampere had before TF32 closed the product-precision gap. The thesis is
+intact. The implementation needs a hardware version check.</p>
+<h2 id="whats-actually-next">What's actually next<a class="headerlink" href="#whats-actually-next" title="Permanent link">&para;</a></h2>
+<p><strong>Immediate:</strong> hardware-gated warning in the ozaki dispatch (trn1 → warn + fallback; trn2 →
+gated on characterization test; API handle to suppress warning after user verification).</p>
+<p><strong>trn2 validation:</strong> <code>AWS_PROFILE=aws ./scripts/run_precision_characterization.sh trn2</code>. If
+ozaki_err ≪ bf16_err, the CHANGELOG gets a trn2 precision table and the modes enable
+natively. That run is the single most informative experiment the project can run right now.</p>
+<p><strong>Stochastic rounding:</strong> Trainium2 advertises SR in its ISA; NKI exposes ISA-level control.
+SR converts accumulated rounding error in iterative algorithms from O(N·u) systematic drift
+to O(sqrt(N)·u) zero-mean noise — every reduction in trnfft (Bluestein chains, twiddle
+accumulation, Stockham reductions) benefits. SR is more distinctive than Ozaki as a
+Trainium angle and more broadly applicable: it works for arbitrary iterative algorithms, not
+just structured matmul, and it uses a hardware feature Trainium actually exposes. The
+numerical analysis of algorithms designed for BF16-product/FP32-PSUM hardware — the Higham
+for systolic arrays — doesn't exist. SR is the technical core of the first chapter.</p>
 <h2 id="takeaway">Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
-<p>The Ozaki scheme is a correct algorithm. The CPU measurements were correct. The
-architectural reasoning — "PSUM prevents accumulation error, so splits correct the
-remaining input-quantization error" — was incomplete. It missed the per-product multiply
-rounding that happens before PSUM sees the result. On current Trainium hardware, that
-rounding dominates, and the split provides no benefit. Throughput costs are real;
-precision gains are not. The posts are wrong. The CHANGELOG now says so explicitly.</p>
+<p>trn1 is the pre-TF32 moment. The algorithm is correct; the hardware generation is wrong.
+cuBLAS proved in October 2025 that Ozaki-style emulation works when product precision
+exceeds input precision. trn2/trn3 close that gap on Trainium. The API stays
+forward-compatible, the modes stay, the precision claims become conditional on a measurement
+any user can run. The thesis isn't retreating — it's being validated one generation at a time,
+on a different vendor's timeline.</p>
 
 
 

@@ -5153,7 +5153,7 @@ architecture made this obvious. Getting the dispatch infrastructure right was le
           
           <li class="md-meta__item">
             
-              4 min read
+              5 min read
             
           </li>
         
@@ -5163,17 +5163,18 @@ architecture made this obvious. Getting the dispatch infrastructure right was le
     </div>
   </header>
   <div class="md-post__content md-typeset">
-    <h2 id="trnfft-correcting-the-ozaki-precision-claim"><a class="toclink" href="../../trnfft-correcting-the-ozaki-precision-claim/">trnfft: correcting the Ozaki precision claim</a></h2>
-<p>Two earlier posts — <a href="https://trnsci.dev/blog/trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/">v0.18</a> and
-<a href="https://trnsci.dev/blog/trnfft-the-residual-must-stay-fp32/">v0.19</a> — claimed that the Ozaki scheme
-delivers O(sqrt(N)·u_bf16²) ≈ 1.6e-5 and O(sqrt(N)·u_bf16⁴) ≈ 2e-9 relative error
-on Trainium hardware. The hardware measurements say otherwise. Both modes give ~1.7e-3
-— the same as a single-pass BF16 DFT-GEMM. This post corrects the record and explains
-why.</p>
+    <h2 id="trnfft-what-trn1-tells-us-about-the-ozaki-frontier"><a class="toclink" href="../../trnfft-what-trn1-tells-us-about-the-ozaki-frontier/">trnfft: what trn1 tells us about the Ozaki frontier</a></h2>
+<p>The <a href="../2026-04-25-trnfft-ozaki-eight-runs/">v0.18</a> and <a href="../2026-04-28-trnfft-two-level-ozaki/">v0.19</a>
+posts claimed hardware precision of O(sqrt(N)·u_bf16²) ≈ 1.6e-5 and O(sqrt(N)·u_bf16⁴) ≈ 2e-9
+for the Ozaki modes. The trn1 hardware measurement says those numbers are wrong — both modes
+deliver ~1.7e-3, equivalent to single-pass BF16. But the conclusion is not "Ozaki is a dead end."
+NVIDIA shipped Ozaki-style FP64 emulation in cuBLAS in October 2025, with 1.5–3× speedups in
+ecTrans, BerkeleyGW, and Quantum Espresso at maintained accuracy. The difference between
+NVIDIA's working result and trnfft's non-result is one thing: hardware generation.</p>
 
     
       <nav class="md-post__action">
-        <a href="../../trnfft-correcting-the-ozaki-precision-claim/">
+        <a href="../../trnfft-what-trn1-tells-us-about-the-ozaki-frontier/">
           Continue reading
         </a>
       </nav>
