@@ -58,7 +58,7 @@ The batch split itself is three lines:
 
 ```python
 real_shards = x.real.chunk(num_cores, dim=0)
-imag_shards = x.imag.chunk(dim=0)
+imag_shards = x.imag.chunk(num_cores, dim=0)
 results = [dp_model(r, i) for r, i in zip(real_shards, imag_shards, strict=True)]
 ```
 
