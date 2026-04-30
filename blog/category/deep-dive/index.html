@@ -5097,6 +5097,50 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-04-30 00:00:00+00:00">April 30, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trnfft/" class="md-meta__link">trnfft</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              4 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnfft-the-neuroncore-is-the-unit-of-parallelism"><a class="toclink" href="../../trnfft-the-neuroncore-is-the-unit-of-parallelism/">trnfft: the NeuronCore is the unit of parallelism</a></h2>
+<p>v0.20 ships multi-NeuronCore batch-split FFT. B transforms dispatched across C NeuronCores
+gives B/C per core — no shared state, no communication, linear scaling up to B = C. The
+architecture made this obvious. Getting the dispatch infrastructure right was less so.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnfft-the-neuroncore-is-the-unit-of-parallelism/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-29 00:00:00+00:00">April 29, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5475,48 +5519,6 @@ property of Trainium that was already present in every kernel, just never exploi
     
       <nav class="md-post__action">
         <a href="../../trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              6 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0130-precision-all-the-way-down"><a class="toclink" href="../../trntensor-v0130-precision-all-the-way-down/">trntensor v0.13.0: precision all the way down</a></h2>
-<p><a href="https://trnsci.dev/blog/trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">v0.11.0</a> introduced <code>precision="sr"</code> and wired it to <code>_execute_matmul</code>. Two dispatch paths were never connected: <code>_execute_bmm</code> silently ran at fast rounding regardless of what the caller asked for, and <code>multi_einsum</code> had no <code>precision=</code> parameter at all. v0.13.0 closes both gaps. The fix was small; the reason it matters is architectural.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trntensor-v0130-precision-all-the-way-down/">
           Continue reading
         </a>
       </nav>
