@@ -6,8 +6,8 @@ comments: true
 
 # trnfft: correcting the Ozaki precision claim
 
-Two earlier posts — [v0.18](../2026-04-25-trnfft-ozaki-eight-runs/) and
-[v0.19](../2026-04-28-trnfft-two-level-ozaki/) — claimed that the Ozaki scheme
+Two earlier posts — [v0.18](https://trnsci.dev/blog/trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/) and
+[v0.19](https://trnsci.dev/blog/trnfft-the-residual-must-stay-fp32/) — claimed that the Ozaki scheme
 delivers O(sqrt(N)·u_bf16²) ≈ 1.6e-5 and O(sqrt(N)·u_bf16⁴) ≈ 2e-9 relative error
 on Trainium hardware. The hardware measurements say otherwise. Both modes give ~1.7e-3
 — the same as a single-pass BF16 DFT-GEMM. This post corrects the record and explains
