@@ -5139,6 +5139,52 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-04-28 00:00:00+00:00">April 28, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trnfft/" class="md-meta__link">trnfft</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              6 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnfft-the-residual-must-stay-fp32"><a class="toclink" href="../../trnfft-the-residual-must-stay-fp32/">trnfft: the residual must stay FP32</a></h2>
+<p>v0.19 ships <code>precision="ozaki_hq"</code> — six BF16 matmuls that together reach O(sqrt(N)·u_bf16⁴)
+≈ 2e-9 relative error, near-FP64 accuracy on the Tensor Engine. The implementation is a
+40-line extension of the v0.18 Ozaki scheme. There is one non-obvious constraint that the
+algorithm turns entirely on. Getting it wrong gives you 1-level accuracy out of a 2-level
+design, silently, with no error.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnfft-the-residual-must-stay-fp32/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-27 00:00:00+00:00">April 27, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5471,48 +5517,6 @@ property of Trainium that was already present in every kernel, just never exploi
     
       <nav class="md-post__action">
         <a href="../../trntensor-v0130-precision-all-the-way-down/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-21 00:00:00+00:00">April 21, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary"><a class="toclink" href="../../trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">trntensor v0.11.0: stochastic rounding at the PSUM→SBUF boundary</a></h2>
-<p>v0.11.0's headline is one argument: <code>precision="sr"</code> on a matmul dispatch call. The architectural story is that Trainium's PSUM buffer makes stochastic rounding a one-instruction hardware primitive instead of an external library. Anyone using trntensor for iterative BF16 workloads — Krylov solvers, iterative refinement, or long batched contractions — should care about this.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">
           Continue reading
         </a>
       </nav>
