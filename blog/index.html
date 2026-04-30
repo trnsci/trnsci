@@ -5132,6 +5132,53 @@ architecture made this obvious. Getting the dispatch infrastructure right was le
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-04-30 00:00:00+00:00">April 30, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="category/trnfft/" class="md-meta__link">trnfft</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              4 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnfft-correcting-the-ozaki-precision-claim"><a class="toclink" href="trnfft-correcting-the-ozaki-precision-claim/">trnfft: correcting the Ozaki precision claim</a></h2>
+<p>Two earlier posts — <a href="https://trnsci.dev/blog/trnfft-eight-hardware-runs-one-wrong-argument-and-the-ozaki-scheme/">v0.18</a> and
+<a href="https://trnsci.dev/blog/trnfft-the-residual-must-stay-fp32/">v0.19</a> — claimed that the Ozaki scheme
+delivers O(sqrt(N)·u_bf16²) ≈ 1.6e-5 and O(sqrt(N)·u_bf16⁴) ≈ 2e-9 relative error
+on Trainium hardware. The hardware measurements say otherwise. Both modes give ~1.7e-3
+— the same as a single-pass BF16 DFT-GEMM. This post corrects the record and explains
+why.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="trnfft-correcting-the-ozaki-precision-claim/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-29 00:00:00+00:00">April 29, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5468,48 +5515,6 @@ property of Trainium that was already present in every kernel, just never exploi
     
       <nav class="md-post__action">
         <a href="trnfft-the-fp32-accumulator-you-didnt-know-you-had/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0120-the-last-notimplementederror-completing-the-sharding-contract"><a class="toclink" href="trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">trntensor v0.12.0: the last NotImplementedError — completing the sharding contract</a></h2>
-<p>v0.12.0 closes the last <code>NotImplementedError</code> on the CPU-testable sharding surface. The <code>_execute_sharded</code> function could already name two operand types — output-parallel (sharding dimension maps to an output index) and reduce-parallel (sharding dimension maps to a contracted index) — but a single einsum containing both kinds raised <code>NotImplementedError("Mixed…")</code>. v0.12.0 replaces that raise with a nested dispatch loop. The architectural story is that Trainium's multi-chip topology named this loop structure before the code existed to implement it.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trntensor-v0120-the-last-notimplementederror--completing-the-sharding-contract/">
           Continue reading
         </a>
       </nav>
