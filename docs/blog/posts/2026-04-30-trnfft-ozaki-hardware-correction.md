@@ -4,30 +4,30 @@ categories: [Deep dive, trnfft]
 comments: true
 ---
 
-# trnfft: what trn1 tells us about the Ozaki frontier
+# trnfft: what trn1 and trn2 tell us about the Ozaki frontier
 
 The [v0.18](../2026-04-25-trnfft-ozaki-eight-runs/) and [v0.19](../2026-04-28-trnfft-two-level-ozaki/)
 posts claimed hardware precision of O(sqrt(N)·u_bf16²) ≈ 1.6e-5 and O(sqrt(N)·u_bf16⁴) ≈ 2e-9
 for the Ozaki modes. The trn1 hardware measurement says those numbers are wrong — both modes
-deliver ~1.7e-3, equivalent to single-pass BF16. But the conclusion is not "Ozaki is a dead end."
-NVIDIA shipped Ozaki-style FP64 emulation in cuBLAS in October 2025, with 1.5–3× speedups in
-ecTrans, BerkeleyGW, and Quantum Espresso at maintained accuracy. The difference between
-NVIDIA's working result and trnfft's non-result is one thing: hardware generation.
+deliver ~1.7e-3, equivalent to single-pass BF16. trn2 was then tested with the same characterization.
+The result is identical. Both generations. The conclusion is still not "Ozaki is a dead end" —
+but the generational gap theory needs revision.
 
 <!-- more -->
 
-## The measurement
+## The measurements
 
-`TestOzakiHQCharacterization` on trn1.2xlarge (Neuron SDK 2.29.0, 2026-04-30):
+`TestOzakiHQCharacterization` — actual Ozaki kernels, not the BF16 fallback:
 
-| mode     | trn1 rel error (N=64) | theoretical | CPU rel error (N=64) |
-| -------- | --------------------- | ----------- | -------------------- |
-| bf16     | ~1.7e-3               | ~1.6e-2     | ~2.2e-3              |
-| ozaki    | ~1.7e-3               | ~1.6e-5     | ~1.6e-5              |
-| ozaki_hq | ~1.7e-3               | ~2e-9       | ~1.4e-7              |
+| mode     | trn1 rel error (N=64) | trn2 rel error (N=64) | theoretical | CPU rel error (N=64) |
+| -------- | --------------------- | --------------------- | ----------- | -------------------- |
+| bf16     | ~1.5e-3               | ~1.5e-3               | ~1.6e-2     | ~2.2e-3              |
+| ozaki    | ~1.7e-3               | ~1.7e-3               | ~1.6e-5     | ~1.6e-5              |
+| ozaki_hq | ~1.7e-3               | ~1.7e-3               | ~2e-9       | ~1.4e-7              |
 
-On CPU the scheme works exactly as theorised — ozaki is ~140× better than bf16, ozaki_hq a
-further ~100× better. On trn1 hardware, all three modes give the same result.
+On CPU the scheme works exactly as theorised — ozaki is ~140× better than bf16. On both
+Trainium generations, all three modes give the same result. Ozaki is marginally *worse* than
+plain BF16 on hardware (0.9×), not better — the extra matmuls add a small amount of noise.
 
 ## The product-precision constraint
 
@@ -57,31 +57,24 @@ The Ozaki correction terms have something to capture because the per-product pre
 what the split addresses.
 
 trn1 has no such gap: 7-bit BF16 products from 7-bit BF16 inputs leave nothing for the
-correction to capture. trn2's TF32 support means it likely has the gap. "Likely" is not a
-precision table — the same characterization test that exposed the trn1 constraint will answer
-the trn2 question.
+correction to capture. trn2's TF32 hardware support was the basis for thinking it might have
+the gap. It doesn't. The NKI Bootcamp materials say "BF16 products are computed at full
+precision internally" — this refers to the FP32 PSUM accumulator, not the individual multiply
+precision. Both generations round BF16×BF16 products to BF16 before PSUM.
+
+The generational structure assumed (Ampere → Hopper → Blackwell) doesn't map cleanly onto
+the Trainium roadmap. NVIDIA's TF32 is a specific architectural choice to raise product
+precision for exactly this class of algorithm. Trainium hasn't made that choice through trn2.
+Whether trn3 MXFP8 changes the calculus is the next open question — but MXFP8 operates at a
+different scale (group quantization with INT8 microscales), not TF32-style per-product promotion.
 
 ## What the API does now
 
-The ozaki modes stay; the wrapper becomes hardware-aware.
-
-On trn1, calling `precision="ozaki"` or `"ozaki_hq"` now emits a `RuntimeWarning` and falls
-back to `precision="bf16"`. The warning text names the constraint (BF16-product PSUM), the
-cost (3–6× BF16 latency with no accuracy gain), and the path forward (run
-`TestOzakiHQCharacterization` on your instance type; call
-`trnfft.set_ozaki_product_precision_verified(True)` to suppress after confirming).
-
-On trn2, if the characterization test shows ozaki_err ≪ bf16_err, the modes enable natively
-with no warning. That result also retroactively validates the v0.18/v0.19 accuracy claims —
-they were describing hardware that didn't exist yet on the AWS Trainium roadmap.
-
-trn3 with MXFP8/MXFP4 tensor cores is the Trainium analog of Blackwell's INT8 path: the
-Ozaki-II higher-order splits that NVIDIA named as a continuing development priority become
-the primary trnfft route to FP64-class accuracy.
-
-This is the generational structure NVIDIA navigated: Ampere (BF16 products, Ozaki doesn't
-work), Hopper (TF32 products, Ozaki works), Blackwell (INT8 products, Ozaki-II). trnsci is
-at the Ampere moment on Trainium silicon.
+The ozaki modes stay, hardware-gated. Calling `precision="ozaki"` or `"ozaki_hq"` emits a
+`RuntimeWarning` on any unverified instance and falls back to `precision="bf16"`. The warning
+names the constraint, the cost (3–6× BF16 latency, no accuracy gain), and the verification
+path (`TestOzakiHQCharacterization` + `set_ozaki_product_precision_verified(True)`). On trn1
+and trn2, there is no configuration under which verification should be set to True.
 
 ## The post-FP64 thesis, sharpened
 
@@ -100,21 +93,20 @@ intact. The implementation needs a hardware version check.
 
 ## What's actually next
 
-**Immediate:** hardware-gated warning in the ozaki dispatch (trn1 → warn + fallback; trn2 →
-gated on characterization test; API handle to suppress warning after user verification).
+**trn3 MXFP8 (`nisa.nc_matmul_mx`):** The NKI Bootcamp documents `nisa.quantize_mx()` and
+`nisa.nc_matmul_mx()` — group-quantized FP8 inputs with INT8 microscale factors and FP32
+accumulation. This is structurally different from TF32 product-precision promotion and may
+or may not give Ozaki the gap it needs. The characterization test can answer this on a trn3
+instance when available.
 
-**trn2 validation:** `AWS_PROFILE=aws ./scripts/run_precision_characterization.sh trn2`. If
-ozaki_err ≪ bf16_err, the CHANGELOG gets a trn2 precision table and the modes enable
-natively. That run is the single most informative experiment the project can run right now.
-
-**Stochastic rounding:** Trainium2 advertises SR in its ISA; NKI exposes ISA-level control.
-SR converts accumulated rounding error in iterative algorithms from O(N·u) systematic drift
-to O(sqrt(N)·u) zero-mean noise — every reduction in trnfft (Bluestein chains, twiddle
-accumulation, Stockham reductions) benefits. SR is more distinctive than Ozaki as a
-Trainium angle and more broadly applicable: it works for arbitrary iterative algorithms, not
-just structured matmul, and it uses a hardware feature Trainium actually exposes. The
-numerical analysis of algorithms designed for BF16-product/FP32-PSUM hardware — the Higham
-for systolic arrays — doesn't exist. SR is the technical core of the first chapter.
+**Stochastic rounding:** trn3's ISA includes a stochastic rounding instruction (NKI Bootcamp
+Day 3). The bootcamp describes it as "load/store rounding state for checkpointing and replay"
+— suggesting training reproducibility as the primary use case, but the instruction itself is
+general. SR converts accumulated rounding error in iterative algorithms from O(N·u) systematic
+drift to O(sqrt(N)·u) zero-mean noise. This is a different precision strategy than Ozaki
+(which targets input quantization error); SR targets accumulation error in iterative loops.
+For trnfft — Bluestein chains, Stockham reductions, twiddle accumulation — SR is more
+broadly applicable and doesn't require the product-precision gap Ozaki does.
 
 ## Takeaway
 
