@@ -5330,10 +5330,10 @@
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnfft</span>
 
 <span class="n">trnfft</span><span class="o">.</span><span class="n">HAS_NKI</span>          <span class="c1"># True if nki (&gt;=0.3.0) is installed</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>    <span class="c1"># Current setting: &quot;auto&quot;, &quot;pytorch&quot;, or &quot;nki&quot;</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;pytorch&quot;</span><span class="p">)</span>  <span class="c1"># Force PyTorch (any device)</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># Force NKI (fails if not on Trainium)</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>    <span class="c1"># Current setting: "auto", "pytorch", or "nki"</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># Force PyTorch (any device)</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># Force NKI (fails if not on Trainium)</span>
 </code></pre></div>
 <h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>

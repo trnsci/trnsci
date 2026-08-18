@@ -5317,7 +5317,7 @@
         <span class="n">bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="n">out_dtype</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-        <span class="n">round_mode</span><span class="o">=</span><span class="s2">&quot;stochastic&quot;</span><span class="p">,</span>
+        <span class="n">round_mode</span><span class="o">=</span><span class="s2">"stochastic"</span><span class="p">,</span>
         <span class="n">dst</span><span class="o">=</span><span class="n">c_sbuf</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
@@ -5326,14 +5326,14 @@
 <p><code>nisa.activation</code> with <code>round_mode="stochastic"</code> is a NKI 0.3.0 / Neuron SDK 2.29+ primitive. The call site replaces one line (<code>tensor_copy</code>) with one call. No tiling logic changes. No accumulation loop changes. The entire SR difference is at this one boundary.</p>
 <p>The CPU mock (<code>trntensor/nki/dispatch.py</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_stochastic_round_cpu</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;CPU stochastic rounding from float32 to dtype.</span>
+<span class="w">    </span><span class="sd">"""CPU stochastic rounding from float32 to dtype.</span>
 
-<span class="sd">    Named stand-in for the per-tile nisa.activation(..., round_mode=&#39;stochastic&#39;)</span>
+<span class="sd">    Named stand-in for the per-tile nisa.activation(..., round_mode='stochastic')</span>
 <span class="sd">    applied at the PSUM→SBUF boundary in the NKI matmul kernel. Enables</span>
-<span class="sd">    precision=&#39;sr&#39; to be tested on CPU without hardware.</span>
+<span class="sd">    precision='sr' to be tested on CPU without hardware.</span>
 
 <span class="sd">    Mean rounding error is zero (Connolly–Higham–Mary, SIAM J. Sci. Comput. 2021).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">dtype</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">x</span>
     <span class="n">x32</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>

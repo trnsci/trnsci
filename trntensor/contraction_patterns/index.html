@@ -5450,22 +5450,22 @@ as the primary design surface.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trntensor</span>
 
 <span class="c1"># Matrix multiply: routes to NKI matmul kernel when FLOPs ≥ 2 GFLOPs</span>
-<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 
 <span class="c1"># Batched matmul</span>
-<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;bij,bjk-&gt;bik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"bij,bjk-&gt;bik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 
 <span class="c1"># DF-MP2 pair contraction (ap,bp-&gt;ab  ≡  B[i] @ B[j].T)</span>
-<span class="n">T</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">)</span>
+<span class="n">T</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">)</span>
 
 <span class="c1"># Anything else falls through to torch.einsum</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ijk,klm-&gt;ijlm&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ijk,klm-&gt;ijlm"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="inspecting-the-plan">Inspecting the plan<a class="headerlink" href="#inspecting-the-plan" title="Permanent link">&para;</a></h3>
 <p><code>ContractionPlan</code> is a regular dataclass — not an opaque handle:</p>
-<div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">strategy</span><span class="p">)</span>          <span class="c1"># &quot;matmul&quot; | &quot;bmm&quot; | &quot;torch&quot; | &quot;path&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">backend</span><span class="p">)</span>           <span class="c1"># &quot;nki&quot; | &quot;pytorch&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">strategy</span><span class="p">)</span>          <span class="c1"># "matmul" | "bmm" | "torch" | "path"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">backend</span><span class="p">)</span>           <span class="c1"># "nki" | "pytorch"</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">estimated_flops</span><span class="p">)</span>   <span class="c1"># multiply-add pairs</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span><span class="p">)</span>  <span class="c1"># [(i,j), ...] for 3+ operand einsums</span>
 </code></pre></div>
@@ -5508,14 +5508,14 @@ and M-tiling for larger systems are tracked as follow-up issues.</p>
 <p>When the same tensor appears as input to multiple contractions, <code>multi_einsum</code>
 detects it and transfers it to the Trainium device once:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Without multi_einsum: B transferred once per call (N transfers total)</span>
-<span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">B</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+<span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">B</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nocc</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nocc</span><span class="p">)]</span>
 
 <span class="c1"># With multi_einsum: shared B[i], B[j] pre-pinned; each appears in only</span>
 <span class="c1"># one contraction here, but B itself is the shared operand across a loop:</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">multi_einsum</span><span class="p">(</span>
-    <span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">),</span>   <span class="c1"># direct term</span>
-    <span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_j</span><span class="p">,</span> <span class="n">B_i</span><span class="p">),</span>   <span class="c1"># exchange term — B_i and B_j are reused</span>
+    <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">),</span>   <span class="c1"># direct term</span>
+    <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_j</span><span class="p">,</span> <span class="n">B_i</span><span class="p">),</span>   <span class="c1"># exchange term — B_i and B_j are reused</span>
 <span class="p">)</span>
 </code></pre></div>
 <p><code>multi_einsum</code> inspects tensor object identity (<code>id()</code>). If the same tensor
@@ -5529,13 +5529,13 @@ tight loop of small contractions it dominates. <code>to_xla</code> / <code>from_
 transfer explicitly so callers can control when it happens:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Cold path: B transferred on every call (3 transfers for 3 calls)</span>
 <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 
 <span class="c1"># Residency path: B transferred once, result stays on device until needed</span>
 <span class="n">A_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
 <span class="n">B_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="n">result_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A_x</span><span class="p">,</span> <span class="n">B_x</span><span class="p">)</span>  <span class="c1"># zero transfer cost</span>
+    <span class="n">result_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A_x</span><span class="p">,</span> <span class="n">B_x</span><span class="p">)</span>  <span class="c1"># zero transfer cost</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">from_xla</span><span class="p">(</span><span class="n">result_x</span><span class="p">)</span>
 </code></pre></div>
 <p>The residency API maps to the CUDA concept of a device-pinned buffer, but with
@@ -5549,10 +5549,10 @@ search to choose the contraction order:</p>
 <span class="c1"># Greedy: B@C = 200×5×50 = 50k → then A×(BC) = 100×200×50 = 1M FLOPs.</span>
 <span class="c1"># Hmm — actually left-to-right is better here. The planner finds the min.</span>
 
-<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk,kl-&gt;il&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk,kl-&gt;il"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
 
-<span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ij,jk,kl-&gt;il&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">strategy</span><span class="p">)</span>          <span class="c1"># &quot;path&quot;</span>
+<span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk,kl-&gt;il"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">strategy</span><span class="p">)</span>          <span class="c1"># "path"</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span><span class="p">)</span>  <span class="c1"># [(0,1),(0,1)] — contract A@B first, then ×C</span>
 </code></pre></div>
 <p>Each binary step in the path calls <code>einsum()</code> recursively and gets its own

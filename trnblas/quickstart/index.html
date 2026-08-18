@@ -5218,7 +5218,7 @@
 <span class="c1"># Triangular solve (Cholesky-based density fitting)</span>
 <span class="n">L</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">A</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">128</span><span class="p">))</span>
 <span class="n">B2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">trnblas</span><span class="o">.</span><span class="n">trsm</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">B2</span><span class="p">,</span> <span class="n">uplo</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">trnblas</span><span class="o">.</span><span class="n">trsm</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">B2</span><span class="p">,</span> <span class="n">uplo</span><span class="o">=</span><span class="s2">"lower"</span><span class="p">)</span>
 
 <span class="c1"># Symmetric rank-k update (metric construction)</span>
 <span class="n">J</span> <span class="o">=</span> <span class="n">trnblas</span><span class="o">.</span><span class="n">syrk</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -5237,9 +5237,9 @@
 <h2 id="backend-selection">Backend selection<a class="headerlink" href="#backend-selection" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnblas</span>
 
-<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>     <span class="c1"># NKI on Trainium, PyTorch elsewhere (default)</span>
-<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;pytorch&quot;</span><span class="p">)</span>  <span class="c1"># force PyTorch</span>
-<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># force NKI (requires Neuron hardware)</span>
+<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># NKI on Trainium, PyTorch elsewhere (default)</span>
+<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># force PyTorch</span>
+<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># force NKI (requires Neuron hardware)</span>
 </code></pre></div>
 <h2 id="df-mp2-example">DF-MP2 example<a class="headerlink" href="#df-mp2-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/df_mp2.py<span class="w"> </span>--demo

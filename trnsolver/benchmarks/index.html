@@ -5370,7 +5370,7 @@
 </table>
 <p>The default GPU baseline is <code>g5.xlarge</code> (A10G) because it's the vintage peer of <code>trn1.2xlarge</code> and within the same price tier. H100 baselines are an opt-in follow-up on <code>p5.4xlarge</code> (1× H100) — roughly 10× the cost of the A10G box, but still far cheaper than <code>p5.48xlarge</code> (8× H100, ~$98/hr).</p>
 <h2 id="reproducing-locally-cpu">Reproducing locally (CPU)<a class="headerlink" href="#reproducing-locally-cpu" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>benchmarks/bench_solver.py<span class="w"> </span>-v<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not neuron and not cuda&quot;</span><span class="w"> </span>--benchmark-only
+<div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>benchmarks/bench_solver.py<span class="w"> </span>-v<span class="w"> </span>-m<span class="w"> </span><span class="s2">"not neuron and not cuda"</span><span class="w"> </span>--benchmark-only
 </code></pre></div>
 <h2 id="reproducing-on-gpu-aws">Reproducing on GPU (AWS)<a class="headerlink" href="#reproducing-on-gpu-aws" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>infra/terraform

@@ -5304,9 +5304,9 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">trnfft</span><span class="o">.</span><span class="n">HAS_NKI</span><span class="p">)</span>
 
 <span class="c1"># Force backend</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;pytorch&quot;</span><span class="p">)</span>  <span class="c1"># Always use PyTorch ops</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># Always use NKI (fails if not on Trainium)</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># Always use PyTorch ops</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># Always use NKI (fails if not on Trainium)</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
 </code></pre></div>
 
 

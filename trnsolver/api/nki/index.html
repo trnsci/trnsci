@@ -5271,9 +5271,9 @@
 <h1 id="nki-backend">NKI Backend<a class="headerlink" href="#nki-backend" title="Permanent link">&para;</a></h1>
 <p>Backend selection mirrors the sister <code>trnblas</code> and <code>trnfft</code> packages.</p>
 <h2 id="set_backendbackend"><code>set_backend(backend)</code><a class="headerlink" href="#set_backendbackend" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
-<span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;pytorch&quot;</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
-<span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># require NKI; raises if unavailable</span>
+<div class="highlight"><pre><span></span><code><span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
+<span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
+<span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># require NKI; raises if unavailable</span>
 </code></pre></div>
 <h2 id="get_backend"><code>get_backend()</code><a class="headerlink" href="#get_backend" title="Permanent link">&para;</a></h2>
 <p>Returns the current backend string.</p>

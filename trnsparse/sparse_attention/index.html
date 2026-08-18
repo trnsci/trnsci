@@ -5410,7 +5410,7 @@ that shape.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnsparse</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">local_window_mask</span><span class="p">(</span><span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;BSRMatrix for sliding-window attention.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""BSRMatrix for sliding-window attention."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
     <span class="n">n_blocks</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">//</span> <span class="n">block_size</span>
     <span class="n">block_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
@@ -5460,17 +5460,17 @@ block. Remaining block-rows follow a local window:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">block_sparse_attention</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">mask_bsr</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Q, K, V: (seq_len, head_dim) → (seq_len, head_dim).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Q, K, V: (seq_len, head_dim) → (seq_len, head_dim)."""</span>
     <span class="n">scale</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="o">-</span><span class="mf">0.5</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="p">(</span><span class="n">Q</span> <span class="o">@</span> <span class="n">K</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span>
 
     <span class="c1"># Mask out unattended positions before softmax.</span>
     <span class="n">mask_dense</span> <span class="o">=</span> <span class="n">mask_bsr</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
-    <span class="n">masked_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="o">~</span><span class="n">mask_dense</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">))</span>
+    <span class="n">masked_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="o">~</span><span class="n">mask_dense</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-inf"</span><span class="p">))</span>
     <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">masked_scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># Positions outside the mask go to zero after softmax; from_dense</span>
-    <span class="c1"># with threshold=0 will still store them unless they&#39;re exactly zero.</span>
+    <span class="c1"># with threshold=0 will still store them unless they're exactly zero.</span>
     <span class="c1"># Use threshold slightly above zero to keep only the attended blocks.</span>
     <span class="n">attn_bsr</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span>
         <span class="n">attn_weights</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">mask_bsr</span><span class="o">.</span><span class="n">block_size</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1e-9</span>
@@ -5588,7 +5588,7 @@ two-pass decomposition in <code>trnsparse/nki/kernels.py</code>:</p>
 has <code>requires_grad=True</code>, the call is routed through <code>_AttnTiledFunction</code>,
 which provides a tiled backward using the Flash Attention delta identity.</p>
 <p><strong>Backward algorithm</strong> (single pass over nonzero blocks, no O(seq_len²) intermediate):</p>
-<div class="highlight"><pre><span></span><code>D_i = dO_i · O_i                   # row-wise dot — Flash &quot;delta&quot;
+<div class="highlight"><pre><span></span><code>D_i = dO_i · O_i                   # row-wise dot — Flash "delta"
 For each stored block (m, ki):
     P   = stable_softmax(Q_m @ K_ki.T * scale)
     dP  = dO_m @ V_ki.T

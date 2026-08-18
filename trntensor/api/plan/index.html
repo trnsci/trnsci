@@ -5375,14 +5375,14 @@
 strategy, estimate cost, and cache the decision so repeated calls are cheap.</p>
 <h2 id="plan_contractionsubscripts-operands-precisionfast-contractionplan"><code>plan_contraction(subscripts, *operands, *, precision="fast") -&gt; ContractionPlan</code><a class="headerlink" href="#plan_contractionsubscripts-operands-precisionfast-contractionplan" title="Permanent link">&para;</a></h2>
 <p>Inspect the dispatch decision without executing.</p>
-<div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">strategy</span>             <span class="c1"># &quot;matmul&quot; | &quot;bmm&quot; | &quot;torch&quot; | &quot;path&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">strategy</span>             <span class="c1"># "matmul" | "bmm" | "torch" | "path"</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">contraction_indices</span>  <span class="c1"># list of indices being summed over</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">batch_indices</span>        <span class="c1"># list of batch indices</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">output_indices</span>       <span class="c1"># list of output indices in order</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">transA</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">transB</span>  <span class="c1"># whether to pre-transpose before matmul</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span>     <span class="c1"># [(i,j), ...] for &quot;path&quot; strategy</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">precision</span>            <span class="c1"># &quot;fast&quot; | &quot;kahan&quot; | &quot;dd&quot;</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span>     <span class="c1"># [(i,j), ...] for "path" strategy</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">precision</span>            <span class="c1"># "fast" | "kahan" | "dd"</span>
 </code></pre></div>
 <p>Results are cached by <code>(subscripts, operand shapes, precision)</code>. Repeated
 calls with the same subscript, shapes, and precision skip replanning entirely.
@@ -5410,8 +5410,8 @@ Call <code>clear_plan_cache()</code> to invalidate (e.g. after a backend change)
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><span class="n">plan_fast</span>  <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;fast&quot;</span><span class="p">)</span>
-<span class="n">plan_kahan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;kahan&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">plan_fast</span>  <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"fast"</span><span class="p">)</span>
+<span class="n">plan_kahan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"kahan"</span><span class="p">)</span>
 <span class="c1"># Two distinct cache entries — plan_fast is not plan_kahan</span>
 </code></pre></div>
 <h2 id="contractionplan"><code>ContractionPlan</code><a class="headerlink" href="#contractionplan" title="Permanent link">&para;</a></h2>
@@ -5493,21 +5493,21 @@ the planner returns.</p>
 <h2 id="estimate_flopssubscripts-operands-int"><code>estimate_flops(subscripts, *operands) -&gt; int</code><a class="headerlink" href="#estimate_flopssubscripts-operands-int" title="Permanent link">&para;</a></h2>
 <p>Estimate multiply-add operations for a contraction as the product of
 all distinct index sizes.</p>
-<div class="highlight"><pre><span></span><code><span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># M*K*N</span>
-<span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">&quot;iap,jbp-&gt;ijab&quot;</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># nocc² * nvir² * naux</span>
+<div class="highlight"><pre><span></span><code><span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># M*K*N</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">"iap,jbp-&gt;ijab"</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># nocc² * nvir² * naux</span>
 </code></pre></div>
 <h2 id="plan-cache-helpers">Plan cache helpers<a class="headerlink" href="#plan-cache-helpers" title="Permanent link">&para;</a></h2>
 <h3 id="clear_plan_cache-none"><code>clear_plan_cache() -&gt; None</code><a class="headerlink" href="#clear_plan_cache-none" title="Permanent link">&para;</a></h3>
 <p>Discard all cached contraction plans. Call after changing the active
 backend or when memory is a concern.</p>
-<div class="highlight"><pre><span></span><code><span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>
-<span class="n">trntensor</span><span class="o">.</span><span class="n">clear_plan_cache</span><span class="p">()</span>  <span class="c1"># flush plans that may have chosen &quot;pytorch&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">clear_plan_cache</span><span class="p">()</span>  <span class="c1"># flush plans that may have chosen "pytorch"</span>
 </code></pre></div>
 <h3 id="plan_cache_info-dictstr-int"><code>plan_cache_info() -&gt; dict[str, int]</code><a class="headerlink" href="#plan_cache_info-dictstr-int" title="Permanent link">&para;</a></h3>
 <p>Return cache statistics. Currently returns <code>{"size": N}</code> where <code>N</code> is
 the number of cached plans.</p>
 <div class="highlight"><pre><span></span><code><span class="n">info</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_cache_info</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cached plans: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"cached plans: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">'size'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 
 

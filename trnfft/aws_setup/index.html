@@ -5295,9 +5295,9 @@
 
 <span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>init
 <span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;vpc_id=vpc-xxxxxx&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;subnet_id=subnet-xxxxxx&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;instance_type=trn1.2xlarge&quot;</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="s2">"vpc_id=vpc-xxxxxx"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="s2">"subnet_id=subnet-xxxxxx"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="s2">"instance_type=trn1.2xlarge"</span>
 </code></pre></div>
 <p>Capture <code>instance_id</code> from the outputs. User-data takes ~5 minutes to install the Neuron SDK and clone trnfft.</p>
 <p>Stop the instance once ready:</p>
@@ -5353,7 +5353,7 @@
 <p><strong>User-data didn't finish (<code>neuronxcc not found</code>)</strong>
 — SSH in via SSM session and re-run manually:
 <div class="highlight"><pre><span></span><code>aws<span class="w"> </span>ssm<span class="w"> </span>start-session<span class="w"> </span>--target<span class="w"> </span><span class="nv">$INSTANCE_ID</span>
-<span class="nb">cd</span><span class="w"> </span>/home/ubuntu/trnfft<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;.[neuron,dev]&#39;</span>
+<span class="nb">cd</span><span class="w"> </span>/home/ubuntu/trnfft<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[neuron,dev]'</span>
 </code></pre></div></p>
 <p><strong><code>InsufficientInstanceCapacity</code> when starting the instance</strong>
 — AWS may temporarily be out of Trainium in that AZ. Wait and retry, or re-provision in a different AZ.</p>

@@ -5318,10 +5318,10 @@ BF16 (no FP32 PSUM), giving ~50% relative error at N=64. The cast fixes this and
 the CPU path a faithful simulator of hardware behaviour — same ~1e-3 accuracy from BF16
 <code>W</code> quantisation, same FP32 output, just slower.</p>
 <p>The dispatch adds two new precision modes before the existing <code>"fast"</code> DFT-GEMM check:</p>
-<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;bf16&quot;</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">_DFT_GEMM_THRESHOLD</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">"bf16"</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">_DFT_GEMM_THRESHOLD</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">_fft_via_gemm_bf16</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">inverse</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;bf16_refined&quot;</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">_DFT_GEMM_THRESHOLD</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">"bf16_refined"</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">_DFT_GEMM_THRESHOLD</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">_fft_iterative_refinement</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">inverse</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </code></pre></div>
 <p>Both modes are no-ops for N &gt; 256 (fall through to the existing Stockham/butterfly paths).

@@ -5337,7 +5337,7 @@ E           = Σ_{i,j,a,b} term                      (reduction)
   Not yet available; raises <code>NotImplementedError</code>. Tracked in trnblas#22.</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="c1"># Accumulate DF-MP2 energy with ~15-digit precision</span>
-<span class="n">E_corr</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ijab,ijab-&gt;&quot;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;kahan&quot;</span><span class="p">)</span>
+<span class="n">E_corr</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ijab,ijab-&gt;"</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"kahan"</span><span class="p">)</span>
 </code></pre></div>
 <p><code>precision</code> is included in the plan cache key so <code>"fast"</code> and <code>"kahan"</code> plans
 cache independently without cross-contaminating the execution path.</p>

@@ -5371,7 +5371,7 @@ control over scaling, accumulation precision, and mixed-precision compute.</p>
     <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">out</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">dtype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;fast&quot;</span><span class="p">,</span>
+    <span class="n">precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"fast"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
 </code></pre></div>
 <p>The planner selects <code>matmul</code>, <code>bmm</code>, <code>path</code>, or <code>torch.einsum</code> based on
@@ -5429,35 +5429,35 @@ the pattern maps to a 2-index matmul, the kernel in
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trntensor</span>
 
 <span class="c1"># Matrix multiply</span>
-<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 
 <span class="c1"># Batched matmul</span>
-<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;bij,bjk-&gt;bik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"bij,bjk-&gt;bik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 
 <span class="c1"># DF-MP2 pair contraction</span>
-<span class="n">T_ab</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">)</span>
+<span class="n">T_ab</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">)</span>
 
 <span class="c1"># 4-index AO→MO transform step</span>
-<span class="n">Inu</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;mi,mnP-&gt;inP&quot;</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">eri</span><span class="p">)</span>
+<span class="n">Inu</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"mi,mnP-&gt;inP"</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">eri</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="alpha-beta-scaling"><code>alpha</code> / <code>beta</code> scaling<a class="headerlink" href="#alpha-beta-scaling" title="Permanent link">&para;</a></h3>
 <p>Matches cuTENSOR's GEMM-style interface:
 <code>alpha·contract(A, B) + beta·C</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Scaled GEMM: 2·A@B + 0.5·C</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
 
 <span class="c1"># In-place accumulation (beta=1, alpha=1): result += A@B</span>
-<span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="dtype-mixed-precision-compute"><code>dtype</code> — mixed-precision compute<a class="headerlink" href="#dtype-mixed-precision-compute" title="Permanent link">&para;</a></h3>
 <p>Cast operands to a lower dtype to hit the NKI bf16 matmul path without
 changing the model's weight dtype. The result is returned in the requested
 dtype.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Route through NKI bf16 kernel even if weights are fp32</span>
-<span class="n">result_bf16</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;bf16&quot;</span><span class="p">)</span>
+<span class="n">result_bf16</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"bf16"</span><span class="p">)</span>
 
 <span class="c1"># Use torch.dtype directly</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij,jk-&gt;ik&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="precision-accumulation-precision"><code>precision</code> — accumulation precision<a class="headerlink" href="#precision-accumulation-precision" title="Permanent link">&para;</a></h3>
 <table>
@@ -5483,7 +5483,7 @@ dtype.</p>
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code><span class="c1"># High-precision DF-MP2 energy accumulation</span>
-<span class="n">E_corr</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ijab,ijab-&gt;&quot;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;kahan&quot;</span><span class="p">)</span>
+<span class="n">E_corr</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ijab,ijab-&gt;"</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"kahan"</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="multi_einsumcontractions-listtorchtensor"><code>multi_einsum(*contractions) -&gt; list[torch.Tensor]</code><a class="headerlink" href="#multi_einsumcontractions-listtorchtensor" title="Permanent link">&para;</a></h2>
@@ -5493,8 +5493,8 @@ of <code>(subscripts, *operands)</code>. Results are returned in input order.</p
 contraction (by object identity) are pre-pinned to the XLA device once
 before executing the loop, eliminating redundant host↔device transfers.</p>
 <div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">multi_einsum</span><span class="p">(</span>
-    <span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">),</span>   <span class="c1"># Coulomb term</span>
-    <span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_k</span><span class="p">),</span>   <span class="c1"># exchange term — B_i pinned once</span>
+    <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">),</span>   <span class="c1"># Coulomb term</span>
+    <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_k</span><span class="p">),</span>   <span class="c1"># exchange term — B_i pinned once</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="plan-cache-helpers">Plan cache helpers<a class="headerlink" href="#plan-cache-helpers" title="Permanent link">&para;</a></h3>

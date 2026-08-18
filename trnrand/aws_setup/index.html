@@ -5368,8 +5368,8 @@
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>infra/terraform
 <span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>init
 <span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;vpc_id=vpc-xxxxxx&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-var<span class="o">=</span><span class="s2">&quot;subnet_id=subnet-xxxxxx&quot;</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="s2">"vpc_id=vpc-xxxxxx"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-var<span class="o">=</span><span class="s2">"subnet_id=subnet-xxxxxx"</span>
 </code></pre></div></p>
 <p><strong>Trainium2 (trn2) — sa-east-1:</strong>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>infra/terraform-trn2
@@ -5380,7 +5380,7 @@
 and route table in sa-east-1. No <code>vpc_id</code> or <code>subnet_id</code> variables required.</p>
 <p>If <code>apply</code> fails with <code>InsufficientInstanceCapacity</code>, the default AZ is <code>sa-east-1a</code>.
 Retry with a different AZ:
-<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span>-var<span class="o">=</span><span class="s2">&quot;az_suffix=b&quot;</span><span class="w">   </span><span class="c1"># or az_suffix=c</span>
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_PROFILE</span><span class="o">=</span>aws<span class="w"> </span>terraform<span class="w"> </span>apply<span class="w"> </span>-var<span class="o">=</span><span class="s2">"az_suffix=b"</span><span class="w">   </span><span class="c1"># or az_suffix=c</span>
 </code></pre></div></p>
 <p>User-data takes ~5 minutes to install the Neuron SDK and clone trnrand.</p>
 <p>Stop the instance once ready:</p>
@@ -5455,7 +5455,7 @@ effects are visible in the reported numbers.</p>
 <p><strong>User-data didn't finish (<code>neuronxcc not found</code>)</strong>
 — SSH in via SSM session and re-run manually:
 <div class="highlight"><pre><span></span><code>aws<span class="w"> </span>ssm<span class="w"> </span>start-session<span class="w"> </span>--target<span class="w"> </span><span class="nv">$INSTANCE_ID</span>
-<span class="nb">cd</span><span class="w"> </span>/home/ubuntu/trnrand<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;.[neuron,dev]&#39;</span>
+<span class="nb">cd</span><span class="w"> </span>/home/ubuntu/trnrand<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[neuron,dev]'</span>
 </code></pre></div></p>
 <p><strong><code>InsufficientInstanceCapacity</code> when starting the instance</strong>
 — AWS may temporarily be out of Trainium in that AZ. Wait and retry, or re-provision in a different AZ.</p>

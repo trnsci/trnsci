@@ -5420,10 +5420,10 @@ We built a butterfly kernel…</p>
 <p><strong>Mermaid diagrams.</strong> Lightweight architecture sketches, dataflow diagrams, kernel pipeline shapes, and decision flowcharts render cleanly via fenced code blocks:</p>
 <div class="highlight"><pre><span></span><code>```mermaid
 flowchart LR
-  HBM[(&quot;HBM\n(eri tensor)&quot;)]
-  SBUF[/&quot;SBUF\n(stationary)&quot;/]
-  TE[&quot;Tensor Engine\n(nc_matmul)&quot;]
-  PSUM[(&quot;PSUM\n(fp32 accumulator)&quot;)]
+  HBM[("HBM\n(eri tensor)")]
+  SBUF[/"SBUF\n(stationary)"/]
+  TE["Tensor Engine\n(nc_matmul)"]
+  PSUM[("PSUM\n(fp32 accumulator)")]
   HBM --&gt;|DMA load| SBUF
   SBUF --&gt; TE
   TE --&gt;|accumulate| PSUM
@@ -5452,8 +5452,8 @@ flowchart LR
 <li>Push the branch to <code>origin</code>.</li>
 <li>Open a pull request against <code>main</code>:
    <div class="highlight"><pre><span></span><code>gh pr create --repo trnsci/trnsci --base main --head &lt;branch&gt; \
-  --title &quot;blog: &lt;library&gt; — &lt;title&gt;&quot; \
-  --body &quot;Ready for editorial review.&quot;
+  --title "blog: &lt;library&gt; — &lt;title&gt;" \
+  --body "Ready for editorial review."
 </code></pre></div></li>
 <li><strong>Do not merge the PR yourself.</strong> Scott (suite director) reviews for structural consistency, fact-checks against the repo, and merges when ready.</li>
 <li>Expect one or two rounds of review comments. Technical content isn't rewritten; your voice stays.</li>

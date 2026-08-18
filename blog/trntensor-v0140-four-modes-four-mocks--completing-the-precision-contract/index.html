@@ -5353,12 +5353,12 @@
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
 <p>The two new functions in <code>trntensor/nki/dispatch.py</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_ozaki_split_cpu</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Split FP32 tensor into k BF16-precision summands (stored as FP32).</span>
+<span class="w">    </span><span class="sd">"""Split FP32 tensor into k BF16-precision summands (stored as FP32).</span>
 
 <span class="sd">    CPU stand-in for the Ogita–Rump–Oishi error-free split used by</span>
-<span class="sd">    trnblas#22. The subtraction at each stage is exact by Sterbenz&#39;s lemma:</span>
+<span class="sd">    trnblas#22. The subtraction at each stage is exact by Sterbenz's lemma:</span>
 <span class="sd">    since s = round_bfloat16(remainder), |remainder|/|s| ∈ [0.5, 2].</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">remainder</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
     <span class="n">summands</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
@@ -5369,7 +5369,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_ozaki_matmul_cpu</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ozaki-k matmul: accumulates k² BF16-precision products in FP32.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Ozaki-k matmul: accumulates k² BF16-precision products in FP32."""</span>
     <span class="n">A_splits</span> <span class="o">=</span> <span class="n">_ozaki_split_cpu</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
     <span class="n">B_splits</span> <span class="o">=</span> <span class="n">_ozaki_split_cpu</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">B</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -5380,16 +5380,16 @@
 </code></pre></div>
 <p>The split algorithm: <code>s = round_bfloat16(remainder)</code> captures the leading BF16-precision information; <code>remainder - s</code> is exactly representable in FP32 because <code>|s - remainder| ≤ u_bf·|s|</code>, which places <code>|remainder|/|s|</code> in <code>[0.5, 2]</code>, satisfying Sterbenz's lemma for exact subtraction. After k rounds, the summands sum to A to FP32 working precision.</p>
 <p>The dispatch routing in <code>_execute_contraction</code>, condensed:</p>
-<div class="highlight"><pre><span></span><code><span class="k">elif</span> <span class="n">plan</span><span class="o">.</span><span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;dd&quot;</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><span class="k">elif</span> <span class="n">plan</span><span class="o">.</span><span class="n">precision</span> <span class="o">==</span> <span class="s2">"dd"</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">HAS_NKI</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;precision=&#39;dd&#39; on Trainium requires trnblas#22.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;matmul&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"precision='dd' on Trainium requires trnblas#22."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">strategy</span> <span class="o">==</span> <span class="s2">"matmul"</span><span class="p">:</span>
         <span class="n">A</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="n">operands</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">T</span> <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">transA</span> <span class="k">else</span> <span class="n">A</span>
         <span class="n">b</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">T</span> <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">transB</span> <span class="k">else</span> <span class="n">B</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">_ozaki_matmul_cpu</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">strategy</span> <span class="o">==</span> <span class="s2">"path"</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_execute_path</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="n">operands</span><span class="p">,</span> <span class="n">plan</span><span class="p">)</span>  <span class="c1"># each step gets Ozaki</span>
     <span class="c1"># bmm and torch: kahan fallback</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">operands</span><span class="p">))</span>

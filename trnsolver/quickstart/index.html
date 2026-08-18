@@ -5324,9 +5324,9 @@
 <span class="n">x</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="n">residual</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">gmres</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="backend-selection">Backend selection<a class="headerlink" href="#backend-selection" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
-<span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;pytorch&quot;</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
-<span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># require NKI; raises if unavailable</span>
+<div class="highlight"><pre><span></span><code><span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
+<span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
+<span class="n">trnsolver</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># require NKI; raises if unavailable</span>
 </code></pre></div>
 <p>Run the SCF demo end-to-end:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/scf_eigen.py<span class="w"> </span>--demo

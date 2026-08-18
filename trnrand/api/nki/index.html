@@ -5230,9 +5230,9 @@ Trainium GpSimd engine (Philox 4×32) or fall back to <code>torch.Generator</cod
 <h2 id="backend-selection">Backend selection<a class="headerlink" href="#backend-selection" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnrand</span>
 
-<span class="n">trnrand</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>     <span class="c1"># NKI on Trainium, PyTorch elsewhere (default)</span>
-<span class="n">trnrand</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;pytorch&quot;</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
-<span class="n">trnrand</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># force NKI (requires neuronxcc)</span>
+<span class="n">trnrand</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># NKI on Trainium, PyTorch elsewhere (default)</span>
+<span class="n">trnrand</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
+<span class="n">trnrand</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># force NKI (requires neuronxcc)</span>
 </code></pre></div>
 <p><code>trnrand.HAS_NKI</code> is <code>True</code> when <code>nki&gt;=0.3.0</code> is importable.
 <code>trnrand.get_backend()</code> returns the active backend name.</p>

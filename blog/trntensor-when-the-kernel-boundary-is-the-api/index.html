@@ -5343,13 +5343,13 @@
 <p><code>ContractionPlan.backend</code> routing:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># trntensor/plan.py</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_backend_for</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">operands</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;matmul&quot;</span><span class="p">,</span> <span class="s2">&quot;bmm&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;pytorch&quot;</span>
+    <span class="k">if</span> <span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"matmul"</span><span class="p">,</span> <span class="s2">"bmm"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"pytorch"</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">.nki.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">HAS_NKI</span><span class="p">,</span> <span class="n">_MIN_NKI_FLOPS</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_NKI</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;pytorch&quot;</span>
+        <span class="k">return</span> <span class="s2">"pytorch"</span>
     <span class="n">flops</span> <span class="o">=</span> <span class="n">operand_flops</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">operands</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s2">&quot;nki&quot;</span> <span class="k">if</span> <span class="n">flops</span> <span class="o">&gt;=</span> <span class="n">_MIN_NKI_FLOPS</span> <span class="k">else</span> <span class="s2">&quot;pytorch&quot;</span>
+    <span class="k">return</span> <span class="s2">"nki"</span> <span class="k">if</span> <span class="n">flops</span> <span class="o">&gt;=</span> <span class="n">_MIN_NKI_FLOPS</span> <span class="k">else</span> <span class="s2">"pytorch"</span>
 </code></pre></div>
 <p><code>plan.backend</code> reflects what will actually run, not how the algorithm classifies. A 64×64 matmul is matmul-strategy but pytorch-backend; 2048×2048 is matmul-strategy and nki-backend.</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>

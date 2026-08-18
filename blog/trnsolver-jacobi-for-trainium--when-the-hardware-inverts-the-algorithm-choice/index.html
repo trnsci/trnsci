@@ -5305,12 +5305,12 @@
 <p>The kernel is short enough to inline:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">rotate_pairs_kernel</span><span class="p">(</span><span class="n">even</span><span class="p">,</span> <span class="n">odd</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rotate two stacked tiles by a per-row Givens rotation.</span>
+<span class="w">    </span><span class="sd">"""Rotate two stacked tiles by a per-row Givens rotation.</span>
 
 <span class="sd">    even, odd : (half, n)  — the two rows of each pair</span>
 <span class="sd">    c, s      : (half, 1)  — per-pair cosine, sine</span>
 <span class="sd">    returns new_even, new_odd — both (half, n)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">half</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">even</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">new_even</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">half</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">even</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>
     <span class="n">new_odd</span>  <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="n">half</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">even</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">nl</span><span class="o">.</span><span class="n">shared_hbm</span><span class="p">)</span>

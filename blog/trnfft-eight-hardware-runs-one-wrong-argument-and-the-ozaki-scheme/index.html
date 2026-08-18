@@ -5299,7 +5299,7 @@ were the most thorough debugging-in-the-dark session in this project's history:<
 <p>All seven produced <code>14 of 17 benchmarks recorded</code>. The three Ozaki tests ran and passed
 correctness tests on CPU. Something was different about hardware.</p>
 <p>The diagnostic: run the Ozaki path directly on the instance via SSM and capture stderr:</p>
-<div class="highlight"><pre><span></span><code>FAILED: TypeError _fft_via_ozaki() got an unexpected keyword argument &#39;levels&#39;
+<div class="highlight"><pre><span></span><code>FAILED: TypeError _fft_via_ozaki() got an unexpected keyword argument 'levels'
 </code></pre></div>
 <p>The bench toggle <code>_FORCE_OZAKI</code> was calling <code>_fft_via_ozaki(x, inverse, levels=2)</code>.
 The <code>levels</code> parameter had been removed from the function signature when we simplified

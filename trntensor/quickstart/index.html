@@ -5252,19 +5252,19 @@
 <span class="c1"># 2-index contraction (dispatches to matmul)</span>
 <span class="n">A</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
 <span class="n">B</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>   <span class="c1"># (32, 48)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>   <span class="c1"># (32, 48)</span>
 
 <span class="c1"># Batched (dispatches to bmm)</span>
 <span class="n">Ab</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
 <span class="n">Bb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-<span class="n">Cb</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;iap,ibp-&gt;iab&quot;</span><span class="p">,</span> <span class="n">Ab</span><span class="p">,</span> <span class="n">Bb</span><span class="p">)</span>   <span class="c1"># (16, 32, 48)</span>
+<span class="n">Cb</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"iap,ibp-&gt;iab"</span><span class="p">,</span> <span class="n">Ab</span><span class="p">,</span> <span class="n">Bb</span><span class="p">)</span>   <span class="c1"># (16, 32, 48)</span>
 </code></pre></div>
 <h2 id="contraction-planning">Contraction planning<a class="headerlink" href="#contraction-planning" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">dispatch</span><span class="p">)</span>   <span class="c1"># &quot;matmul&quot; | &quot;bmm&quot; | &quot;torch&quot; | &quot;nki&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">dispatch</span><span class="p">)</span>   <span class="c1"># "matmul" | "bmm" | "torch" | "nki"</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">flops</span><span class="p">)</span>      <span class="c1"># estimated FLOP count</span>
 
-<span class="n">flops</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">&quot;ap,bp-&gt;ab&quot;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="n">flops</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="decompositions">Decompositions<a class="headerlink" href="#decompositions" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># CP (CANDECOMP/PARAFAC)</span>
@@ -5277,9 +5277,9 @@
 <span class="n">reconstructed</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">tucker_reconstruct</span><span class="p">(</span><span class="n">core</span><span class="p">,</span> <span class="n">factors</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="backend-selection">Backend selection<a class="headerlink" href="#backend-selection" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>     <span class="c1"># default</span>
-<span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;pytorch&quot;</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
-<span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">&quot;nki&quot;</span><span class="p">)</span>      <span class="c1"># force NKI (requires Neuron hardware)</span>
+<div class="highlight"><pre><span></span><code><span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># default</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># force NKI (requires Neuron hardware)</span>
 </code></pre></div>
 
 

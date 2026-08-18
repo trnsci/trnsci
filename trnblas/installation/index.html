@@ -5334,15 +5334,15 @@ needed on Trainium/Inferentia instances. On CPU or GPU, trnblas falls
 back to <code>torch.matmul</code> automatically.</p>
 <p>The <code>nki</code> and <code>neuronxcc</code> wheels ship on the AWS pip index rather than
 PyPI. Pass <code>--extra-index-url</code> to pick them up:</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;trnblas[neuron]&quot;</span><span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnblas[neuron]"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
 </code></pre></div>
 <h3 id="simulator-only-install-cpu-no-hardware">Simulator-only install (CPU, no hardware)<a class="headerlink" href="#simulator-only-install-cpu-no-hardware" title="Permanent link">&para;</a></h3>
 <p>NKI 0.3.0 ships a CPU simulator (<code>nki.simulate(kernel)(numpy_args)</code>)
 that runs kernels without a Neuron device. The GH Actions <code>nki-simulator</code>
 job uses this install line; mirror it locally for fast kernel iteration:</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
-pip<span class="w"> </span>install<span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com<span class="w"> </span><span class="s2">&quot;nki&gt;=0.3.0&quot;</span>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span>
+pip<span class="w"> </span>install<span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com<span class="w"> </span><span class="s2">"nki&gt;=0.3.0"</span>
 </code></pre></div>
 <p><code>torch-neuronx</code> is <strong>not</strong> required for the simulator path — dispatch
 routes NumPy directly through <code>nki.simulate</code> and bypasses <code>torch_xla</code>.</p>
@@ -5356,7 +5356,7 @@ molecules and compare against PySCF's own <code>mp.dfmp2.DFMP2</code> reference.
 <h2 id="from-source">From source<a class="headerlink" href="#from-source" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/trnsci/trnblas
 <span class="nb">cd</span><span class="w"> </span>trnblas
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span>
 pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 </code></pre></div>
 <h2 id="runtime-environment-variables">Runtime environment variables<a class="headerlink" href="#runtime-environment-variables" title="Permanent link">&para;</a></h2>

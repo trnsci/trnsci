@@ -5314,29 +5314,29 @@
     <span class="n">u_f64</span> <span class="o">=</span> <span class="n">_UNIT_ROUNDOFF</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">K</span> <span class="o">*</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">target_forward_error</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;fast&quot;</span>
+        <span class="k">return</span> <span class="s2">"fast"</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">_SR_DD_DTYPES</span> <span class="ow">and</span> <span class="n">K</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">target_forward_error</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;sr&quot;</span>
+        <span class="k">return</span> <span class="s2">"sr"</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">_SR_DD_DTYPES</span> <span class="ow">and</span> <span class="n">K</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">target_forward_error</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;dd&quot;</span>
+        <span class="k">return</span> <span class="s2">"dd"</span>
     <span class="k">if</span> <span class="n">K</span> <span class="o">*</span> <span class="n">u_f64</span> <span class="o">&lt;=</span> <span class="n">target_forward_error</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;kahan&quot;</span>
+        <span class="k">return</span> <span class="s2">"kahan"</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Cannot achieve target_forward_error=</span><span class="si">{</span><span class="n">target_forward_error</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2"> for &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, dtype=</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">. &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;Best available: &#39;kahan&#39; (K·u_f64 ≈ </span><span class="si">{</span><span class="n">K</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">u_f64</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">).&quot;</span>
+        <span class="sa">f</span><span class="s2">"Cannot achieve target_forward_error=</span><span class="si">{</span><span class="n">target_forward_error</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2"> for "</span>
+        <span class="sa">f</span><span class="s2">"K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, dtype=</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">. "</span>
+        <span class="sa">f</span><span class="s2">"Best available: 'kahan' (K·u_f64 ≈ </span><span class="si">{</span><span class="n">K</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">u_f64</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">)."</span>
     <span class="p">)</span>
 </code></pre></div>
 <p>The dispatch block in <code>einsum()</code> that invokes it:</p>
 <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">target_forward_error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">precision</span> <span class="o">!=</span> <span class="s2">&quot;fast&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">precision</span> <span class="o">!=</span> <span class="s2">"fast"</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Cannot specify both &#39;precision&#39; and &#39;target_forward_error&#39;. &quot;</span>
-            <span class="s2">&quot;Use one or the other.&quot;</span>
+            <span class="s2">"Cannot specify both 'precision' and 'target_forward_error'. "</span>
+            <span class="s2">"Use one or the other."</span>
         <span class="p">)</span>
     <span class="n">_input_str</span><span class="p">,</span> <span class="n">_output_str</span> <span class="o">=</span> <span class="n">_parse_subscripts</span><span class="p">(</span><span class="n">subscripts</span><span class="p">)</span>
     <span class="n">_size_map</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">_term</span><span class="p">,</span> <span class="n">_op</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_input_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">),</span> <span class="n">operands</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">_term</span><span class="p">,</span> <span class="n">_op</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_input_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">),</span> <span class="n">operands</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">_c</span><span class="p">,</span> <span class="n">_s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_term</span><span class="p">,</span> <span class="n">_op</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="n">_size_map</span><span class="p">[</span><span class="n">_c</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_s</span><span class="p">)</span>
     <span class="n">_contracted</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_size_map</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_output_str</span><span class="p">}</span>

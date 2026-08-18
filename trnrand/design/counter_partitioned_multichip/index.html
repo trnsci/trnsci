@@ -5626,7 +5626,7 @@ partitioning).</p>
     <span class="n">partition_size</span><span class="o">=</span><span class="n">xm</span><span class="o">.</span><span class="n">xrt_world_size</span><span class="p">(),</span>   <span class="c1"># total chips in cluster</span>
 <span class="p">)</span>
 
-<span class="c1"># Subsequent calls take this chip&#39;s subrange of the logical stream:</span>
+<span class="c1"># Subsequent calls take this chip's subrange of the logical stream:</span>
 <span class="n">samples</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>   <span class="c1"># emits N/P samples on chip rank</span>
 </code></pre></div>
 <p>Defaults (<code>rank=0, size=1</code>) preserve the single-chip behavior
@@ -5682,7 +5682,7 @@ wins multiply cleanly.</p>
 <div class="highlight"><pre><span></span><code><span class="n">g16</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 <span class="n">g32</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
 <span class="c1"># Both see the same logical range [6*N/32, 7*N/32) of the seed=42 stream.</span>
-<span class="c1"># g32&#39;s output equals g16.uniform(N/16)[:N/32] for the appropriate N.</span>
+<span class="c1"># g32's output equals g16.uniform(N/16)[:N/32] for the appropriate N.</span>
 </code></pre></div>
 <p>The same seed produces the same logical stream regardless of
 <code>partition_size</code>. Resharding a cluster from 16 → 32 chips mid-

@@ -5331,7 +5331,7 @@ toggle), then <code>precision == "ozaki_hq"</code> for sizes within the DFT-GEMM
 <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">_FORCE_OZAKI_HQ</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">_fft_via_ozaki_hq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">inverse</span><span class="p">)</span>
 <span class="o">...</span>
-<span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;ozaki_hq&quot;</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">_DFT_GEMM_THRESHOLD</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">"ozaki_hq"</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="n">_DFT_GEMM_THRESHOLD</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">_fft_via_ozaki_hq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">inverse</span><span class="p">)</span>
 </code></pre></div>
 <p><code>set_precision("ozaki_hq")</code> is the user-facing API. The <code>_FORCE_OZAKI_HQ</code> flag exists for
