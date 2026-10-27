@@ -70,6 +70,7 @@ def orchestrate():
 
 def single_pass(name):
     import nki
+    import nki.isa as nisa
     import nki.language as nl
     import torch
     import torch_neuronx
@@ -87,16 +88,20 @@ def single_pass(name):
         nl.store(out, value=t)
         return out
 
+    # Integer add/multiply via nisa.tensor_tensor: nl.add / nl.multiply on (P, 1)
+    # integer tiles lower to float-only tensor_scalar_arith (trnrand#56).
     @nki.jit
     def _mul_kernel(a, b):
-        p = nl.multiply(nl.load(a), nl.load(b), dtype=nl.uint32)
+        p = nl.ndarray(a.shape, dtype=nl.uint32, buffer=nl.sbuf)
+        nisa.tensor_tensor(p, nl.load(a), nl.load(b), op=nl.multiply)
         out = nl.ndarray(a.shape, dtype=nl.int32, buffer=nl.shared_hbm)
         nl.store(out, value=nl.copy(p, dtype=nl.int32))
         return out
 
     @nki.jit
     def _add_kernel(a, b):
-        s = nl.add(nl.load(a), nl.load(b), dtype=nl.uint32)
+        s = nl.ndarray(a.shape, dtype=nl.uint32, buffer=nl.sbuf)
+        nisa.tensor_tensor(s, nl.load(a), nl.load(b), op=nl.add)
         out = nl.ndarray(a.shape, dtype=nl.int32, buffer=nl.shared_hbm)
         nl.store(out, value=nl.copy(s, dtype=nl.int32))
         return out
@@ -135,6 +140,18 @@ def single_pass(name):
         for i, g, w in bad[:4]:
             print(f"    [{i}] got {g:#010x} want {w:#010x}")
 
+    def attempt(label, run, want):
+        """Run one check; a compile/runtime failure is a FAIL, not an abort."""
+        try:
+            got = run()
+        except Exception as e:  # noqa: BLE001 - report and keep going
+            results[label] = False
+            msg = str(e).splitlines()[0][:200] if str(e) else type(e).__name__
+            print(f"  {label}: ERROR {type(e).__name__}: {msg}")
+            return None
+        check(label, bits(got), want)
+        return got
+
     # Probe values straddle the 2**24 boundary and include the Philox constants.
     probe = [
         1,
@@ -157,15 +174,15 @@ def single_pass(name):
     b = to_i32(vals_b).reshape(P, 1)
 
     print(f"[{name}] integer probes (P={P}, int32 storage of uint32 bit patterns):")
-    check("roundtrip", bits(roundtrip(a.to(dev)).cpu()), vals_a)
-    check(
+    attempt("roundtrip", lambda: roundtrip(a.to(dev)).cpu(), vals_a)
+    attempt(
         "mul32 low bits",
-        bits(mul(a.to(dev), b.to(dev)).cpu()),
+        lambda: mul(a.to(dev), b.to(dev)).cpu(),
         [(x * y) & M for x, y in zip(vals_a, vals_b)],
     )
-    check(
+    attempt(
         "add32 wrap",
-        bits(add(a.to(dev), b.to(dev)).cpu()),
+        lambda: add(a.to(dev), b.to(dev)).cpu(),
         [(x + y) & M for x, y in zip(vals_a, vals_b)],
     )
 
@@ -191,15 +208,16 @@ def single_pass(name):
     print(
         f"[{name}] trnrand philox4x32_kernel vs philox4x32_reference ({P} lanes x 4 words):"
     )
-    out = philox(cl, kl, kh).cpu()
-    check("philox eager", bits(out), bits(ref))
+    out = attempt("philox eager", lambda: philox(cl, kl, kh).cpu(), bits(ref))
     compiled = torch.compile(lambda *x: philox(*x), backend="neuron", fullgraph=True)
-    check("philox compile", bits(compiled(cl, kl, kh).cpu()), bits(ref))
+    attempt("philox compile", lambda: compiled(cl, kl, kh).cpu(), bits(ref))
 
-    u = torch.tensor(bits(out), dtype=torch.float64) / 2**32
-    print(
-        f"  uniform mean from kernel output: {u.mean().item():.4f} (expect ~0.5; #1308 symptom was ~0.31)"
-    )
+    if out is not None:
+        u = torch.tensor(bits(out), dtype=torch.float64) / 2**32
+        print(
+            f"  uniform mean from kernel output: {u.mean().item():.4f} "
+            "(expect ~0.5; #1308 symptom was ~0.31)"
+        )
 
     verdict = (
         "UNBLOCKED"

@@ -57,12 +57,16 @@ def warm_median_ms(fn, sync=True):
 
 if __name__ == "__main__":
     print("torch", torch.__version__, "| torch_neuronx", torch_neuronx.__version__)
-    compiled = torch.compile(lambda a, b: mm(a, b), backend="neuron", fullgraph=True)
 
     rows = []
     for n in SIZES:
         A, B = torch.randn(n, n), torch.randn(n, n)
         Ad, Bd = A.to(DEV), B.to(DEV)
+        # Static shapes: TorchNeuron's compile backend doesn't support dynamic
+        # (symbolic) shapes, and a second size would otherwise retrace dynamically.
+        compiled = torch.compile(
+            lambda a, b: mm(a, b), backend="neuron", fullgraph=True, dynamic=False
+        )
         row = {
             "N": n,
             "nki_resident": warm_median_ms(lambda: mm(Ad, Bd)),
