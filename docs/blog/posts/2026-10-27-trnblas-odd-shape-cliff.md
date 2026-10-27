@@ -159,7 +159,7 @@ Correctness on this branch: the neuron suite gave 78 passed and 1 skipped, twice
 
 ## What's next
 
-- [trnblas#51](https://github.com/trnsci/trnblas/pull/51): the ragged kernel and the opt-in autotuner, awaiting review. Its CHANGELOG entry still attributes the odd-shape first-call cost to the pad graphs, and that needs correcting before merge.
+- [trnblas#51](https://github.com/trnsci/trnblas/pull/51): the ragged kernel and the opt-in autotuner, awaiting review. Its CHANGELOG now credits the first-call cost to the lazy `torch.randn`, not the pad graphs.
 - [trnblas#50](https://github.com/trnsci/trnblas/issues/50): native TorchNeuron dispatch, including the decision on whether aten matmul should be the default for plain GEMM.
 - [Phase 2: double-double FP64 GEMM (trnblas#22)](https://github.com/trnsci/trnblas/issues/22), the path from 2.57e-7 Ha to nanohartree.
 - [Phase 4: tensor-parallel GEMM across NeuronCores (trnblas#24)](https://github.com/trnsci/trnblas/issues/24), where 16384³ belongs.
