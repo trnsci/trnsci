@@ -218,7 +218,7 @@ The CPU column is the uncomfortable one: CPU-resident `eigh` is 2–33× faster 
 - [Phase 5 — trn2 rotation-block tuning](https://github.com/trnsci/trnsolver/issues/30).
 - Upstream: [aws-neuron-sdk#1438](https://github.com/aws-neuron/aws-neuron-sdk/issues/1438) and [#1441](https://github.com/aws-neuron/aws-neuron-sdk/issues/1441). A loop higher-order op would replace unrolling.
 
-Siblings hit the same launch-count lesson in the same window: trnrand cut `normal` at 4M elements from 934 ms to 15.9 ms with one launch per request ([trnrand#60](https://github.com/trnsci/trnrand/issues/60)), and trnblas already has a small-shape cutover. The suite-wide picture is in the [migration tracker](https://github.com/trnsci/trnsci/issues/35), the [suite tracker](https://github.com/trnsci/trnsci/issues/1) and the [roadmap](https://trnsci.dev/roadmap/).
+Siblings hit the same launch-count lesson in the same window: trnrand cut `normal` at 4M elements from 934 ms to 15.9 ms with one launch per request ([trnrand#60](https://github.com/trnsci/trnrand/issues/60)). The suite-wide picture is in the [migration tracker](https://github.com/trnsci/trnsci/issues/35), the [suite tracker](https://github.com/trnsci/trnsci/issues/1) and the [roadmap](https://trnsci.dev/roadmap/).
 
 ## Takeaway
 
