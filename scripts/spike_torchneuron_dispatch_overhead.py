@@ -32,7 +32,10 @@ from torch_neuronx import nki_op
 from trntensor.nki._kernels import matmul_kernel
 
 DEV = "neuron"
-SIZES = (128, 512, 1024, 2048)
+# SPIKEB_SIZES=128,512,... overrides the default sweep.
+SIZES = tuple(
+    int(n) for n in os.environ.get("SPIKEB_SIZES", "128,512,1024,2048").split(",")
+)
 REPS = 30
 
 
