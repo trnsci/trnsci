@@ -92,18 +92,20 @@ def single_pass(name):
     # integer tiles lower to float-only tensor_scalar_arith (trnrand#56).
     @nki.jit
     def _mul_kernel(a, b):
-        p = nl.ndarray(a.shape, dtype=nl.uint32, buffer=nl.sbuf)
+        # Integer tensor_tensor needs matching operand dtypes (NCC_EBIR028); int32
+        # carries the same low 32 bits as uint32.
+        p = nl.ndarray(a.shape, dtype=nl.int32, buffer=nl.sbuf)
         nisa.tensor_tensor(p, nl.load(a), nl.load(b), op=nl.multiply)
         out = nl.ndarray(a.shape, dtype=nl.int32, buffer=nl.shared_hbm)
-        nl.store(out, value=nl.copy(p, dtype=nl.int32))
+        nl.store(out, value=p)
         return out
 
     @nki.jit
     def _add_kernel(a, b):
-        s = nl.ndarray(a.shape, dtype=nl.uint32, buffer=nl.sbuf)
+        s = nl.ndarray(a.shape, dtype=nl.int32, buffer=nl.sbuf)
         nisa.tensor_tensor(s, nl.load(a), nl.load(b), op=nl.add)
         out = nl.ndarray(a.shape, dtype=nl.int32, buffer=nl.shared_hbm)
-        nl.store(out, value=nl.copy(s, dtype=nl.int32))
+        nl.store(out, value=s)
         return out
 
     @nki_op("spikec::roundtrip", mutates_args={})
