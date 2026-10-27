@@ -129,7 +129,7 @@ The second bug has history. The [v0.6.0 post](https://trnsci.dev/blog/trnsparse-
 
 **Fit.** Block-structured sparsity fits this design well: once structure is on the host, the device workload is dense tiles and PSUM accumulation, which is what Trainium was built for. Irregular CSR fits less well than before. With no device CSR, the CSR SpMM path builds its operands on the host and ships dense data across. Sparse structure that changes on the device, as in iterative pruning or graph rewiring, would need a host round trip. Under `torch.compile(backend="neuron", fullgraph=True)`, no trnsparse op worked in the B6 coverage spike, because the inputs were device CSR. A re-run is on #30's checklist.
 
-**Upstream asks.** None has been filed yet. A search of aws-neuron/aws-neuron-sdk found no existing issue for either.
+**Upstream asks.** Both are filed: [aws-neuron-sdk#1442](https://github.com/aws-neuron/aws-neuron-sdk/issues/1442) (sparse CSR on `neuron`) and [aws-neuron-sdk#1443](https://github.com/aws-neuron/aws-neuron-sdk/issues/1443) (simulator and `verify()` parity with the hardware compile).
 
 - **Sparse CSR on `neuron`.** `aten::_to_dense` and `aten::addmv.out` have no `SparseCsrneuron` implementation, and `from_dense` on a device tensor fails with `Values and crow_indices need to be on the same device`. Either kernels, or a documented host fallback with an error that says so.
 - **Simulator parity with the hardware verifier.** An `nki.simulate` option that runs `source_to_mlir(...).verify()`, and ideally ISA validation, would have flagged every kernel behind the 14 compile failures before any hardware time.
