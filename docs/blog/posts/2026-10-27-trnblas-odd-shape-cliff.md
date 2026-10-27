@@ -144,16 +144,16 @@ Per-phase probe with host-created inputs, alongside the bare RNG op:
 
 Warm 4095³ ragged (32.0 ms) edges out aligned 4096³ (35.4 ms). The thread attributes that to skipping the padded FLOPs. But padding 4095 to 4096 adds only 0.07% more FLOPs, so the honest reading is parity until a profile says otherwise. The probe's single warm call also reported 12.0–12.5 ms at 4095/4096, against the cold harness's 32–35 ms. The two harnesses time warm calls differently, and that gap hasn't been reconciled yet.
 
-Warm op latency with operands resident on the device, against the 12-vCPU host:
+Warm op latency with operands resident on the device, against the 12-vCPU host. There are two runs on the same branch, both on a busy box ([trnblas#50](https://github.com/trnsci/trnblas/issues/50)):
 
 | N | trnblas `gemm` (NKI) | TorchNeuron aten matmul | CPU |
 |---|---|---|---|
-| 128 | 0.43 ms | 0.42 ms | 0.017 ms |
-| 512 | 0.42 ms | 0.30 ms | 0.46 ms |
-| 1024 | 0.69 ms | 0.47 ms | 3.9 ms |
-| 2048 | 2.32 ms | 0.83 ms | 29.4 ms |
+| 128 | 0.26–0.43 ms | 0.10–0.42 ms | 0.016–0.017 ms |
+| 512 | 0.42–0.57 ms | 0.15–0.30 ms | 0.46–0.53 ms |
+| 1024 | 0.49–0.69 ms | 0.20–0.47 ms | 3.8–3.9 ms |
+| 2048 | 2.16–2.32 ms | 0.59–0.83 ms | 29.4–31.5 ms |
 
-The NKI kernel overtakes the CPU at N=512 when the operands are already resident. At every size measured, though, aten matmul is faster, by 2.8× at N=2048. At 128 both device paths are sitting on the roughly 0.2 ms eager dispatch floor. That floor is down from the roughly 100 ms on the XLA path that motivated [batched pair energy](https://trnsci.dev/blog/trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move/).
+The NKI kernel overtakes the CPU somewhere between N=512 and N=1024 when the operands are already resident; the two runs disagree on which. At every size measured, though, aten matmul is faster, by about 2.8–3.6× at N=2048. At 128 both device paths are sitting on the roughly 0.2 ms eager dispatch floor. That floor is down from the roughly 100 ms on the XLA path that motivated [batched pair energy](https://trnsci.dev/blog/trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move/).
 
 Correctness on this branch: the neuron suite gave 78 passed and 1 skipped, twice, under `TRNBLAS_REQUIRE_NKI=1`. The awkward-size sweep (1, 7, 127, 128, 129, 255, 257, 1000 and 4097, plus mixed shapes such as 4097×1×7) passed with rel_err 3.6e-8 to 1.9e-7, and trntensor's einsum paths, which use the same kernel, passed too. All 19 suite examples passed. PySCF DF-MP2 on NH3/cc-pVTZ matched PySCF to |ΔE| = 2.57e-7 Ha. That is the FP32 regime, not nanohartree. On the same workload the autotune-off default cost nothing measurable: 8.08 s total, against 7.49 s with the sweep, which is within run-to-run noise on a busy box.
 
