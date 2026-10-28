@@ -11,7 +11,7 @@ On the native TorchNeuron device in Neuron SDK 2.33.0, trnfft's N=1024 FFT dropp
 <!-- more -->
 
 !!! note "Status"
-    Not merged. The launch work is PR [trnsci/trnfft#84](https://github.com/trnsci/trnfft/pull/84) ([#82](https://github.com/trnsci/trnfft/issues/82)); the large-n fix is PR [#85](https://github.com/trnsci/trnfft/pull/85) ([#83](https://github.com/trnsci/trnfft/issues/83)), stacked on it. Both are under review. Measurements: trn2.3xlarge, public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631), LNC=2, native `neuron` device.
+    Shipped in [trnfft v0.23.0](https://github.com/trnsci/trnfft/releases/tag/v0.23.0). The launch work is PR [trnsci/trnfft#84](https://github.com/trnsci/trnfft/pull/84) ([#82](https://github.com/trnsci/trnfft/issues/82)); the large-n fix is PR [#85](https://github.com/trnsci/trnfft/pull/85) ([#83](https://github.com/trnsci/trnfft/issues/83)), stacked on it. Both are merged. Measurements: trn2.3xlarge, public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631), LNC=2, native `neuron` device.
 
 ## The problem
 
@@ -109,7 +109,7 @@ def _plan_row_chunks(total_rows: int, max_rows: int) -> list[tuple[int, int]]:
 
 The cap is `_MAX_ROWS_PER_LAUNCH = 1 << 21` (`TRNFFT_MAX_ROWS_PER_LAUNCH` overrides), rounded to the kernels' 128-row tile. It is safe because each Stockham stage packs data as `(B·L·M, r)` rows, each an independent r-point butterfly group with its own twiddle row. No kernel reads across rows, so a chunked launch computes exactly what the unchunked one does.
 
-One caveat on every number here: trnfft is not yet ported to the native path ([#80](https://github.com/trnsci/trnfft/issues/80): `nki_op` registration, no `torch_xla.sync()`). The measurements ran trnfft's existing kernels through a test-only stand-in that maps its few `torch_xla` calls onto the native device.
+One caveat on every number here: trnfft is not yet ported to the native path ([#80](https://github.com/trnsci/trnfft/issues/80): `nki_op` registration, no `torch_xla.sync()`; the port is draft PR [trnfft#88](https://github.com/trnsci/trnfft/pull/88)). The measurements ran trnfft's existing kernels through a test-only stand-in that maps its few `torch_xla` calls onto the native device.
 
 ## What didn't work
 
@@ -128,7 +128,7 @@ error: colz: body blob exceeds uint32 offset range
 
 It isn't memory: after the fix, 2^26 runs at an 11 GiB peak. The stage kernels already iterate over 128-row tiles with `nl.affine_range`, the textbook fix. The emitted body still grows linearly with trip count, as if the loop were unrolled during lowering, so there was no in-kernel fix to make; it had to move to the dispatcher.
 
-**Precision promises that still fail.** The suite-wide precision-honesty sweep ([trnsci#35](https://github.com/trnsci/trnsci/issues/35)) still reports 37 known FAILs, unchanged by these branches. Five are trnfft's BF16 modes: `bf16_refined` at N=64–256 measures 1.9e-3 to 2.1e-3 against a promised 1e-5 (2.03e-3 at N=128), and `bf16` at N=128/256 is just over its 2e-3 bound. On device, the one-step refinement from the [April PSUM-refinement post](2026-04-22-trnfft-bf16-psum-refinement.md) buys essentially nothing. That's now tracked in [trnfft#86](https://github.com/trnsci/trnfft/issues/86). A docstring correction is still owed.
+**Precision promises that still fail.** The suite-wide precision-honesty sweep ([trnsci#35](https://github.com/trnsci/trnsci/issues/35)) still reports 37 known FAILs, unchanged by these branches. Five are trnfft's BF16 modes: `bf16_refined` at N=64–256 measures 1.9e-3 to 2.1e-3 against a promised 1e-5 (2.03e-3 at N=128), and `bf16` at N=128/256 is just over its 2e-3 bound. On device, the one-step refinement from the [April PSUM-refinement post](2026-04-22-trnfft-bf16-psum-refinement.md) buys essentially nothing. That's now tracked in [trnfft#86](https://github.com/trnsci/trnfft/issues/86), with a fix in draft PR [#87](https://github.com/trnsci/trnfft/pull/87). A docstring correction is still owed.
 
 **Upstream ask** ([aws-neuron/aws-neuron-sdk#1440](https://github.com/aws-neuron/aws-neuron-sdk/issues/1440)): (1) keep `affine_range`/`sequential_range` loops rolled when the body is identical across iterations, or document the trip count beyond which they are unrolled and the resulting size limit; (2) have the error name the kernel and loop that overflowed and suggest splitting the launch. "colz: body blob exceeds uint32 offset range" gave no hint that the fix was in the dispatcher.
 
@@ -155,7 +155,7 @@ Trn2 A/B on b83ff8d (batch 32, device-resident warm median, ms), the run that se
 | 2048 | 8.22 | 1.58 | **1.20** | 1.08 | 0.057 |
 | 4096 | 10.25 | 2.43 | **2.18** | 2.36 | 0.107 |
 
-Latency, merge candidate 011b51c (B7 op-latency script, batch 32; warm median of 20, ms). The 82b column is the noisy run discussed above:
+Latency, 011b51c, the head merged in #84 (B7 op-latency script, batch 32; warm median of 20, ms). The 82b column is the noisy run discussed above:
 
 | N | 82b resident | 011b51c resident | 011b51c with host copies | CPU |
 |---|---|---|---|---|
@@ -200,7 +200,7 @@ The #81 and Bluestein bugs shared a cause: FP32 angles of order 2πN, rounded be
 ## What's next
 
 - **Batch-level fusion** (one kernel covering many rows of a four-step pass): the next lever before multi-core, per the N=4096, B ≥ 128 numbers.
-- **Native registration** ([#80](https://github.com/trnsci/trnfft/issues/80)): `nki_op` for every kernel, `register_autograd`, and no `torch_xla` on the native path.
+- **Native registration** ([#80](https://github.com/trnsci/trnfft/issues/80)): `nki_op` for every kernel, `register_autograd`, and no `torch_xla` on the native path. In progress as draft PR [#88](https://github.com/trnsci/trnfft/pull/88).
 - **Four-step beyond 4096**, where per-stage Stockham launches remain the time limit (trnsci#35 capacity sweep).
 - [Phase 2 — precision (Kahan/Neumaier for long Bluestein chains)](https://github.com/trnsci/trnfft/issues/52), including the open BF16 FAILs and [kahan characterisation on silicon](https://github.com/trnsci/trnfft/issues/58)
 - [Phase 3 — plan reuse, streaming large FFTs, NEFF cache](https://github.com/trnsci/trnfft/issues/53), where #82 and #83 live
