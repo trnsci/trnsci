@@ -5097,6 +5097,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="./" class="md-meta__link">trnblas</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              10 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnblas-the-odd-shape-cliff-that-wasnt"><a class="toclink" href="../../trnblas-the-odd-shape-cliff-that-wasnt/">trnblas: the odd-shape cliff that wasn't</a></h2>
+<p>An 8191³ GEMM took 1605 s on its first call on Trn2 while 8192³ took 4.4 s, and trnblas blamed three things in turn before finding the cliff in its own benchmark: a lazy <code>torch.randn(device="neuron")</code> inside the timed call. Two fixes from the wrong turns are real and shipped in <a href="https://github.com/trnsci/trnblas/releases/tag/v0.6.0">trnblas v0.6.0</a> via <a href="https://github.com/trnsci/trnblas/pull/51">trnblas#51</a> — the autotune sweep is opt-in, and unaligned shapes now take their ragged edges inside the kernel, which PSUM accumulation and partition-0 tiles make nearly free. The post is for anyone timing first calls on the native TorchNeuron device, and for CUDA programmers who expect "pad to the tile" to cost nothing.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnblas-the-odd-shape-cliff-that-wasnt/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-17 00:00:00+00:00">April 17, 2026</time></li>
         
           <li class="md-meta__item">

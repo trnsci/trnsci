@@ -5087,6 +5087,54 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-04-20 00:00:00+00:00">April 20, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../../category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="../../category/trnfft/" class="md-meta__link">trnfft</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              8 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnfft-fft-is-a-gemm-and-then-it-isnt"><a class="toclink" href="../../trnfft-fft-is-a-gemm-and-then-it-isnt/">trnfft: FFT is a GEMM, and then it isn't</a></h2>
+<p>trnfft v0.12–v0.15 shipped three new FFT dispatch paths — DFT-GEMM, Stockham
+radix-4 with twiddle precomputation, and Stockham radix-8 with a Tensor-engine
+W₈ kernel — producing 20–37% improvements over the butterfly baseline at medium
+and large N. The architectural argument running through all three is the same:
+on Trainium, the bottleneck is not arithmetic but engine utilization and kernel
+launches. Whether that argument holds at a given N, and at what cost, is where
+most of the engineering work actually lived.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnfft-fft-is-a-gemm-and-then-it-isnt/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-18 00:00:00+00:00">April 18, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5473,56 +5521,6 @@ gap that stands between the current state and hardware-validated Philox.</p>
     
       <nav class="md-post__action">
         <a href="../../trntensor-when-the-kernel-boundary-is-the-api/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-      <nav class="md-post__authors md-typeset">
-        
-          <span class="md-author">
-            <img src="https://avatars.githubusercontent.com/u/3011922?v=4" alt="Scott Friedman">
-          </span>
-        
-      </nav>
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../category/ecosystem/" class="md-meta__link">Ecosystem</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              4 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="the-dev-loop-just-got-a-lot-shorter"><a class="toclink" href="../../the-dev-loop-just-got-a-lot-shorter/">The dev loop just got a lot shorter</a></h2>
-<p>Until this week, working on an NKI kernel inside any trnsci library looked roughly like this: edit the kernel, push to a branch, wait for the GitHub Actions runner to start a trn1.2xlarge instance over SSM, wait for user-data to finish, wait for the NEFF compile, finally run <code>pytest -m neuron</code>, read the result, stop the instance. Eight to twelve minutes per iteration in the best case. Longer when anything went sideways.</p>
-<p>AWS's Neuron SDK 2.29 shipped a month ago with NKI 0.3.0 Stable. The change that matters most isn't in the SDK itself — it's in the fact that the full stack now installs cleanly on <code>ubuntu-latest</code> GitHub runners via AWS's pip index, and the CPU simulator exposed by <code>nki.simulate(kernel)(numpy_args)</code> runs the same kernels device-free. The dev loop dropped from minutes to seconds, and the cost-of-iteration barrier for contributing to a trnsci library just collapsed.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../the-dev-loop-just-got-a-lot-shorter/">
           Continue reading
         </a>
       </nav>
