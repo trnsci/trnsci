@@ -24,6 +24,15 @@ Per-kernel details live in each sub-project's `docs/architecture.md`. Per-phase 
 | [trnsparse](https://github.com/trnsci/trnsparse) | [#14](https://github.com/trnsci/trnsparse/issues/14) | ✅ Hardware-validated | BSR-128 SpMM, fused screened SpMM, CSR-materialized SpMM | [trnsparse: the tile is the unit, not the nonzero](https://trnsci.dev/blog/trnsparse-the-tile-is-the-unit-not-the-nonzero/) |
 | [trntensor](https://github.com/trnsci/trntensor) | [#27](https://github.com/trnsci/trntensor/issues/27) | ✅ Hardware-validated | 2-index + batched `nc_matmul`, fused MP2 energy, 4-index AO→MO transform | [trntensor: when the kernel boundary is the API](https://trnsci.dev/blog/trntensor-when-the-kernel-boundary-is-the-api/) |
 
+## Trn2 / native TorchNeuron (Neuron SDK 2.33)
+
+All six libraries were validated on a trn2.3xlarge with Neuron SDK 2.33.0 (TorchNeuron public beta, NKI 0.7.0, neuronx-cc 2.28) in October 2026. The validated releases are trnfft 0.23.0, trnblas 0.6.0, trnrand 0.8.0, trnsolver 0.16.0, trnsparse 0.7.0 and trntensor 0.17.0.
+
+- trnrand runs natively (`nki_op` dispatch on the `neuron` device).
+- The other five ran their existing kernels on the native device through a test-only shim. Their native `nki_op` ports are open PRs, awaiting a Trn2 run: trnfft#88, trnblas#52, trnsolver#44, trnsparse#32, trntensor#46.
+
+Scoreboard and evidence: [trnsci#35](https://github.com/trnsci/trnsci/issues/35). Platform policy: [installation](installation.md#hardware-compatibility).
+
 **Legend:**
 
 - ✅ **Hardware-validated** — kernels pass `@pytest.mark.neuron` on trn1; NKI is the default dispatch target when `neuronxcc` is available.
