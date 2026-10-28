@@ -11,7 +11,7 @@ trnsolver's Cholesky, LU solve and QR now compile under `torch.compile(backend="
 <!-- more -->
 
 !!! note "Code status"
-    Everything below lives in [trnsci/trnsolver#43](https://github.com/trnsci/trnsolver/pull/43) (branch `fix-42-eigh-latency`), which is open for review and **not merged**. The rejected blocked variant is kept on branch `repro-ncc-inla001-blocked` as an upstream reproducer only.
+    Everything below shipped in [trnsolver v0.16.0](https://github.com/trnsci/trnsolver/releases/tag/v0.16.0) via [trnsci/trnsolver#43](https://github.com/trnsci/trnsolver/pull/43) (branch `fix-42-eigh-latency`). The rejected blocked variant is kept on branch `repro-ncc-inla001-blocked` as an upstream reproducer only.
 
 ## The problem
 
@@ -211,8 +211,8 @@ The CPU column is the uncomfortable one: CPU-resident `eigh` is 2–33× faster 
 
 ## What's next
 
-- **Review and merge of [trnsolver#43](https://github.com/trnsci/trnsolver/pull/43).** Nothing above ships until then.
-- **On-device tridiagonalization.** One kernel per panel, no `.item()`, so NKI `eigh` stops paying O(n) host syncs: the step that would give it an on-device reason to exist. Recorded as Phase 3 work on [#42](https://github.com/trnsci/trnsolver/issues/42).
+- **[trnsolver#43](https://github.com/trnsci/trnsolver/pull/43) is merged.** Everything above shipped in [v0.16.0](https://github.com/trnsci/trnsolver/releases/tag/v0.16.0).
+- **On-device tridiagonalization.** One kernel per panel, no `.item()`, so NKI `eigh` stops paying O(n) host syncs: the step that would give it an on-device reason to exist. Recorded as Phase 3 work on [#42](https://github.com/trnsci/trnsolver/issues/42); in progress as draft PR [#45](https://github.com/trnsci/trnsolver/pull/45).
 - [Phase 3 — preconditioned iterative solvers + NEFF cache reuse](https://github.com/trnsci/trnsolver/issues/28), with [NEFF compile-cache reuse in examples and benchmarks](https://github.com/trnsci/trnsolver/issues/34) as the near-term lever on 50–260 s first calls.
 - [Phase 4 — parallel Jacobi sweeps across NeuronCores](https://github.com/trnsci/trnsolver/issues/29).
 - [Phase 5 — trn2 rotation-block tuning](https://github.com/trnsci/trnsolver/issues/30).
