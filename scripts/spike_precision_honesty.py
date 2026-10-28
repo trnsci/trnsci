@@ -267,7 +267,10 @@ FFT_BOUNDS = {
         1e-6,
         1e-6,
     ),  # FP64 DFT-GEMM N<=1024 (1e-14 pre-cast; fp32 output); see below
-    "bf16": (3e-3, 4e-6),  # restated in trnfft#87 (#86): BF16 floor ~2^-9; above 256 falls through to fast
+    "bf16": (
+        3e-3,
+        4e-6,
+    ),  # restated in trnfft#87 (#86): BF16 floor ~2^-9; above 256 falls through to fast
     "bf16_refined": (1e-5, 4e-6),  # "near-FP32"
     "ozaki": (1.6e-5, 4e-6),  # "O(u_bf16^2) ~ 1.6e-5 at N=256"
     "ozaki_hq": (1e-6, 4e-6),  # theory 2e-9, floored at fp32 output
