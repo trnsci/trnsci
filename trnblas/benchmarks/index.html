@@ -5943,7 +5943,9 @@ pytest<span class="w"> </span>benchmarks/<span class="w"> </span>--benchmark-onl
 for each instance (<code>infra/terraform/</code> for trn1, <code>infra/terraform-cuda/</code>
 for the A10G).</p>
 <h2 id="tile-shape-autotuner-v050">Tile-shape autotuner (v0.5.0)<a class="headerlink" href="#tile-shape-autotuner-v050" title="Permanent link">&para;</a></h2>
-<p><code>nki_gemm</code> now sweeps six tile candidates <code>{64,128} × {128} × {128,256,512}</code> on
+<p>Opt-in since #50 (<code>TRNBLAS_AUTOTUNE=1</code> or <code>trnblas.set_autotune(True)</code>); the
+default is the fixed <code>(128,128,512)</code> heuristic with no first-call sweep. When
+enabled, <code>nki_gemm</code> sweeps six tile candidates <code>{64,128} × {128} × {128,256,512}</code> on
 the first call per shape bucket and caches the winner to
 <code>/var/tmp/trnblas-autotune/cache.json</code> (overrideable via <code>TRNBLAS_AUTOTUNE_CACHE</code>).</p>
 <h3 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
@@ -5972,8 +5974,8 @@ the first call per shape bucket and caches the winner to
 <td>Same bucket → dict lookup only, no re-sweep</td>
 </tr>
 <tr>
-<td>Escape hatch</td>
-<td><code>TRNBLAS_AUTOTUNE=0</code> → fixed <code>(128,128,512)</code>, identical to v0.4.x</td>
+<td>Default (since #50)</td>
+<td>sweep off → fixed <code>(128,128,512)</code>; enable with <code>TRNBLAS_AUTOTUNE=1</code></td>
 </tr>
 </tbody>
 </table>

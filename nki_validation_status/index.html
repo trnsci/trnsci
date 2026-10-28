@@ -701,6 +701,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#trn2-native-torchneuron-neuron-sdk-233" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trn2 / native TorchNeuron (Neuron SDK 2.33)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cross-suite-infrastructure" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5176,6 +5187,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#trn2-native-torchneuron-neuron-sdk-233" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trn2 / native TorchNeuron (Neuron SDK 2.33)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cross-suite-infrastructure" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5307,6 +5329,13 @@ hardware" milestone.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="trn2-native-torchneuron-neuron-sdk-233">Trn2 / native TorchNeuron (Neuron SDK 2.33)<a class="headerlink" href="#trn2-native-torchneuron-neuron-sdk-233" title="Permanent link">&para;</a></h2>
+<p>All six libraries were validated on a trn2.3xlarge with Neuron SDK 2.33.0 (TorchNeuron public beta, NKI 0.7.0, neuronx-cc 2.28) in October 2026. The validated releases are trnfft 0.23.0, trnblas 0.6.0, trnrand 0.8.0, trnsolver 0.16.0, trnsparse 0.7.0 and trntensor 0.17.0.</p>
+<ul>
+<li>trnrand runs natively (<code>nki_op</code> dispatch on the <code>neuron</code> device).</li>
+<li>The other five ran their existing kernels on the native device through a test-only shim. Their native <code>nki_op</code> ports are open PRs, awaiting a Trn2 run: trnfft#88, trnblas#52, trnsolver#44, trnsparse#32, trntensor#46.</li>
+</ul>
+<p>Scoreboard and evidence: <a href="https://github.com/trnsci/trnsci/issues/35">trnsci#35</a>. Platform policy: <a href="../installation/#hardware-compatibility">installation</a>.</p>
 <p><strong>Legend:</strong></p>
 <ul>
 <li>✅ <strong>Hardware-validated</strong> — kernels pass <code>@pytest.mark.neuron</code> on trn1; NKI is the default dispatch target when <code>neuronxcc</code> is available.</li>

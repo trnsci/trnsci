@@ -4709,6 +4709,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="precision — accumulation precision">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-bounds-and-the-output-dtype-floor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error bounds and the output-dtype floor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stochastic-rounding-on-trainium-is-a-runtime-setting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stochastic rounding on Trainium is a runtime setting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -5303,6 +5331,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="precision — accumulation precision">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-bounds-and-the-output-dtype-floor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error bounds and the output-dtype floor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stochastic-rounding-on-trainium-is-a-runtime-setting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stochastic rounding on Trainium is a runtime setting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -5421,7 +5477,7 @@ the pattern maps to a 2-index matmul, the kernel in
 <tr>
 <td><code>precision</code></td>
 <td><code>"fast"</code></td>
-<td>Accumulation precision: <code>"fast"</code>, <code>"kahan"</code>, or <code>"dd"</code> (see below)</td>
+<td>Accumulation precision: <code>"fast"</code>, <code>"kahan"</code>, <code>"sr"</code>, or <code>"dd"</code> (see below)</td>
 </tr>
 </tbody>
 </table>
@@ -5474,7 +5530,11 @@ dtype.</p>
 </tr>
 <tr>
 <td><code>"kahan"</code></td>
-<td>Promotes operands to fp64 before contracting, casts back to original dtype; ~15.9 significant digits; bypasses NKI dispatch (runs on CPU)</td>
+<td>Contracts in fp64 and rounds once back to the operand dtype; bypasses NKI dispatch. Operands on a device without native fp64 (the Neuron device, XLA) are contracted on the host and the result moved back. Error ≤ K·2⁻⁵³ + u_out, so the result is as accurate as its dtype allows (~1 ulp), not ~16 digits, unless the operands are float64</td>
+</tr>
+<tr>
+<td><code>"sr"</code></td>
+<td>Stochastic rounding at the PSUM→SBUF downcast (BF16/FP16); mean-zero √K·u error instead of K·u. On Trainium requires <code>NEURON_RT_STOCHASTIC_ROUNDING_EN=1</code> at process start (see below)</td>
 </tr>
 <tr>
 <td><code>"dd"</code></td>
@@ -5485,6 +5545,87 @@ dtype.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># High-precision DF-MP2 energy accumulation</span>
 <span class="n">E_corr</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ijab,ijab-&gt;"</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"kahan"</span><span class="p">)</span>
 </code></pre></div>
+<h4 id="error-bounds-and-the-output-dtype-floor">Error bounds and the output-dtype floor<a class="headerlink" href="#error-bounds-and-the-output-dtype-floor" title="Permanent link">&para;</a></h4>
+<p>Every mode's promise is a componentwise bound on
+<code>max |C − C_exact| / (|A||B|)</code>, with <code>u</code> the operand unit roundoff and
+<code>u_out</code> the unit roundoff of the result dtype (the result is returned in the
+operand dtype, so <code>u_out = u</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Bound</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"fast"</code></td>
+<td>K·u + u_out</td>
+</tr>
+<tr>
+<td><code>"sr"</code></td>
+<td>√K·u + u_out (expected value)</td>
+</tr>
+<tr>
+<td><code>"dd"</code></td>
+<td>K·u² + u_out</td>
+</tr>
+<tr>
+<td><code>"kahan"</code></td>
+<td>K·2⁻⁵³ + u_out</td>
+</tr>
+</tbody>
+</table>
+<p><code>trntensor.forward_error_bound(mode, dtype, K)</code> returns these values.
+The <code>u_out</code> term is the final rounding of the result and is a <strong>floor no
+accumulation mode can beat</strong>: about 3.9e-3 for bf16 results and 6.0e-8 for
+fp32. <code>target_forward_error=</code> uses these bounds to pick the cheapest mode.
+When the target is below the floor (e.g. <code>1e-4</code> on bf16 inputs, <code>1e-8</code> on
+fp32 inputs), <code>einsum</code> / <code>multi_einsum</code> emit a one-time <code>RuntimeWarning</code>
+and still run the most accurate mode, <code>"kahan"</code>. To actually meet such a
+target, pass float32 or float64 operands (or <code>dtype=</code>), or loosen the
+target. A target below K·2⁻⁵³ raises <code>ValueError</code>.</p>
+<h4 id="stochastic-rounding-on-trainium-is-a-runtime-setting">Stochastic rounding on Trainium is a runtime setting<a class="headerlink" href="#stochastic-rounding-on-trainium-is-a-runtime-setting" title="Permanent link">&para;</a></h4>
+<p>On NKI 0.7+ (Neuron SDK 2.33) the kernel cannot pick its own rounding mode;
+the Neuron Runtime picks one for the whole process at init from
+<code>NEURON_RT_STOCHASTIC_ROUNDING_EN</code>
+(<a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-features/rounding-modes.html">AWS: rounding modes</a>).</p>
+<table>
+<thead>
+<tr>
+<th><code>NEURON_RT_STOCHASTIC_ROUNDING_EN</code></th>
+<th><code>precision="sr"</code></th>
+<th><code>precision="fast"</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>unset or <code>0</code></td>
+<td>round-to-nearest-even + one-time <code>RuntimeWarning</code></td>
+<td>round-to-nearest-even</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>stochastic</td>
+<td><strong>also stochastic</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Set the variable <strong>before the process starts</strong> (or at least before the
+  first Neuron device access). Setting it later from Python has no effect
+  on rounding.</li>
+<li>With it set, <em>every</em> FP32→BF16/FP16 downcast in the process rounds
+  stochastically, including <code>"fast"</code> contractions and other libraries'
+  kernels. Results are not bitwise reproducible run to run.</li>
+<li>Without it, <code>"sr"</code> still computes but gives round-to-nearest results, so
+  the √K·u bound does not apply. This also covers <code>target_forward_error=</code>
+  when it selects <code>"sr"</code>.</li>
+<li>The CPU fallback (no Neuron hardware) emulates SR in software and is not
+  affected by the variable.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="nv">NEURON_RT_STOCHASTIC_ROUNDING_EN</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>my_bf16_job.py
+</code></pre></div>
 <hr />
 <h2 id="multi_einsumcontractions-listtorchtensor"><code>multi_einsum(*contractions) -&gt; list[torch.Tensor]</code><a class="headerlink" href="#multi_einsumcontractions-listtorchtensor" title="Permanent link">&para;</a></h2>
 <p>Execute several contractions in one call. Each contraction is a tuple
@@ -5493,8 +5634,8 @@ of <code>(subscripts, *operands)</code>. Results are returned in input order.</p
 contraction (by object identity) are pre-pinned to the XLA device once
 before executing the loop, eliminating redundant host↔device transfers.</p>
 <div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">multi_einsum</span><span class="p">(</span>
-    <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">),</span>   <span class="c1"># Coulomb term</span>
-    <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_k</span><span class="p">),</span>   <span class="c1"># exchange term — B_i pinned once</span>
+    <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">),</span>  <span class="c1"># Coulomb term</span>
+    <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_k</span><span class="p">),</span>  <span class="c1"># exchange term — B_i pinned once</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="plan-cache-helpers">Plan cache helpers<a class="headerlink" href="#plan-cache-helpers" title="Permanent link">&para;</a></h3>

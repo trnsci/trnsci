@@ -5459,9 +5459,7 @@ alternating least squares (ALS).</p>
 <span class="p">)</span>
 
 <span class="c1"># nonneg and warm-start compose</span>
-<span class="n">factors_ws</span><span class="p">,</span> <span class="n">weights_ws</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">cp_decompose</span><span class="p">(</span>
-    <span class="n">T</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">factors</span><span class="o">=</span><span class="n">seed_factors</span>
-<span class="p">)</span>
+<span class="n">factors_ws</span><span class="p">,</span> <span class="n">weights_ws</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">cp_decompose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">factors</span><span class="o">=</span><span class="n">seed_factors</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="cp_reconstructfactors-weights-torchtensor"><code>cp_reconstruct(factors, weights) -&gt; torch.Tensor</code><a class="headerlink" href="#cp_reconstructfactors-weights-torchtensor" title="Permanent link">&para;</a></h3>
 <p>Reconstruct the full tensor from CP factors and weights.</p>

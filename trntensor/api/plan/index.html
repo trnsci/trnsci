@@ -5376,13 +5376,13 @@ strategy, estimate cost, and cache the decision so repeated calls are cheap.</p>
 <h2 id="plan_contractionsubscripts-operands-precisionfast-contractionplan"><code>plan_contraction(subscripts, *operands, *, precision="fast") -&gt; ContractionPlan</code><a class="headerlink" href="#plan_contractionsubscripts-operands-precisionfast-contractionplan" title="Permanent link">&para;</a></h2>
 <p>Inspect the dispatch decision without executing.</p>
 <div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">strategy</span>             <span class="c1"># "matmul" | "bmm" | "torch" | "path"</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">strategy</span>  <span class="c1"># "matmul" | "bmm" | "torch" | "path"</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">contraction_indices</span>  <span class="c1"># list of indices being summed over</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">batch_indices</span>        <span class="c1"># list of batch indices</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">output_indices</span>       <span class="c1"># list of output indices in order</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">batch_indices</span>  <span class="c1"># list of batch indices</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">output_indices</span>  <span class="c1"># list of output indices in order</span>
 <span class="n">plan</span><span class="o">.</span><span class="n">transA</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">transB</span>  <span class="c1"># whether to pre-transpose before matmul</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span>     <span class="c1"># [(i,j), ...] for "path" strategy</span>
-<span class="n">plan</span><span class="o">.</span><span class="n">precision</span>            <span class="c1"># "fast" | "kahan" | "dd"</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span>  <span class="c1"># [(i,j), ...] for "path" strategy</span>
+<span class="n">plan</span><span class="o">.</span><span class="n">precision</span>  <span class="c1"># "fast" | "kahan" | "dd" | "sr"</span>
 </code></pre></div>
 <p>Results are cached by <code>(subscripts, operand shapes, precision)</code>. Repeated
 calls with the same subscript, shapes, and precision skip replanning entirely.
@@ -5408,9 +5408,13 @@ Call <code>clear_plan_cache()</code> to invalidate (e.g. after a backend change)
 <td><code>"dd"</code></td>
 <td>Raises <code>NotImplementedError</code> at execution time (trnblas#22 pending)</td>
 </tr>
+<tr>
+<td><code>"sr"</code></td>
+<td>Stochastic rounding at the PSUM→SBUF downcast for matmul/bmm strategies. On Trainium requires <code>NEURON_RT_STOCHASTIC_ROUNDING_EN=1</code> at process start, otherwise one-time <code>RuntimeWarning</code> and round-to-nearest; see <a href="../einsum/#stochastic-rounding-on-trainium-is-a-runtime-setting">einsum</a></td>
+</tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><span class="n">plan_fast</span>  <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"fast"</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">plan_fast</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"fast"</span><span class="p">)</span>
 <span class="n">plan_kahan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"kahan"</span><span class="p">)</span>
 <span class="c1"># Two distinct cache entries — plan_fast is not plan_kahan</span>
 </code></pre></div>
@@ -5479,7 +5483,7 @@ the planner returns.</p>
 <tr>
 <td><code>precision</code></td>
 <td><code>str</code></td>
-<td><code>"fast"</code> | <code>"kahan"</code> | <code>"dd"</code></td>
+<td><code>"fast"</code> | <code>"kahan"</code> | <code>"dd"</code> | <code>"sr"</code></td>
 </tr>
 </tbody>
 </table>
