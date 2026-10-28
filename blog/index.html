@@ -5088,6 +5088,57 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="category/trnrand/" class="md-meta__link">trnrand</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              9 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnrand-from-byte-tiles-to-full-words-on-trn2"><a class="toclink" href="trnrand-from-byte-tiles-to-full-words-on-trn2/">trnrand: from byte tiles to full words on Trn2</a></h2>
+<p>The <a href="https://trnsci.dev/blog/trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm/">byte-tile post</a>
+argued that storing each Threefry word as four <code>(128, 1)</code> byte tiles was the representation
+the architecture preferred. On Trn2 with NKI 0.7 that design was correct and slow: the
+kernel was bound by instruction issue, because every instruction did 128 elements of work.
+Widening the tiles to <code>(128, F ≤ 512)</code> and moving the 32-bit adds onto GpSimd's native
+integer path takes <code>trnrand.normal()</code> at 4M elements from 934 ms to 15.9 ms with
+bit-identical output. That result shipped in
+<a href="https://github.com/trnsci/trnrand/releases/tag/v0.8.0">trnrand v0.8.0</a> via PR
+<a href="https://github.com/trnsci/trnrand/pull/62">trnsci/trnrand#62</a>.
+Aten <code>randn</code> is still about 11× faster, and the host CPU still wins at every size measured.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="trnrand-from-byte-tiles-to-full-words-on-trn2/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-30 00:00:00+00:00">April 30, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5478,51 +5529,6 @@ batch row in a Python loop, paying full XLA graph compilation overhead for each 
   </div>
 </article>
       
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              6 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-the-fp32-accumulator-you-didnt-know-you-had"><a class="toclink" href="trnfft-the-fp32-accumulator-you-didnt-know-you-had/">trnfft: the FP32 accumulator you didn't know you had</a></h2>
-<p>trnfft v0.17 ships two new precision modes — <code>"bf16"</code> and <code>"bf16_refined"</code> — for the
-DFT-GEMM fast path. The headline numbers: 1.4–1.5× faster than FP32 at N=64–256 on trn1,
-with near-FP32 accuracy after one correction step. The mechanism is an architectural
-property of Trainium that was already present in every kernel, just never exploited.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trnfft-the-fp32-accumulator-you-didnt-know-you-had/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
       
         
           
@@ -5530,7 +5536,7 @@ property of Trainium that was already present in every kernel, just never exploi
 
 
 <nav class="md-pagination">
-  <span class="md-pagination__current">1</span> <a class="md-pagination__link" href="page/2/">2</a> <a class="md-pagination__link" href="page/3/">3</a>
+  <span class="md-pagination__current">1</span> <a class="md-pagination__link" href="page/2/">2</a> <a class="md-pagination__link" href="page/3/">3</a> <a class="md-pagination__link" href="page/4/">4</a>
 </nav>
         
       

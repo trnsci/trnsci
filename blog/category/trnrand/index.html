@@ -5097,6 +5097,57 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="./" class="md-meta__link">trnrand</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              9 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnrand-from-byte-tiles-to-full-words-on-trn2"><a class="toclink" href="../../trnrand-from-byte-tiles-to-full-words-on-trn2/">trnrand: from byte tiles to full words on Trn2</a></h2>
+<p>The <a href="https://trnsci.dev/blog/trnrand-the-integer-multiply-gap-pointed-to-a-better-algorithm/">byte-tile post</a>
+argued that storing each Threefry word as four <code>(128, 1)</code> byte tiles was the representation
+the architecture preferred. On Trn2 with NKI 0.7 that design was correct and slow: the
+kernel was bound by instruction issue, because every instruction did 128 elements of work.
+Widening the tiles to <code>(128, F ≤ 512)</code> and moving the 32-bit adds onto GpSimd's native
+integer path takes <code>trnrand.normal()</code> at 4M elements from 934 ms to 15.9 ms with
+bit-identical output. That result shipped in
+<a href="https://github.com/trnsci/trnrand/releases/tag/v0.8.0">trnrand v0.8.0</a> via PR
+<a href="https://github.com/trnsci/trnrand/pull/62">trnsci/trnrand#62</a>.
+Aten <code>randn</code> is still about 11× faster, and the host CPU still wins at every size measured.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnrand-from-byte-tiles-to-full-words-on-trn2/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-16 00:00:00+00:00">April 16, 2026</time></li>
         
           <li class="md-meta__item">
