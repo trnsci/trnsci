@@ -5101,6 +5101,48 @@
             in
             
               <a href="../../" class="md-meta__link">Deep dive</a>, 
+              <a href="../../../trnsolver/" class="md-meta__link">trnsolver</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              9 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsolver-jacobi-for-trainium-when-the-hardware-inverts-the-algorithm-choice"><a class="toclink" href="../../../../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">trnsolver: Jacobi for Trainium — when the hardware inverts the algorithm choice</a></h2>
+<p>Symmetric <code>eigh</code> on Trainium wants <strong>Jacobi</strong>, not Householder-QR — even though Householder has the better asymptotic FLOP count. The inversion doesn't sit in the arithmetic; it sits in the 128-partition Tensor Engine tile and NKI 0.3.0's per-traced-graph compile model. Phase 1 is the simulator-validated correctness gate; hardware-perf numbers land in Phase 3, once the Tensor Engine reformulation and multi-core sharding are in.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../../../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../../" class="md-meta__link">Deep dive</a>, 
               <a href="../../../trnsparse/" class="md-meta__link">trnsparse</a></li>
         
         
