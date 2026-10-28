@@ -1236,6 +1236,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Hardware compatibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#xla-path-deprecation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XLA path deprecation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -5178,6 +5195,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Hardware compatibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#xla-path-deprecation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XLA path deprecation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -5219,7 +5253,31 @@ make<span class="w"> </span>install-dev
 </code></pre></div>
 <p><code>make install-dev</code> runs <code>pip install -e ./&lt;pkg&gt;[dev]</code> for each of the six sub-projects and then installs the umbrella in editable mode.</p>
 <h2 id="hardware-compatibility">Hardware compatibility<a class="headerlink" href="#hardware-compatibility" title="Permanent link">&para;</a></h2>
-<p>NKI kernels across all six sub-projects are validated against <strong>Neuron SDK 2.24+</strong> on the <strong>Deep Learning AMI Neuron PyTorch 2.9 (Ubuntu 24.04)</strong>. See each sub-project's <code>docs/aws_setup.md</code> for instance-type specifics.</p>
+<p>trnsci runs NKI kernels through two PyTorch integrations. Which one you get depends on the instance generation:</p>
+<table>
+<thead>
+<tr>
+<th>Instance</th>
+<th>PyTorch integration</th>
+<th>Status in trnsci</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trn2, Trn3</strong></td>
+<td><strong>TorchNeuron</strong> (native PyTorch backend, <code>device="neuron"</code>). Neuron SDK 2.33+, PyTorch 2.13/2.14, NKI 0.7</td>
+<td>Primary target. Validated on trn2.3xlarge with SDK 2.33.0 (public beta); see <a href="https://github.com/trnsci/trnsci/issues/35">#35</a>. Library-by-library native ports are in progress.</td>
+</tr>
+<tr>
+<td><strong>Trn1, Inf2</strong></td>
+<td><strong>PyTorch/XLA</strong> (<code>torch-neuronx</code> 2.9). Deep Learning AMI Neuron PyTorch 2.9 (Ubuntu 24.04)</td>
+<td>Maintenance only. TorchNeuron does not support Trn1/Inf2, and PyTorch 2.9 is the last PyTorch/XLA release. Bug fixes only, no new kernels.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="xla-path-deprecation">XLA path deprecation<a class="headerlink" href="#xla-path-deprecation" title="Permanent link">&para;</a></h3>
+<p>AWS Neuron is replacing PyTorch/XLA with TorchNeuron. When TorchNeuron reaches general availability, trnsci will <strong>deprecate its XLA path on Trn2/Trn3</strong>: the libraries will emit a <code>DeprecationWarning</code> when they fall back to XLA on a Trn2+ device. On Trn1/Inf2 the XLA path stays available in maintenance mode, because no native path exists there. Any later removal will be announced separately. The decision record is on <a href="https://github.com/trnsci/trnsci/issues/35">#35</a>.</p>
+<p>See each sub-project's <code>docs/aws_setup.md</code> for instance-type specifics.</p>
 
 
 
