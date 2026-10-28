@@ -43,7 +43,7 @@ def build_2d_laplacian(grid: int) -> tuple[torch.Tensor, int]:
                 A[idx, idx - 1] = -1.0
             if j < grid - 1:
                 A[idx, idx + 1] = -1.0
-    A_csr = trnsparse.CSRMatrix.from_dense(A)
+    A_csr = trnsparse.from_dense(A)
     return A_csr, n
 
 
@@ -69,15 +69,14 @@ def main() -> None:
     def matvec(x: torch.Tensor) -> torch.Tensor:
         return trnsparse.spmv(A_csr, x)
 
-    x, info = trnsolver.cg(matvec, b, tol=args.tol, max_iter=args.max_iter)
+    x, iterations, _ = trnsolver.cg(matvec, b, tol=args.tol, maxiter=args.max_iter)
 
     # Residual check
     r = b - matvec(x)
     res = r.norm().item() / b.norm().item()
 
     print(f"CG on 2D Laplacian: grid={args.grid}x{args.grid} n={n} nnz={A_csr.nnz}")
-    print(f"  iterations:   {info.get('iterations', '?')}")
-    print(f"  converged:    {info.get('converged', '?')}")
+    print(f"  iterations:   {iterations}")
     print(f"  ||r||/||b||:  {res:.3e}")
     print(f"  status:       {'OK' if res < 10 * args.tol else 'FAIL'}")
 

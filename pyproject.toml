@@ -22,19 +22,19 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-fft = ["trnfft>=0.7"]
-blas = ["trnblas>=0.3"]
-rand = ["trnrand>=0.1"]
-solver = ["trnsolver>=0.1"]
-sparse = ["trnsparse>=0.1"]
-tensor = ["trntensor>=0.1"]
+fft = ["trnfft>=0.23"]
+blas = ["trnblas>=0.6"]
+rand = ["trnrand>=0.8"]
+solver = ["trnsolver>=0.16"]
+sparse = ["trnsparse>=0.7"]
+tensor = ["trntensor>=0.17"]
 all = [
-    "trnfft>=0.7",
-    "trnblas>=0.3",
-    "trnrand>=0.1",
-    "trnsolver>=0.1",
-    "trnsparse>=0.1",
-    "trntensor>=0.1",
+    "trnfft>=0.23",
+    "trnblas>=0.6",
+    "trnrand>=0.8",
+    "trnsolver>=0.16",
+    "trnsparse>=0.7",
+    "trntensor>=0.17",
 ]
 neuron = [
     # neuronxcc is not on public PyPI; ships with the Deep Learning AMI Neuron.
