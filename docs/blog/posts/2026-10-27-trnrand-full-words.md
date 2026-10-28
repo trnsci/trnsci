@@ -12,8 +12,9 @@ the architecture preferred. On Trn2 with NKI 0.7 that design was correct and slo
 kernel was bound by instruction issue, because every instruction did 128 elements of work.
 Widening the tiles to `(128, F ≤ 512)` and moving the 32-bit adds onto GpSimd's native
 integer path takes `trnrand.normal()` at 4M elements from 934 ms to 15.9 ms with
-bit-identical output. That result is in PR
-[trnsci/trnrand#62](https://github.com/trnsci/trnrand/pull/62), under review and not merged.
+bit-identical output. That result shipped in
+[trnrand v0.8.0](https://github.com/trnsci/trnrand/releases/tag/v0.8.0) via PR
+[trnsci/trnrand#62](https://github.com/trnsci/trnrand/pull/62).
 Aten `randn` is still about 11× faster, and the host CPU still wins at every size measured.
 
 <!-- more -->
@@ -190,9 +191,9 @@ FX graph to StableHLO, and only aten ops and `nki_op` kernels survive. Default s
 each key from the host Mersenne Twister, and a graph can't express that. The result is an
 opt-in `Generator(key_mode="counter")`, which fixes the key from the seed and advances only
 a counter tensor. It compiles with zero graph breaks and matches eager bit for bit, but it
-produces a different stream for the same seed. The default stays `"draw"`. That work is in
-draft PR [trnsci/trnrand#63](https://github.com/trnsci/trnrand/pull/63) and needs a rebase
-onto #62.
+produces a different stream for the same seed. The default stays `"draw"`. That work shipped
+in v0.8.0 via PR [trnsci/trnrand#63](https://github.com/trnsci/trnrand/pull/63), on top of
+#62.
 
 **Power-of-two buckets had a cliff.** f4e8af5 rounded chunk counts up to a power of two, so
 2²⁰ + 1 elements cost 1.7× as much as 2²⁰ (15.43 vs 8.86 ms). The quarter-step buckets above
@@ -246,8 +247,9 @@ at 16k. First calls for f4e8af5 took 0.7 s at 16k and 17.0 s at 4M.
 ## What's next
 
 - [trnrand#62](https://github.com/trnsci/trnrand/pull/62) and
-  [#63](https://github.com/trnsci/trnrand/pull/63): review and merge, stacked on
-  [#55](https://github.com/trnsci/trnrand/pull/55) (native TorchNeuron dispatch).
+  [#63](https://github.com/trnsci/trnrand/pull/63) are merged, along with
+  [#55](https://github.com/trnsci/trnrand/pull/55) (native TorchNeuron dispatch), and shipped in
+  [v0.8.0](https://github.com/trnsci/trnrand/releases/tag/v0.8.0).
 - [trnrand#60](https://github.com/trnsci/trnrand/issues/60) remains open for the rest of the
   gap to aten. Per the notes there, Philox, Sobol and Halton still launch once per tile.
 - [Phase 5: trn2 PSUM sizing for larger batched tile generation (trnrand#21)](https://github.com/trnsci/trnrand/issues/21).
