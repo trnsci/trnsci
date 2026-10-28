@@ -6,7 +6,7 @@ comments: true
 
 # trnsparse: from 14/30 to 30/30 on NKI 0.7
 
-trnsparse's block-sparse attention and screened-SpMM kernels had run under `nki.simulate` for six months, then failed 16 of 30 hardware tests the first time they ran on the native `neuron` device under NKI 0.7.0. The fixes are small: a reciprocal-multiply where a divide used to be, an explicit partition broadcast, and two host-side gather bugs, one of which had been blamed on the simulator since April. The compile fixes say a lot about how the engines want per-row scalars and partition counts expressed. The branch passes 30/30 on Trn2. It sits in an open, unmerged PR, [trnsci/trnsparse#31](https://github.com/trnsci/trnsparse/pull/31), and anyone moving NKI 0.3-era kernels to the native PyTorch path should read it before starting.
+trnsparse's block-sparse attention and screened-SpMM kernels had run under `nki.simulate` for six months, then failed 16 of 30 hardware tests the first time they ran on the native `neuron` device under NKI 0.7.0. The fixes are small: a reciprocal-multiply where a divide used to be, an explicit partition broadcast, and two host-side gather bugs, one of which had been blamed on the simulator since April. The compile fixes say a lot about how the engines want per-row scalars and partition counts expressed. The branch passes 30/30 on Trn2. It shipped in [trnsparse v0.7.0](https://github.com/trnsci/trnsparse/releases/tag/v0.7.0) via PR [trnsci/trnsparse#31](https://github.com/trnsci/trnsparse/pull/31), and anyone moving NKI 0.3-era kernels to the native PyTorch path should read it before starting.
 
 <!-- more -->
 
@@ -137,7 +137,7 @@ The second bug has history. The [v0.6.0 post](https://trnsci.dev/blog/trnsparse-
 
 ## Numbers
 
-All runs on trn2.3xlarge (LNC=2), Neuron SDK 2.33.0, `torch-neuronx` 2.14.3, NKI 0.7.0, native `neuron` device via the test stand-in. Hardware suite (`pytest -m neuron`, 30 tests):
+All runs on trn2.3xlarge (LNC=2), Neuron SDK 2.33.0, `torch-neuronx` 2.14.3, NKI 0.7.0, native `neuron` device via the test stand-in (the real native port is draft PR [trnsci/trnsparse#32](https://github.com/trnsci/trnsparse/pull/32)). Hardware suite (`pytest -m neuron`, 30 tests):
 
 | Head | Passed | Failed | Failure class |
 |---|---:|---:|---|
@@ -170,7 +170,7 @@ These are correctness results. The benchmark timings from that run aren't publis
 
 ## What's next
 
-- [trnsci/trnsparse#29](https://github.com/trnsci/trnsparse/issues/29): native dispatch. Remaining items are `nki_op` registration and moving the autograd wrappers to `register_autograd`. PR #31 awaits review.
+- [trnsci/trnsparse#29](https://github.com/trnsci/trnsparse/issues/29): native dispatch. Remaining items are `nki_op` registration and moving the autograd wrappers to `register_autograd`. PR #31 shipped in [v0.7.0](https://github.com/trnsci/trnsparse/releases/tag/v0.7.0); the native port is draft PR [trnsci/trnsparse#32](https://github.com/trnsci/trnsparse/pull/32).
 - [trnsci/trnsparse#30](https://github.com/trnsci/trnsparse/issues/30): host-structure API for device dense operands, docs, and the compile-coverage re-run.
 - [trnsci/trnsparse#28](https://github.com/trnsci/trnsparse/issues/28): to be re-scoped now that the two xfails are explained.
 - [Phase 3: #15](https://github.com/trnsci/trnsparse/issues/15) nnz-bucketing SpMM and streaming; [#22](https://github.com/trnsci/trnsparse/issues/22) on-chip iterative solvers over BSR.
