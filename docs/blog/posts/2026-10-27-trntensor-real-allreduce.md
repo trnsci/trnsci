@@ -6,7 +6,7 @@ comments: true
 
 # trntensor: the mock all-reduce meets four real ranks
 
-trntensor's reduce-parallel einsum now sums its partials with a real multi-rank all-reduce, either `torch.distributed` or an NKI `nki.collectives.all_reduce` kernel, across all four logical NeuronCores of one trn2.3xlarge, in three stacked PRs that are not yet merged, and the first write-up of the four-rank result claimed a bit-exactness it didn't have. Architecturally, the collective is an instruction inside an NKI kernel operating on HBM rather than a library beside the compute, and the rules it enforces (which cores may form a group, which HBM buffer type returns correct values) expose the chip's topology. Anyone planning multi-core contractions on Trainium, or arriving from NCCL, will want those rules before writing a launcher.
+trntensor's reduce-parallel einsum now sums its partials with a real multi-rank all-reduce, either `torch.distributed` or an NKI `nki.collectives.all_reduce` kernel, across all four logical NeuronCores of one trn2.3xlarge, shipped in [trntensor v0.17.0](https://github.com/trnsci/trntensor/releases/tag/v0.17.0) from three stacked PRs, and the first write-up of the four-rank result claimed a bit-exactness it didn't have. Architecturally, the collective is an instruction inside an NKI kernel operating on HBM rather than a library beside the compute, and the rules it enforces (which cores may form a group, which HBM buffer type returns correct values) expose the chip's topology. Anyone planning multi-core contractions on Trainium, or arriving from NCCL, will want those rules before writing a launcher.
 
 <!-- more -->
 
@@ -128,7 +128,7 @@ The group it reports is `[0,1]`, the rank IDs, while the problem is the physical
 
 **Precision promises found on the same window.** On NKI 0.7, per-call `use_sr` is a no-op ([trntensor#41](https://github.com/trnsci/trntensor/issues/41)). Stochastic rounding is process-wide, controlled by `NEURON_RT_STOCHASTIC_ROUNDING_EN=1` and read once at runtime init, with round-to-nearest-even as the default. So `precision="sr"` silently did no stochastic rounding, and with the variable set, every downcast in the process becomes stochastic. It now warns once when the variable is missing. Separately, `target_forward_error` accepted targets below output roundoff, and `precision="kahan"` was not really fp64 on the device, which has no fp64 datapath ([trntensor#42](https://github.com/trnsci/trntensor/issues/42)). Both are fixed and quantified below.
 
-**One honest suite failure.** The native-device suite is 17/18. The failure is `test_matmul_stays_on_xla` (`expected xla, got neuron:0`). The test stand-in maps the old XLA device to `neuron`, and the `to_xla()`/`from_xla()` helpers it exercises are slated for deprecation. It reflects the harness, not the numerics.
+**One honest suite failure.** The native-device suite is 17/18. The failure is `test_matmul_stays_on_xla` (`expected xla, got neuron:0`). The test stand-in maps the old XLA device to `neuron` (the real native port is draft PR [trntensor#46](https://github.com/trnsci/trntensor/pull/46)), and the `to_xla()`/`from_xla()` helpers it exercises are slated for deprecation. It reflects the harness, not the numerics.
 
 **Fit.** All four logical cores of one chip share one chip's HBM, so on this instance sharding adds no memory capacity, and no sharded-versus-single-device timing at these sizes has been broken out yet. The case Phase 4 actually targets, THC/Tucker tensors larger than one chip's HBM, needs a trn2.48xlarge or an UltraServer, and neither was available. These results are a correctness milestone, not a scaling result. The communication-free contrast is the suite's data-parallel check (B8), which reached 3.99× aggregate throughput with four independent copies.
 
@@ -176,7 +176,7 @@ At LNC=1 (8 logical cores), the trntensor suite matched LNC=2, and the suite's 2
 
 ## What's next
 
-- **Merge the stack**: [trntensor#43](https://github.com/trnsci/trntensor/pull/43) (NKI 0.7 fixes, SR warning) → [#44](https://github.com/trnsci/trntensor/pull/44) (honest bounds, host fp64 for kahan) → [#45](https://github.com/trnsci/trntensor/pull/45) (reduce-parallel on a real all-reduce). All three are open for review.
+- **Shipped in [v0.17.0](https://github.com/trnsci/trntensor/releases/tag/v0.17.0)**: [trntensor#43](https://github.com/trnsci/trntensor/pull/43) (NKI 0.7 fixes, SR warning) → [#44](https://github.com/trnsci/trntensor/pull/44) (honest bounds, host fp64 for kahan) → [#45](https://github.com/trnsci/trntensor/pull/45) (reduce-parallel on a real all-reduce). All three are merged.
 - **Phase 4 — sharded contractions across chips** ([trntensor#30](https://github.com/trnsci/trntensor/issues/30)): multi-chip reduce-parallel on trn2.48xlarge or an UltraServer, a tree-order fixed reference, and sharded CP/Tucker.
 - **Phase 5 — trn2 fused multi-contraction paths** ([trntensor#31](https://github.com/trnsci/trntensor/issues/31)).
 - **Sibling work**: the same launch pattern is the prerequisite for trnfft's multicore collectives, which would extend the batch-split design in [the NeuronCore is the unit of parallelism](2026-04-30-trnfft-multicore-batch-split.md).
