@@ -5275,9 +5275,9 @@
 <span class="n">keep</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">screen_quartets</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="backend-selection">Backend selection<a class="headerlink" href="#backend-selection" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">trnsparse</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># default</span>
+<div class="highlight"><pre><span></span><code><span class="n">trnsparse</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>  <span class="c1"># default</span>
 <span class="n">trnsparse</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
-<span class="n">trnsparse</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># force NKI (requires Neuron hardware)</span>
+<span class="n">trnsparse</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>  <span class="c1"># force NKI (requires Neuron hardware)</span>
 </code></pre></div>
 
 

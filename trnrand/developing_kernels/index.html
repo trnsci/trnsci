@@ -3076,10 +3076,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#three-dispatch-modes" class="md-nav__link">
+  <a href="#dispatch-modes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Three dispatch modes
+        Dispatch modes
       
     </span>
   </a>
@@ -5205,10 +5205,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#three-dispatch-modes" class="md-nav__link">
+  <a href="#dispatch-modes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Three dispatch modes
+        Dispatch modes
       
     </span>
   </a>
@@ -5300,7 +5300,7 @@ trnsolver, trnsparse, trntensor), see
 That guide covers the NKI 0.3.0 migration, simulator workflow, and
 architectural-exploitation design discipline. This page adds only
 what's trnrand-specific.</p>
-<h2 id="three-dispatch-modes">Three dispatch modes<a class="headerlink" href="#three-dispatch-modes" title="Permanent link">&para;</a></h2>
+<h2 id="dispatch-modes">Dispatch modes<a class="headerlink" href="#dispatch-modes" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -5316,9 +5316,14 @@ what's trnrand-specific.</p>
 <td>Laptops, CI's <code>ubuntu-latest</code> main <code>test</code> job — the default for anyone who doesn't have <code>nki&gt;=0.3.0</code> installed.</td>
 </tr>
 <tr>
-<td><strong>NKI hardware</strong></td>
-<td><code>HAS_NKI = True</code> + default env. Kernel runs through <code>torch_xla</code> → NEFF compile → Trainium dispatch</td>
-<td>Real perf numbers, final validation (<code>AWS_PROFILE=aws ./scripts/run_neuron_tests.sh trn1</code>).</td>
+<td><strong>NKI hardware, native</strong></td>
+<td><code>HAS_NKI = True</code> + TorchNeuron <code>torch_neuronx</code> (has <code>nki_op</code>) + a <code>neuron</code> device. Kernel runs as a <code>trnrand::</code> custom op on <code>device="neuron"</code></td>
+<td>Trn2/Trn3 on Neuron SDK 2.33+. Set <code>NKI_ENABLE_TRACE_CACHE=0</code> with an editable install.</td>
+</tr>
+<tr>
+<td><strong>NKI hardware, XLA</strong></td>
+<td><code>HAS_NKI = True</code> + <code>torch_xla</code> installed (and the native path unavailable). Kernel runs through <code>torch_xla</code> → NEFF compile → Trainium dispatch</td>
+<td>Trn1; real perf numbers, final validation (<code>AWS_PROFILE=aws ./scripts/run_neuron_tests.sh trn1</code>).</td>
 </tr>
 <tr>
 <td><strong>NKI simulator</strong></td>
@@ -5344,8 +5349,20 @@ what's trnrand-specific.</p>
 <td><code>TRNRAND_REQUIRE_NKI=1</code></td>
 <td>Kernel-path failures re-raise instead of silently falling back to the PyTorch reference. Used by the validation suite to catch silent kernel breakage during iteration.</td>
 </tr>
+<tr>
+<td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla</code></td>
+<td>Suite-wide. Forces the native or XLA dispatch path; <code>auto</code> (default) detects. Forcing an unavailable path raises.</td>
+</tr>
+<tr>
+<td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>
+<td>TorchNeuron (not trnrand) setting. Turns off the cross-process NKI kernel cache, which cannot version editable installs and may serve a stale kernel after a source edit.</td>
+</tr>
 </tbody>
 </table>
+<p>Each host-side wrapper hands its tiles to <code>_launch(kernel, op_name, *tiles)</code>
+in <code>dispatch.py</code>, which picks the native custom op or the <code>_to_xla()</code> path.
+A new kernel needs a matching annotated wrapper in <code>trnrand/nki/_native.py</code>
+and an entry in its <code>OPS</code> table.</p>
 <h2 id="simulator-workflow">Simulator workflow<a class="headerlink" href="#simulator-workflow" title="Permanent link">&para;</a></h2>
 <p>Fastest inner loop for kernel correctness work:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># On any Linux x86_64 host with nki&gt;=0.3.0 installed:</span>
@@ -5378,8 +5395,16 @@ provisions. Instance auto-stops on exit.</p>
 <li><strong><code>nl.multiply</code> output dtype promotion.</strong> Products that can exceed
   <code>INT32_MAX</code> (e.g., <code>0xFFFF * 0xD251 = 0xD2503DAF</code>) need explicit
   <code>dtype=nl.uint32</code> on the multiply to avoid sign extension.</li>
-<li><strong><code>nl.copy(x, dtype=...)</code> is the cast primitive.</strong> NKI 0.3.0's <code>nl.*</code>
-  has neither <code>cast</code> nor <code>static_cast</code>.</li>
+<li><strong><code>nl.copy(x, dtype=...)</code> converts values; <code>.view(dtype)</code> reinterprets
+  bits.</strong> <code>nl.copy</code> (and a load or store into a different dtype) is a value
+  conversion. Between <code>int32</code> and <code>uint32</code> it saturates, both on Trn2
+  hardware and in <code>nki.simulate</code>: uint32 values &gt;= 2^31 become <code>0x7FFFFFFF</code>
+  and negative int32 values become 0. To carry a uint32 bit pattern in an
+  int32 tensor, use <code>tile.view(nl.uint32)</code> / <code>tile.view(nl.int32)</code> (NKI
+  0.7; no data is copied, like <code>numpy.ndarray.view</code>). trnrand kernels take
+  and return int32 tensors and reinterpret once at each boundary (#56).</li>
+<li><strong>Integer <code>nisa.tensor_tensor</code> needs matching dtypes.</strong> All operands and
+  the output must share one integer dtype (NCC_EBIR028 on hardware).</li>
 <li><strong>trn1-specific</strong>: <code>InstActivation</code> bias cannot be a scalar immediate
   for <code>Ln</code> — must be a vector-immediate <code>(P, 1)</code> tensor. Affects
   Box-Muller's <code>nl.log + scalar</code> fusion on trn1. trn2+ unaffected.

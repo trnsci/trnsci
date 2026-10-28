@@ -5409,9 +5409,11 @@ that shape.</p>
 <p>Each token block attends to its <code>window</code> nearest neighbors in block space:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnsparse</span>
 
+
 <span class="k">def</span><span class="w"> </span><span class="nf">local_window_mask</span><span class="p">(</span><span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""BSRMatrix for sliding-window attention."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
     <span class="n">n_blocks</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">//</span> <span class="n">block_size</span>
     <span class="n">block_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">):</span>
@@ -5429,6 +5431,7 @@ float32 attention matrix.</p>
 iff <code>(i - j) % stride == 0</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">dilated_mask</span><span class="p">(</span><span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
     <span class="n">n_blocks</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">//</span> <span class="n">block_size</span>
     <span class="n">block_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">):</span>
@@ -5445,10 +5448,11 @@ block. Remaining block-rows follow a local window:</p>
     <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_global</span><span class="p">:</span> <span class="nb">int</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">BSRMatrix</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
     <span class="n">n_blocks</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">//</span> <span class="n">block_size</span>
     <span class="n">block_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
-    <span class="n">block_mask</span><span class="p">[:</span><span class="n">n_global</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># global rows attend everywhere</span>
-    <span class="n">block_mask</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_global</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># global columns attended by all</span>
+    <span class="n">block_mask</span><span class="p">[:</span><span class="n">n_global</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># global rows attend everywhere</span>
+    <span class="n">block_mask</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_global</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># global columns attended by all</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_global</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">):</span>
         <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="n">window</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">block_mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
@@ -5458,6 +5462,7 @@ block. Remaining block-rows follow a local window:</p>
 <h2 id="the-computation">The computation<a class="headerlink" href="#the-computation" title="Permanent link">&para;</a></h2>
 <p>Given a <code>mask_bsr</code> constructed above:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">block_sparse_attention</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">mask_bsr</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Q, K, V: (seq_len, head_dim) → (seq_len, head_dim)."""</span>

@@ -2978,6 +2978,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#philox-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5194,6 +5205,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#philox-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5255,6 +5277,21 @@ Trainium GpSimd engine (Philox 4×32) or fall back to <code>torch.Generator</cod
 </tr>
 </tbody>
 </table>
+<h2 id="dispatch-path">Dispatch path<a class="headerlink" href="#dispatch-path" title="Permanent link">&para;</a></h2>
+<p>On Neuron hardware, kernels run on one of two <code>torch-neuronx</code> lineages,
+detected on the first kernel launch:</p>
+<ul>
+<li><strong>Native (TorchNeuron, Trn2/Trn3)</strong> — each kernel is a PyTorch custom op
+  on <code>device="neuron"</code>, also callable directly and inside
+  <code>torch.compile(backend="neuron")</code>:
+  <code>torch.ops.trnrand.philox4x32</code>, <code>box_muller</code>, <code>threefry4x32</code>,
+  <code>threefry_normal</code>, <code>sobol_gray_code</code>, <code>halton</code>,
+  <code>threefry_streaming_normal</code>, <code>threefry_streaming_uniform</code>. The ops are
+  registered only once this path is selected.</li>
+<li><strong>XLA (Trn1)</strong> — kernels run on the <code>torch_xla</code> device, as before.</li>
+</ul>
+<p><code>set_backend</code> is unaffected: it still chooses NKI vs <code>torch.Generator</code>.
+See <a href="../../installation/#two-neuron-pytorch-lineages">Installation</a>.</p>
 <p>See <a href="../../developing_kernels/">Developing NKI kernels</a> for the simulator
 vs hardware workflow.</p>
 <h2 id="philox-kernel">Philox kernel<a class="headerlink" href="#philox-kernel" title="Permanent link">&para;</a></h2>
