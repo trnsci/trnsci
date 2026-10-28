@@ -33,7 +33,7 @@ def mc_pi_pseudorandom(n: int, seed: int) -> float:
 
 def qmc_pi_sobol(n: int) -> float:
     """Sobol-based QMC estimate of pi. Analog of MC_EstimatePiQ."""
-    s = trnrand.sobol(d=2, n=n)
+    s = trnrand.sobol(n_points=n, n_dims=2)
     x, y = s[:, 0], s[:, 1]
     inside = ((x * x + y * y) <= 1.0).sum().item()
     return 4.0 * inside / n
