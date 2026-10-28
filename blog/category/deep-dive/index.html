@@ -5154,6 +5154,48 @@ Aten <code>randn</code> is still about 11× faster, and the host CPU still wins 
             in
             
               <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trnsparse/" class="md-meta__link">trnsparse</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              10 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsparse-from-1430-to-3030-on-nki-07"><a class="toclink" href="../../trnsparse-from-1430-to-3030-on-nki-07/">trnsparse: from 14/30 to 30/30 on NKI 0.7</a></h2>
+<p>trnsparse's block-sparse attention and screened-SpMM kernels had run under <code>nki.simulate</code> for six months, then failed 16 of 30 hardware tests the first time they ran on the native <code>neuron</code> device under NKI 0.7.0. The fixes are small: a reciprocal-multiply where a divide used to be, an explicit partition broadcast, and two host-side gather bugs, one of which had been blamed on the simulator since April. The compile fixes say a lot about how the engines want per-row scalars and partition counts expressed. The branch passes 30/30 on Trn2. It shipped in <a href="https://github.com/trnsci/trnsparse/releases/tag/v0.7.0">trnsparse v0.7.0</a> via PR <a href="https://github.com/trnsci/trnsparse/pull/31">trnsci/trnsparse#31</a>, and anyone moving NKI 0.3-era kernels to the native PyTorch path should read it before starting.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnsparse-from-1430-to-3030-on-nki-07/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
               <a href="../trntensor/" class="md-meta__link">trntensor</a></li>
         
         
@@ -5492,48 +5534,6 @@ and produced a "What didn't work" section that was, frankly, humbling.</p>
   </div>
 </article>
       
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-24 00:00:00+00:00">April 24, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0140-four-modes-four-mocks-completing-the-precision-contract"><a class="toclink" href="../../trntensor-v0140-four-modes-four-mocks--completing-the-precision-contract/">trntensor v0.14.0: four modes, four mocks — completing the precision contract</a></h2>
-<p><code>precision="dd"</code> previously raised <code>NotImplementedError</code> everywhere — including CPU. v0.14.0 lifts the CPU gate with two named mock functions, completing a four-mode precision scaffolding that is now fully testable without hardware. CUDA programmers evaluating Trainium for iterative or mixed-precision workloads now have a CPU-testable spec for all four accumulation strategies.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trntensor-v0140-four-modes-four-mocks--completing-the-precision-contract/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
       
         
           
@@ -5541,7 +5541,7 @@ and produced a "What didn't work" section that was, frankly, humbling.</p>
 
 
 <nav class="md-pagination">
-  <span class="md-pagination__current">1</span> <a class="md-pagination__link" href="page/2/">2</a> <a class="md-pagination__link" href="page/3/">3</a>
+  <span class="md-pagination__current">1</span> <a class="md-pagination__link" href="page/2/">2</a> <a class="md-pagination__link" href="page/3/">3</a> <a class="md-pagination__link" href="page/4/">4</a>
 </nav>
         
       
