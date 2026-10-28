@@ -23,6 +23,9 @@ site/
 *.tfstate.backup
 .terraform.lock.hcl
 
+# Private local notes — never commit
+.private/
+
 # Sub-projects live here as sibling directories but each has its own .git
 # and its own repo under github.com/trnsci/. The umbrella does not vendor them.
 /trnfft/
@@ -31,3 +34,4 @@ site/
 /trnsolve/
 /trnsparse/
 /trntensor/
+NKI-Bootcamp/
