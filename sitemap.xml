@@ -185,6 +185,10 @@
          <lastmod>2026-10-28</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnfft-on-native-pytorch-the-launch-is-the-unit-of-cost/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/trnrand-from-byte-tiles-to-full-words-on-trn2/</loc>
          <lastmod>2026-10-28</lastmod>
     </url>
@@ -541,6 +545,10 @@
          <lastmod>2026-10-28</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/category/trnrand/</loc>
          <lastmod>2026-10-28</lastmod>
     </url>
@@ -554,10 +562,6 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trntensor/</loc>
-         <lastmod>2026-10-28</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/trnfft/</loc>
          <lastmod>2026-10-28</lastmod>
     </url>
     <url>
