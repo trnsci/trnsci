@@ -6,7 +6,7 @@ comments: true
 
 # trnblas: the odd-shape cliff that wasn't
 
-An 8191³ GEMM took 1605 s on its first call on Trn2 while 8192³ took 4.4 s, and trnblas blamed three things in turn before finding the cliff in its own benchmark: a lazy `torch.randn(device="neuron")` inside the timed call. Two fixes from the wrong turns are real and sit in the still-unmerged [trnblas#51](https://github.com/trnsci/trnblas/pull/51) — the autotune sweep is opt-in, and unaligned shapes now take their ragged edges inside the kernel, which PSUM accumulation and partition-0 tiles make nearly free. The post is for anyone timing first calls on the native TorchNeuron device, and for CUDA programmers who expect "pad to the tile" to cost nothing.
+An 8191³ GEMM took 1605 s on its first call on Trn2 while 8192³ took 4.4 s, and trnblas blamed three things in turn before finding the cliff in its own benchmark: a lazy `torch.randn(device="neuron")` inside the timed call. Two fixes from the wrong turns are real and shipped in [trnblas v0.6.0](https://github.com/trnsci/trnblas/releases/tag/v0.6.0) via [trnblas#51](https://github.com/trnsci/trnblas/pull/51) — the autotune sweep is opt-in, and unaligned shapes now take their ragged edges inside the kernel, which PSUM accumulation and partition-0 tiles make nearly free. The post is for anyone timing first calls on the native TorchNeuron device, and for CUDA programmers who expect "pad to the tile" to cost nothing.
 
 <!-- more -->
 
@@ -159,8 +159,8 @@ Correctness on this branch: the neuron suite gave 78 passed and 1 skipped, twice
 
 ## What's next
 
-- [trnblas#51](https://github.com/trnsci/trnblas/pull/51): the ragged kernel and the opt-in autotuner, awaiting review. Its CHANGELOG now credits the first-call cost to the lazy `torch.randn`, not the pad graphs.
-- [trnblas#50](https://github.com/trnsci/trnblas/issues/50): native TorchNeuron dispatch, including the decision on whether aten matmul should be the default for plain GEMM.
+- [trnblas#51](https://github.com/trnsci/trnblas/pull/51): the ragged kernel and the opt-in autotuner, merged and shipped in [v0.6.0](https://github.com/trnsci/trnblas/releases/tag/v0.6.0). Its CHANGELOG now credits the first-call cost to the lazy `torch.randn`, not the pad graphs.
+- [trnblas#50](https://github.com/trnsci/trnblas/issues/50): native TorchNeuron dispatch, including the decision on whether aten matmul should be the default for plain GEMM. In progress as draft PR [trnblas#52](https://github.com/trnsci/trnblas/pull/52).
 - [Phase 2: double-double FP64 GEMM (trnblas#22)](https://github.com/trnsci/trnblas/issues/22), the path from 2.57e-7 Ha to nanohartree.
 - [Phase 4: tensor-parallel GEMM across NeuronCores (trnblas#24)](https://github.com/trnsci/trnblas/issues/24), where 16384³ belongs.
 - [Phase 5: trn2 FP16-accumulate GEMM path (trnblas#25)](https://github.com/trnsci/trnblas/issues/25).
