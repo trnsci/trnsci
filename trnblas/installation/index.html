@@ -2075,6 +2075,28 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#two-neuron-pytorch-lineages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two Neuron PyTorch lineages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editable-installs-and-the-nki-kernel-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editable installs and the NKI kernel cache
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#simulator-only-install-cpu-no-hardware" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5243,6 +5265,28 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#two-neuron-pytorch-lineages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two Neuron PyTorch lineages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editable-installs-and-the-nki-kernel-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editable installs and the NKI kernel cache
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#simulator-only-install-cpu-no-hardware" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5327,16 +5371,102 @@
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnblas
 </code></pre></div>
 <h2 id="with-neuron-hardware-support">With Neuron hardware support<a class="headerlink" href="#with-neuron-hardware-support" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnblas<span class="o">[</span>neuron<span class="o">]</span>
-</code></pre></div>
-<p>This pulls in <code>nki</code>, <code>neuronxcc</code>, and <code>torch-neuronx</code>, which are only
-needed on Trainium/Inferentia instances. On CPU or GPU, trnblas falls
-back to <code>torch.matmul</code> automatically.</p>
-<p>The <code>nki</code> and <code>neuronxcc</code> wheels ship on the AWS pip index rather than
-PyPI. Pass <code>--extra-index-url</code> to pick them up:</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnblas[neuron]"</span><span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Trn2/Trn3 with TorchNeuron (native PyTorch, Neuron SDK 2.33+)</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnblas[torchneuron]"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
+
+<span class="c1"># Trn1 / PyTorch-XLA lineage</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnblas[neuron]"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
 </code></pre></div>
+<p><code>[torchneuron]</code> pins <code>torch&gt;=2.14</code>, <code>torch-neuronx&gt;=2.14</code>, and <code>nki&gt;=0.6</code>
+(torch-neuronx 2.14 requires Python ≥ 3.12). <code>[neuron]</code> is the XLA lineage
+(<code>nki&gt;=0.3.0</code>, <code>neuronxcc&gt;=2.24</code>, <code>torch-neuronx&gt;=2.9</code>). These are only
+needed on Trainium/Inferentia instances. On CPU or GPU, trnblas falls back
+to <code>torch.matmul</code> automatically. The <code>nki</code>, <code>neuronxcc</code> and <code>torch-neuronx</code>
+wheels ship on the AWS pip index rather than PyPI, hence <code>--extra-index-url</code>.</p>
+<h3 id="two-neuron-pytorch-lineages">Two Neuron PyTorch lineages<a class="headerlink" href="#two-neuron-pytorch-lineages" title="Permanent link">&para;</a></h3>
+<p><code>torch-neuronx</code> ships in two lineages, and trnblas dispatches its NKI
+kernels on whichever one is installed:</p>
+<table>
+<thead>
+<tr>
+<th>Lineage</th>
+<th>Instances</th>
+<th>Stack</th>
+<th>Kernel dispatch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TorchNeuron (native)</td>
+<td>Trn2, Trn3</td>
+<td>Neuron SDK 2.33+, Python ≥ 3.12, <code>torch</code> 2.14, <code>torch-neuronx</code> 2.14.*</td>
+<td>Each kernel is a PyTorch custom op (<code>torch.ops.trnblas.gemm_ragged</code>, <code>syrk</code>, <code>j_batched</code>, ...) registered with <code>torch_neuronx.nki_op</code>; tensors live on <code>device="neuron"</code>. Works in eager mode and inside <code>torch.compile(backend="neuron")</code>.</td>
+</tr>
+<tr>
+<td>PyTorch/XLA</td>
+<td>Trn1 (also Inf2)</td>
+<td><code>torch-neuronx</code> 2.9 lineage, <code>torch_xla</code></td>
+<td>Unchanged: kernels run on the <code>torch_xla</code> device.</td>
+</tr>
+</tbody>
+</table>
+<p>Selection is automatic, on the first kernel launch:</p>
+<ol>
+<li><strong>native</strong>: <code>torch_neuronx</code> exports <code>nki_op</code> and a <code>neuron</code> device is
+   available (<code>torch_neuronx.device_count() &gt; 0</code>). This path never imports
+   <code>torch_xla</code>.</li>
+<li><strong>xla</strong>: <code>torch_xla</code> is installed.</li>
+<li>otherwise there is no device path, and the <code>nki</code> backend falls back to
+   <code>torch.matmul</code> with an <code>NkiFallbackWarning</code> (unchanged from earlier
+   releases). Use <code>set_backend("pytorch")</code> or <code>TRNBLAS_USE_SIMULATOR=1</code>.</li>
+</ol>
+<p>The <code>trnblas::</code> custom ops are registered only when the native path is
+selected, so importing trnblas on CPU or on the XLA lineage has no
+TorchNeuron side effects. Both lineages publish a package named
+<code>torch-neuronx</code>, so pick the extra (or Deep Learning AMI Neuron) that
+matches the instance.</p>
+<p>To force a path, set <code>TRNSCI_NKI_DISPATCH</code> before the first launch. The
+variable is shared by every trnsci library:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code> (default)</td>
+<td>The order above.</td>
+</tr>
+<tr>
+<td><code>native</code></td>
+<td>Use TorchNeuron; raise <code>RuntimeError</code> if no <code>neuron</code> device is available.</td>
+</tr>
+<tr>
+<td><code>xla</code></td>
+<td>Use torch_xla even if TorchNeuron is present; raise <code>RuntimeError</code> if torch_xla is missing.</td>
+</tr>
+</tbody>
+</table>
+<p><code>TRNSCI_XLA_DEPRECATION=1</code> makes the XLA path emit one <code>DeprecationWarning</code>
+per process. It is off by default; the suite turns it on when TorchNeuron
+reaches GA (Trn1/Inf2 stay supported on the XLA path in maintenance mode).</p>
+<h3 id="editable-installs-and-the-nki-kernel-cache">Editable installs and the NKI kernel cache<a class="headerlink" href="#editable-installs-and-the-nki-kernel-cache" title="Permanent link">&para;</a></h3>
+<p>TorchNeuron enables the NKI trace cache by default
+(<code>NKI_ENABLE_TRACE_CACHE=1</code>), which persists compiled kernels across
+processes. The cache only versions source that belongs to an installed
+wheel (a <code>site-packages</code> tree with <code>.dist-info</code>); an editable install is
+not tracked and can get a stale kernel after you edit <code>dispatch.py</code>. When
+developing with <code>pip install -e</code>, turn the cache off before starting
+Python (the test suite's <code>conftest.py</code> does this by default):</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">NKI_ENABLE_TRACE_CACHE</span><span class="o">=</span><span class="m">0</span>
+</code></pre></div>
+<p>See the TorchNeuron
+<a href="https://github.com/aws-neuron/torch-neuronx/blob/main/docs/environment_variables.md">environment variables</a>
+reference.</p>
 <h3 id="simulator-only-install-cpu-no-hardware">Simulator-only install (CPU, no hardware)<a class="headerlink" href="#simulator-only-install-cpu-no-hardware" title="Permanent link">&para;</a></h3>
 <p>NKI 0.3.0 ships a CPU simulator (<code>nki.simulate(kernel)(numpy_args)</code>)
 that runs kernels without a Neuron device. The GH Actions <code>nki-simulator</code>
@@ -5376,6 +5506,22 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <td><code>TRNBLAS_USE_SIMULATOR=1</code></td>
 <td>Route kernel dispatch through <code>nki.simulate(kernel)(numpy_args)</code> on CPU. Bypasses <code>torch_xla</code> + NEFF compile; used for fast correctness iteration. Requires <code>nki&gt;=0.3.0</code>.</td>
 </tr>
+<tr>
+<td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla</code></td>
+<td>Suite-wide. Forces the native or XLA dispatch path; <code>auto</code> (default) detects. Forcing an unavailable path raises.</td>
+</tr>
+<tr>
+<td><code>TRNSCI_XLA_DEPRECATION=1</code></td>
+<td>Suite-wide, off by default. The XLA path emits one <code>DeprecationWarning</code>.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_BATCHED_PAIR_CHUNK_THRESHOLD=&lt;n&gt;</code></td>
+<td>Overrides the batched-pair full-batch vs chunked routing threshold (default 4096 on XLA, 3072 on native). For re-benchmarking.</td>
+</tr>
+<tr>
+<td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>
+<td>TorchNeuron (not trnblas) setting. Turns off the cross-process NKI kernel cache, which cannot version editable installs.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
@@ -5386,7 +5532,9 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <li><code>neuronxcc &gt;= 2.24</code> (optional, for on-hardware NKI kernels — pinned to
   the 2.24+ <code>nisa.nc_matmul</code> calling convention used across the trnsci
   suite)</li>
-<li><code>torch-neuronx &gt;= 2.9</code> (optional, pulled in by the <code>[neuron]</code> extra)</li>
+<li><code>torch-neuronx &gt;= 2.9</code> (optional, pulled in by the <code>[neuron]</code> extra), or
+  <code>torch-neuronx &gt;= 2.14</code> on Python ≥ 3.12 for native dispatch (the
+  <code>[torchneuron]</code> extra)</li>
 <li><code>pyscf &gt;= 2.4</code> (optional, pulled in by the <code>[pyscf]</code> extra)</li>
 </ul>
 

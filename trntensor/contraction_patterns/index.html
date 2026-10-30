@@ -5024,10 +5024,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#xla-residency-to_xla-from_xla" class="md-nav__link">
+  <a href="#device-residency-to_device-from_device" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XLA residency: to_xla / from_xla
+        Device residency: to_device / from_device
       
     </span>
   </a>
@@ -5350,10 +5350,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#xla-residency-to_xla-from_xla" class="md-nav__link">
+  <a href="#device-residency-to_device-from_device" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XLA residency: to_xla / from_xla
+        Device residency: to_device / from_device
       
     </span>
   </a>
@@ -5442,7 +5442,7 @@ as the primary design surface.</p>
 </tr>
 <tr>
 <td>CUDA stream + <code>cudaMemcpy</code> to pin device memory</td>
-<td><code>to_xla(tensor)</code> / <code>from_xla(tensor)</code></td>
+<td><code>to_device(tensor)</code> / <code>from_device(tensor)</code> (formerly <code>to_xla</code> / <code>from_xla</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -5521,25 +5521,27 @@ detects it and transfers it to the Trainium device once:</p>
 object appears in two or more contractions, it is transferred once and the
 XLA-resident copy is used for all subsequent contractions in the batch.</p>
 <p>On CPU (no NKI), <code>multi_einsum</code> behaves exactly like a loop over <code>einsum()</code>.</p>
-<h2 id="xla-residency-to_xla-from_xla">XLA residency: <code>to_xla</code> / <code>from_xla</code><a class="headerlink" href="#xla-residency-to_xla-from_xla" title="Permanent link">&para;</a></h2>
-<p>The NKI dispatch path always transfers operands to the Trainium XLA device
-before kernel launch. For a single large matmul this cost is negligible; for a
-tight loop of small contractions it dominates. <code>to_xla</code> / <code>from_xla</code> expose the
-transfer explicitly so callers can control when it happens:</p>
+<h2 id="device-residency-to_device-from_device">Device residency: <code>to_device</code> / <code>from_device</code><a class="headerlink" href="#device-residency-to_device-from_device" title="Permanent link">&para;</a></h2>
+<p>The NKI dispatch path always transfers operands to the Trainium device
+(<code>neuron</code> on TorchNeuron, the XLA device on Trn1) before kernel launch. For a
+single large matmul this cost is negligible; for a tight loop of small
+contractions it dominates. <code>to_device</code> / <code>from_device</code> expose the transfer
+explicitly so callers can control when it happens. <code>to_xla</code> / <code>from_xla</code> are
+the older names for the same thing and still work on both lineages:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Cold path: B transferred on every call (3 transfers for 3 calls)</span>
 <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 
 <span class="c1"># Residency path: B transferred once, result stays on device until needed</span>
-<span class="n">A_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
-<span class="n">B_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+<span class="n">A_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_device</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+<span class="n">B_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_device</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
     <span class="n">result_x</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A_x</span><span class="p">,</span> <span class="n">B_x</span><span class="p">)</span>  <span class="c1"># zero transfer cost</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">from_xla</span><span class="p">(</span><span class="n">result_x</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">from_device</span><span class="p">(</span><span class="n">result_x</span><span class="p">)</span>
 </code></pre></div>
 <p>The residency API maps to the CUDA concept of a device-pinned buffer, but with
 explicit Python-level transfer rather than stream-implicit staging.</p>
-<p><code>to_xla</code> raises <code>RuntimeError</code> on hosts without <code>nki</code> installed.</p>
+<p><code>to_device</code> (like <code>to_xla</code>) raises <code>RuntimeError</code> on hosts without <code>nki</code> installed.</p>
 <h2 id="3-operand-einsums-contraction-path-search">3+ operand einsums: contraction-path search<a class="headerlink" href="#3-operand-einsums-contraction-path-search" title="Permanent link">&para;</a></h2>
 <p>For einsums with three or more operands, trntensor uses a greedy FLOP-cost path
 search to choose the contraction order:</p>

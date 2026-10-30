@@ -3648,10 +3648,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#eigha-max_sweeps50-tol1e-10" class="md-nav__link">
+  <a href="#eigha-tol1e-10-methodnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        eigh(A, *, max_sweeps=50, tol=1e-10)
+        eigh(A, tol=1e-10, *, method=None)
       
     </span>
   </a>
@@ -5172,10 +5172,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#eigha-max_sweeps50-tol1e-10" class="md-nav__link">
+  <a href="#eigha-tol1e-10-methodnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        eigh(A, *, max_sweeps=50, tol=1e-10)
+        eigh(A, tol=1e-10, *, method=None)
       
     </span>
   </a>
@@ -5225,10 +5225,15 @@
 
 
 <h1 id="eigensolvers">Eigensolvers<a class="headerlink" href="#eigensolvers" title="Permanent link">&para;</a></h1>
-<h2 id="eigha-max_sweeps50-tol1e-10"><code>eigh(A, *, max_sweeps=50, tol=1e-10)</code><a class="headerlink" href="#eigha-max_sweeps50-tol1e-10" title="Permanent link">&para;</a></h2>
+<h2 id="eigha-tol1e-10-methodnone"><code>eigh(A, tol=1e-10, *, method=None)</code><a class="headerlink" href="#eigha-tol1e-10-methodnone" title="Permanent link">&para;</a></h2>
 <p>Symmetric eigendecomposition <code>A = V Λ Vᵀ</code> for real symmetric <code>A</code>. Returns <code>(eigenvalues, eigenvectors)</code> with eigenvalues in ascending order.</p>
-<p>When the NKI backend is active, dispatches to the Jacobi rotation kernel (currently scaffolded — falls back to <code>torch.linalg.eigh</code> until on-hardware validation lands). Pure-PyTorch path uses <code>torch.linalg.eigh</code>.</p>
+<p><code>method=None</code> reads <code>TRNSOLVER_EIGH_METHOD</code> (default <code>auto</code>).</p>
+<ul>
+<li><code>auto</code>: on the native <code>neuron</code> device, n &lt; <code>TRNSOLVER_EIGH_NKI_MIN_N</code> (default 512) uses <code>torch.linalg.eigh</code>; otherwise the NKI path (Householder tridiagonalization, host QR iteration). Off-device, <code>torch.linalg.eigh</code>.</li>
+<li><code>jacobi</code> (#48): batched Jacobi for <code>(n, n)</code> or <code>(..., n, n)</code> input. On the native <code>neuron</code> device (FP32, n ≤ 128) it runs the SBUF-resident one-sided Jacobi kernel: one launch per sweep, each holding up to 128 tiles of 128 / n matrices (512 at n = 32) in SBUF. Elsewhere it runs a torch implementation (two-sided Jacobi as batched matmuls). Uses the lower triangle, like <code>torch.linalg.eigh</code>.</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="n">eigenvalues</span><span class="p">,</span> <span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+<span class="n">w</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">A_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">"neuron"</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">"jacobi"</span><span class="p">)</span>  <span class="c1"># (B, n), (B, n, n)</span>
 </code></pre></div>
 <h2 id="eigh_generalizeda-b"><code>eigh_generalized(A, B)</code><a class="headerlink" href="#eigh_generalizeda-b" title="Permanent link">&para;</a></h2>
 <p>Generalized symmetric eigenproblem <code>A x = λ B x</code> with <code>B</code> SPD — the form that arises in the SCF iteration as <code>F C = S C ε</code>.</p>
@@ -5242,7 +5247,7 @@
 <div class="highlight"><pre><span></span><code><span class="n">eigenvalues</span><span class="p">,</span> <span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">eigh_generalized</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="backend-notes">Backend notes<a class="headerlink" href="#backend-notes" title="Permanent link">&para;</a></h2>
-<p>The Jacobi method is preferred over Householder tridiagonalization on Trainium because each Givens rotation maps cleanly to a 128×128 Tensor Engine tile. For details see the <a href="../../architecture/">architecture notes</a>.</p>
+<p>Householder tridiagonalization is n − 2 dependent BLAS-2 steps and leaves the Tensor Engine idle (#48). A parallel-ordered Jacobi step rotates n/2 disjoint pairs at once, so a batch of matrices advances in lockstep with no long dependency chain. In the kernel the Tensor Engine applies the step's partner permutation (an exact matmul shared by every tile) and the Vector Engine applies the rotations. For measurements against batched CPU LAPACK see #48.</p>
 
 
 

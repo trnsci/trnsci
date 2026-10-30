@@ -3776,6 +3776,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#jacobi-rotation-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5238,6 +5249,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#jacobi-rotation-kernel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5297,11 +5319,49 @@
 <td>On the native <code>neuron</code> device, <code>eigh</code> uses <code>torch.linalg.eigh</code> for matrices with fewer than <code>n</code> rows and the NKI path otherwise. Default 512; <code>0</code> always uses NKI. Ignored when <code>TRNSOLVER_REQUIRE_NKI=1</code>. (#42)</td>
 </tr>
 <tr>
+<td><code>TRNSOLVER_EIGH_METHOD=auto\|jacobi</code></td>
+<td><code>eigh</code> method when <code>method=</code> is not passed. <code>jacobi</code> selects the batched Jacobi solver (#48). Default <code>auto</code>.</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_JACOBI_GROUP=&lt;g&gt;</code></td>
+<td>Jacobi kernel: tiles per launch (rounded down to a power of two). Default 128 for n ≤ 32, 64 for n ≤ 64, 16 for n ≤ 128 (split across the two physical cores of a logical NeuronCore).</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_JACOBI_CHAINS=&lt;c&gt;</code></td>
+<td>Jacobi kernel: independent dependency chains per step. Default 8 / 4 / 2 by the same size classes.</td>
+</tr>
+<tr>
+<td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla\|cpu</code></td>
+<td>Suite-wide. Forces the native or XLA dispatch path; <code>auto</code> (default) detects. Forcing an unavailable path raises.</td>
+</tr>
+<tr>
+<td><code>TRNSCI_XLA_DEPRECATION=1</code></td>
+<td>The XLA path emits one <code>DeprecationWarning</code>. Off by default.</td>
+</tr>
+<tr>
+<td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>
+<td>TorchNeuron (not trnsolver) setting. Turns off the cross-process NKI kernel cache, which cannot version editable installs.</td>
+</tr>
+<tr>
 <td><code>TRNSOLVER_USE_SIMULATOR=1</code></td>
 <td>Route kernel dispatch through <code>nki.simulate(kernel)(numpy_args)</code> on CPU instead of torch_xla. No hardware needed. See <a href="../../developing_kernels/">Developing kernels</a>.</td>
 </tr>
 </tbody>
 </table>
+<h2 id="dispatch-path">Dispatch path<a class="headerlink" href="#dispatch-path" title="Permanent link">&para;</a></h2>
+<p>On Neuron hardware, kernels run on one of two <code>torch-neuronx</code> lineages,
+detected on the first kernel launch:</p>
+<ul>
+<li><strong>Native (TorchNeuron, Trn2/Trn3)</strong>: each kernel is a PyTorch custom op
+  on <code>device="neuron"</code>, also callable directly and inside
+  <code>torch.compile(backend="neuron")</code>: <code>torch.ops.trnsolver.matvec</code>,
+  <code>rank2_update</code>, <code>matmul</code>, <code>matmul_fp32out</code>, <code>apply_reflectors</code>,
+  <code>jacobi_sweeps</code>. The ops
+  are registered only once this path is selected.</li>
+<li><strong>XLA (Trn1)</strong>: kernels run on the <code>torch_xla</code> device, as before.</li>
+</ul>
+<p><code>set_backend</code> is unaffected: it still chooses NKI vs PyTorch. See
+<a href="../../installation/#two-neuron-pytorch-lineages">Installation</a>.</p>
 <h2 id="jacobi-rotation-kernel">Jacobi rotation kernel<a class="headerlink" href="#jacobi-rotation-kernel" title="Permanent link">&para;</a></h2>
 <p><code>trnsolver.nki.dispatch.rotate_pairs_kernel</code> is the primary NKI acceleration target. Each sweep round:</p>
 <ul>

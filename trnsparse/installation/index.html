@@ -4113,6 +4113,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#two-neuron-pytorch-lineages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two Neuron PyTorch lineages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#placement-sparse-structure-on-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Placement: sparse structure on the host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editable-installs-and-the-nki-kernel-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editable installs and the NKI kernel cache
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#from-source" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5181,6 +5214,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#two-neuron-pytorch-lineages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two Neuron PyTorch lineages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#placement-sparse-structure-on-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Placement: sparse structure on the host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editable-installs-and-the-nki-kernel-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editable installs and the NKI kernel cache
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#from-source" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5225,8 +5291,153 @@
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
 <h2 id="from-pypi-once-published">From PyPI (once published)<a class="headerlink" href="#from-pypi-once-published" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnsparse
-pip<span class="w"> </span>install<span class="w"> </span>trnsparse<span class="o">[</span>neuron<span class="o">]</span><span class="w">   </span><span class="c1"># on Neuron hardware</span>
+
+<span class="c1"># Trn2/Trn3 with TorchNeuron (native PyTorch, Neuron SDK 2.33+)</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnsparse[torchneuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
+
+<span class="c1"># Trn1 / PyTorch-XLA lineage</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnsparse[neuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
 </code></pre></div>
+<p><code>[torchneuron]</code> pins <code>torch&gt;=2.14</code>, <code>torch-neuronx&gt;=2.14</code>, and <code>nki&gt;=0.6</code>
+(torch-neuronx 2.14 requires Python ≥ 3.12). <code>[neuron]</code> is the XLA lineage
+(<code>nki&gt;=0.3.0</code>, <code>neuronxcc&gt;=2.24</code>, <code>torch-neuronx&gt;=2.9</code>). <code>nki</code> and
+<code>torch-neuronx</code> are not on public PyPI; they ship with the Deep Learning
+AMI Neuron or install from <code>https://pip.repos.neuron.amazonaws.com</code>.</p>
+<h2 id="two-neuron-pytorch-lineages">Two Neuron PyTorch lineages<a class="headerlink" href="#two-neuron-pytorch-lineages" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Lineage</th>
+<th>Instances</th>
+<th>Stack</th>
+<th>Kernel dispatch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TorchNeuron (native)</td>
+<td>Trn2, Trn3</td>
+<td>Neuron SDK 2.33+, Python ≥ 3.12, <code>torch</code> 2.14, <code>torch-neuronx</code> 2.14.*</td>
+<td>Each kernel is a PyTorch custom op registered with <code>torch_neuronx.nki_op</code> (<code>torch.ops.trnsparse.spmm_dense</code>, <code>bsr_spmm</code>, <code>screened_spmm</code>, <code>attn_stats</code>, <code>attn_out</code>, <code>attn_bwd_dq</code>, <code>attn_bwd_dkdv</code>), plus the composite <code>trnsparse::bsr_attn</code> / <code>bsr_attn_bwd</code>; tensors live on <code>device="neuron"</code>. Backwards are attached with <code>register_autograd</code>.</td>
+</tr>
+<tr>
+<td>PyTorch/XLA</td>
+<td>Trn1 (also Inf2)</td>
+<td><code>torch-neuronx</code> 2.9 lineage, <code>torch_xla</code></td>
+<td>Unchanged: kernels run on the <code>torch_xla</code> device; autograd via <code>torch.autograd.Function</code> wrappers.</td>
+</tr>
+</tbody>
+</table>
+<p>Selection is automatic, on the first kernel launch:</p>
+<ol>
+<li><strong>native</strong> — <code>torch_neuronx</code> exports <code>nki_op</code> and a <code>neuron</code> device is
+   available (<code>torch_neuronx.device_count() &gt; 0</code>). This path never imports
+   <code>torch_xla</code>.</li>
+<li><strong>xla</strong> — <code>torch_xla</code> is installed.</li>
+<li>otherwise there is no device path; kernel launches fall back to
+   PyTorch (or raise under <code>TRNSPARSE_REQUIRE_NKI=1</code>), as in earlier
+   releases. <code>TRNSPARSE_USE_SIMULATOR=1</code> still routes through
+   <code>nki.simulate</code>.</li>
+</ol>
+<p>The <code>trnsparse::</code> custom ops are registered only when the native path is
+selected, so importing trnsparse on CPU or on the XLA lineage has no
+TorchNeuron side effects.</p>
+<p>To force a path, set <code>TRNSCI_NKI_DISPATCH</code> before the first launch. The
+variable is shared by every trnsci library:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code> (default)</td>
+<td>The order above.</td>
+</tr>
+<tr>
+<td><code>native</code></td>
+<td>Use TorchNeuron; raise <code>RuntimeError</code> if no <code>neuron</code> device is available.</td>
+</tr>
+<tr>
+<td><code>xla</code></td>
+<td>Use torch_xla even if TorchNeuron is present; raise <code>RuntimeError</code> if torch_xla is missing.</td>
+</tr>
+<tr>
+<td><code>cpu</code></td>
+<td>No device path (PyTorch fallback / simulator).</td>
+</tr>
+</tbody>
+</table>
+<p><code>TRNSCI_XLA_DEPRECATION=1</code> makes the XLA path emit a one-time
+<code>DeprecationWarning</code>. It is off by default.</p>
+<h2 id="placement-sparse-structure-on-the-host">Placement: sparse structure on the host<a class="headerlink" href="#placement-sparse-structure-on-the-host" title="Permanent link">&para;</a></h2>
+<p>The TorchNeuron <code>neuron</code> device has no sparse CSR tensors
+(<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1442">aws-neuron-sdk#1442</a>):
+<code>torch.sparse_csr_tensor</code> cannot be built on it or densified there. On the
+native path trnsparse therefore never puts sparse structure on the device:</p>
+<table>
+<thead>
+<tr>
+<th>Object</th>
+<th>Where it lives</th>
+<th>What moves to <code>neuron</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CSRMatrix</code> (<code>values</code>, <code>col_indices</code>, <code>row_ptrs</code>)</td>
+<td>host</td>
+<td>the densified (padded) A tile, built on the host without a torch sparse tensor</td>
+</tr>
+<tr>
+<td><code>BSRMatrix.block_row_ptrs</code>, <code>.block_col_indices</code></td>
+<td>host</td>
+<td>nothing; only the small gather index grids derived from them</td>
+</tr>
+<tr>
+<td><code>BSRMatrix.blocks</code></td>
+<td>host or <code>neuron</code></td>
+<td>dense blocks, gathered into kernel tiles on the device</td>
+</tr>
+<tr>
+<td>attention mask (<code>BSRMatrix</code>) structure</td>
+<td>host</td>
+<td>nothing; Q, K, V are gathered on the device</td>
+</tr>
+<tr>
+<td>dense operands (<code>B</code>, <code>x</code>, Q/K/V, screened <code>A</code>)</td>
+<td>host or <code>neuron</code></td>
+<td>themselves</td>
+</tr>
+</tbody>
+</table>
+<p>Results come back on the dense operand's device (B's for <code>spmm</code> /
+<code>bsr_spmm</code> / <code>screened_spmm</code>, x's for <code>spmv</code>, Q's for attention).
+Index tensors found on a device are copied to the host on each call, which
+works but costs a device sync; build them on the host.</p>
+<div class="highlight"><pre><span></span><code><span class="n">A</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>  <span class="c1"># host CSR</span>
+<span class="n">B</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"neuron"</span><span class="p">)</span>  <span class="c1"># device operand</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">spmm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># C on neuron; differentiable in A.values and B</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="k">lambda</span> <span class="n">B</span><span class="p">:</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">spmm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">),</span> <span class="n">backend</span><span class="o">=</span><span class="s2">"neuron"</span><span class="p">)(</span><span class="n">B</span><span class="p">)</span>
+</code></pre></div>
+<p><code>spmv</code> / <code>spmm</code> against a device operand densify A on the host each call.
+For repeated products with the same matrix (iterative solvers), use
+<code>BSRMatrix</code> with <code>blocks</code> on the device.</p>
+<h2 id="editable-installs-and-the-nki-kernel-cache">Editable installs and the NKI kernel cache<a class="headerlink" href="#editable-installs-and-the-nki-kernel-cache" title="Permanent link">&para;</a></h2>
+<p>TorchNeuron enables the NKI trace cache by default
+(<code>NKI_ENABLE_TRACE_CACHE=1</code>), which persists compiled kernels across
+processes. The cache only versions source that belongs to an installed
+wheel (a <code>site-packages</code> tree with <code>.dist-info</code>); an editable install is
+not tracked and can get a stale kernel after you edit <code>kernels.py</code>. When
+developing with <code>pip install -e</code>, turn the cache off before starting
+Python (the test suite's <code>conftest.py</code> does this):</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">NKI_ENABLE_TRACE_CACHE</span><span class="o">=</span><span class="m">0</span>
+</code></pre></div>
+<p>See the TorchNeuron
+<a href="https://github.com/aws-neuron/torch-neuronx/blob/main/docs/environment_variables.md">environment variables</a>
+reference.</p>
 <h2 id="from-source">From source<a class="headerlink" href="#from-source" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:trnsci/trnsparse.git
 <span class="nb">cd</span><span class="w"> </span>trnsparse
@@ -5234,7 +5445,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 </code></pre></div>
 <h2 id="hardware-compatibility">Hardware compatibility<a class="headerlink" href="#hardware-compatibility" title="Permanent link">&para;</a></h2>
-<p>NKI kernels target <strong>Neuron SDK 2.24+</strong> on the <strong>Deep Learning AMI Neuron PyTorch 2.9 (Ubuntu 24.04)</strong> AMI. Without Neuron hardware, trnsparse falls through to PyTorch ops on CPU/GPU — all APIs remain functional.</p>
+<p>NKI kernels target <strong>Neuron SDK 2.24+</strong> on the <strong>Deep Learning AMI Neuron PyTorch 2.9 (Ubuntu 24.04)</strong> AMI (XLA lineage), and Neuron SDK 2.33+ with TorchNeuron on Trn2/Trn3 (native lineage). Without Neuron hardware, trnsparse falls through to PyTorch ops on CPU/GPU — all APIs remain functional.</p>
 
 
 

@@ -5390,7 +5390,10 @@ have a direct <code>scipy.sparse</code> equivalent:</p>
 <code>numpy.ndarray</code>. <code>CSRMatrix.data</code>, <code>.indices</code>, <code>.indptr</code> are all
 <code>torch.Tensor</code>. Device placement follows torch conventions:
 <code>A.data.to('cuda')</code> or similar. On Trainium, use <code>set_backend("nki")</code>
-to dispatch <code>spmv</code> / <code>spmm</code> to the on-device kernel path.</p>
+to dispatch <code>spmv</code> / <code>spmm</code> to the on-device kernel path. With TorchNeuron
+(Trn2/Trn3), keep the sparse matrix itself on the host and put the dense
+operand on <code>device="neuron"</code>: the <code>neuron</code> device has no sparse CSR
+tensors (see <a href="../installation/#placement-sparse-structure-on-the-host">Installation</a>).</p>
 <p><strong>Constructor signature.</strong> trnsparse requires an explicit <code>shape</code>
 argument; scipy infers it from the indices when possible. Be explicit:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># scipy</span>

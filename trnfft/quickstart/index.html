@@ -5279,10 +5279,10 @@
 <span class="n">z</span> <span class="o">=</span> <span class="n">ComplexTensor</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 
 <span class="c1"># Arithmetic</span>
-<span class="n">w</span> <span class="o">=</span> <span class="n">z</span> <span class="o">*</span> <span class="n">z</span>          <span class="c1"># element-wise complex multiply</span>
-<span class="n">m</span> <span class="o">=</span> <span class="n">z</span> <span class="o">@</span> <span class="n">z</span>          <span class="c1"># complex matrix multiply</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>       <span class="c1"># conjugate</span>
-<span class="n">mag</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>      <span class="c1"># magnitude</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">z</span> <span class="o">*</span> <span class="n">z</span>  <span class="c1"># element-wise complex multiply</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">z</span> <span class="o">@</span> <span class="n">z</span>  <span class="c1"># complex matrix multiply</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>  <span class="c1"># conjugate</span>
+<span class="n">mag</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>  <span class="c1"># magnitude</span>
 <span class="n">phase</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">angle</span><span class="p">()</span>  <span class="c1"># phase</span>
 </code></pre></div>
 <h2 id="complex-neural-network-layers">Complex neural network layers<a class="headerlink" href="#complex-neural-network-layers" title="Permanent link">&para;</a></h2>
@@ -5305,8 +5305,8 @@
 
 <span class="c1"># Force backend</span>
 <span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># Always use PyTorch ops</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>      <span class="c1"># Always use NKI (fails if not on Trainium)</span>
-<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>     <span class="c1"># NKI if available, else PyTorch (default)</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>  <span class="c1"># Always use NKI (fails if not on Trainium)</span>
+<span class="n">trnfft</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>  <span class="c1"># NKI if available, else PyTorch (default)</span>
 </code></pre></div>
 
 

@@ -1591,6 +1591,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="With Neuron hardware support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-neuron-pytorch-lineages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two Neuron PyTorch lineages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editable-installs-and-the-nki-kernel-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editable installs and the NKI kernel cache
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5211,6 +5239,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="With Neuron hardware support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-neuron-pytorch-lineages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two Neuron PyTorch lineages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editable-installs-and-the-nki-kernel-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editable installs and the NKI kernel cache
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5271,11 +5327,104 @@
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnfft
 </code></pre></div>
 <h2 id="with-neuron-hardware-support">With Neuron hardware support<a class="headerlink" href="#with-neuron-hardware-support" title="Permanent link">&para;</a></h2>
-<p>On a Trainium/Inferentia instance, install into the AMI's pre-built Neuron venv (which already contains <code>neuronxcc</code>, since it's not on public PyPI):</p>
+<p>On a Trainium/Inferentia instance, install into the AMI's pre-built Neuron venv (which already contains <code>nki</code> and <code>torch-neuronx</code>, since they are not on public PyPI):</p>
 <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>/opt/aws_neuronx_venv_pytorch_2_9/bin/activate
 pip<span class="w"> </span>install<span class="w"> </span>trnfft<span class="o">[</span>dev<span class="o">]</span>
 </code></pre></div>
-<p>The <code>trnfft[neuron]</code> extra is only useful when building a custom Neuron environment from scratch.</p>
+<p>To build a Neuron environment from scratch, use the extra that matches the instance:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Trn2/Trn3 with TorchNeuron (native PyTorch, Neuron SDK 2.33+)</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnfft[torchneuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
+
+<span class="c1"># Trn1 / PyTorch-XLA lineage</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnfft[neuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
+</code></pre></div>
+<p><code>[torchneuron]</code> pins <code>torch&gt;=2.14</code>, <code>torch-neuronx&gt;=2.14</code> and <code>nki&gt;=0.6</code>
+(torch-neuronx 2.14 requires Python ≥ 3.12). <code>[neuron]</code> is the XLA lineage
+(<code>torch-neuronx&gt;=2.9</code>, <code>nki&gt;=0.3.0</code>).</p>
+<h3 id="two-neuron-pytorch-lineages">Two Neuron PyTorch lineages<a class="headerlink" href="#two-neuron-pytorch-lineages" title="Permanent link">&para;</a></h3>
+<p><code>torch-neuronx</code> ships in two lineages, and trnfft dispatches its NKI kernels
+on whichever one is installed:</p>
+<table>
+<thead>
+<tr>
+<th>Lineage</th>
+<th>Instances</th>
+<th>Stack</th>
+<th>Kernel dispatch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TorchNeuron (native)</td>
+<td>Trn2, Trn3</td>
+<td>Neuron SDK 2.33+, Python ≥ 3.12, <code>torch</code> 2.14, <code>torch-neuronx</code> 2.14.*</td>
+<td>Each kernel is a PyTorch custom op (<code>torch.ops.trnfft.complex_gemm</code>, <code>stockham_radix4_stage</code>, ...) registered with <code>torch_neuronx.nki_op</code>; tensors live on <code>device="neuron"</code>. The kernel ops also work inside <code>torch.compile(backend="neuron")</code>. Gradients use <code>torch.library.register_autograd</code>.</td>
+</tr>
+<tr>
+<td>PyTorch/XLA</td>
+<td>Trn1 (also Inf2)</td>
+<td><code>torch-neuronx</code> 2.9 lineage, <code>torch_xla</code></td>
+<td>Unchanged: kernels run on the <code>torch_xla</code> device, gradients through <code>torch.autograd.Function</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Selection is automatic, on the first kernel launch:</p>
+<ol>
+<li><strong>native</strong>: <code>torch_neuronx</code> exports <code>nki_op</code> and a <code>neuron</code> device is
+   available (<code>torch_neuronx.device_count() &gt; 0</code>). This path never imports
+   <code>torch_xla</code>.</li>
+<li><strong>xla</strong>: <code>torch_xla</code> is installed.</li>
+<li>otherwise there is no device path. Without <code>nki</code>, trnfft uses its PyTorch
+   implementation; with <code>nki</code> but no device, use <code>set_backend("pytorch")</code> or
+   <code>TRNFFT_USE_SIMULATOR=1</code> (unchanged from earlier releases).</li>
+</ol>
+<p>The <code>trnfft::</code> custom ops are registered only when the native path is
+selected, so importing trnfft on CPU or on the XLA lineage has no TorchNeuron
+side effects. Both lineages publish a package named <code>torch-neuronx</code>, so pick
+the extra (or Deep Learning AMI Neuron) that matches the instance.</p>
+<p>To force a path, set <code>TRNSCI_NKI_DISPATCH</code> before the first launch. The
+variable is shared by every trnsci library:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code> (default)</td>
+<td>The order above.</td>
+</tr>
+<tr>
+<td><code>native</code></td>
+<td>Use TorchNeuron; raise <code>RuntimeError</code> if no <code>neuron</code> device is available.</td>
+</tr>
+<tr>
+<td><code>xla</code></td>
+<td>Use torch_xla even if TorchNeuron is present; raise <code>RuntimeError</code> if torch_xla is missing.</td>
+</tr>
+<tr>
+<td><code>cpu</code></td>
+<td>No device path (a kernel launch fails as it would without either lineage).</td>
+</tr>
+</tbody>
+</table>
+<p><code>TRNSCI_XLA_DEPRECATION=1</code> makes the XLA path emit one <code>DeprecationWarning</code>
+when it is selected. It is off by default; the suite turns it on when
+TorchNeuron reaches general availability.</p>
+<h3 id="editable-installs-and-the-nki-kernel-cache">Editable installs and the NKI kernel cache<a class="headerlink" href="#editable-installs-and-the-nki-kernel-cache" title="Permanent link">&para;</a></h3>
+<p>TorchNeuron enables the NKI trace cache by default
+(<code>NKI_ENABLE_TRACE_CACHE=1</code>), which persists compiled kernels across
+processes. The cache only versions source that belongs to an installed wheel
+(a <code>site-packages</code> tree with <code>.dist-info</code>); an editable install is not
+tracked and can get a stale kernel after you edit a kernel. When developing
+with <code>pip install -e</code>, turn the cache off before starting Python:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">NKI_ENABLE_TRACE_CACHE</span><span class="o">=</span><span class="m">0</span>
+</code></pre></div>
+<p>The test suite's <code>conftest.py</code> sets this by default. See the TorchNeuron
+<a href="https://github.com/aws-neuron/torch-neuronx/blob/main/docs/environment_variables.md">environment variables</a>
+reference.</p>
 <h2 id="development-install">Development install<a class="headerlink" href="#development-install" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/trnsci/trnfft.git
 <span class="nb">cd</span><span class="w"> </span>trnfft
@@ -5288,7 +5437,7 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <li>PyTorch &gt;= 2.1</li>
 <li>NumPy &gt;= 1.24</li>
 <li>nki &gt;= 0.3.0 (optional, for Trainium hardware or CPU simulator; Neuron SDK 2.29+)</li>
-<li>torch-neuronx &gt;= 2.9 (optional, for Trainium hardware)</li>
+<li>torch-neuronx &gt;= 2.9 (optional, for Trainium hardware; the native TorchNeuron path needs torch-neuronx 2.14.* on Python &gt;= 3.12)</li>
 </ul>
 <h2 id="hardware-compatibility">Hardware compatibility<a class="headerlink" href="#hardware-compatibility" title="Permanent link">&para;</a></h2>
 <p>The NKI kernels in trnfft are validated against this stack:</p>

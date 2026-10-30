@@ -5166,16 +5166,42 @@ not a replacement for hardware validation.</p>
 <h2 id="dispatch-code-pattern">Dispatch-code pattern<a class="headerlink" href="#dispatch-code-pattern" title="Permanent link">&para;</a></h2>
 <p>The autograd <code>forward</code> and the FFT driver branch on <code>_use_simulator()</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">_use_simulator</span><span class="p">():</span>
-    <span class="n">c_real</span><span class="p">,</span> <span class="n">c_imag</span> <span class="o">=</span> <span class="n">_simulate_kernel</span><span class="p">(</span>
-        <span class="n">_complex_gemm_kernel</span><span class="p">,</span> <span class="n">a_real</span><span class="p">,</span> <span class="n">a_imag</span><span class="p">,</span> <span class="n">b_real</span><span class="p">,</span> <span class="n">b_imag</span>
-    <span class="p">)</span>
+    <span class="n">c_real</span><span class="p">,</span> <span class="n">c_imag</span> <span class="o">=</span> <span class="n">_simulate_kernel</span><span class="p">(</span><span class="n">_complex_gemm_kernel</span><span class="p">,</span> <span class="n">a_real</span><span class="p">,</span> <span class="n">a_imag</span><span class="p">,</span> <span class="n">b_real</span><span class="p">,</span> <span class="n">b_imag</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="p">(</span><span class="n">ar</span><span class="p">,</span> <span class="n">ai</span><span class="p">,</span> <span class="n">br</span><span class="p">,</span> <span class="n">bi</span><span class="p">),</span> <span class="n">orig</span> <span class="o">=</span> <span class="n">_to_xla</span><span class="p">(</span><span class="n">a_real</span><span class="p">,</span> <span class="n">a_imag</span><span class="p">,</span> <span class="n">b_real</span><span class="p">,</span> <span class="n">b_imag</span><span class="p">)</span>
-    <span class="n">c_real</span><span class="p">,</span> <span class="n">c_imag</span> <span class="o">=</span> <span class="n">_complex_gemm_kernel</span><span class="p">(</span><span class="n">ar</span><span class="p">,</span> <span class="n">ai</span><span class="p">,</span> <span class="n">br</span><span class="p">,</span> <span class="n">bi</span><span class="p">)</span>
-    <span class="n">c_real</span><span class="p">,</span> <span class="n">c_imag</span> <span class="o">=</span> <span class="n">c_real</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">orig</span><span class="p">),</span> <span class="n">c_imag</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">orig</span><span class="p">)</span>
+    <span class="n">c_real</span><span class="p">,</span> <span class="n">c_imag</span> <span class="o">=</span> <span class="n">_launch</span><span class="p">(</span><span class="n">_complex_gemm_kernel</span><span class="p">,</span> <span class="s2">"complex_gemm"</span><span class="p">,</span> <span class="n">a_real</span><span class="p">,</span> <span class="n">a_imag</span><span class="p">,</span> <span class="n">b_real</span><span class="p">,</span> <span class="n">b_imag</span><span class="p">)</span>
 </code></pre></div>
 <p><code>_simulate_kernel(kernel, *torch_tensors)</code> (in <code>trnfft/nki/dispatch.py</code>)
 marshals numpy in/out, calling <code>nki.simulate(kernel)(*np_args)</code>.</p>
+<p><code>_launch(kernel, op_name, *args)</code> is the one hardware launch helper. On the
+native TorchNeuron path (Trn2/Trn3) it moves tensor arguments to
+<code>device="neuron"</code> and calls the <code>trnfft::&lt;op_name&gt;</code> custom op; on the XLA path
+(Trn1) it moves them with <code>_to_xla()</code> and calls <code>kernel</code> directly. Results go
+back to the caller's device; operands the Stockham / butterfly drivers already
+keep on the kernel device (<code>_kernel_device()</code>) are not copied. A new kernel
+needs a matching annotated wrapper in <code>trnfft/nki/_native.py</code> and an entry in
+its <code>OPS</code> table, plus a case in <code>tests/test_nki_compile.py</code>.</p>
+<p>On the native path the analytic adjoints in <code>trnfft/nki/autograd.py</code> are
+attached to the registered ops with <code>torch.library.register_autograd</code>
+(<code>complex_gemm</code>, <code>complex_linear</code>, <code>complex_mul</code>, and the composite
+<code>trnfft::fft</code>); the XLA path keeps the <code>torch.autograd.Function</code> wrappers.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla\|cpu</code></td>
+<td>Suite-wide. Forces the dispatch path; <code>auto</code> (default) detects. Forcing an unavailable path raises.</td>
+</tr>
+<tr>
+<td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>
+<td>TorchNeuron setting. Turns off the cross-process NKI kernel cache, which cannot version editable installs. <code>tests/conftest.py</code> sets it.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="nki-030-calling-convention-since-this-is-the-floor">NKI 0.3.0 calling convention (since this is the floor)<a class="headerlink" href="#nki-030-calling-convention-since-this-is-the-floor" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>nisa.nc_matmul(dst=, stationary=, moving=, accumulate=True)</code> — all kwargs,

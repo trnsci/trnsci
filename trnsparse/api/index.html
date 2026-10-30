@@ -5277,6 +5277,24 @@
 <li><code>get_backend()</code> — current backend</li>
 <li><code>HAS_NKI</code> — module-level flag set at import time</li>
 </ul>
+<p>On Neuron hardware the NKI backend runs on one of two <code>torch-neuronx</code>
+lineages, detected on the first kernel launch (force with
+<code>TRNSCI_NKI_DISPATCH=native|xla|cpu</code>):</p>
+<ul>
+<li><strong>Native (TorchNeuron, Trn2/Trn3)</strong> — each kernel is a custom op on
+  <code>device="neuron"</code>: <code>torch.ops.trnsparse.spmm_dense</code>, <code>bsr_spmm</code>,
+  <code>screened_spmm</code>, <code>attn_stats</code>, <code>attn_out</code>, <code>attn_bwd_dq</code>,
+  <code>attn_bwd_dkdv</code>, and the composite <code>bsr_attn</code> / <code>bsr_attn_bwd</code>. Backwards
+  are attached with <code>torch.library.register_autograd</code>; <code>spmm</code> also traces
+  under <code>torch.compile(backend="neuron", fullgraph=True)</code>. The ops are
+  registered only once this path is selected.</li>
+<li><strong>XLA (Trn1)</strong> — kernels run on the <code>torch_xla</code> device, as before.</li>
+</ul>
+<p><strong>Placement on the native path:</strong> sparse structure (CSR <code>row_ptrs</code> /
+<code>col_indices</code> / <code>values</code>, BSR <code>block_row_ptrs</code> / <code>block_col_indices</code>) stays
+on the host; dense operands and BSR <code>blocks</code> may be on <code>neuron</code>; results are
+on the dense operand's device. See
+<a href="../installation/#placement-sparse-structure-on-the-host">Installation</a>.</p>
 
 
 

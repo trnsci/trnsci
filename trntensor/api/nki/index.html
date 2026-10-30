@@ -4790,6 +4790,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#to_devicetensor-tensor-from_devicetensor-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_device(tensor) -&gt; Tensor / from_device(tensor) -&gt; Tensor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#to_xlatensor-tensor-from_xlatensor-tensor" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4797,6 +4819,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="to_xla(tensor) -&gt; Tensor / from_xla(tensor) -&gt; Tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migrating-from-to_xla-from_xla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrating from to_xla / from_xla
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5238,6 +5277,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#to_devicetensor-tensor-from_devicetensor-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_device(tensor) -&gt; Tensor / from_device(tensor) -&gt; Tensor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#to_xlatensor-tensor-from_xlatensor-tensor" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5245,6 +5306,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="to_xla(tensor) -&gt; Tensor / from_xla(tensor) -&gt; Tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migrating-from-to_xla-from_xla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrating from to_xla / from_xla
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5305,34 +5383,80 @@ public-facing dispatch is in <code>trntensor.nki.dispatch</code>.</p>
 <h2 id="has_nki-bool"><code>HAS_NKI: bool</code><a class="headerlink" href="#has_nki-bool" title="Permanent link">&para;</a></h2>
 <p>Module-level flag set at import time. <code>True</code> when <code>nki</code> (0.3.0+) is
 importable, otherwise <code>False</code>.</p>
-<h2 id="to_xlatensor-tensor-from_xlatensor-tensor"><code>to_xla(tensor) -&gt; Tensor</code> / <code>from_xla(tensor) -&gt; Tensor</code><a class="headerlink" href="#to_xlatensor-tensor-from_xlatensor-tensor" title="Permanent link">&para;</a></h2>
-<p>Pin an operand on the Trainium XLA device so repeated trntensor calls
-skip the host↔device transfer that otherwise dominates dispatch
+<h2 id="dispatch-path">Dispatch path<a class="headerlink" href="#dispatch-path" title="Permanent link">&para;</a></h2>
+<p>On Neuron hardware, kernels run on one of two <code>torch-neuronx</code> lineages,
+detected on the first kernel launch (never at import):</p>
+<ul>
+<li><strong>Native (TorchNeuron, Trn2/Trn3, Neuron SDK 2.33+)</strong> — chosen when
+  <code>torch_neuronx</code> exports <code>nki_op</code> and a <code>neuron</code> device is available
+  (<code>torch_neuronx.device_count() &gt; 0</code>). Each kernel is a PyTorch custom op
+  on <code>device="neuron"</code>, also callable directly and inside
+  <code>torch.compile(backend="neuron")</code>: <code>torch.ops.trntensor.matmul</code>,
+  <code>batched_matmul</code>, <code>mp2_energy</code>, <code>ao_to_mo_transform</code>. The ops are
+  registered only once this path is selected, and this path never imports
+  <code>torch_xla</code>.</li>
+<li><strong>XLA (Trn1)</strong> — chosen when <code>torch_xla</code> is installed and the native
+  path is unavailable. Kernels run on the <code>torch_xla</code> device, unchanged.</li>
+<li>Otherwise there is no device path: the host wrappers fall back to
+  <code>torch</code> (or raise under <code>TRNTENSOR_REQUIRE_NKI=1</code>), as before.</li>
+</ul>
+<p><code>set_backend</code> is unaffected: it still chooses NKI vs PyTorch. Set the
+suite-wide <code>TRNSCI_NKI_DISPATCH=native</code> or <code>xla</code> to force a path; forcing an
+unavailable path raises <code>RuntimeError</code>.</p>
+<p>The reduce-parallel all-reduce kernel (<code>trntensor.nki.collectives</code>) is
+native-only already; it keeps its <code>torch_neuronx.wrap_nki</code> launch because
+its <code>ReplicaGroup</code> argument is a compile-time constant that a custom-op
+schema cannot carry.</p>
+<p>Precision modes follow the same launch: <code>precision="sr"</code> passes
+<code>use_sr=True</code> to the <code>matmul</code> / <code>batched_matmul</code> op (stochastic rounding
+still needs <code>NEURON_RT_STOCHASTIC_ROUNDING_EN=1</code> at process start and warns
+once otherwise); <code>precision="kahan"</code> contracts in true fp64 on the host
+(Trainium has no fp64 datapath) on both paths; <code>precision="dd"</code> still
+raises on NKI hosts pending trnblas#22.</p>
+<h2 id="to_devicetensor-tensor-from_devicetensor-tensor"><code>to_device(tensor) -&gt; Tensor</code> / <code>from_device(tensor) -&gt; Tensor</code><a class="headerlink" href="#to_devicetensor-tensor-from_devicetensor-tensor" title="Permanent link">&para;</a></h2>
+<p>Pin an operand on the Trainium device of the active dispatch path —
+<code>neuron</code> on TorchNeuron, the XLA device on Trn1 — so repeated trntensor
+calls skip the host↔device transfer that otherwise dominates dispatch
 overhead.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trntensor</span>
 
 <span class="c1"># One-time transfer onto the accelerator.</span>
-<span class="n">eri_xla</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">eri</span><span class="p">)</span>
-<span class="n">C_occ_xla</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">C_occ</span><span class="p">)</span>
-<span class="n">C_vir_xla</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">C_vir</span><span class="p">)</span>
-<span class="n">eps_occ_xla</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">eps_occ</span><span class="p">)</span>
-<span class="n">eps_vir_xla</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_xla</span><span class="p">(</span><span class="n">eps_vir</span><span class="p">)</span>
+<span class="n">eri_d</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_device</span><span class="p">(</span><span class="n">eri</span><span class="p">)</span>
+<span class="n">C_occ_d</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_device</span><span class="p">(</span><span class="n">C_occ</span><span class="p">)</span>
+<span class="n">C_vir_d</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_device</span><span class="p">(</span><span class="n">C_vir</span><span class="p">)</span>
+<span class="n">eps_occ_d</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_device</span><span class="p">(</span><span class="n">eps_occ</span><span class="p">)</span>
+<span class="n">eps_vir_d</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">to_device</span><span class="p">(</span><span class="n">eps_vir</span><span class="p">)</span>
 
-<span class="c1"># Full DF-MP2 pipeline — B_xla never leaves the device.</span>
-<span class="n">B_xla</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">ao_to_mo_transform</span><span class="p">(</span><span class="n">eri_xla</span><span class="p">,</span> <span class="n">C_occ_xla</span><span class="p">,</span> <span class="n">C_vir_xla</span><span class="p">)</span>
-<span class="n">E_xla</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">mp2_energy</span><span class="p">(</span><span class="n">B_xla</span><span class="p">,</span> <span class="n">eps_occ_xla</span><span class="p">,</span> <span class="n">eps_vir_xla</span><span class="p">)</span>
+<span class="c1"># Full DF-MP2 pipeline — B_d never leaves the device.</span>
+<span class="n">B_d</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">ao_to_mo_transform</span><span class="p">(</span><span class="n">eri_d</span><span class="p">,</span> <span class="n">C_occ_d</span><span class="p">,</span> <span class="n">C_vir_d</span><span class="p">)</span>
+<span class="n">E_d</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">mp2_energy</span><span class="p">(</span><span class="n">B_d</span><span class="p">,</span> <span class="n">eps_occ_d</span><span class="p">,</span> <span class="n">eps_vir_d</span><span class="p">)</span>
 
 <span class="c1"># Pull the scalar back when we actually need it in Python.</span>
-<span class="n">E</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">from_xla</span><span class="p">(</span><span class="n">E_xla</span><span class="p">)</span>
+<span class="n">E</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">from_device</span><span class="p">(</span><span class="n">E_d</span><span class="p">)</span>
 </code></pre></div>
 <ul>
-<li><code>to_xla</code>: no-op when the tensor is already on XLA. Raises
-  <code>RuntimeError</code> on hosts without the NKI runtime.</li>
-<li><code>from_xla</code>: no-op when the tensor is already on CPU.</li>
+<li><code>to_device</code>: no-op when the tensor is already on a Neuron device.
+  Raises <code>RuntimeError</code> on hosts without the NKI runtime.</li>
+<li><code>from_device</code>: no-op when the tensor is already on CPU.</li>
 </ul>
-<p>When dispatch sees that every operand is already on XLA, it skips the
-per-call transfer and returns the result on XLA — the caller controls
-when to pull back.</p>
+<p>When every operand is already on the device, dispatch skips the per-call
+transfer, uses the lower "pinned" FLOP threshold, and returns the result on
+the device — the caller controls when to pull back.</p>
+<h2 id="to_xlatensor-tensor-from_xlatensor-tensor"><code>to_xla(tensor) -&gt; Tensor</code> / <code>from_xla(tensor) -&gt; Tensor</code><a class="headerlink" href="#to_xlatensor-tensor-from_xlatensor-tensor" title="Permanent link">&para;</a></h2>
+<p>The original names, kept for compatibility. On Trn1 they behave exactly as
+before. On TorchNeuron there is no XLA device, so <code>to_xla</code> places the
+tensor on <code>neuron</code> instead (residency works the same way) and <code>from_xla</code>
+moves it back to CPU.</p>
+<h3 id="migrating-from-to_xla-from_xla">Migrating from <code>to_xla</code> / <code>from_xla</code><a class="headerlink" href="#migrating-from-to_xla-from_xla" title="Permanent link">&para;</a></h3>
+<p>Replace <code>to_xla</code> with <code>to_device</code> and <code>from_xla</code> with <code>from_device</code>. Same
+behaviour on Trn1; on Trn2/Trn3 the new names say what they do. Checks such
+as <code>t.device.type == "xla"</code> become <code>t.device.type in ("xla", "neuron")</code>.</p>
+<p><code>to_xla</code> / <code>from_xla</code> stay available. When the suite-wide
+<code>TRNSCI_XLA_DEPRECATION=1</code> is set (off by default; trnsci turns it on at
+TorchNeuron GA), each emits a one-time <code>DeprecationWarning</code> pointing at the
+new names, and selecting the XLA dispatch path emits: "the PyTorch/XLA path
+is deprecated on Trn2/Trn3; use TorchNeuron (native). Trn1/Inf2 remain
+supported in maintenance mode."</p>
 <h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -5348,7 +5472,31 @@ when to pull back.</p>
 </tr>
 <tr>
 <td><code>TRNTENSOR_MIN_NKI_FLOPS=&lt;int&gt;</code></td>
-<td>Override the FLOP threshold below which dispatch skips NKI and uses <code>torch.matmul</code> / <code>torch.bmm</code> directly. Default: <code>2_000_000_000</code>. Set to <code>0</code> to force NKI for kernel validation.</td>
+<td>XLA path: override the FLOP threshold (M·K·N) below which dispatch skips NKI and uses <code>torch.matmul</code> / <code>torch.bmm</code> directly. Default: <code>2_000_000_000</code>. Set to <code>0</code> to force NKI for kernel validation.</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_MIN_NKI_FLOPS_PINNED=&lt;int&gt;</code></td>
+<td>XLA path, operands already on the device. Default: <code>1_000_000_000</code>.</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_MIN_NKI_FLOPS_NATIVE=&lt;int&gt;</code></td>
+<td>Native (TorchNeuron) path, operands on CPU. Default: <code>1_000_000_000</code> (provisional: native eager dispatch is ~0.2 ms per launch; re-measure with <code>scripts/autotune_dispatch.py</code>).</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_MIN_NKI_FLOPS_NATIVE_PINNED=&lt;int&gt;</code></td>
+<td>Native path, operands already on <code>neuron</code>. Default: <code>128_000_000</code> (provisional).</td>
+</tr>
+<tr>
+<td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla</code></td>
+<td>Suite-wide. Force the native or XLA dispatch path; <code>auto</code> (default) detects. Forcing an unavailable path raises.</td>
+</tr>
+<tr>
+<td><code>TRNSCI_XLA_DEPRECATION=1</code></td>
+<td>Suite-wide, off by default. Emit the one-time XLA-path and <code>to_xla</code> / <code>from_xla</code> deprecation warnings.</td>
+</tr>
+<tr>
+<td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>
+<td>TorchNeuron setting (not trntensor's). Turns off the cross-process NKI kernel cache, which cannot version editable installs and may serve a stale kernel after a source edit. Set it with <code>pip install -e</code>; the test suite sets it by default.</td>
 </tr>
 <tr>
 <td><code>TRNTENSOR_FORCE_BACKEND=pytorch\|nki\|auto</code></td>

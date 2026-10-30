@@ -3972,10 +3972,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#three-dispatch-modes" class="md-nav__link">
+  <a href="#dispatch-modes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Three dispatch modes
+        Dispatch modes
       
     </span>
   </a>
@@ -5183,10 +5183,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#three-dispatch-modes" class="md-nav__link">
+  <a href="#dispatch-modes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Three dispatch modes
+        Dispatch modes
       
     </span>
   </a>
@@ -5252,7 +5252,7 @@
 parallel Jacobi sweep in <code>_jacobi_eigh_nki</code>. This page is the short
 trnsolver-specific version of the suite-wide guide at
 <a href="https://github.com/trnsci/trnsci/blob/main/docs/developing_kernels.md"><code>trnsci/docs/developing_kernels.md</code></a>.</p>
-<h2 id="three-dispatch-modes">Three dispatch modes<a class="headerlink" href="#three-dispatch-modes" title="Permanent link">&para;</a></h2>
+<h2 id="dispatch-modes">Dispatch modes<a class="headerlink" href="#dispatch-modes" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -5268,9 +5268,14 @@ trnsolver-specific version of the suite-wide guide at
 <td>Laptops, GPUs, CI's <code>ubuntu-latest</code> test matrix — the default for anyone without Neuron installed</td>
 </tr>
 <tr>
-<td><strong>NKI hardware</strong></td>
-<td><code>HAS_NKI = True</code>, default env. Kernel runs through <code>torch_xla</code> → NEFF compile → NeuronCore</td>
-<td>Real perf numbers, final validation</td>
+<td><strong>NKI hardware, native</strong></td>
+<td><code>HAS_NKI = True</code> + TorchNeuron <code>torch_neuronx</code> (has <code>nki_op</code>) + a <code>neuron</code> device. Kernel runs as a <code>trnsolver::</code> custom op on <code>device="neuron"</code></td>
+<td>Trn2/Trn3 on Neuron SDK 2.33+. Set <code>NKI_ENABLE_TRACE_CACHE=0</code> with an editable install.</td>
+</tr>
+<tr>
+<td><strong>NKI hardware, XLA</strong></td>
+<td><code>HAS_NKI = True</code> + <code>torch_xla</code> installed (and the native path unavailable). Kernel runs through <code>torch_xla</code> → NEFF compile → NeuronCore</td>
+<td>Trn1; real perf numbers, final validation</td>
 </tr>
 <tr>
 <td><strong>NKI simulator</strong></td>
@@ -5279,10 +5284,16 @@ trnsolver-specific version of the suite-wide guide at
 </tr>
 </tbody>
 </table>
-<p>All three modes share the same kernel source — the <code>@nki.jit</code> definition
+<p>All modes share the same kernel source — the <code>@nki.jit</code> definition
 inside <code>if HAS_NKI:</code> in <code>trnsolver/nki/dispatch.py</code>. The host driver
 (<code>_jacobi_eigh_nki</code> in <code>trnsolver/eigen.py</code>) picks the path based on
 <code>_use_nki()</code> and <code>_use_simulator()</code>.</p>
+<p>Each host wrapper in <code>trnsolver/eigen.py</code> hands its operands to
+<code>_launch(kernel, op_name, *tensors)</code> in <code>dispatch.py</code>, which picks the
+native custom op or the torch_xla path. A new hardware kernel needs a
+matching annotated wrapper in <code>trnsolver/nki/_native.py</code> and an entry in its
+<code>OPS</code> table. On the native path, keep scalar control flow (<code>.item()</code>,
+element writes) on host copies: each one is a device round trip.</p>
 <h2 id="simulator-workflow">Simulator workflow<a class="headerlink" href="#simulator-workflow" title="Permanent link">&para;</a></h2>
 <p>NKI 0.3.0 Stable (Neuron SDK 2.29, April 2026) ships a CPU simulator
 that runs kernels without Trainium hardware. It collapses the iteration

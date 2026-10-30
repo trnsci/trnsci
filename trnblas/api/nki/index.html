@@ -2267,6 +2267,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5205,6 +5216,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dispatch-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5281,6 +5303,26 @@ Trainium Tensor Engine or fall back to PyTorch.</p>
 <p><code>trnblas.HAS_NKI</code> is <code>True</code> when the <code>nki</code> package (NKI 0.3.0+, Neuron
 SDK 2.29+) is importable. trnblas uses the canonical <code>nki.*</code>
 namespace directly; the legacy <code>neuronxcc.nki.*</code> shim is not used.</p>
+<h2 id="dispatch-path">Dispatch path<a class="headerlink" href="#dispatch-path" title="Permanent link">&para;</a></h2>
+<p>On Neuron hardware, kernels run on one of two <code>torch-neuronx</code> lineages,
+detected on the first kernel launch:</p>
+<ul>
+<li><strong>Native (TorchNeuron, Trn2/Trn3)</strong>: each kernel is a PyTorch custom op
+  on <code>device="neuron"</code>, also callable directly and inside
+  <code>torch.compile(backend="neuron")</code>: <code>torch.ops.trnblas.gemm_ragged</code>,
+  <code>gemm_&lt;tm&gt;_&lt;tk&gt;_&lt;tn&gt;</code> (one per autotune tile config, default
+  <code>gemm_128_128_512</code>), <code>syrk</code>, <code>mp2_energy</code>, <code>fused_gemm_energy</code>,
+  <code>batched_pair</code>, <code>j_batched</code>. TRSM rides the GEMM ops. The ops are
+  registered only once this path is selected.</li>
+<li><strong>XLA (Trn1)</strong>: kernels run on the <code>torch_xla</code> device, as before.</li>
+</ul>
+<p><code>set_backend</code> is unaffected: it still chooses NKI vs PyTorch. On the native
+path <code>nki_batched_pair_energy</code> takes the single full-batch kernel
+(<code>batched_pair</code>) up to est_iters = nocc² × N_A² × N_K = 3072 and the chunked
+per-i kernel (<code>j_batched</code>) above it (XLA: 4096). On trn2 the full-batch kernel
+is 2–11× faster warm, but above 3072 its first-call compile reached 43–178 s,
+against 2–4 s for the chunked kernel.
+See <a href="../../installation/#two-neuron-pytorch-lineages">Installation</a>.</p>
 <h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -5297,6 +5339,14 @@ namespace directly; the legacy <code>neuronxcc.nki.*</code> shim is not used.</p
 <tr>
 <td><code>TRNBLAS_USE_SIMULATOR=1</code></td>
 <td>Route kernel dispatch through <code>nki.simulate(kernel)(numpy_args)</code> on CPU. Bypasses <code>torch_xla</code> + NEFF compile; used for fast correctness iteration. See <a href="../../developing_kernels/">docs/developing_kernels.md</a>.</td>
+</tr>
+<tr>
+<td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla</code></td>
+<td>Suite-wide. Forces the native or XLA dispatch path.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_BATCHED_PAIR_CHUNK_THRESHOLD=&lt;n&gt;</code></td>
+<td>Overrides batched-pair routing (default 4096 on XLA, 3072 on native).</td>
 </tr>
 </tbody>
 </table>
