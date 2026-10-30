@@ -4848,6 +4848,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Environment variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#native-thresholds-measured-on-trn2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native thresholds: measured on Trn2
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5335,6 +5352,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Environment variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#native-thresholds-measured-on-trn2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native thresholds: measured on Trn2
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5480,11 +5514,11 @@ supported in maintenance mode."</p>
 </tr>
 <tr>
 <td><code>TRNTENSOR_MIN_NKI_FLOPS_NATIVE=&lt;int&gt;</code></td>
-<td>Native (TorchNeuron) path, operands on CPU. Default: <code>1_000_000_000</code> (provisional: native eager dispatch is ~0.2 ms per launch; re-measure with <code>scripts/autotune_dispatch.py</code>).</td>
+<td>Native (TorchNeuron) path, operands on CPU: M·K·N at which the work leaves the host for the <code>neuron</code> device. Below it, <code>torch.matmul</code> / <code>torch.bmm</code> run on the host. Above it, the operands are offloaded. The offload runs aten unless the pinned threshold below selects NKI. Default: <code>500_000_000</code> (measured on Trn2, see below).</td>
 </tr>
 <tr>
-<td><code>TRNTENSOR_MIN_NKI_FLOPS_NATIVE_PINNED=&lt;int&gt;</code></td>
-<td>Native path, operands already on <code>neuron</code>. Default: <code>128_000_000</code> (provisional).</td>
+<td><code>TRNTENSOR_MIN_NKI_FLOPS_NATIVE_PINNED=&lt;int&gt;\|never</code></td>
+<td>Native path: M·K·N at which the NKI kernel replaces aten on the device. Below it, device-resident operands run <code>torch.matmul</code> / <code>torch.bmm</code> (aten) on <code>neuron</code>. Default: <code>never</code>, because on Trn2 aten beat the NKI kernels at every measured size.</td>
 </tr>
 <tr>
 <td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla</code></td>
@@ -5508,6 +5542,37 @@ supported in maintenance mode."</p>
 </tr>
 </tbody>
 </table>
+<h3 id="native-thresholds-measured-on-trn2">Native thresholds: measured on Trn2<a class="headerlink" href="#native-thresholds-measured-on-trn2" title="Permanent link">&para;</a></h3>
+<p>These were measured on a trn2.3xlarge (Neuron SDK 2.33, NKI 0.7.0), using one
+NeuronCore and two host threads, with <code>scripts/bench_native_einsum.py</code> and
+<code>scripts/autotune_dispatch.py</code> (#41):</p>
+<ul>
+<li><strong>Pinned operands: NKI never beats aten.</strong> On device-resident operands,
+  aten <code>torch.matmul</code> / <code>torch.bmm</code> beat the trntensor NKI matmul and
+  batched-matmul kernels at every size from 128³ to 4096³, in both fp32 and
+  bf16. Examples:</li>
+<li>4096³ bf16: 1.38 ms with aten, 6.82 ms with NKI.</li>
+<li>1024³ fp32: 0.20 ms with aten, 0.55 ms with NKI.</li>
+</ul>
+<p>The eager launch floor is about 0.13 ms for an aten op and about 0.24 ms for
+  an NKI custom op.
+- <strong>Host operands: offload to aten from about 0.5 G multiply-adds.</strong>
+  Offloading to aten (upload, run on device, download) beats offloading
+  through the NKI kernel at every size. It also beats host torch:
+  - fp32: from about 134 M multiply-adds (512³) when the host has two
+    threads.
+  - bf16: from about 0.5 to 1 G multiply-adds.</p>
+<p>The default of 500 M sits between these. A host with more threads moves the
+  crossover up. Re-measure on your host with <code>scripts/autotune_dispatch.py</code>.</p>
+<p>Under <code>"auto"</code> on the native path, the fused quantum kernels (<code>mp2_energy</code>,
+<code>ao_to_mo_transform</code>) also run as aten, because both measured slower than
+aten on the device:</p>
+<ul>
+<li>AO→MO was 6–20× slower.</li>
+<li>MP2 energy was 1.0–1.5× slower, reaching parity at best.</li>
+</ul>
+<p><code>set_backend("nki")</code> still runs the NKI kernels. The kernels are unchanged,
+and the XLA path keeps them under <code>"auto"</code>.</p>
 <h2 id="kernels-internal">Kernels (internal)<a class="headerlink" href="#kernels-internal" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>matmul_kernel(a, b)</code> — 2-index matmul with stationary-A tile reuse.

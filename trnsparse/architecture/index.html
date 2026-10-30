@@ -4252,6 +4252,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#static-structure-on-the-native-path-trn2trn3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Static structure on the native path (Trn2/Trn3)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5325,6 +5336,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#static-structure-on-the-native-path-trn2trn3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Static structure on the native path (Trn2/Trn3)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5465,6 +5487,18 @@ Fock-build-sized inputs.</p>
 <p><code>bsr_spmm</code> applied to the post-softmax attention weight matrix. No new
 kernel — a <code>BSRMatrix</code> with a local-window or dilated block pattern IS
 an attention mask. See <a href="../sparse_attention/">sparse_attention.md</a>.</p>
+<h3 id="static-structure-on-the-native-path-trn2trn3">Static structure on the native path (Trn2/Trn3)<a class="headerlink" href="#static-structure-on-the-native-path-trn2trn3" title="Permanent link">&para;</a></h3>
+<p>TorchNeuron has no device sparse CSR, so the structure stays on the host
+(#30). The native path turns that into an advantage: <code>bsr_spmm</code> and
+block-sparse attention pass <code>block_row_ptrs</code> / <code>block_col_indices</code> to the
+kernel as compile-time constants (<code>trnsparse::bsr_spmm_static</code>,
+<code>attn_fwd_static</code>, <code>attn_bwd_static</code>). The trace unrolls exactly the stored
+blocks with static DMA addresses: no <code>(M_tiles, K_max)</code> padding (one dense
+global-token row no longer makes every row cost <code>K_max</code> blocks), no gathered
+copies of B / K / V, and the attention softmax statistics stay on chip. The
+cost is one compile per distinct structure (seconds), which a reused pattern
+amortizes. <code>TRNSPARSE_STATIC_STRUCTURE=0</code> restores the gather path. Measured
+crossovers against dense aten: <code>docs/benchmarks.md</code>.</p>
 <h2 id="formats">Formats<a class="headerlink" href="#formats" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>CSR</strong>: row pointer + column indices + values. Preferred for construction,

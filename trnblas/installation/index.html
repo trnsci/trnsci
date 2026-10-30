@@ -5519,6 +5519,14 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <td>Overrides the batched-pair full-batch vs chunked routing threshold (default 4096 on XLA, 3072 on native). For re-benchmarking.</td>
 </tr>
 <tr>
+<td><code>TRNBLAS_NATIVE_GEMM=auto\|nki</code></td>
+<td>Native path only. <code>auto</code> (default): <code>gemm</code> / <code>batched_gemm</code> / <code>syrk</code> / <code>trsm</code> updates on tensors already on the <code>neuron</code> device run as aten <code>matmul</code>, which is faster there. <code>nki</code> forces the NKI GEMM kernels.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_PAIR_ENERGY=auto\|sym\|aten\|legacy</code></td>
+<td>Native path, device-resident inputs only. Picks the <code>nki_batched_pair_energy</code> implementation: the LNC=2 symmetric kernel, aten (chunked GEMM + reduction), or the full-batch / chunked kernels. <code>auto</code> takes <code>sym</code> above 3 GFLOP per row launch.</td>
+</tr>
+<tr>
 <td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>
 <td>TorchNeuron (not trnblas) setting. Turns off the cross-process NKI kernel cache, which cannot version editable installs.</td>
 </tr>

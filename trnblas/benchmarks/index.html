@@ -2587,6 +2587,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#df-mp2-end-to-end-on-trn2-native-torchneuron-nki-vs-aten-vs-cpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 end-to-end on Trn2 (native TorchNeuron): NKI vs aten vs CPU
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5369,6 +5380,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#df-mp2-end-to-end-on-trn2-native-torchneuron-nki-vs-aten-vs-cpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 end-to-end on Trn2 (native TorchNeuron): NKI vs aten vs CPU
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5808,6 +5830,98 @@ Each i-dispatch is ~24 ms (XLA overhead + ~1 ms Tensor Engine execution), so
 64 dispatches costs 1.536 s instead of the 409 s that a per-pair loop would require.
 The full-batch kernel's 18 GB XLA graph is replaced by 64 × ~1.4 GB graphs that
 compile and cache normally.</p>
+<h2 id="df-mp2-end-to-end-on-trn2-native-torchneuron-nki-vs-aten-vs-cpu">DF-MP2 end-to-end on Trn2 (native TorchNeuron): NKI vs aten vs CPU<a class="headerlink" href="#df-mp2-end-to-end-on-trn2-native-torchneuron-nki-vs-aten-vs-cpu" title="Permanent link">&para;</a></h2>
+<p>trn2.3xlarge, SDK 2.33 (torch-neuronx 2.14, NKI 0.7), one LNC=2 logical core,
+fp32, warm median (the first rep compiles). CPU is <code>set_backend("pytorch")</code> on
+<strong>2 host threads</strong> (<code>OMP_NUM_THREADS=2</code>, <code>taskset -c 4,5</code>), so it is a floor for
+the box rather than a CPU-node baseline. "aten" is the same algorithm with
+<code>set_backend("pytorch")</code> on <code>neuron</code>-device tensors. "NKI" is
+<code>set_backend("nki")</code>, device-resident inputs, <code>--energy pair</code>. Reproduce with
+<code>scripts/bench_df_mp2_paths.py</code> (PySCF RHF + DF, weigend aux unless "RI" =
+cc-pVTZ-RI). aten and NKI after the change were measured in the same session.</p>
+<table>
+<thead>
+<tr>
+<th>molecule / basis</th>
+<th>nbasis/nocc/naux</th>
+<th>CPU</th>
+<th>aten</th>
+<th>NKI before</th>
+<th>NKI after</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H₂O / cc-pVDZ</td>
+<td>24/5/71</td>
+<td>0.3 ms</td>
+<td>16.9 ms</td>
+<td>15.2 ms</td>
+<td>8.9 ms</td>
+</tr>
+<tr>
+<td>CH₄ / cc-pVTZ</td>
+<td>86/5/93</td>
+<td>1.2 ms</td>
+<td>8.3 ms</td>
+<td>22.2 ms</td>
+<td>8.2 ms</td>
+</tr>
+<tr>
+<td>glycine / cc-pVDZ</td>
+<td>95/20/300</td>
+<td>66 ms</td>
+<td>29.8 ms</td>
+<td>27.3 ms</td>
+<td>15.7 ms</td>
+</tr>
+<tr>
+<td>glycine / cc-pVTZ</td>
+<td>220/20/300</td>
+<td>220 ms</td>
+<td>15.0 ms</td>
+<td>61.8 ms</td>
+<td>19.7 ms</td>
+</tr>
+<tr>
+<td>glycine / cc-pVTZ, RI</td>
+<td>220/20/555</td>
+<td>223 ms</td>
+<td>28.8 ms</td>
+<td>93.1 ms</td>
+<td>23.1 ms</td>
+</tr>
+<tr>
+<td>(H₂O)₃ / cc-pVTZ, RI</td>
+<td>174/15/423</td>
+<td>84 ms</td>
+<td>19.8 ms</td>
+<td>48.8 ms</td>
+<td>20.5 ms</td>
+</tr>
+<tr>
+<td>synthetic</td>
+<td>512/64/1536</td>
+<td>18.4 s</td>
+<td>303 ms</td>
+<td>8.0 s</td>
+<td>226 ms</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Below about nbasis 100 with nocc 5, the CPU wins: the whole calculation
+  takes about 1 ms or less there, and any device path costs 5–10 ms of fixed overhead.</li>
+<li>On the real molecules, the NKI path after this change runs the same aten
+  GEMMs as the aten path, and every energy step there is below the
+  sym-kernel crossover. The two match within run-to-run noise, which comes
+  almost entirely from the Cholesky + TRSM stage (5–26 ms on the device).</li>
+<li>At 512/64/1536, <code>pair_energy_sym</code> takes the energy step from 207 ms (aten)
+  to 120 ms, which is 1.34× end to end. At 96/672/2304 the energy step alone
+  drops from 63 s (aten chunked reduction) to 0.69 s.</li>
+<li>Host-resident inputs (the old <code>df_mp2_pyscf.py</code> default) cost 2–5× end to
+  end: every NKI launch copies its operands over and back.</li>
+</ul>
 <h2 id="df-mp2-end-to-end-trainium1-vs-nvidia-a10g">DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G<a class="headerlink" href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" title="Permanent link">&para;</a></h2>
 <p>Synthetic inputs, same seed, same three shapes on both platforms.
 Energy matches bit-for-bit within fp32 reduction-order noise.</p>

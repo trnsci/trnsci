@@ -5318,7 +5318,7 @@ AMI Neuron or install from <code>https://pip.repos.neuron.amazonaws.com</code>.<
 <td>TorchNeuron (native)</td>
 <td>Trn2, Trn3</td>
 <td>Neuron SDK 2.33+, Python ≥ 3.12, <code>torch</code> 2.14, <code>torch-neuronx</code> 2.14.*</td>
-<td>Each kernel is a PyTorch custom op registered with <code>torch_neuronx.nki_op</code> (<code>torch.ops.trnsparse.spmm_dense</code>, <code>bsr_spmm</code>, <code>screened_spmm</code>, <code>attn_stats</code>, <code>attn_out</code>, <code>attn_bwd_dq</code>, <code>attn_bwd_dkdv</code>), plus the composite <code>trnsparse::bsr_attn</code> / <code>bsr_attn_bwd</code>; tensors live on <code>device="neuron"</code>. Backwards are attached with <code>register_autograd</code>.</td>
+<td>Each kernel is a PyTorch custom op registered with <code>torch_neuronx.nki_op</code> (<code>torch.ops.trnsparse.spmm_dense</code>, <code>bsr_spmm</code>, <code>screened_spmm</code>, <code>attn_stats</code>, <code>attn_out</code>, <code>attn_bwd_dq</code>, <code>attn_bwd_dkdv</code>, and the static-structure <code>bsr_spmm_static</code>, <code>attn_fwd_static</code>, <code>attn_bwd_static</code> that <code>bsr_spmm</code> and attention use by default), plus the composite <code>trnsparse::bsr_attn</code> / <code>bsr_attn_bwd</code>; tensors live on <code>device="neuron"</code>. Backwards are attached with <code>register_autograd</code>.</td>
 </tr>
 <tr>
 <td>PyTorch/XLA</td>

@@ -5477,9 +5477,15 @@ T_{i,j,a,b}  = Σ_P  B[i, a, P] B[j, b, P]
 </code></pre></div>
 <h3 id="backend-behaviour">Backend behaviour<a class="headerlink" href="#backend-behaviour" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>CPU</strong>: falls back to a Python loop over <code>(i, j)</code> pairs composing <code>torch.einsum</code>
-  and element-wise ops. Same as <code>examples/df_mp2_einsum.py</code>.</li>
-<li><strong>Trainium (NKI)</strong>: dispatches a single <code>@nki.jit</code> program that</li>
+<li><strong>CPU, and native TorchNeuron under <code>"auto"</code></strong>: aten ops on the operands' device.
+  <code>T[i, j, a, b]</code> is contracted with <code>torch.einsum</code> in chunks over <code>i</code>, which
+  bounds peak memory to about 64 MiB of <code>T</code> at a time. The <code>T</code>-weighted sum is
+  vectorized. This replaces the former Python loop over <code>(i, j)</code> pairs, which
+  ran 10–40× slower on a Trainium device.
+  On Trn2 the aten form matched or beat the fused kernel. For example, with
+  <code>nocc=32, nvir=128, naux=512</code> it took 3.1 ms, against 4.5 ms for the
+  kernel (#41).</li>
+<li><strong>Trainium (NKI): the PyTorch/XLA path, or <code>set_backend("nki")</code></strong>: dispatches a single <code>@nki.jit</code> program that</li>
 <li>accumulates <code>T</code> in PSUM via <code>nisa.nc_matmul</code>,</li>
 <li>builds <code>Δ</code> on the Vector Engine from SBUF-resident <code>ε</code> tiles,</li>
 <li>folds the energy into a scalar accumulator in SBUF,</li>
@@ -5511,8 +5517,12 @@ T_{i,j,a,b}  = Σ_P  B[i, a, P] B[j, b, P]
 </code></pre></div>
 <h3 id="backend-behaviour_1">Backend behaviour<a class="headerlink" href="#backend-behaviour_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>CPU</strong>: <code>torch.einsum("mi,na,mnP-&gt;iaP", C_occ, C_vir, eri)</code> — a single three-operand einsum.</li>
-<li><strong>Trainium (NKI)</strong>: dispatches a single <code>@nki.jit</code> program that</li>
+<li><strong>CPU, and native TorchNeuron under <code>"auto"</code></strong>: two explicit aten steps,
+  <code>einsum("mi,mnP-&gt;inP")</code> then <code>einsum("na,inP-&gt;iaP")</code>, on the operands'
+  device. On Trn2 this was 6–20× faster than the fused kernel. For example,
+  with <code>nbasis=128, nocc=16, naux=256</code> it took 0.82 ms, against 16.4 ms for
+  the kernel (#41).</li>
+<li><strong>Trainium (NKI): the PyTorch/XLA path, or <code>set_backend("nki")</code></strong>: dispatches a single <code>@nki.jit</code> program that</li>
 <li>loads <code>C_occ</code> and <code>C_vir</code> once, SBUF-resident across all P iterations,</li>
 <li>for each auxiliary index P: two sequential <code>nisa.nc_matmul</code> calls with the intermediate <code>(i, ν)</code> tile round-tripping through kernel-scratch HBM to handle the partition-dim change,</li>
 <li>writes one <code>(nocc, nvir)</code> slice per P to the output HBM tensor.</li>
