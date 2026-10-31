@@ -5222,7 +5222,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              11 min read
+                              12 min read
                             
                           </span>
                         </div>
@@ -5250,9 +5250,13 @@
 
 
 <h1 id="trnsolver-jacobi-on-hardware-six-months-after-the-argument">trnsolver: Jacobi on hardware, six months after the argument<a class="headerlink" href="#trnsolver-jacobi-on-hardware-six-months-after-the-argument" title="Permanent link">&para;</a></h1>
-<p>trnsolver's batched block-Jacobi <code>eigh</code> now beats 2-thread CPU LAPACK by 1.5–2.2× on Trn2 for FP32 batches at n = 64 and 128 with B ≥ 64–256, and at n = 32 with B = 1024. Getting there meant first measuring the design the library had picked over Jacobi in April, batched Householder tridiagonalization, losing to the CPU by 6–17×. The <a href="../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">April post</a> argued that Trainium wants Jacobi, then the library deleted its Jacobi kernels two days later; this post is the hardware verdict on both decisions, for anyone with thousands of small symmetric eigenproblems, such as SCF inner loops.</p>
+<p>trnsolver's batched block-Jacobi <code>eigh</code> on one Trn2 core runs 1.5–2.2× faster than batched 2-thread CPU LAPACK for FP32 batches at n = 64 and 128 with B ≥ 64–256, and at n = 32 with B = 1024. Against a fairer CPU baseline, the batch split across the same threads, the margin shrinks to about 1.13× (see the correction below). Getting there meant first measuring the design the library had picked over Jacobi in April, batched Householder tridiagonalization, losing to the CPU by 6–17×. The <a href="../trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">April post</a> argued that Trainium wants Jacobi, then the library deleted its Jacobi kernels two days later; this post is the hardware verdict on both decisions, for anyone with thousands of small symmetric eigenproblems, such as SCF inner loops.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>The CPU column below is batched <code>torch.linalg.eigh</code>, which barely uses its second thread at these sizes. Splitting the batch across the same 2 threads is 1.6–5.8× faster (<a href="https://github.com/trnsci/trnsolver/pull/54">trnsolver#54</a>). Against that baseline the single-core kernel at n = 128, B = 1024 is 310 vs 352 ms, 1.13× rather than 2×. Spreading the batch over all 4 cores of the chip brings it to 152 ms (0.43× of the split CPU on 2 threads), but against 8 CPU threads the best device result is at most 1.25× faster. The Jacobi-over-Householder verdict stands; the margin over a well-used CPU is small.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Code status</p>
 <p>The one-sided Jacobi kernel (<a href="https://github.com/trnsci/trnsolver/pull/50">trnsolver#50</a>) shipped in <a href="https://github.com/trnsci/trnsolver/releases/tag/v0.17.0">v0.17.0</a>. The block kernel and the <code>method="auto"</code> region (<a href="https://github.com/trnsci/trnsolver/pull/52">#52</a>) are in <a href="https://github.com/trnsci/trnsolver/tree/v0.18.0">v0.18.0</a>. The Householder device pipeline (<a href="https://github.com/trnsci/trnsolver/pull/45">#45</a>, <a href="https://github.com/trnsci/trnsolver/pull/47">#47</a>, <a href="https://github.com/trnsci/trnsolver/pull/49">#49</a>) stays as draft PRs, kept for their measurements. Everything ran on a trn2.3xlarge with public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631).</p>

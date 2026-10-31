@@ -5226,7 +5226,7 @@
           
           <li class="md-meta__item">
             
-              11 min read
+              12 min read
             
           </li>
         
@@ -5237,7 +5237,7 @@
   </header>
   <div class="md-post__content md-typeset">
     <h2 id="trnsolver-jacobi-on-hardware-six-months-after-the-argument"><a class="toclink" href="trnsolver-jacobi-on-hardware-six-months-after-the-argument/">trnsolver: Jacobi on hardware, six months after the argument</a></h2>
-<p>trnsolver's batched block-Jacobi <code>eigh</code> now beats 2-thread CPU LAPACK by 1.5–2.2× on Trn2 for FP32 batches at n = 64 and 128 with B ≥ 64–256, and at n = 32 with B = 1024. Getting there meant first measuring the design the library had picked over Jacobi in April, batched Householder tridiagonalization, losing to the CPU by 6–17×. The <a href="trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">April post</a> argued that Trainium wants Jacobi, then the library deleted its Jacobi kernels two days later; this post is the hardware verdict on both decisions, for anyone with thousands of small symmetric eigenproblems, such as SCF inner loops.</p>
+<p>trnsolver's batched block-Jacobi <code>eigh</code> on one Trn2 core runs 1.5–2.2× faster than batched 2-thread CPU LAPACK for FP32 batches at n = 64 and 128 with B ≥ 64–256, and at n = 32 with B = 1024. Against a fairer CPU baseline, the batch split across the same threads, the margin shrinks to about 1.13× (see the correction below). Getting there meant first measuring the design the library had picked over Jacobi in April, batched Householder tridiagonalization, losing to the CPU by 6–17×. The <a href="trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/">April post</a> argued that Trainium wants Jacobi, then the library deleted its Jacobi kernels two days later; this post is the hardware verdict on both decisions, for anyone with thousands of small symmetric eigenproblems, such as SCF inner loops.</p>
 
     
       <nav class="md-post__action">
