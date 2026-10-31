@@ -68,7 +68,7 @@ Host tensors, the Trn1 XLA path and the simulator are unchanged.
 
 **The threshold assumes two host threads.** Every host number was measured on 2 cores pinned with `taskset -c 4,5`. More cores would move the crossover up; that hasn't been measured.
 
-The GEMM routing decision shipped in [trnblas v0.7.0](https://github.com/trnsci/trnblas/tree/v0.7.0). The host metric factor ([trnblas#57](https://github.com/trnsci/trnblas/pull/57)) and the LNC=1 fix ([trnblas#58](https://github.com/trnsci/trnblas/pull/58)) are on `main`, in the upcoming v0.8.0.
+The GEMM routing decision shipped in [trnblas v0.7.0](https://github.com/trnsci/trnblas/tree/v0.7.0). The host metric factor ([trnblas#57](https://github.com/trnsci/trnblas/pull/57)) and the LNC=1 fix ([trnblas#58](https://github.com/trnsci/trnblas/pull/58)) are in [v0.8.0](https://github.com/trnsci/trnblas/tree/v0.8.0).
 
 ## Implementation
 
