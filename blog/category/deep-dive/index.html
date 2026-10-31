@@ -5181,6 +5181,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trnsparse/" class="md-meta__link">trnsparse</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              11 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsparse-the-crossover-density-with-the-sparsity-pattern-compiled-in"><a class="toclink" href="../../trnsparse-the-crossover-density-with-the-sparsity-pattern-compiled-in/">trnsparse: the crossover density, with the sparsity pattern compiled in</a></h2>
+<p>Before <a href="https://github.com/trnsci/trnsparse/pull/34">trnsparse#34</a>, no sparse path in trnsparse beat plain dense aten on Trn2 (<code>matmul</code>, or unmasked SDPA), and about 60% of each BSR SpMM call went to padding and gathering on the device. The fix is to treat the block structure, which TorchNeuron already forces onto the host, as compile-time constants: the kernel unrolls exactly the stored 128×128 blocks with fixed DMA addresses and no gather, at the cost of one compile per distinct structure. The result is a measured crossover density by matrix size, which anyone choosing between BSR and dense on Trainium can read off a table.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnsparse-the-crossover-density-with-the-sparsity-pattern-compiled-in/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5472,53 +5514,6 @@ architecture made this obvious. Getting the dispatch infrastructure right was le
     
       <nav class="md-post__action">
         <a href="../../trnfft-the-neuroncore-is-the-unit-of-parallelism/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-30 00:00:00+00:00">April 30, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              4 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-what-trn1-and-trn2-tell-us-about-the-ozaki-frontier"><a class="toclink" href="../../trnfft-what-trn1-and-trn2-tell-us-about-the-ozaki-frontier/">trnfft: what trn1 and trn2 tell us about the Ozaki frontier</a></h2>
-<p>The <a href="../2026-04-25-trnfft-ozaki-eight-runs/">v0.18</a> and <a href="../2026-04-28-trnfft-two-level-ozaki/">v0.19</a>
-posts claimed hardware precision of O(sqrt(N)·u_bf16²) ≈ 1.6e-5 and O(sqrt(N)·u_bf16⁴) ≈ 2e-9
-for the Ozaki modes. The trn1 hardware measurement says those numbers are wrong — both modes
-deliver ~1.7e-3, equivalent to single-pass BF16. trn2 was then tested with the same characterization.
-The result is identical. Both generations. The conclusion is still not "Ozaki is a dead end" —
-but the generational gap theory needs revision.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trnfft-what-trn1-and-trn2-tell-us-about-the-ozaki-frontier/">
           Continue reading
         </a>
       </nav>
