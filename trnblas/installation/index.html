@@ -5549,12 +5549,16 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <td>Overrides the batched-pair full-batch vs chunked routing threshold (default 4096 on XLA, 3072 on native). For re-benchmarking.</td>
 </tr>
 <tr>
-<td><code>TRNBLAS_NATIVE_GEMM=auto\|nki</code></td>
-<td>Native path only. <code>auto</code> (default): <code>gemm</code> / <code>batched_gemm</code> / <code>syrk</code> / <code>trsm</code> updates on tensors already on the <code>neuron</code> device run as aten <code>matmul</code>, which is faster there. <code>nki</code> forces the NKI GEMM kernels.</td>
+<td><code>TRNBLAS_NATIVE_GEMM=auto\|nki\|aten\|host</code></td>
+<td>Native path only. <code>auto</code> (default) routes <code>gemm</code> / <code>batched_gemm</code> / <code>syrk</code> / <code>symm</code> / <code>trsm</code> by measured time (#62, #63): device-resident operands run as aten on the <code>neuron</code> device; host operands run on the host CPU below a size threshold and as upload + aten + download above it; <code>trsm</code> solves with LAPACK on the host. <code>nki</code> forces the NKI kernels, <code>aten</code> forces aten on the device, <code>host</code> keeps host operands on the host. An explicit <code>set_backend("nki")</code> always runs the NKI kernels.</td>
 </tr>
 <tr>
 <td><code>TRNBLAS_PAIR_ENERGY=auto\|sym\|aten\|legacy</code></td>
 <td>Native path, device-resident inputs only. Picks the <code>nki_batched_pair_energy</code> implementation: the LNC=2 symmetric kernel, aten (chunked GEMM + reduction), or the full-batch / chunked kernels. <code>auto</code> takes <code>sym</code> above 3 GFLOP per row launch.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_PINNED_OUTPUT=1\|0</code></td>
+<td>Native path only. <code>1</code> (default): host results of 1 MiB or more from the device (<code>gemm</code>, <code>batched_gemm</code>, <code>syrk</code>, <code>trsm</code> and the other host-input wrappers) are copied into a fresh tensor from the accelerator's caching host allocator (<code>pin_memory=True</code>). That is about 3.5x faster than <code>.to("cpu")</code>, which page-faults fresh memory. Freed blocks stay cached, rounded up to a power of two, until <code>torch.accelerator.empty_host_cache()</code>. <code>0</code> returns plain <code>.to("cpu")</code> results.</td>
 </tr>
 <tr>
 <td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>

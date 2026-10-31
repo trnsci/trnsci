@@ -2700,6 +2700,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#native-auto-routing-of-the-gemm-family-62-63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native auto routing of the GEMM family (#62, #63)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5565,6 +5576,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#native-auto-routing-of-the-gemm-family-62-63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native auto routing of the GEMM family (#62, #63)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -6436,6 +6458,219 @@ host-input split runs 42–61 ms and the staged split 53–173 ms.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="native-auto-routing-of-the-gemm-family-62-63">Native <code>auto</code> routing of the GEMM family (#62, #63)<a class="headerlink" href="#native-auto-routing-of-the-gemm-family-62-63" title="Permanent link">&para;</a></h2>
+<p>trn2.3xlarge, SDK 2.33 (native TorchNeuron), one LNC=2 logical core, host
+threads pinned to 2 CPUs (<code>taskset -c 4,5</code>, <code>OMP_NUM_THREADS=2</code>), warm
+medians in ms, inputs built on the host. Every candidate route was timed
+with <code>scripts/bench_auto_routes.py &lt;op&gt; &lt;dtype&gt;</code>; "<code>auto</code> before" is the
+v0.8 routing (host operands → upload + NKI kernel), "after" is this
+routing. The host CPUs share physical cores with another job on this box, so
+host-CPU times varied by up to 2-5x between runs (bf16 most); the
+thresholds were fitted to the quieter run.</p>
+<p>Host operands, host result:</p>
+<table>
+<thead>
+<tr>
+<th>op, fp32</th>
+<th>host CPU</th>
+<th>upload+aten</th>
+<th>upload+NKI</th>
+<th><code>auto</code> before</th>
+<th><code>auto</code> after</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gemm 128³</td>
+<td><strong>0.02</strong></td>
+<td>0.27</td>
+<td>0.46</td>
+<td>0.43</td>
+<td>0.04</td>
+</tr>
+<tr>
+<td>gemm 384³</td>
+<td><strong>0.47</strong></td>
+<td>0.68</td>
+<td>0.84</td>
+<td>0.81</td>
+<td>0.58</td>
+</tr>
+<tr>
+<td>gemm 512³</td>
+<td>0.87</td>
+<td><strong>0.54</strong></td>
+<td>0.67</td>
+<td>0.73</td>
+<td>0.79</td>
+</tr>
+<tr>
+<td>gemm 4096³</td>
+<td>438</td>
+<td><strong>19.5</strong></td>
+<td>27.6</td>
+<td>27.5</td>
+<td>19.6</td>
+</tr>
+<tr>
+<td>gemm 8192³</td>
+<td>3126</td>
+<td><strong>88.4</strong></td>
+<td>182</td>
+<td>182</td>
+<td>87.2</td>
+</tr>
+<tr>
+<td>gemm 16×128×49152</td>
+<td><strong>1.05</strong></td>
+<td>2.70</td>
+<td>2.69</td>
+<td>2.71</td>
+<td>1.50</td>
+</tr>
+<tr>
+<td>gemm 32×256×196608</td>
+<td>30.1</td>
+<td><strong>18.6</strong></td>
+<td>19.0</td>
+<td>18.8</td>
+<td>18.5</td>
+</tr>
+<tr>
+<td>batched 16×112×128×384</td>
+<td>1.51</td>
+<td><strong>1.12</strong></td>
+<td>66.7</td>
+<td>18.4</td>
+<td>1.20</td>
+</tr>
+<tr>
+<td>batched 32×224×768×768</td>
+<td>31.0</td>
+<td><strong>10.2</strong></td>
+<td>101</td>
+<td>125</td>
+<td>9.86</td>
+</tr>
+<tr>
+<td>syrk 256×256</td>
+<td><strong>0.34</strong></td>
+<td>0.55</td>
+<td>0.80</td>
+<td>0.77</td>
+<td>0.57</td>
+</tr>
+<tr>
+<td>syrk 8192×2048</td>
+<td>1077</td>
+<td><strong>34.9</strong></td>
+<td>58.6</td>
+<td>58.1</td>
+<td>35.1</td>
+</tr>
+<tr>
+<td>symm 4096²</td>
+<td>606</td>
+<td><strong>20.5</strong></td>
+<td>–</td>
+<td>636</td>
+<td>21.4</td>
+</tr>
+<tr>
+<td>trsm n=768, 768 rhs</td>
+<td><strong>2.69</strong></td>
+<td>12.5</td>
+<td>11.7</td>
+<td>8.72</td>
+<td>5.75</td>
+</tr>
+<tr>
+<td>trsm n=2304, 2304 rhs</td>
+<td><strong>59.9</strong></td>
+<td>96.9</td>
+<td>100</td>
+<td>121</td>
+<td>77.2</td>
+</tr>
+<tr>
+<td>trsm n=1024, 16384 rhs</td>
+<td>150</td>
+<td>211</td>
+<td><strong>127</strong></td>
+<td>113</td>
+<td>163</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Device-resident operands go to aten, as before: aten beat the NKI kernel at
+  every GEMM, batched and SYRK shape and dtype, by 1.1x (32×256×196608) to 6x
+  (8192³ bf16: 7.7 vs 47 ms), and 20-310x for batched GEMM, which launches
+  the kernel once per slice. <code>set_backend("nki")</code> still runs the kernel.</li>
+<li>bf16 moves the host/device crossover up: the host's bf16 matmul (AMX) ran
+  4096³ in 115 ms and 32×256×196608 in 4.0 ms (upload + aten: 10.2 ms).</li>
+<li>The TRSM device routes are bound by the diagonal-panel solves (aten and
+  NKI updates cost the same), so host operands solve with LAPACK. The one
+  loss is a wide right-hand side, 1024 × 16384, where the old host-panel +
+  NKI-update path was faster.</li>
+<li>The rule is <code>macs &lt; threads/2 · (fixed + per_byte · link_bytes)</code> per (op,
+  dtype); see <code>_HOST_GEMM_MODEL</code> in <code>trnblas/nki/dispatch.py</code>.</li>
+</ul>
+<p>Umbrella DF-MP2 profile (<code>examples/quantum_chemistry/df_mp2_profile.py</code> from
+trnsci/trnsci main, <code>--modes cpu,host-auto,neuron</code>), warm total in ms. "before"
+is v0.8 in the same session, run right after the "after" rows:</p>
+<table>
+<thead>
+<tr>
+<th>size (ao/aux/occ), pipeline</th>
+<th>cpu (after / before session)</th>
+<th>host-auto before</th>
+<th>host-auto after</th>
+<th>neuron after</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m (128/384/16), example</td>
+<td>41.3 / 62.8</td>
+<td>153.2</td>
+<td>29.0</td>
+<td>21.9</td>
+</tr>
+<tr>
+<td>m (128/384/16), fused</td>
+<td>24.1 / 24.3</td>
+<td>29.8</td>
+<td>28.9</td>
+<td>13.2</td>
+</tr>
+<tr>
+<td>l (256/768/32), example</td>
+<td>801 / 811</td>
+<td>1516</td>
+<td>710</td>
+<td>55.3</td>
+</tr>
+<tr>
+<td>l (256/768/32), fused</td>
+<td>878 / 845</td>
+<td>754</td>
+<td>798</td>
+<td>46.7</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>host-auto at l, example: half-transform 137 → 23 ms, metric 187 → 15 ms.
+  The energy step (trntensor, on the host in both runs) also went from 1208
+  to 673 ms; its cause was not isolated.</li>
+<li>At xs and s (32-64 AOs) host-auto now matches cpu (1.0 / 2.5 ms); an
+  earlier v0.8 run took 12.8 / 32.7 ms there.</li>
+<li>The profile labels any non-kernel GEMM route "aten", including the host
+  route.</li>
+<li>neuron mode (device-resident inputs) is unchanged within noise: v0.8 took
+  21.0 / 17.1 ms (m) and 57.6 / 47.9 ms (l).</li>
+</ul>
 <h2 id="df-mp2-end-to-end-trainium1-vs-nvidia-a10g">DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G<a class="headerlink" href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" title="Permanent link">&para;</a></h2>
 <p>Synthetic inputs, same seed, same three shapes on both platforms.
 Energy matches bit-for-bit within fp32 reduction-order noise.</p>

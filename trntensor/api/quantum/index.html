@@ -4865,6 +4865,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#packed-integrals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packed integrals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#backend-behaviour_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5408,6 +5419,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#packed-integrals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packed integrals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#backend-behaviour_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5555,6 +5577,14 @@ T_{i,j,a,b}  = Σ_P  B[i, a, P] B[j, b, P]
   plus that staging would leave less than 3 GiB free. A shape whose kernel
   launch fails anyway falls back to aten and is remembered for the rest of
   the process.
+- <strong>Host <code>B</code> on native TorchNeuron (#56).</strong> Under <code>"auto"</code>, a host <code>B</code> with
+  <code>nocc²·nvir²·naux</code> of at least 1.5e8 multiply-adds (scaled by
+  <code>torch.get_num_threads() / 2</code>) is uploaded with the orbital energies, the
+  device route above runs, and the energy comes back as a host scalar.
+  Smaller problems stay on the host. On Trn2 with 2 host threads this took
+  646 ms -&gt; 16 ms at 32/224/1024 and 15.8 s -&gt; 135 ms at 64/448/1536. See
+  <a href="../nki/#host-operands-upload-or-stay-56">host operands</a> for the table and
+  <code>TRNTENSOR_HOST_ROUTE</code>.
 - <strong>PyTorch/XLA path (Trn1)</strong>: the original single-launch <code>mp2_energy_kernel</code>.
   It accumulates <code>T</code> in PSUM, builds <code>Δ</code> on the Vector Engine, and writes one
   partial per <code>(i, j)</code> pair.</p>
@@ -5564,7 +5594,10 @@ T_{i,j,a,b}  = Σ_P  B[i, a, P] B[j, b, P]
 </code></pre></div>
 <h3 id="arguments_1">Arguments<a class="headerlink" href="#arguments_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>eri: (nbasis, nbasis, naux) tensor</code> — density-fitted two-electron integrals in the AO basis</li>
+<li><code>eri</code> — density-fitted three-centre integrals in the AO basis, one of:</li>
+<li><code>(nbasis, nbasis, naux)</code>: the full square;</li>
+<li><code>(npair, naux)</code>, <code>npair = nbasis(nbasis+1)/2</code>: the packed lower triangle, row <code>μ(μ+1)/2 + ν</code> for <code>ν ≤ μ</code> (see <a href="#packed-integrals">Packed integrals</a>);</li>
+<li><code>(naux, npair)</code>: PySCF's <code>_cderi</code>, as is. When <code>naux == npair</code> the shape is ambiguous and is read as <code>(npair, naux)</code>; pass <code>cderi.T</code> then.</li>
 <li><code>C_occ: (nbasis, nocc) tensor</code> — occupied molecular orbital coefficients</li>
 <li><code>C_vir: (nbasis, nvir) tensor</code> — virtual molecular orbital coefficients</li>
 </ul>
@@ -5576,6 +5609,96 @@ T_{i,j,a,b}  = Σ_P  B[i, a, P] B[j, b, P]
 <span class="n">B</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">ao_to_mo_transform</span><span class="p">(</span><span class="n">eri</span><span class="p">,</span> <span class="n">C_occ</span><span class="p">,</span> <span class="n">C_vir</span><span class="p">)</span>
 <span class="n">E</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">mp2_energy</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">eps_occ</span><span class="p">,</span> <span class="n">eps_vir</span><span class="p">)</span>
 </code></pre></div>
+<h3 id="packed-integrals">Packed integrals<a class="headerlink" href="#packed-integrals" title="Permanent link">&para;</a></h3>
+<p>Real three-centre integrals are symmetric in μ↔ν, and drivers store only the
+lower triangle (PySCF <code>_cderi</code>, <code>trnblas.parallel.pack_tril</code>). Pass it packed
+(#54):</p>
+<div class="highlight"><pre><span></span><code><span class="n">B</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">ao_to_mo_transform</span><span class="p">(</span><span class="n">cderi</span><span class="p">,</span> <span class="n">C_occ_d</span><span class="p">,</span> <span class="n">C_vir_d</span><span class="p">)</span>  <span class="c1"># cderi: host (naux, npair)</span>
+</code></pre></div>
+<ul>
+<li><code>trntensor.pack_tril(eri)</code> and <code>trntensor.unpack_tril(eri_packed, nbasis)</code>
+  convert between the layouts (one <code>index_select</code> each, exact).</li>
+<li><strong>A host <code>eri</code> with device <code>C_occ</code> is uploaded to <code>C_occ</code>'s device</strong>, in the
+  layout given. The result stays on the device.</li>
+<li>On the native path, <code>"auto"</code> sends packed device integrals to
+  <code>ao_to_mo_trn2_packed_kernel</code> under the same conditions as the full kernel.
+  Its stage 1 fetches each <code>(128 μ, NUB ν, TP aux)</code> block from the packed
+  rows with one batched indirect DMA. The full square never exists in device
+  memory. Its result is bit-identical to the full kernel's.</li>
+<li>The aten and legacy routes unpack on the tensor's device first.</li>
+</ul>
+<p>Why: on Trn2 the host link carries about 13.8 GB/s for the whole chip, so the
+upload of <code>eri</code> was DF-MP2's largest stage. Packed, it is half the bytes.</p>
+<p>Upload of <code>eri</code> alone (Trn2, one logical core; host threads pinned to 2 CPUs):</p>
+<table>
+<thead>
+<tr>
+<th>nbasis/naux</th>
+<th>full</th>
+<th>packed</th>
+<th>packed, from pinned host memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>384/1152</td>
+<td>49.2 ms</td>
+<td>25.1 ms</td>
+<td>24.9 ms</td>
+</tr>
+<tr>
+<td>512/1536</td>
+<td>115.7 ms</td>
+<td>58.5 ms</td>
+<td>58.4 ms</td>
+</tr>
+</tbody>
+</table>
+<p>Pinned host memory and <code>copy_</code> into a preallocated device tensor upload no
+faster: H2D already runs at the link rate from ordinary host memory.
+Packing a full host tensor costs more than it saves: 180 ms on 2 host
+threads at 512/1536, against a 57 ms saving. Neither does uploading the
+triangle row by row (281 ms). So a 3-D host <code>eri</code> is uploaded as is.
+Packing pays only when the integrals already arrive packed.</p>
+<p>Kernel alone, device-resident, warm (fp32; padded <code>nvir</code> included):</p>
+<table>
+<thead>
+<tr>
+<th>nbasis/naux/nocc</th>
+<th>LNC=2 full</th>
+<th>LNC=2 packed</th>
+<th>LNC=1 full</th>
+<th>LNC=1 packed</th>
+<th>device <code>unpack_tril</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256/768/32</td>
+<td>1.09 ms</td>
+<td>0.91 ms</td>
+<td>1.86 ms</td>
+<td>1.93 ms</td>
+<td>—</td>
+</tr>
+<tr>
+<td>384/1152/48</td>
+<td>5.38 ms</td>
+<td>5.81 ms</td>
+<td>5.72 ms</td>
+<td>5.95 ms</td>
+<td>3.1 ms</td>
+</tr>
+<tr>
+<td>512/1536/64</td>
+<td>6.28 ms</td>
+<td>6.27 ms</td>
+<td>12.87 ms</td>
+<td>12.75 ms</td>
+<td>5.5 ms</td>
+</tr>
+</tbody>
+</table>
 <h3 id="backend-behaviour_1">Backend behaviour<a class="headerlink" href="#backend-behaviour_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>CPU</strong>: two explicit aten steps on the operands' device:
@@ -5647,6 +5770,16 @@ T_{i,j,a,b}  = Σ_P  B[i, a, P] B[j, b, P]
   nbasis 64 and 128 it measured 0.79 and 0.57 ms with the kernel forced,
   which is why <code>"auto"</code> keeps aten there.</p>
 <ul>
+<li><strong>Host inputs on native TorchNeuron (#56).</strong> Under <code>"auto"</code>, with <code>eri</code>,
+  <code>C_occ</code> and <code>C_vir</code> all on the host, the inputs are uploaded (<code>eri</code> in the
+  layout given), the device route above runs, and the result is downloaded,
+  once <code>nocc·nbasis²·naux</code> reaches 2e8 for a full <code>eri</code> or 3e7 for a packed
+  one (both scaled by <code>torch.get_num_threads() / 2</code>). A packed host <code>eri</code>
+  otherwise pays a host unpack, so its threshold is lower. On Trn2 with 2
+  host threads at 512/1536/64 this took 574 -&gt; 137 ms full and 979 -&gt; 80 ms
+  packed. PySCF's <code>(naux, npair)</code> layout went from 5.2 s to 83 ms on one
+  physical core. See <a href="../nki/#host-operands-upload-or-stay-56">host operands</a>
+  for the table and <code>TRNTENSOR_HOST_ROUTE</code>.</li>
 <li><strong>PyTorch/XLA path (Trn1)</strong>: the original kernel. It loops over P, with the
   <code>(i, ν)</code> intermediate round-tripping through kernel-scratch HBM. On the
   native path it is deprecated.</li>

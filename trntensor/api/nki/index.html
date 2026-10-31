@@ -4892,6 +4892,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#host-operands-upload-or-stay-56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Host operands: upload or stay (#56)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5396,6 +5407,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#host-operands-upload-or-stay-56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Host operands: upload or stay (#56)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5568,7 +5590,15 @@ supported in maintenance mode."</p>
 </tr>
 <tr>
 <td><code>TRNTENSOR_AO_TO_MO=auto\|trn2\|aten\|legacy</code></td>
-<td>Native path: force the <code>ao_to_mo_transform</code> executor (<code>trn2</code> = the Trn2 kernel, <code>legacy</code> = the original kernel, deprecated there).</td>
+<td>Native path: force the <code>ao_to_mo_transform</code> executor (<code>trn2</code> = the Trn2 kernel, or <code>ao_to_mo_trn2_packed_kernel</code> for a packed 2-D <code>eri</code>; <code>legacy</code> = the original kernel, deprecated there; <code>aten</code> and <code>legacy</code> unpack a packed <code>eri</code> first).</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_HOST_ROUTE=auto\|host\|device</code></td>
+<td>Native path, <code>"auto"</code> backend, all operands on the host: where the work runs (#56). <code>auto</code> (default) uploads it once it reaches the measured thresholds below; <code>host</code> keeps it on the host; <code>device</code> always uploads. Covers <code>mp2_energy</code>, <code>ao_to_mo_transform</code>, <code>einsum</code> / <code>multi_einsum</code> (matmul, bmm, generic and multi-operand plans). Only float32 / bfloat16 / float16 operands are uploaded. <code>set_backend("pytorch")</code> and <code>set_backend("nki")</code> ignore it.</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_PINNED_OUTPUT=0</code></td>
+<td>Native path: download results with plain <code>.to("cpu")</code> instead of into memory from the caching host allocator (<code>torch.empty(..., pin_memory=True)</code>, results of 1 MiB and up; #56).</td>
 </tr>
 <tr>
 <td><code>TRNTENSOR_FORCE_BACKEND=pytorch\|nki\|auto</code></td>
@@ -5602,6 +5632,327 @@ NeuronCore and two host threads, with <code>scripts/bench_native_einsum.py</code
   - bf16: from about 0.5 to 1 G multiply-adds.</p>
 <p>The default of 500 M sits between these. A host with more threads moves the
   crossover up. Re-measure on your host with <code>scripts/autotune_dispatch.py</code>.</p>
+<h3 id="host-operands-upload-or-stay-56">Host operands: upload or stay (#56)<a class="headerlink" href="#host-operands-upload-or-stay-56" title="Permanent link">&para;</a></h3>
+<p>With every operand on the host, native <code>"auto"</code> uploads the work, runs it on
+the device by the device-resident policy, and downloads the result into
+memory from the caching host allocator, once the work reaches:</p>
+<table>
+<thead>
+<tr>
+<th>entry point</th>
+<th>work</th>
+<th>offload from (2 host threads)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mp2_energy</code></td>
+<td><code>nocc²·nvir²·naux</code></td>
+<td>1.5e8</td>
+</tr>
+<tr>
+<td><code>ao_to_mo_transform</code>, full <code>eri</code></td>
+<td><code>nocc·nbasis²·naux</code></td>
+<td>2e8</td>
+</tr>
+<tr>
+<td><code>ao_to_mo_transform</code>, packed <code>eri</code></td>
+<td><code>nocc·nbasis²·naux</code></td>
+<td>3e7</td>
+</tr>
+<tr>
+<td><code>einsum</code>, generic or multi-operand plan</td>
+<td>contraction multiply-adds (a path: the sum of its steps)</td>
+<td>5e8, and at least 0.5 multiply-adds per byte moved</td>
+</tr>
+<tr>
+<td><code>einsum</code> matmul / bmm</td>
+<td><code>M·K·N</code></td>
+<td><code>TRNTENSOR_MIN_NKI_FLOPS_NATIVE</code> (5e8, above)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The first four scale with <code>torch.get_num_threads() / 2</code>, as trnblas#65
+  does: the host side is compute-bound and the thresholds were measured with
+  2 threads. The matmul threshold keeps its own override and is not scaled.</li>
+<li>Einsums with little reuse stay on the host at any size: under 0.5
+  multiply-adds per byte moved, such as elementwise (0.08) and outer
+  (0.25) products. They measured 1.4-2.9x faster uploaded, but only because
+  2 host threads stream memory slower than the link. Host bandwidth grows
+  with threads and the link's does not, and these patterns fill device
+  memory.</li>
+<li>float64 and complex operands stay on the host, matmul included. The
+  device computes in at most fp32.</li>
+<li>If the upload or the device call fails (for example, a full device), the
+  call runs on the host. <code>TRNTENSOR_REQUIRE_NKI=1</code> raises instead.</li>
+<li>The first call of each shape on the device pays its compile. These tables
+  are warm.</li>
+</ul>
+<p>Measured on Trn2 (SDK 2.33, one logical core at LNC=2, fp32, warm medians,
+host in to host out). Host threads were pinned to 2 CPUs on two physical
+cores:</p>
+<p>"Host" is the host route on two physical cores; the column after it is the
+same on one physical core (both hyperthreads). "Device" is upload + the
+device-resident <code>auto</code> route + download. <strong>Bold</strong> is what <code>auto</code> now picks.</p>
+<p><code>mp2_energy</code>, ms:</p>
+<table>
+<thead>
+<tr>
+<th>nocc/nvir/naux</th>
+<th>work</th>
+<th>host</th>
+<th>host, 1 core</th>
+<th>device</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8/56/192</td>
+<td>3.9e7</td>
+<td><strong>1.4</strong></td>
+<td>1.7</td>
+<td>3.1</td>
+</tr>
+<tr>
+<td>8/80/256</td>
+<td>1.1e8</td>
+<td><strong>3.8</strong></td>
+<td>4.9</td>
+<td>4.2</td>
+</tr>
+<tr>
+<td>8/96/256</td>
+<td>1.5e8</td>
+<td>5.1</td>
+<td>6.8</td>
+<td><strong>4.1</strong></td>
+</tr>
+<tr>
+<td>16/112/384</td>
+<td>1.2e9</td>
+<td>26.0</td>
+<td>39.0</td>
+<td><strong>3.7</strong></td>
+</tr>
+<tr>
+<td>16/240/768</td>
+<td>1.1e10</td>
+<td>173</td>
+<td>253</td>
+<td><strong>6.5</strong></td>
+</tr>
+<tr>
+<td>32/224/1024</td>
+<td>5.3e10</td>
+<td>646</td>
+<td>1128</td>
+<td><strong>16.4</strong></td>
+</tr>
+<tr>
+<td>48/336/1152</td>
+<td>3.0e11</td>
+<td>3697</td>
+<td>6457</td>
+<td><strong>47.4</strong></td>
+</tr>
+<tr>
+<td>64/448/1536</td>
+<td>1.3e12</td>
+<td>15849</td>
+<td>28157</td>
+<td><strong>135</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>ao_to_mo_transform</code>, ms (full <code>eri</code> / packed <code>eri</code>):</p>
+<table>
+<thead>
+<tr>
+<th>nbasis/naux/nocc</th>
+<th>work</th>
+<th>host</th>
+<th>host, 1 core</th>
+<th>device</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>64/192/8</td>
+<td>6.3e6</td>
+<td><strong>1.0</strong> / <strong>1.3</strong></td>
+<td>1.1 / 1.7</td>
+<td>5.7 / 6.7</td>
+</tr>
+<tr>
+<td>128/384/16</td>
+<td>1.0e8</td>
+<td><strong>4.7</strong> / 6.7</td>
+<td>7.4 / 11.0</td>
+<td>7.5 / <strong>5.3</strong></td>
+</tr>
+<tr>
+<td>128/512/16</td>
+<td>1.3e8</td>
+<td><strong>6.2</strong> / –</td>
+<td>10.1 / 21.7</td>
+<td>8.9 / <strong>4.1</strong></td>
+</tr>
+<tr>
+<td>160/480/20</td>
+<td>2.5e8</td>
+<td>9.4 / –</td>
+<td>16.3 / 32.9</td>
+<td><strong>7.1</strong> / <strong>5.1</strong></td>
+</tr>
+<tr>
+<td>256/512/8</td>
+<td>2.7e8</td>
+<td>16.0 / 54.2</td>
+<td>26.5 / 71.0</td>
+<td><strong>13.6</strong> / <strong>13.0</strong></td>
+</tr>
+<tr>
+<td>256/1024/32</td>
+<td>2.2e9</td>
+<td>66.6 / 138</td>
+<td>111 / 198</td>
+<td><strong>25.7</strong> / <strong>15.7</strong></td>
+</tr>
+<tr>
+<td>384/1152/48</td>
+<td>8.2e9</td>
+<td>211 / 397</td>
+<td>355 / 571</td>
+<td><strong>62.2</strong> / <strong>37.9</strong></td>
+</tr>
+<tr>
+<td>512/1536/64</td>
+<td>2.6e10</td>
+<td>574 / 979</td>
+<td>959 / 1473</td>
+<td><strong>137</strong> / <strong>79.9</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>einsum</code> with host operands, ms:</p>
+<table>
+<thead>
+<tr>
+<th>contraction</th>
+<th>work</th>
+<th>MACs per byte</th>
+<th>host</th>
+<th>host, 1 core</th>
+<th>device</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mi,mnP-&gt;inP</code> 128/16/384</td>
+<td>1.0e8</td>
+<td>3.6</td>
+<td><strong>3.2</strong></td>
+<td>5.5</td>
+<td>4.4</td>
+</tr>
+<tr>
+<td><code>mi,mnP-&gt;inP</code> 256/32/768</td>
+<td>1.6e9</td>
+<td>7.1</td>
+<td>30.5</td>
+<td>52.4</td>
+<td><strong>19.7</strong></td>
+</tr>
+<tr>
+<td><code>mi,mnP-&gt;inP</code> 512/4/1536</td>
+<td>1.6e9</td>
+<td>1.0</td>
+<td>–</td>
+<td>252</td>
+<td><strong>123</strong></td>
+</tr>
+<tr>
+<td><code>iap,jbp-&gt;ijab</code> 16/112/384</td>
+<td>1.2e9</td>
+<td>67</td>
+<td>7.5</td>
+<td>13.3</td>
+<td><strong>3.8</strong></td>
+</tr>
+<tr>
+<td><code>iaP,PQ-&gt;iaQ</code> 64/448/1536</td>
+<td>6.8e10</td>
+<td>187</td>
+<td>386</td>
+<td>707</td>
+<td><strong>31.9</strong></td>
+</tr>
+<tr>
+<td><code>abc,cd-&gt;abd</code> 256</td>
+<td>4.3e9</td>
+<td>32</td>
+<td>46.9</td>
+<td>62.7</td>
+<td><strong>11.7</strong></td>
+</tr>
+<tr>
+<td><code>mi,na,mnP-&gt;iaP</code> 256/32/224/768 (path)</td>
+<td>3.0e9</td>
+<td>13.5</td>
+<td>–</td>
+<td>90.1</td>
+<td><strong>19.0</strong></td>
+</tr>
+<tr>
+<td><code>ij,ij-&gt;ij</code> 8192²</td>
+<td>6.7e7</td>
+<td>0.08</td>
+<td>–</td>
+<td><strong>85.8</strong></td>
+<td>60.3</td>
+</tr>
+<tr>
+<td><code>ab,cd-&gt;abcd</code> 160</td>
+<td>6.6e8</td>
+<td>0.25</td>
+<td>–</td>
+<td><strong>580</strong></td>
+<td>199</td>
+</tr>
+<tr>
+<td><code>ij,jk-&gt;ik</code> 640³</td>
+<td>2.6e8</td>
+<td>53</td>
+<td><strong>2.3</strong></td>
+<td>3.7</td>
+<td>2.6</td>
+</tr>
+<tr>
+<td><code>ij,jk-&gt;ik</code> 768³</td>
+<td>4.5e8</td>
+<td>66</td>
+<td><strong>3.4</strong></td>
+<td>5.6</td>
+<td>2.7</td>
+</tr>
+<tr>
+<td><code>ij,jk-&gt;ik</code> 1024³</td>
+<td>1.1e9</td>
+<td>85</td>
+<td>6.5</td>
+<td>12.1</td>
+<td><strong>3.2</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Results match the host route to 5e-7 relative (fp32 summation order).</li>
+<li>On one physical core the host is about 1.7x slower, so the device wins
+  earlier: from 3e7 for the full <code>eri</code>, and below 1.3e8 for matmul. The
+  thresholds were set on the faster host, so they are on the host's side.</li>
+<li>The device floor varied between runs, 1.2 to 2.6 ms for a small matmul.</li>
+</ul>
 <p>Kernel status on the native path after #51:</p>
 <ul>
 <li><strong>matmul / bmm: retired in favour of aten.</strong> A Trn2 rewrite used both

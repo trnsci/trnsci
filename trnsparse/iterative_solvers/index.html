@@ -4330,6 +4330,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Fused CG: cg_bsr_fused (#22)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#matvec-orientation-matvec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matvec orientation (matvec=)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bf16-a-precision-opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bf16 A (precision=, opt-in)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fused-power-iteration-power_iteration_bsr_fused" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fused power iteration: power_iteration_bsr_fused
+      
+    </span>
+  </a>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5241,6 +5280,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Fused CG: cg_bsr_fused (#22)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#matvec-orientation-matvec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matvec orientation (matvec=)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bf16-a-precision-opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bf16 A (precision=, opt-in)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fused-power-iteration-power_iteration_bsr_fused" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fused power iteration: power_iteration_bsr_fused
+      
+    </span>
+  </a>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5326,8 +5404,8 @@ kernel launch</strong>:</p>
   beyond the budget stream from HBM in 16-block DMAs on every iteration,
   still inside the launch.</li>
 <li>x, r, p (and z) stay in SBUF in a column layout (element <code>t*128 + p</code>
-  at <code>[p, t]</code>). The matvec is one <code>nc_matmul</code> per stored block into a
-  PSUM column; VectorE reads A p and z = D⁻¹ r straight from PSUM.</li>
+  at <code>[p, t]</code>). The matvec is one <code>nc_matmul</code> per stored block; see
+  "Matvec orientation" below.</li>
 <li>Each dot product is a VectorE multiply-reduce along the free axis and
   one all-ones TensorE matmul that sums over the 128 partitions and
   broadcasts the scalar to all of them at once.</li>
@@ -5339,31 +5417,112 @@ kernel launch</strong>:</p>
   solutions are exact rather than rounded up to <code>check_every</code>.</li>
 <li><strong>At LNC=2 the two physical cores split the block rows.</strong> Each core
   holds only its rows' blocks (so the SBUF capacity doubles), computes
-  its rows of A p and its half of every dot product, and the cores swap
-  partial sums and halves of p with <code>nisa.sendrecv</code>, three exchanges per
-  step. Both cores add the two partial sums in the same pair (a + b ==
-  b + a exactly), so they agree bit for bit on every step size and on
-  when to stop. That is what lets them run the same device-side loop:
+  its rows of A p and its half of p.Ap, and the cores swap with
+  <code>nisa.sendrecv</code> twice per step: the partial p.Ap (both cores add the
+  same pair, and a + b == b + a exactly), and their rows of r (and z),
+  after which each core holds the full r and z and computes r.z, r.r and
+  p = z + beta p over the full width itself. Either way both cores agree
+  bit for bit on every step size and on when to stop. (#40 used three
+  exchanges: partial r.z / r.r and p separately.) That is what lets them
+  run the same device-side loop:
   neuronx-cc requires both per-core programs to have the same control
   flow (<code>NCC_IXGM002</code>). <code>TRNSPARSE_CORE_SPLIT=0</code> runs the whole solve
   on both cores instead.</li>
 <li><strong>Several right-hand sides</strong> <code>(n, R)</code> are R independent CG solves that
-  share every load of A: each stored block is one matmul with R moving
-  columns. On Trn2 a 128x128 fp32 stationary block costs about 0.5 µs
-  with 1 moving column and about 0.52 µs with 64, so up to about 64
-  right-hand sides cost little more than one.</li>
+  share every matmul over a stored block (R stationary columns in the
+  column matvec, R moving columns in the row matvec).</li>
 </ul>
+<h3 id="matvec-orientation-matvec">Matvec orientation (<code>matvec=</code>)<a class="headerlink" href="#matvec-orientation-matvec" title="Permanent link">&para;</a></h3>
+<p><code>nc_matmul(dst, stationary, moving)</code> computes <code>stationaryᵀ @ moving</code>. The
+stationary operand is loaded into the 128x128 PE array, then the moving
+operand streams through it. Per stored fp32 128x128 block on Trn2
+(microbenchmark, one physical core):</p>
+<table>
+<thead>
+<tr>
+<th>orientation</th>
+<th>stationary</th>
+<th>moving</th>
+<th style="text-align: right;">ns per block</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"row"</code> (#40)</td>
+<td>A block (128x128)</td>
+<td>p_j (128x1)</td>
+<td style="text-align: right;">425</td>
+</tr>
+<tr>
+<td>vector-stationary, one PE tile</td>
+<td>p_j (128x1)</td>
+<td>A block</td>
+<td style="text-align: right;">206</td>
+</tr>
+<tr>
+<td><code>"column"</code>: vector-stationary, 4 column tiles in turn</td>
+<td>p_j (128x1)</td>
+<td>A block</td>
+<td style="text-align: right;">50</td>
+</tr>
+</tbody>
+</table>
+<p>The row form pays the fp32 weight load of the whole block for a single
+moving column. In the column form the stationary operand is p_j and the
+block streams through as the moving operand, so the result is a row,
+<code>(A_idx p_j)ᵀ</code>. With column tiling (<code>tile_size=(128, 32)</code>) the PE array
+splits into four 32-column tiles that work concurrently. The kernel
+issues blocks round-robin over four row groups, so block row i of a
+16-row chunk lands at PSUM partition <code>32 (i % 4)</code>, free offset
+<code>128 ((i // 4) % 4)</code>. Each chunk is then copied to SBUF and put back in
+the column layout with one TensorE transpose per four block rows
+(<code>nc_transpose</code>, bit-exact; about 110 ns for 128x128 fp32). Same fp32
+products, different summation order. No relayout of the stored blocks is
+needed: the <code>Aᵀ</code> blocks the row form uses as stationary are exactly the
+moving operand the column form needs. <code>"column"</code> takes R &lt;= 32 (one
+32-column tile). <code>"auto"</code> (the default) picks it for R &lt;= 32 and <code>"row"</code>
+above that.</p>
+<h3 id="bf16-a-precision-opt-in">bf16 A (<code>precision=</code>, opt-in)<a class="headerlink" href="#bf16-a-precision-opt-in" title="Permanent link">&para;</a></h3>
+<p><code>precision="bf16"</code> stores A's blocks in bf16 (half the SBUF and HBM bytes,
+so twice the resident blocks). The vector stays fp32 and is split on the
+device into bf16 hi + lo (<code>hi = bf16(p)</code>, <code>lo = bf16(p - hi)</code>), so the
+products are exact and accumulate in fp32 PSUM. The only loss is A's bf16
+rounding (~2^-9 relative): CG converges for the rounded matrix, and the
+true residual against A stalls near 5e-3. At κ = 1e5 the rounded matrix
+can be indefinite and CG breaks down. <code>precision="bf16x2"</code> stores A as
+bf16 hi + lo (~2^-17 relative, the same bytes as fp32, two matmuls per
+block). Both need <code>matvec="column"</code> and R &lt;= 16. The host path emulates
+both. Measured on Trn2: <code>"bf16"</code> is 1.0–1.4x faster than fp32 where fp32 A
+fits in SBUF and about 2.3x faster where it does not (n = 8192 with 1024
+blocks, where all 1024 bf16 blocks stay resident). Its true residual is
+1e-3 to 7e-2 at κ = 1e3, and at κ = 1e5 the error is about 0.9, or the
+solve breaks down. <code>"bf16x2"</code> costs about the same as fp32 and lands at
+1–15x tol at κ = 1e3 and 5–70x tol at κ = 1e5, so it does not pay. Neither
+replaces fp32; bf16 is at best an inner solver or a preconditioner. See <code>benchmarks.md</code>.</p>
 <p>The kernel is fp32 (PSUM accumulates in fp32). The host path (no
 <code>neuron</code> device, or <code>set_backend("pytorch")</code>) runs the same masked
 algorithm in PyTorch in b's dtype, so fp64 stays fp64.</p>
-<p>What limits it (measured on Trn2, see <code>benchmarks.md</code>): per iteration the
-cost is about 0.5 µs per stored block. That is the TensorE fp32
-stationary-weight load for a matvec with one moving column, and it is
-the same whether the block comes from SBUF or streams from HBM. 64 KiB
-per 0.5 µs is about 128 GB/s, which the DMA queues sustain inside the
-loop. So at one right-hand side, SBUF residency is not what makes this
-fast. The win is removing roughly ten host launches and a sync from
-every iteration.</p>
+<p>What limits it (measured on Trn2, see <code>benchmarks.md</code>): with the row
+matvec (#40), each iteration costs about 0.5 µs per stored block (the
+fp32 weight load), resident or streamed alike. The column matvec brings
+that to about 0.05 µs per resident block. Now three other costs set the
+time per iteration: a fixed cost of about 8 µs (LNC=1) or 11 µs (LNC=2,
+two exchanges) for the chain of small VectorE / TensorE steps and the
+<code>sendrecv</code>s; the TensorE transposes (one per four block rows); and, for
+blocks past the SBUF budget, the HBM stream (64 KiB per fp32 block). So
+residency matters again: at n = 8192 with 1024 blocks, the 384 streamed
+blocks set the pace.</p>
+<h2 id="fused-power-iteration-power_iteration_bsr_fused">Fused power iteration: <code>power_iteration_bsr_fused</code><a class="headerlink" href="#fused-power-iteration-power_iteration_bsr_fused" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">op</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">prepare_cg_bsr</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"neuron"</span><span class="p">)</span>  <span class="c1"># A need not be SPD here</span>
+<span class="n">lam</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">power_iteration_bsr_fused</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+</code></pre></div>
+<p>The same kernel (resident A, column matvec, PSUM dot products, LNC=2 row
+split, device-side <code>while</code> loop) runs v &lt;- A v / ||A v||. The Rayleigh
+quotient lam = v.Av / v.v (with ||Av||² from the same reduction, one
+exchange) is the eigenvalue estimate. The loop stops when
+|lam_k - lam_(k-1)| &lt; tol, as in <code>power_iteration_bsr</code>, or at <code>max_iter</code>.
+The rows of v are swapped with one more exchange. On the device it is
+fp32, so lam settles to about 1e-7 |lam|.</p>
 <h2 id="why-cg-and-power-iteration-not-gmres-lanczos-davidson">Why CG and power iteration, not GMRES / Lanczos / Davidson<a class="headerlink" href="#why-cg-and-power-iteration-not-gmres-lanczos-davidson" title="Permanent link">&para;</a></h2>
 <p>v0.3.2 covers the two most common algorithm families:</p>
 <ul>
