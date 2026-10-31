@@ -5254,7 +5254,7 @@
 <!-- more -->
 
 <div class="admonition warning">
-<p class="admonition-title">Correction (2026-11-01)</p>
+<p class="admonition-title">Correction (2026-10-31)</p>
 <p>The CPU column below is batched <code>torch.linalg.eigh</code>, which barely uses its second thread at these sizes. Splitting the batch across the same 2 threads is 1.6–5.8× faster (<a href="https://github.com/trnsci/trnsolver/pull/54">trnsolver#54</a>). Against that baseline the single-core kernel at n = 128, B = 1024 is 310 vs 352 ms, 1.13× rather than 2×. Spreading the batch over all 4 cores of the chip brings it to 152 ms (0.43× of the split CPU on 2 threads), but against 8 CPU threads the best device result is at most 1.25× faster. The Jacobi-over-Householder verdict stands; the margin over a well-used CPU is small.</p>
 </div>
 <div class="admonition note">
