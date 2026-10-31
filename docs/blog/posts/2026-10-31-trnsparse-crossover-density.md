@@ -114,7 +114,7 @@ The inner loop of `_bsr_spmm_static_kernel` in `trnsparse/nki/kernels.py`. The l
 
 **The crossover moves between runs.** PR #34's one-core crossovers and PR #36's one-core column disagree by up to 10 points (see the crossover table). Both ran on a shared trn2.3xlarge. #34 reported about ±0.1 ms of noise below 1 ms. #36 ran every configuration in two rounds and kept the lower warm median; the rounds disagreed by more than 30% in about 60 of roughly 400 cells, almost all below 1 ms. A crossover near the launch floor is good to a few points of density at best.
 
-**The reciprocal.** The kernel docstring records that the hardware reciprocal alone is accurate to only about 1e-3. The forward therefore computes `1/denom` as `rsqrt²`, and the backward uses exact aten division.
+**The reciprocal.** The kernel docstring records that the hardware reciprocal alone is accurate to only about 1e-3. *Correction:* a later on-device repro found `nl.reciprocal` accurate to about 1.5e-6 relative in range; its real hazard is a silent clamp (it returns 1e7 or 0) outside roughly |x| ∈ [2⁻⁴², 2⁴¹], and `nisa.reciprocal` on the Vector Engine is correctly rounded across the full fp32 range. The forward therefore computes `1/denom` as `rsqrt²`, and the backward uses exact aten division.
 
 **CSR and screened SpMM still lose.** CSR with host structure now scatters nnz triplets on the device below 10% density instead of copying a host-built dense matrix: 4–11× faster at ≤1% density, still far behind `torch.sparse` on two CPU threads. Screened SpMM is 1.5–2× faster than on main and still 2–3× slower than dense `(A * mask) @ B` on the device. It has no tile skipping, so screening sparsity saves it nothing.
 

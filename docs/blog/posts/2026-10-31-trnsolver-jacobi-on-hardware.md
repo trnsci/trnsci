@@ -124,7 +124,7 @@ _JACOBI_AUTO_REGION: tuple[tuple[int, int, int], ...] = (
 | rule found | what the kernel does instead | source |
 |---|---|---|
 | `abs_max` is NeuronCore-v4+ only | \|h\| as `max(-h, h)` | #50, `jacobi.py` |
-| hardware `reciprocal` is accurate to about 1e-3 | `1/x` as `rsqrt(x)²`, arguments clamped to the rsqrt table range [2⁻⁸⁷, 2⁹⁷]; no divide anywhere | #50 |
+| hardware `reciprocal` was thought accurate to about 1e-3 (*corrected:* ~1.5e-6 in range; the real hazard is a silent clamp outside roughly \|x\| ∈ [2⁻⁴², 2⁴¹]) | `1/x` as `rsqrt(x)²`, arguments clamped to the rsqrt table range [2⁻⁸⁷, 2⁹⁷]; no divide anywhere | #50 |
 | each activation-table switch costs about 1.3 µs | √x as `x·rsqrt(x)`, so only the rsqrt table is loaded | #50 |
 | `accumulate=False` matmuls into sub-bank column slices of one PSUM tile lose terms on hardware (the simulator computes them correctly) | each matmul writes a whole 2 KiB bank (512 FP32 columns) or the bank-aligned tail | `jacobi.py`; trnfft hit it first ([trnfft#91](https://github.com/trnsci/trnfft/pull/91), reported on [aws-neuron-sdk#1443](https://github.com/aws-neuron/aws-neuron-sdk/issues/1443)) |
 | the SBUF-only column-math chain on GpSimd failed at run time on Trn2 | stays on the default engines | #48 |
