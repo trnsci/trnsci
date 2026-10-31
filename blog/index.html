@@ -5298,6 +5298,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              11 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont"><a class="toclink" href="trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont/">trntensor: on Trn2 the planner earns its keep, the kernels don't</a></h2>
+<p>On the native TorchNeuron path, trntensor's hand-written NKI kernels did not beat aten on the device at any size measured, so <a href="https://github.com/trnsci/trntensor/releases/tag/v0.18.0">trntensor v0.18.0</a> now routes plain and fused contractions to aten by default. What the library does add on Trn2 sits one level up, in the host-side planner: contraction order, batching and precision modes. That planner had a bug that built a 4-index outer product, which cost 70 ms on a contraction that should take about 1 ms. Anyone writing contraction code for Trainium, or deciding whether a hand-written kernel is worth it, may find the measured split between "plan" and "kernel" more useful than any single speedup.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5461,48 +5503,6 @@ Aten <code>randn</code> is still about 11× faster, and the host CPU still wins 
     
       <nav class="md-post__action">
         <a href="trnsolver-what-torchcompile-cant-lower-and-a-20-second-eigh/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnsparse/" class="md-meta__link">trnsparse</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              10 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnsparse-from-1430-to-3030-on-nki-07"><a class="toclink" href="trnsparse-from-1430-to-3030-on-nki-07/">trnsparse: from 14/30 to 30/30 on NKI 0.7</a></h2>
-<p>trnsparse's block-sparse attention and screened-SpMM kernels had run under <code>nki.simulate</code> for six months, then failed 16 of 30 hardware tests the first time they ran on the native <code>neuron</code> device under NKI 0.7.0. The fixes are small: a reciprocal-multiply where a divide used to be, an explicit partition broadcast, and two host-side gather bugs, one of which had been blamed on the simulator since April. The compile fixes say a lot about how the engines want per-row scalars and partition counts expressed. The branch passes 30/30 on Trn2. It shipped in <a href="https://github.com/trnsci/trnsparse/releases/tag/v0.7.0">trnsparse v0.7.0</a> via PR <a href="https://github.com/trnsci/trnsparse/pull/31">trnsci/trnsparse#31</a>, and anyone moving NKI 0.3-era kernels to the native PyTorch path should read it before starting.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trnsparse-from-1430-to-3030-on-nki-07/">
           Continue reading
         </a>
       </nav>
