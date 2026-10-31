@@ -5348,7 +5348,7 @@
 <td>#50, <code>jacobi.py</code></td>
 </tr>
 <tr>
-<td>hardware <code>reciprocal</code> is accurate to about 1e-3</td>
+<td>hardware <code>reciprocal</code> was thought accurate to about 1e-3 (<em>corrected:</em> ~1.5e-6 in range; the real hazard is a silent clamp outside roughly |x| ∈ [2⁻⁴², 2⁴¹])</td>
 <td><code>1/x</code> as <code>rsqrt(x)²</code>, arguments clamped to the rsqrt table range [2⁻⁸⁷, 2⁹⁷]; no divide anywhere</td>
 <td>#50</td>
 </tr>
