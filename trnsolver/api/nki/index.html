@@ -5324,11 +5324,19 @@
 </tr>
 <tr>
 <td><code>TRNSOLVER_JACOBI_GROUP=&lt;g&gt;</code></td>
-<td>Jacobi kernel: tiles per launch (rounded down to a power of two). Default 128 for n ≤ 32, 64 for n ≤ 64, 16 for n ≤ 128 (split across the two physical cores of a logical NeuronCore).</td>
+<td>Jacobi kernel: tiles per launch (rounded down to a power of two). Default 128 (n ≤ 32: scalar kernel; 33 ≤ n ≤ 128: block kernel), split across the two physical cores of a logical NeuronCore.</td>
 </tr>
 <tr>
 <td><code>TRNSOLVER_JACOBI_CHAINS=&lt;c&gt;</code></td>
-<td>Jacobi kernel: independent dependency chains per step. Default 8 / 4 / 2 by the same size classes.</td>
+<td>Jacobi kernel: independent dependency chains per step. Default 8 for n ≤ 32, 2 for the block kernel.</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_JACOBI_BLOCK=0</code></td>
+<td>Run the scalar Jacobi kernel for 33 ≤ n ≤ 128 instead of the block kernel (#48).</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_EIGH_JACOBI_AUTO=off\|&lt;rows&gt;</code></td>
+<td>Region where <code>method="auto"</code> runs the Jacobi kernel (FP32 batches on <code>neuron</code>). <code>off</code>, or rows <code>n_min-n_max:B_min</code>, e.g. <code>1-32:512,33-64:256</code>. Default: the measured table in <code>eigen._JACOBI_AUTO_REGION</code>.</td>
 </tr>
 <tr>
 <td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla\|cpu</code></td>
@@ -5356,7 +5364,7 @@ detected on the first kernel launch:</p>
   on <code>device="neuron"</code>, also callable directly and inside
   <code>torch.compile(backend="neuron")</code>: <code>torch.ops.trnsolver.matvec</code>,
   <code>rank2_update</code>, <code>matmul</code>, <code>matmul_fp32out</code>, <code>apply_reflectors</code>,
-  <code>jacobi_sweeps</code>. The ops
+  <code>jacobi_sweeps</code>, <code>jacobi_block</code>. The ops
   are registered only once this path is selected.</li>
 <li><strong>XLA (Trn1)</strong>: kernels run on the <code>torch_xla</code> device, as before.</li>
 </ul>
