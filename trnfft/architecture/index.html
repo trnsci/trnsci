@@ -2149,6 +2149,8 @@
       
         
       
+        
+      
     
     
     
@@ -2293,6 +2295,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnblas/api/parallel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-core (parallel)
   
 
     
@@ -5295,7 +5325,7 @@
     ├── dispatch.py      # Backend dispatch + GEMM/mul kernels
     ├── butterfly.py     # NKI butterfly kernel (fast + Kahan variants)
     ├── autograd.py      # torch.autograd.Function wrappers for kernels
-    └── multicore.py     # Multi-NeuronCore (scaffold)
+    └── multicore.py     # Multi-NeuronCore batch split (host batches)
 </code></pre></div>
 <h2 id="precision-modes">Precision modes<a class="headerlink" href="#precision-modes" title="Permanent link">&para;</a></h2>
 <p>Introduced in v0.11.0. Select via <code>trnfft.set_precision(mode)</code>. The mode

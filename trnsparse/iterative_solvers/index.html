@@ -2056,6 +2056,8 @@
       
         
       
+        
+      
     
     
     
@@ -2200,6 +2202,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnblas/api/parallel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-core (parallel)
   
 
     
@@ -4292,10 +4322,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#v040-fused-kernel-with-sbuf-resident-a" class="md-nav__link">
+  <a href="#fused-cg-cg_bsr_fused-22" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.4.0 — fused kernel with SBUF-resident A
+        Fused CG: cg_bsr_fused (#22)
       
     </span>
   </a>
@@ -5203,10 +5233,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#v040-fused-kernel-with-sbuf-resident-a" class="md-nav__link">
+  <a href="#fused-cg-cg_bsr_fused-22" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.4.0 — fused kernel with SBUF-resident A
+        Fused CG: cg_bsr_fused (#22)
       
     </span>
   </a>
@@ -5247,8 +5277,7 @@
 <h1 id="iterative-solvers-over-bsr">Iterative solvers over BSR<a class="headerlink" href="#iterative-solvers-over-bsr" title="Permanent link">&para;</a></h1>
 <p>trnsparse v0.3.2 adds <code>cg_bsr</code> and <code>power_iteration_bsr</code> — Conjugate
 Gradient and power iteration on block-sparse row matrices. The API is
-stable; the architectural story below explains why there's a v0.4.0
-follow-up.</p>
+stable. <code>cg_bsr_fused</code> (below) is the one-launch, SBUF-resident CG.</p>
 <h2 id="why-this-matters">Why this matters<a class="headerlink" href="#why-this-matters" title="Permanent link">&para;</a></h2>
 <p>Large SPD linear systems and dominant-eigenpair problems show up
 across scientific computing:</p>
@@ -5281,53 +5310,60 @@ once. On the NKI backend that's one kernel dispatch + one HBM
 round-trip per iteration. On CPU it's <code>torch.sparse</code>-backed and
 roughly on par with <code>scipy.sparse.linalg.cg</code> (benchmarked: 369 μs vs
 310 μs at 128×128 SPD, 1.19× slower).</p>
-<h2 id="v040-fused-kernel-with-sbuf-resident-a">v0.4.0 — fused kernel with SBUF-resident A<a class="headerlink" href="#v040-fused-kernel-with-sbuf-resident-a" title="Permanent link">&para;</a></h2>
-<p>The architectural claim from
-<a href="https://github.com/trnsci/trnsparse/issues/22">#22</a>: Trainium's 32 GB
-SBUF per NeuronCore fits a 5000×5000 BSR Hamiltonian on-chip. CG
-doesn't need to round-trip <code>A</code> to HBM at all — only <code>x</code>, <code>r</code>, and <code>p</code>.</p>
-<p>The shape of the v0.4.0 kernel:</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@nki</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_cg_spd_kernel</span><span class="p">(</span><span class="n">A_blocks</span><span class="p">,</span> <span class="n">A_cols</span><span class="p">,</span> <span class="n">A_row_ptrs</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">):</span>
-    <span class="c1"># Load A blocks once into SBUF at the top.</span>
-    <span class="n">A_sbuf</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">A_blocks</span><span class="p">)</span>
-
-    <span class="c1"># State: x, r, p in SBUF registers.</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-    <span class="n">r</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-    <span class="n">rr</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">r</span> <span class="o">*</span> <span class="n">r</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">nl</span><span class="o">.</span><span class="n">affine_range</span><span class="p">(</span><span class="n">max_iter</span><span class="p">):</span>
-        <span class="n">Ap</span> <span class="o">=</span> <span class="n">_bsr_matvec_sbuf</span><span class="p">(</span><span class="n">A_sbuf</span><span class="p">,</span> <span class="n">A_cols</span><span class="p">,</span> <span class="n">A_row_ptrs</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>  <span class="c1"># all SBUF</span>
-        <span class="n">pAp</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">Ap</span><span class="p">)</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="n">rr</span> <span class="o">/</span> <span class="n">pAp</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">p</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">Ap</span>
-        <span class="n">rr_new</span> <span class="o">=</span> <span class="n">nl</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">r</span> <span class="o">*</span> <span class="n">r</span><span class="p">)</span>
-        <span class="n">beta</span> <span class="o">=</span> <span class="n">rr_new</span> <span class="o">/</span> <span class="n">rr</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">p</span>
-        <span class="n">rr</span> <span class="o">=</span> <span class="n">rr_new</span>
-
-    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">residual_norm_history</span>
+<h2 id="fused-cg-cg_bsr_fused-22">Fused CG: <code>cg_bsr_fused</code> (#22)<a class="headerlink" href="#fused-cg-cg_bsr_fused-22" title="Permanent link">&para;</a></h2>
+<p><code>cg_bsr_fused</code> runs the whole CG (or block-Jacobi PCG) solve in <strong>one
+kernel launch</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">op</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">prepare_cg_bsr</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">preconditioner</span><span class="o">=</span><span class="s2">"block_jacobi"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"neuron"</span><span class="p">)</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="n">rel</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">cg_bsr_fused</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="n">rel</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">cg_bsr_fused</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># B: (n, R), R independent solves</span>
 </code></pre></div>
-<p>Fixed <code>max_iter</code>, no early exit — returning the full residual history
-lets the host pick the convergence point post-hoc (standard
-NKI-inside-loop constraint: no dynamic control flow).</p>
-<p><strong>Expected regime where this wins</strong>: when
-<code>max_iter × dispatch_overhead &gt; fused_kernel_cost + hbm_load_A_once</code>.
-For a 4000×4000 BSR Hamiltonian with ~100 iterations to convergence,
-that's roughly an order of magnitude of wall-time reduction.</p>
-<p><strong>What needs to land first</strong>:</p>
-<ol>
-<li>Simulator-iterated kernel skeleton (now tractable thanks to the
-   <code>nki-simulator</code> CI gate — see the NKI 0.3.0 migration in v0.3.1).</li>
-<li>SBUF sizing model for <code>A</code> — some workloads overflow 32 GB; then
-   fall back to the v0.3.2 plumbing.</li>
-<li>Dispatcher logic in <code>cg_bsr</code> that picks the fused kernel when
-   <code>max_iter * n</code> exceeds a threshold.</li>
-</ol>
-<p>Tracked in a dedicated sub-issue on <code>trnsci/trnsparse</code>.</p>
+<p>What the kernel does on the NeuronCore:</p>
+<ul>
+<li><strong>A's stored blocks are DMA'd into SBUF once</strong> and every iteration
+  reads them from there. The budget is <code>TRNSPARSE_CG_SBUF_KIB</code> (default
+  160 of the 192 KiB per partition on Trn2, i.e. 20 MiB of the 24 MiB
+  SBUF), so about 320 fp32 128x128 blocks per physical core. Blocks
+  beyond the budget stream from HBM in 16-block DMAs on every iteration,
+  still inside the launch.</li>
+<li>x, r, p (and z) stay in SBUF in a column layout (element <code>t*128 + p</code>
+  at <code>[p, t]</code>). The matvec is one <code>nc_matmul</code> per stored block into a
+  PSUM column; VectorE reads A p and z = D⁻¹ r straight from PSUM.</li>
+<li>Each dot product is a VectorE multiply-reduce along the free axis and
+  one all-ones TensorE matmul that sums over the 128 partitions and
+  broadcasts the scalar to all of them at once.</li>
+<li><strong>Convergence is checked on the device.</strong> An <code>nl.while_loop</code> (NKI 0.7
+  dynamic control flow) runs <code>check_every</code> steps per trip and then
+  re-tests <code>||r||² &gt; tol²</code> and the iteration cap through a sequencer
+  register. The host is not in the loop. Steps after convergence inside
+  a trip are masked (alpha = beta = 0), so iteration counts and
+  solutions are exact rather than rounded up to <code>check_every</code>.</li>
+<li><strong>At LNC=2 the two physical cores split the block rows.</strong> Each core
+  holds only its rows' blocks (so the SBUF capacity doubles), computes
+  its rows of A p and its half of every dot product, and the cores swap
+  partial sums and halves of p with <code>nisa.sendrecv</code>, three exchanges per
+  step. Both cores add the two partial sums in the same pair (a + b ==
+  b + a exactly), so they agree bit for bit on every step size and on
+  when to stop. That is what lets them run the same device-side loop:
+  neuronx-cc requires both per-core programs to have the same control
+  flow (<code>NCC_IXGM002</code>). <code>TRNSPARSE_CORE_SPLIT=0</code> runs the whole solve
+  on both cores instead.</li>
+<li><strong>Several right-hand sides</strong> <code>(n, R)</code> are R independent CG solves that
+  share every load of A: each stored block is one matmul with R moving
+  columns. On Trn2 a 128x128 fp32 stationary block costs about 0.5 µs
+  with 1 moving column and about 0.52 µs with 64, so up to about 64
+  right-hand sides cost little more than one.</li>
+</ul>
+<p>The kernel is fp32 (PSUM accumulates in fp32). The host path (no
+<code>neuron</code> device, or <code>set_backend("pytorch")</code>) runs the same masked
+algorithm in PyTorch in b's dtype, so fp64 stays fp64.</p>
+<p>What limits it (measured on Trn2, see <code>benchmarks.md</code>): per iteration the
+cost is about 0.5 µs per stored block. That is the TensorE fp32
+stationary-weight load for a matvec with one moving column, and it is
+the same whether the block comes from SBUF or streams from HBM. 64 KiB
+per 0.5 µs is about 128 GB/s, which the DMA queues sustain inside the
+loop. So at one right-hand side, SBUF residency is not what makes this
+fast. The win is removing roughly ten host launches and a sync from
+every iteration.</p>
 <h2 id="why-cg-and-power-iteration-not-gmres-lanczos-davidson">Why CG and power iteration, not GMRES / Lanczos / Davidson<a class="headerlink" href="#why-cg-and-power-iteration-not-gmres-lanczos-davidson" title="Permanent link">&para;</a></h2>
 <p>v0.3.2 covers the two most common algorithm families:</p>
 <ul>
@@ -5339,9 +5375,9 @@ that's roughly an order of magnitude of wall-time reduction.</p>
 </ul>
 <p>GMRES (general non-symmetric systems), Lanczos / Arnoldi (full
 spectrum), and Davidson (interior eigenvalues) are follow-ups when
-users ask for them. The v0.4.0 fused kernel's structure (load A once,
-iterate on-chip) generalizes trivially to those variants — it's the
-same architectural pattern.</p>
+users ask for them. The fused kernel's structure (load A once, iterate
+on-chip, device-side <code>while</code> convergence test) carries over to those
+variants.</p>
 
 
 

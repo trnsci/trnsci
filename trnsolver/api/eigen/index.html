@@ -2056,6 +2056,8 @@
       
         
       
+        
+      
     
     
     
@@ -2200,6 +2202,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trnblas/api/parallel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-core (parallel)
   
 
     
@@ -5231,6 +5261,7 @@
 <ul>
 <li><code>auto</code>: on the native <code>neuron</code> device, n &lt; <code>TRNSOLVER_EIGH_NKI_MIN_N</code> (default 512) uses <code>torch.linalg.eigh</code>; otherwise the NKI path (Householder tridiagonalization, host QR iteration). Off-device, <code>torch.linalg.eigh</code>.</li>
 <li><code>jacobi</code> (#48): batched Jacobi for <code>(n, n)</code> or <code>(..., n, n)</code> input. On the native <code>neuron</code> device (FP32, n ≤ 128) it runs the SBUF-resident one-sided Jacobi kernel: one launch per sweep, each holding up to 128 tiles of 128 / n matrices (512 at n = 32) in SBUF. Elsewhere it runs a torch implementation (two-sided Jacobi as batched matmuls). Uses the lower triangle, like <code>torch.linalg.eigh</code>. For 33 ≤ n ≤ 128 the kernel is block Jacobi: per step the Tensor Engine forms each matrix's Gram matrix and applies one orthogonal matmul per block pair, and the Vector Engine only rotates the 16 × 16 pair Gram blocks.</li>
+<li>Multi-core (opt-in): <code>TRNSOLVER_EIGH_CORES=&lt;k&gt;|auto</code> splits a Jacobi batch over logical NeuronCores, one host thread per core (#48). With <code>TRNSOLVER_EIGH_POOL=proc</code> as well, a <strong>host</strong> batch goes to persistent worker processes instead, one per core (<code>TRNSOLVER_EIGH_POOL_CORES</code>, else <code>NEURON_RT_VISIBLE_CORES</code>), through shared memory (#29). The pool is the faster split (Trn2, n = 128, B = 4096, 8 host CPUs: 324 ms on 4 cores against 531 ms with threads and 655 ms for 8-thread batch-parallel LAPACK), but a NeuronCore belongs to one process: the calling process must not use those cores itself, so device-resident input keeps the thread split. Workers start on the first call (about 10 s, plus any kernel compile) and stay up; call <code>trnsolver.nki.eigh_pool.shutdown()</code> to free the cores. Scripts that use the pool need an <code>if __name__ == "__main__":</code> guard (the workers are spawned). <code>TRNSOLVER_JACOBI_SWEEPS_PER_LAUNCH=&lt;k&gt;</code> runs the scalar kernel's (n ≤ 32) first sweeps k per launch: 5–14% faster on one core (Trn2).</li>
 <li><code>auto</code> also runs the Jacobi kernel for FP32 batches on the native <code>neuron</code> device inside a measured region (n ≤ 32 with B ≥ 512, 33 ≤ n ≤ 64 with B ≥ 256, 65 ≤ n ≤ 128 with B ≥ 1024, plus B ≥ 256 for n ≥ 96 and B ≥ 64 at n = 128), where it beats the aten cutover. <code>TRNSOLVER_EIGH_JACOBI_AUTO</code> overrides the region.</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="n">eigenvalues</span><span class="p">,</span> <span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>

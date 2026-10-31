@@ -2058,6 +2058,8 @@
       
         
       
+        
+      
     
     
     
@@ -2202,6 +2204,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/parallel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-core (parallel)
   
 
     
@@ -2605,6 +2635,67 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-core-on-one-trn2-chip-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-core on one Trn2 chip (#24)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-core on one Trn2 chip (#24)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#df-mp2-end-to-end-from-host-inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 end to end, from host inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#df-mp2-pair-energy-single-process-trnblas_cores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 pair energy, single process (TRNBLAS_CORES)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gemm-c-a-b-fp32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GEMM, C = A @ B fp32
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transfers-and-collectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transfers and collectives
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5413,6 +5504,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multi-core-on-one-trn2-chip-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-core on one Trn2 chip (#24)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-core on one Trn2 chip (#24)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#df-mp2-end-to-end-from-host-inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 end to end, from host inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#df-mp2-pair-energy-single-process-trnblas_cores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-MP2 pair energy, single process (TRNBLAS_CORES)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gemm-c-a-b-fp32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GEMM, C = A @ B fp32
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transfers-and-collectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transfers and collectives
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -6064,6 +6216,226 @@ the crossover, so the two NKI columns run the same code there.</p>
   still wins: 1.0–2.0× faster than aten, and up to 2× faster than the device
   route, on the real molecules.</li>
 </ul>
+<h2 id="multi-core-on-one-trn2-chip-24">Multi-core on one Trn2 chip (#24)<a class="headerlink" href="#multi-core-on-one-trn2-chip-24" title="Permanent link">&para;</a></h2>
+<p>The setup is trn2.3xlarge, SDK 2.33 (native TorchNeuron), LNC=2, so there are
+4 logical cores, and the whole chip was held for each run. Host threads were
+pinned to 2 CPUs (<code>taskset -c 4,5</code>, <code>OMP_NUM_THREADS=2</code>). Times are warm
+medians in ms, fp32. The inputs are synthetic <code>examples/df_mp2._make_inputs</code>,
+and "packed" also symmetrises (μν|P). Reproduce with
+<code>scripts/bench_parallel.py</code> (SPMD, under <code>torchrun</code>) and
+<code>scripts/bench_multicore.py</code> (single process, and the CPU baselines).</p>
+<h3 id="df-mp2-end-to-end-from-host-inputs">DF-MP2 end to end, from host inputs<a class="headerlink" href="#df-mp2-end-to-end-from-host-inputs" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>single-core</strong> is <code>examples/df_mp2.df_mp2_energy</code>
+  (<code>use_batched_pair=True</code>) on <code>neuron:0</code>. Its time is warm compute plus
+  one upload of the inputs.</li>
+<li><strong>SPMD</strong> is <code>trnblas.parallel.df_mp2_energy</code>, one process per core.</li>
+<li><strong>packed</strong> passes the lower triangle of the ERI (<code>eri_symmetric=True</code>).</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>nbasis/nocc/naux</th>
+<th>single-core</th>
+<th>SPMD 1 / 2 / 4</th>
+<th>SPMD packed 1 / 2 / 4</th>
+<th>best vs single-core</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>512/64/1536</td>
+<td>348</td>
+<td>346 / 203 / 162</td>
+<td>309 / 171 / 138</td>
+<td><strong>2.5×</strong></td>
+</tr>
+<tr>
+<td>768/96/2304</td>
+<td>1323</td>
+<td>1326 / 831 / 620</td>
+<td>1192 / 696 / 459</td>
+<td><strong>2.9×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>On 2 CPU threads (<code>torch</code> / MKL), the energy step alone takes 14.5 s at
+512/64/1536 and 94 s at 768/96/2304.</p>
+<p>Scaling efficiency of SPMD against its own 1-rank time, at 2 / 4 ranks:</p>
+<table>
+<thead>
+<tr>
+<th>shape</th>
+<th>full ERI</th>
+<th>packed ERI</th>
+<th>energy step alone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>512/64/1536</td>
+<td>85% / 53%</td>
+<td>90% / 56%</td>
+<td>92% / 89% (124 / 67 / 35 ms)</td>
+</tr>
+<tr>
+<td>768/96/2304</td>
+<td>80% / 53%</td>
+<td>86% / 65%</td>
+<td>91% / 90% (691 / 380 / 193 ms)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>The energy step scales almost linearly.</strong> All-gathering B (147–567 MB)
+  takes 2–11 ms.</li>
+<li><strong>The rest is fixed cost.</strong> The ERI upload is bound by the host link
+  (~13 GB/s for the chip, 1.6 / 5.4 GB). The metric factor runs on rank 0
+  (90 / 200 ms) while the other ranks upload. The packed ERI halves the
+  upload, and at 768/96/2304 the upload and the metric factor are then about equal.</li>
+<li>Energies agree with the single-core path to 1e-7 relative.</li>
+</ul>
+<h3 id="df-mp2-pair-energy-single-process-trnblas_cores">DF-MP2 pair energy, single process (<code>TRNBLAS_CORES</code>)<a class="headerlink" href="#df-mp2-pair-energy-single-process-trnblas_cores" title="Permanent link">&para;</a></h3>
+<p>B is resident on <code>neuron:0</code> and staged through the host to the other cores
+(<code>scripts/bench_multicore.py energy</code>, sym route).</p>
+<table>
+<thead>
+<tr>
+<th>nocc/nvir/naux</th>
+<th>1 core</th>
+<th>2 cores</th>
+<th>4 cores</th>
+<th>SPMD, same step, 4 ranks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>64/448/1536</td>
+<td>120</td>
+<td>106</td>
+<td>108</td>
+<td>35</td>
+</tr>
+<tr>
+<td>96/672/2304</td>
+<td>685</td>
+<td>485</td>
+<td>389</td>
+<td>193</td>
+</tr>
+</tbody>
+</table>
+<p>With the data already on each core, the same row split runs 111 / 62 / 40
+and 664 / 362 / 189 ms. The difference from the table above is the host
+staging. That is why the single-process path is opt-in, and why <code>auto</code> splits
+only above 1e13 flop.</p>
+<h3 id="gemm-c-a-b-fp32">GEMM, C = A @ B fp32<a class="headerlink" href="#gemm-c-a-b-fp32" title="Permanent link">&para;</a></h3>
+<p><strong>resident</strong> means the shards are already on their cores. <strong>gathered</strong> adds
+the all-gather (or, for K, the all-reduce) that gives every rank the full C.
+Single-core aten is 4.13 ms at 4096³ and 30.6 ms at 8192³. The NKI kernel
+takes 12.1 ms at 4096³. CPU on 2 threads takes 356 ms and 2.79 s.</p>
+<table>
+<thead>
+<tr>
+<th>8192³</th>
+<th>1</th>
+<th>2</th>
+<th>4</th>
+<th>4-core efficiency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>single process, resident, row (1 thread / thread per core)</td>
+<td>30.6</td>
+<td>18.0 / 17.8</td>
+<td>9.3 / 11.6</td>
+<td>82%</td>
+</tr>
+<tr>
+<td>single process, resident, col</td>
+<td>30.6</td>
+<td>18.1 / 18.1</td>
+<td>12.8 / 12.7</td>
+<td>60%</td>
+</tr>
+<tr>
+<td>SPMD row, compute / gathered</td>
+<td>30.2 / 31.2</td>
+<td>19.1 / 24.1</td>
+<td>10.6 / 13.5</td>
+<td>71% / 58%</td>
+</tr>
+<tr>
+<td>SPMD col, compute / gathered</td>
+<td>30.2 / 33.8</td>
+<td>19.6 / 26.3</td>
+<td>10.9 / 15.6</td>
+<td>69% / 54%</td>
+</tr>
+<tr>
+<td>SPMD K, compute / all-reduced</td>
+<td>29.9 / 34.7</td>
+<td>19.4 / 26.8</td>
+<td>10.6 / 15.0</td>
+<td>71% / 58%</td>
+</tr>
+<tr>
+<td>single process, host A, B → host C (row)</td>
+<td>148</td>
+<td>166</td>
+<td>204</td>
+<td>—</td>
+</tr>
+<tr>
+<td>single process, A, B on <code>neuron:0</code>, staged (row)</td>
+<td>30.6</td>
+<td>209</td>
+<td>456</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>At 4096³, resident compute is 4.1 / 2.4 / 1.6–2.3 ms across the modes. The
+host-input split runs 42–61 ms and the staged split 53–173 ms.</p>
+<ul>
+<li><strong>A transparent multi-core <code>gemm</code> on <code>neuron:0</code> data loses at every size.</strong>
+  Staging the operands through the host costs more than the GEMM itself.
+  The default <code>gemm</code> is therefore unchanged.</li>
+<li><strong>Host-input GEMM is bound by the host link.</strong> Splitting it only adds
+  copies, so it gets slower with more cores.</li>
+<li><strong>The split pays only when the shards already live on their cores.</strong> For
+  compute alone, threads and processes come out the same: at these sizes
+  there are few launches, so the host is not the bottleneck. Processes win
+  as soon as data has to move, because they can use collectives.</li>
+</ul>
+<h3 id="transfers-and-collectives">Transfers and collectives<a class="headerlink" href="#transfers-and-collectives" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>host → device, from 1 thread, 4 threads, or 4 processes at once</td>
+<td>12.5–13.0 GB/s total</td>
+</tr>
+<tr>
+<td>device → host, <code>copy_</code> into a reused / pinned buffer</td>
+<td>13.0–13.3 GB/s</td>
+</tr>
+<tr>
+<td>device → host, <code>.cpu()</code> or into fresh memory (&gt; 64 MB)</td>
+<td>2.8–3.1 GB/s</td>
+</tr>
+<tr>
+<td>all-gather 4 × 147 MB / broadcast 588 MB / reduce-scatter 680 MB</td>
+<td>5–6 / 10 / 12 ms</td>
+</tr>
+</tbody>
+</table>
 <h2 id="df-mp2-end-to-end-trainium1-vs-nvidia-a10g">DF-MP2 end-to-end — Trainium1 vs NVIDIA A10G<a class="headerlink" href="#df-mp2-end-to-end-trainium1-vs-nvidia-a10g" title="Permanent link">&para;</a></h2>
 <p>Synthetic inputs, same seed, same three shapes on both platforms.
 Energy matches bit-for-bit within fp32 reduction-order noise.</p>

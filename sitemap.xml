@@ -277,6 +277,10 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/trnblas/api/parallel/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/design/fused_df_mp2_energy_kernel/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
