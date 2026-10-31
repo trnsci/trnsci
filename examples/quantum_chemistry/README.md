@@ -25,12 +25,12 @@ The inputs are random; the energy number is not physically meaningful. This is a
 
 ## `df_mp2_profile.py`
 
-End-to-end profile of the pipeline above across a ladder of synthetic sizes: per-stage time, the route each library's `auto` dispatch picked, and stage-output and energy error against a float64 host reference. Modes `cpu` (all libraries on their pytorch backend), `host-auto` (host tensors, `auto` backends) and `neuron` (device-resident). Pipelines `example` (this example's stage functions) and `fused` (`trntensor.ao_to_mo_transform`, `trnblas.metric_inv_half`, `trntensor.mp2_energy`).
+End-to-end profile of the pipeline above across a ladder of synthetic sizes: per-stage time, the route each library's `auto` dispatch picked, and stage-output and energy error against a float64 host reference. Modes `cpu` (all libraries on their pytorch backend), `host-auto` (host tensors, `auto` backends) and `neuron` (device-resident). Pipelines `example` (this example's stage functions), `fused` (`trntensor.ao_to_mo_transform`, `trnblas.metric_inv_half`, `trntensor.mp2_energy`) and `packed` (as `fused`, with the integrals packed to their μ≥ν lower triangle on the host first). Routes are recorded while each stage runs, so host inputs that a library uploads to the device show as `upload+aten` / `upload -> ...`.
 
 ```bash
-NEURON_RT_VISIBLE_CORES=2 OMP_NUM_THREADS=2 taskset -c 8,9 \
+NEURON_RT_VISIBLE_CORES=2 OMP_NUM_THREADS=2 taskset -c 4,10 \
     python examples/quantum_chemistry/df_mp2_profile.py \
-    --sizes s,m,l,xl --modes cpu,neuron --json df_mp2_profile.jsonl
+    --sizes s,m,l,xl --modes cpu,host-auto,neuron --json df_mp2_profile.jsonl
 ```
 
 ## `pyscf_bridge_sketch.md`

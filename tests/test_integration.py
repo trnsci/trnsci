@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-
 EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "examples" / "quantum_chemistry"
 sys.path.insert(0, str(EXAMPLES_DIR))
 
@@ -21,8 +20,9 @@ def _ensure_imports():
 
 def test_df_mp2_smoke():
     """Runs the integration example on a tiny system and asserts finiteness."""
-    import df_mp2_synthetic as demo
     import math
+
+    import df_mp2_synthetic as demo
 
     eri, J, C_occ, C_vir, eps_occ, eps_vir, Q = demo.synthetic_system(
         n_ao=8, n_aux=12, n_occ=3, seed=42
@@ -43,7 +43,7 @@ def test_df_mp2_deterministic():
     import df_mp2_synthetic as demo
 
     def run():
-        eri, J, C_occ, C_vir, eps_occ, eps_vir, Q = demo.synthetic_system(
+        eri, J, C_occ, C_vir, eps_occ, eps_vir, _Q = demo.synthetic_system(
             n_ao=8, n_aux=12, n_occ=3, seed=7
         )
         ia_P = demo.half_transform(eri, C_occ, C_vir)
@@ -81,3 +81,31 @@ def test_df_mp2_energy_matches_fp64_closed_shell():
     e, _ = demo.pair_energy(B, eps_occ, eps_vir)
     _, _, e_ref = prof.reference_fp64(eri, J, C_occ, C_vir, eps_occ, eps_vir)
     assert abs(e - e_ref) <= 1e-5 * abs(e_ref)
+
+
+def test_df_mp2_profile_packed_and_routes():
+    """The profile's packed pipeline matches fp64, its routes are recorded
+    per stage, and the routing helpers are restored afterwards."""
+    import df_mp2_profile as prof
+    import torch
+    import trnblas.nki.dispatch as bd
+    import trntensor.quantum as tq
+
+    orig = (bd._gemm_route, bd._trsm_torch, tq._ao_to_mo_route)
+    prof.LADDER["_t"] = (16, 40, 4)
+    try:
+        for pipeline in ("example", "fused", "packed"):
+            rec = prof.profile_case(
+                "_t", "host-auto", pipeline, repeats=1, seed=3, ref_cache={}
+            )
+            assert rec["err_e"] < 1e-5, (pipeline, rec["err_e"])
+            for key in ("route_half", "route_metric", "route_energy"):
+                assert "[-]" not in rec[key], (pipeline, key, rec[key])
+        assert "ao_to_mo" in rec["route_half"]
+    finally:
+        del prof.LADDER["_t"]
+    assert (bd._gemm_route, bd._trsm_torch, tq._ao_to_mo_route) == orig
+
+    host = torch.zeros(2, 2)
+    assert prof._blas_label("aten", host, host) == "upload+aten"
+    assert prof._blas_label("host", host, host) == "host"
