@@ -31,7 +31,7 @@ Each sub-project has its own `CLAUDE.md`, `pyproject.toml`, `tests/`, and `.git/
 
 ## Cross-project composition
 
-`examples/df_mp2_integrated.py` is the canonical integration demo — shows how the sub-projects compose for a realistic workload (density-fitted MP2 energy). Treat it as the reference for cross-project API usage.
+`examples/quantum_chemistry/df_mp2_synthetic.py` is the canonical integration demo — shows how the sub-projects compose for a realistic workload (density-fitted MP2 energy). Treat it as the reference for cross-project API usage.
 
 ## Release coordination
 
