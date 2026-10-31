@@ -9,11 +9,18 @@ Each stage is handled by a different library in the trnsci suite:
                  chemistry-realistic)
     trnsolver — Cholesky of the DF metric J
     trnblas   — half-transforms (μν|P) → (ia|P) via GEMM
-    trntensor — pair-energy contraction via einsum, with FLOPs estimate
+    trntensor — closed-shell MP2 energy via mp2_energy, with FLOPs estimate
 
 Run:
 
     python examples/quantum_chemistry/df_mp2_synthetic.py --demo
+    python examples/quantum_chemistry/df_mp2_synthetic.py --demo --device neuron
+
+With ``--device neuron`` (TorchNeuron, Trn2/Trn3) the inputs are built on the
+host and copied to the device once; every stage then runs on device-resident
+tensors and each library's ``auto`` dispatch picks NKI or aten from there.
+``examples/quantum_chemistry/df_mp2_profile.py`` profiles this pipeline across
+a ladder of sizes.
 
 The inputs are randomly generated; the resulting energy is not physically
 meaningful. This is a plumbing demo for the cross-library API surface. For
@@ -27,7 +34,6 @@ import argparse
 import time
 
 import torch
-
 import trnblas
 import trnrand
 import trnsolver
@@ -102,11 +108,15 @@ def half_transform(eri_ao, C_occ, C_vir):
 
 def metric_contract(ia_P, J):
     """Factor J = L Lᵀ via trnsolver, then B_ia^P = (ia|Q) · J^{-1/2}_{QP} via trnblas."""
-    n_occ, n_vir, n_aux = ia_P.shape
+    n_occ, _n_vir, n_aux = ia_P.shape
     L = trnsolver.cholesky(J)
     # J^{-1/2} = L^{-T}: solve Lᵀ X = I  →  X = L^{-T}
     J_inv_half = trnblas.trsm(
-        1.0, L, torch.eye(n_aux, dtype=J.dtype), uplo="lower", trans=True
+        1.0,
+        L,
+        torch.eye(n_aux, dtype=J.dtype, device=J.device),
+        uplo="lower",
+        trans=True,
     )
     # One batched GEMM over the occupied axis: B[i] = ia_P[i] @ J_inv_half
     J_b = J_inv_half.unsqueeze(0).expand(n_occ, -1, -1)
@@ -115,31 +125,55 @@ def metric_contract(ia_P, J):
 
 
 def pair_energy(B, eps_occ, eps_vir):
-    """MP2 pair energies via trntensor.einsum, summed with orbital-energy denominator."""
-    n_occ, n_vir, n_aux = B.shape
-    e = 0.0
-    flops = 0
-    # Canonical DF-MP2: E = -sum_ijab |T_iajb|^2 / (eps_i + eps_j - eps_a - eps_b)
-    for i in range(n_occ):
-        for j in range(i, n_occ):
-            T = trntensor.einsum("ap,bp->ab", B[i], B[j])
-            flops += trntensor.estimate_flops("ap,bp->ab", B[i], B[j])
-            denom = (eps_occ[i] + eps_occ[j]).item() - (
-                eps_vir.unsqueeze(1) + eps_vir.unsqueeze(0)
-            )
-            pair = (T * T / denom).sum().item()
-            e += pair if i == j else 2.0 * pair
-    return e, flops
+    """Closed-shell DF-MP2 correlation energy via ``trntensor.mp2_energy``.
+
+        E = Σ_ijab T_iajb (2 T_iajb - T_ibja) / (ε_i + ε_j - ε_a - ε_b),
+        T_iajb = Σ_P B_ia^P B_jb^P
+
+    ``mp2_energy`` is trntensor's fused primitive: contraction, spin-adapted
+    numerator, denominator and reduction in one call (an NKI kernel on
+    Trainium for large device-resident ``B``, chunked aten otherwise). It
+    replaces a per-pair Python loop over ``einsum("ap,bp->ab")`` that kept
+    only the direct term and synced the device once per (i, j) pair.
+
+    Returns ``(energy, flops)``: the energy as a Python float, and the
+    ``estimate_flops`` count of the ``T`` contraction.
+    """
+    e = trntensor.mp2_energy(B, eps_occ.to(B.device), eps_vir.to(B.device))
+    flops = trntensor.estimate_flops("iap,jbp->ijab", B, B)
+    return float(e), flops
 
 
-def run_demo(*, n_ao: int, n_aux: int, n_occ: int, seed: int) -> None:
+def to_device(tensors, device):
+    """Copy host tensors to ``device`` (inputs are always built on the host:
+    device-side random generation is shape-sensitive on TorchNeuron)."""
+    if device == "cpu":
+        return tensors
+    return tuple(t.contiguous().to(device) for t in tensors)
+
+
+def synchronize(device: str) -> None:
+    """Wait for queued device work, so stage timings are honest."""
+    if device == "cpu":
+        return
+    import torch_neuronx
+
+    sync = (
+        getattr(torch_neuronx, "synchronize", None) or torch_neuronx.neuron.synchronize
+    )
+    sync()
+
+
+def run_demo(
+    *, n_ao: int, n_aux: int, n_occ: int, seed: int, device: str = "cpu"
+) -> None:
     eri_ao, J, C_occ, C_vir, eps_occ, eps_vir, Q = synthetic_system(
         n_ao=n_ao, n_aux=n_aux, n_occ=n_occ, seed=seed
     )
 
     print(f"system: n_ao={n_ao} n_aux={n_aux} n_occ={n_occ} n_vir={n_ao - n_occ}")
     print(
-        f"backends: trnblas={trnblas.get_backend()} "
+        f"device: {device}  backends: trnblas={trnblas.get_backend()} "
         f"trnsolver={trnsolver.get_backend()} "
         f"trntensor={trntensor.get_backend()}"
     )
@@ -155,11 +189,21 @@ def run_demo(*, n_ao: int, n_aux: int, n_occ: int, seed: int) -> None:
     stages = []
 
     t = time.perf_counter()
+    eri_ao, J, C_occ, C_vir, eps_occ, eps_vir = to_device(
+        (eri_ao, J, C_occ, C_vir, eps_occ, eps_vir), device
+    )
+    synchronize(device)
+    if device != "cpu":
+        stages.append(("host -> device copy", time.perf_counter() - t))
+
+    t = time.perf_counter()
     ia_P = half_transform(eri_ao, C_occ, C_vir)
+    synchronize(device)
     stages.append(("half-transform (trnblas)", time.perf_counter() - t))
 
     t = time.perf_counter()
     B = metric_contract(ia_P, J)
+    synchronize(device)
     stages.append(("metric contract (trnsolver+trnblas)", time.perf_counter() - t))
 
     t = time.perf_counter()
@@ -169,6 +213,7 @@ def run_demo(*, n_ao: int, n_aux: int, n_occ: int, seed: int) -> None:
     width = max(len(name) for name, _ in stages)
     for name, dt in stages:
         print(f"  {name:<{width}}  {dt * 1e3:8.2f} ms")
+    print("  (first call per shape includes kernel compilation on a device)")
     print()
     print(f"E(MP2,corr) = {e_mp2:+.6e} Ha  (synthetic — not physically meaningful)")
     print(f"contraction FLOPs estimate: {flops:,}")
@@ -183,13 +228,24 @@ def main() -> None:
     parser.add_argument("--n-aux", type=int, default=64)
     parser.add_argument("--n-occ", type=int, default=8)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        help="'cpu' (default) or 'neuron' (TorchNeuron native device, Trn2/Trn3)",
+    )
     args = parser.parse_args()
 
     if not args.demo:
         parser.print_help()
         return
 
-    run_demo(n_ao=args.n_ao, n_aux=args.n_aux, n_occ=args.n_occ, seed=args.seed)
+    run_demo(
+        n_ao=args.n_ao,
+        n_aux=args.n_aux,
+        n_occ=args.n_occ,
+        seed=args.seed,
+        device=args.device,
+    )
 
 
 if __name__ == "__main__":

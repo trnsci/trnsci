@@ -21,7 +21,7 @@ Every step lives in a different `trnsci` library:
 | 1. Cholesky | `trnsolver` | `cholesky` |
 | 2. Half-transform | `trnblas` | `gemm`, `batched_gemm` |
 | 3. Metric contraction | `trnblas` | `trsm`, `batched_gemm` |
-| 4. Pair energies | `trntensor` | `einsum`, `estimate_flops` |
+| 4. Pair energies | `trntensor` | `mp2_energy`, `estimate_flops` |
 | 5. Screening | `trnsparse` | `schwarz_bounds`, `screen_quartets` |
 
 This is the single workload that motivates *four* of the six libraries. Getting DF-MP2 to run end-to-end on Trainium is the suite's proving ground.
