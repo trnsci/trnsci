@@ -5087,6 +5087,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-04-29 00:00:00+00:00">April 29, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../../category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="../../category/trntensor/" class="md-meta__link">trntensor</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              6 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trntensor-v0160-extending-the-precision-contract-to-multi_einsum"><a class="toclink" href="../../trntensor-v0160-extending-the-precision-contract-to-multi_einsum/">trntensor v0.16.0: extending the precision contract to multi_einsum</a></h2>
+<p>v0.15.0 gave <code>einsum()</code> a <code>target_forward_error=</code> argument — the caller specifies a relative error bound, the library picks the cheapest mode that satisfies it. v0.16.0 extends the same contract to <code>multi_einsum()</code>. A precision API that works for single contractions but silently doesn't apply to batched calls is a leaky abstraction, and this is the patch that closes it.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trntensor-v0160-extending-the-precision-contract-to-multi_einsum/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-28 00:00:00+00:00">April 28, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5465,48 +5507,6 @@ property of Trainium that was already present in every kernel, just never exploi
     
       <nav class="md-post__action">
         <a href="../../trntensor-v0130-precision-all-the-way-down/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-21 00:00:00+00:00">April 21, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="../../category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary"><a class="toclink" href="../../trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">trntensor v0.11.0: stochastic rounding at the PSUM→SBUF boundary</a></h2>
-<p>v0.11.0's headline is one argument: <code>precision="sr"</code> on a matmul dispatch call. The architectural story is that Trainium's PSUM buffer makes stochastic rounding a one-instruction hardware primitive instead of an external library. Anyone using trntensor for iterative BF16 workloads — Krylov solvers, iterative refinement, or long batched contractions — should care about this.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trntensor-v0110-stochastic-rounding-at-the-psumsbuf-boundary/">
           Continue reading
         </a>
       </nav>
