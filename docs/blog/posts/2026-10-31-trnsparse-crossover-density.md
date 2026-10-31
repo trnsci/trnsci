@@ -55,7 +55,7 @@ flowchart LR
 
 The deliberate tradeoff is **one compile per distinct structure**. That takes 1–16 s, cached in-process and keyed by the constants. A test with two structures of identical shape confirmed the cache does not alias them. A fixed attention mask or basis-set block pattern pays once; a pattern that changes every step pays every time. Two guards bound the damage: above `TRNSPARSE_STATIC_MAX_UNROLL` (16,384 unrolled block matmuls by default) the dispatcher falls back to the gather path, and `TRNSPARSE_STATIC_STRUCTURE=0` restores it outright.
 
-Release status: #34 shipped in trnsparse [v0.8.0](https://github.com/trnsci/trnsparse/tree/v0.8.0) (tagged). The two-core split and bf16 from #36 are on `main`, in the upcoming v0.9.0.
+Release status: #34 shipped in trnsparse [v0.8.0](https://github.com/trnsci/trnsparse/tree/v0.8.0) (tagged). The two-core split and bf16 from #36 are in [v0.9.0](https://github.com/trnsci/trnsparse/tree/v0.9.0).
 
 ## Implementation
 
