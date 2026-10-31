@@ -5095,6 +5095,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../../" class="md-meta__link">Deep dive</a>, 
+              <a href="../../../trntensor/" class="md-meta__link">trntensor</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              10 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trntensor-the-mock-all-reduce-meets-four-real-ranks"><a class="toclink" href="../../../../trntensor-the-mock-all-reduce-meets-four-real-ranks/">trntensor: the mock all-reduce meets four real ranks</a></h2>
+<p>trntensor's reduce-parallel einsum now sums its partials with a real multi-rank all-reduce, either <code>torch.distributed</code> or an NKI <code>nki.collectives.all_reduce</code> kernel, across all four logical NeuronCores of one trn2.3xlarge, shipped in <a href="https://github.com/trnsci/trntensor/releases/tag/v0.17.0">trntensor v0.17.0</a> from three stacked PRs, and the first write-up of the four-rank result claimed a bit-exactness it didn't have. Architecturally, the collective is an instruction inside an NKI kernel operating on HBM rather than a library beside the compute, and the rules it enforces (which cores may form a group, which HBM buffer type returns correct values) expose the chip's topology. Anyone planning multi-core contractions on Trainium, or arriving from NCCL, will want those rules before writing a launcher.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../../../trntensor-the-mock-all-reduce-meets-four-real-ranks/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-04-30 00:00:00+00:00">April 30, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5477,51 +5519,6 @@ batch row in a Python loop, paying full XLA graph compilation overhead for each 
     
       <nav class="md-post__action">
         <a href="../../../../trnfft-the-missing-dtype-and-the-80-cliff/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-22 00:00:00+00:00">April 22, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              6 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-the-fp32-accumulator-you-didnt-know-you-had"><a class="toclink" href="../../../../trnfft-the-fp32-accumulator-you-didnt-know-you-had/">trnfft: the FP32 accumulator you didn't know you had</a></h2>
-<p>trnfft v0.17 ships two new precision modes — <code>"bf16"</code> and <code>"bf16_refined"</code> — for the
-DFT-GEMM fast path. The headline numbers: 1.4–1.5× faster than FP32 at N=64–256 on trn1,
-with near-FP32 accuracy after one correction step. The mechanism is an architectural
-property of Trainium that was already present in every kernel, just never exploited.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trnfft-the-fp32-accumulator-you-didnt-know-you-had/">
           Continue reading
         </a>
       </nav>

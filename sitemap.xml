@@ -221,6 +221,10 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnsolver-jacobi-on-hardware-six-months-after-the-argument/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/trnsparse-the-crossover-density-with-the-sparsity-pattern-compiled-in/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
@@ -577,11 +581,11 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/trnsparse/</loc>
+         <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
+         <loc>https://trnsci.dev/blog/category/trnsparse/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
@@ -606,6 +610,10 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/page/4/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/page/5/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
