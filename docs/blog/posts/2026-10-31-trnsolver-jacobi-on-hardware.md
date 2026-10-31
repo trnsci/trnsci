@@ -10,7 +10,7 @@ trnsolver's batched block-Jacobi `eigh` on one Trn2 core runs 1.5–2.2× faster
 
 <!-- more -->
 
-!!! warning "Correction (2026-11-01)"
+!!! warning "Correction (2026-10-31)"
     The CPU column below is batched `torch.linalg.eigh`, which barely uses its second thread at these sizes. Splitting the batch across the same 2 threads is 1.6–5.8× faster ([trnsolver#54](https://github.com/trnsci/trnsolver/pull/54)). Against that baseline the single-core kernel at n = 128, B = 1024 is 310 vs 352 ms, 1.13× rather than 2×. Spreading the batch over all 4 cores of the chip brings it to 152 ms (0.43× of the split CPU on 2 threads), but against 8 CPU threads the best device result is at most 1.25× faster. The Jacobi-over-Householder verdict stands; the margin over a well-used CPU is small.
 
 !!! note "Code status"
