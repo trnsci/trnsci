@@ -5533,6 +5533,14 @@ supported in maintenance mode."</p>
 <td>TorchNeuron setting (not trntensor's). Turns off the cross-process NKI kernel cache, which cannot version editable installs and may serve a stale kernel after a source edit. Set it with <code>pip install -e</code>; the test suite sets it by default.</td>
 </tr>
 <tr>
+<td><code>TRNTENSOR_MP2_ENERGY=auto\|rows\|aten\|legacy</code></td>
+<td>Native path: force the <code>mp2_energy</code> executor (<code>rows</code> = the Trn2 row kernel, <code>legacy</code> = the original kernel, deprecated there).</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_AO_TO_MO=auto\|trn2\|aten\|legacy</code></td>
+<td>Native path: force the <code>ao_to_mo_transform</code> executor (<code>trn2</code> = the Trn2 kernel, <code>legacy</code> = the original kernel, deprecated there).</td>
+</tr>
+<tr>
 <td><code>TRNTENSOR_FORCE_BACKEND=pytorch\|nki\|auto</code></td>
 <td>Override the backend selection at runtime without calling <code>set_backend()</code>. Used by benchmarks to sweep both paths on the same machine.</td>
 </tr>
@@ -5564,15 +5572,26 @@ NeuronCore and two host threads, with <code>scripts/bench_native_einsum.py</code
   - bf16: from about 0.5 to 1 G multiply-adds.</p>
 <p>The default of 500 M sits between these. A host with more threads moves the
   crossover up. Re-measure on your host with <code>scripts/autotune_dispatch.py</code>.</p>
-<p>Under <code>"auto"</code> on the native path, the fused quantum kernels (<code>mp2_energy</code>,
-<code>ao_to_mo_transform</code>) also run as aten, because both measured slower than
-aten on the device:</p>
+<p>Kernel status on the native path after #51:</p>
 <ul>
-<li>AO→MO was 6–20× slower.</li>
-<li>MP2 energy was 1.0–1.5× slower, reaching parity at best.</li>
+<li><strong>matmul / bmm: retired in favour of aten.</strong> A Trn2 rewrite used both
+  physical cores through the <code>program_id</code> split, Tensor Engine transposes of
+  A and B-tile reuse across four stationaries. It was 1.2–4.3× faster than
+  the original kernel and still slower than aten at every size: 4096³ fp32
+  took 4.10 ms against 3.80 ms, and 4096³ bf16 1.61 ms against 1.43 ms.
+  It was not kept. <code>set_backend("nki")</code> still runs the original kernels on
+  the native path, with a one-time <code>FutureWarning</code>. A later release will
+  route them to aten.</li>
+<li><strong>AO→MO: kept, rewritten for Trn2</strong> (<code>ao_to_mo_trn2_kernel</code>). It is
+  1.3–1.6× faster than the two aten einsums at nbasis 256–768, and native
+  <code>"auto"</code> uses it there for device-resident <code>eri</code>. Below nbasis ≈ 256
+  <code>"auto"</code> keeps aten.</li>
+<li><strong>MP2 energy: kept, rewritten for Trn2</strong> (<code>mp2_energy_row_kernel</code>). It is
+  1.25–1.9× faster than aten once each row launch carries at least 3 GFLOP,
+  and native <code>"auto"</code> uses it there.</li>
 </ul>
-<p><code>set_backend("nki")</code> still runs the NKI kernels. The kernels are unchanged,
-and the XLA path keeps them under <code>"auto"</code>.</p>
+<p>The original AO→MO and MP2 kernels remain the XLA-path (Trn1) kernels. See
+<a href="../quantum/">Quantum-chemistry primitives</a> for the tables.</p>
 <h2 id="kernels-internal">Kernels (internal)<a class="headerlink" href="#kernels-internal" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>matmul_kernel(a, b)</code> — 2-index matmul with stationary-A tile reuse.

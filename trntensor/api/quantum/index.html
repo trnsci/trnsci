@@ -4784,17 +4784,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#current-limitations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Current limitations
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -4857,7 +4846,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#current-limitations_1" class="md-nav__link">
+  <a href="#current-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
         Current limitations
@@ -5338,17 +5327,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#current-limitations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Current limitations
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -5411,7 +5389,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#current-limitations_1" class="md-nav__link">
+  <a href="#current-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
         Current limitations
@@ -5477,26 +5455,79 @@ T_{i,j,a,b}  = Σ_P  B[i, a, P] B[j, b, P]
 </code></pre></div>
 <h3 id="backend-behaviour">Backend behaviour<a class="headerlink" href="#backend-behaviour" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>CPU, and native TorchNeuron under <code>"auto"</code></strong>: aten ops on the operands' device.
-  <code>T[i, j, a, b]</code> is contracted with <code>torch.einsum</code> in chunks over <code>i</code>, which
-  bounds peak memory to about 64 MiB of <code>T</code> at a time. The <code>T</code>-weighted sum is
-  vectorized. This replaces the former Python loop over <code>(i, j)</code> pairs, which
-  ran 10–40× slower on a Trainium device.
-  On Trn2 the aten form matched or beat the fused kernel. For example, with
-  <code>nocc=32, nvir=128, naux=512</code> it took 3.1 ms, against 4.5 ms for the
-  kernel (#41).</li>
-<li><strong>Trainium (NKI): the PyTorch/XLA path, or <code>set_backend("nki")</code></strong>: dispatches a single <code>@nki.jit</code> program that</li>
-<li>accumulates <code>T</code> in PSUM via <code>nisa.nc_matmul</code>,</li>
-<li>builds <code>Δ</code> on the Vector Engine from SBUF-resident <code>ε</code> tiles,</li>
-<li>folds the energy into a scalar accumulator in SBUF,</li>
-<li>writes one partial per <code>(i, j)</code> pair to HBM.</li>
+<li><strong>CPU, and small problems on native TorchNeuron</strong>: aten ops on the
+  operands' device. <code>T[i, j, a, b]</code> is contracted with <code>torch.einsum</code> in
+  chunks over <code>i</code>, which bounds peak memory to about 64 MiB of <code>T</code> at a time.
+  The <code>T</code>-weighted sum is vectorized.</li>
+<li><strong>Native TorchNeuron (Trn2/Trn3): the row kernel.</strong> <code>mp2_energy_row_kernel</code>
+  is launched once per occupied row <code>i</code>. It covers <code>j = i + d (mod nocc)</code> for
+  <code>d = 0..nocc/2</code> and uses the pair symmetry <code>e_ij = e_ji</code>. Per pair, one
+  GEMM fills <code>T = B[i] B[j]ᵀ</code> in SBUF, and the <code>Tᵀ</code> blocks come from Tensor
+  Engine transposes. <code>T</code> never reaches device memory. At LNC=2 each physical
+  core takes half of the <code>j</code> window. The design follows trnblas
+  <code>pair_energy_sym</code> (trnblas#55, #58).</li>
+<li><code>"auto"</code> uses the row kernel when <code>B</code> is on the device and each row
+    launch carries at least 3 GFLOP, counted on the padded sizes as
+    <code>2·(nocc//2+1)·nvir²·naux</code>. Below that, the ~nocc custom-op launch
+    floors lose to aten.</li>
+<li><code>set_backend("nki")</code> uses it whenever its SBUF working set fits.</li>
+<li><code>TRNTENSOR_MP2_ENERGY=auto|rows|aten|legacy</code> overrides the choice.
+    <code>legacy</code> is the original single-launch kernel, which is deprecated on
+    the native path.</li>
 </ul>
-<p>The host sums the <code>(nocc, nocc)</code> partial matrix into the final scalar. No intermediate four-index <code>T</code> tensor is ever materialized.</p>
-<h3 id="current-limitations">Current limitations<a class="headerlink" href="#current-limitations" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Single-tile path only: <code>nvir ≤ 128</code> and <code>naux ≤ 128</code>. Larger systems raise <code>NotImplementedError</code> — K/M tiling is a follow-up.</li>
-<li>Dispatch overhead still dominates at small sizes; see <a href="../../benchmarks/">Benchmarks</a> for the honest comparison against the Python loop.</li>
-</ul>
+<p>Measured on Trn2 (fp32, one LNC=2 core, device-resident, warm, #51):</p>
+<table>
+<thead>
+<tr>
+<th>nocc, nvir, naux</th>
+<th>aten</th>
+<th>row kernel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>16, 128, 512</td>
+<td>1.5 ms</td>
+<td>5.1 ms</td>
+</tr>
+<tr>
+<td>32, 256, 768</td>
+<td>12.1 ms</td>
+<td>11.6 ms</td>
+</tr>
+<tr>
+<td>32, 320, 1024</td>
+<td>24.9 ms</td>
+<td>19.8 ms</td>
+</tr>
+<tr>
+<td>48, 384, 1152</td>
+<td>75.7 ms</td>
+<td>39.2 ms</td>
+</tr>
+<tr>
+<td>64, 448, 1536</td>
+<td>240 ms</td>
+<td>120 ms</td>
+</tr>
+<tr>
+<td>96, 672, 2304</td>
+<td>1.30 s</td>
+<td>0.69 s</td>
+</tr>
+</tbody>
+</table>
+<p>Holding 12 or 18 GB of the core's 24 GB on the device did not slow either
+  path. The aten path's 64 MiB <code>T</code> chunks stay clear of the slowdown in
+  aws-neuron-sdk#1447. The row kernel's input staging is about 1.5× the
+  padded <code>B</code>, so near a full device it needs more memory than aten does.
+  <code>"auto"</code> therefore keeps aten when this process's live device allocations
+  plus that staging would leave less than 3 GiB free. A shape whose kernel
+  launch fails anyway falls back to aten and is remembered for the rest of
+  the process.
+- <strong>PyTorch/XLA path (Trn1)</strong>: the original single-launch <code>mp2_energy_kernel</code>.
+  It accumulates <code>T</code> in PSUM, builds <code>Δ</code> on the Vector Engine, and writes one
+  partial per <code>(i, j)</code> pair.</p>
 <h2 id="trntensorao_to_mo_transformeri-c_occ-c_vir-tensor"><code>trntensor.ao_to_mo_transform(eri, C_occ, C_vir) -&gt; Tensor</code><a class="headerlink" href="#trntensorao_to_mo_transformeri-c_occ-c_vir-tensor" title="Permanent link">&para;</a></h2>
 <p>Fused 4-index AO→MO integral transform. The canonical quantum-chemistry primitive.</p>
 <div class="highlight"><pre><span></span><code>B[i, a, P] = Σ_{μ, ν} C_occ[μ, i] · C_vir[ν, a] · eri[μ, ν, P]
@@ -5517,21 +5548,83 @@ T_{i,j,a,b}  = Σ_P  B[i, a, P] B[j, b, P]
 </code></pre></div>
 <h3 id="backend-behaviour_1">Backend behaviour<a class="headerlink" href="#backend-behaviour_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>CPU, and native TorchNeuron under <code>"auto"</code></strong>: two explicit aten steps,
-  <code>einsum("mi,mnP-&gt;inP")</code> then <code>einsum("na,inP-&gt;iaP")</code>, on the operands'
-  device. On Trn2 this was 6–20× faster than the fused kernel. For example,
-  with <code>nbasis=128, nocc=16, naux=256</code> it took 0.82 ms, against 16.4 ms for
-  the kernel (#41).</li>
-<li><strong>Trainium (NKI): the PyTorch/XLA path, or <code>set_backend("nki")</code></strong>: dispatches a single <code>@nki.jit</code> program that</li>
-<li>loads <code>C_occ</code> and <code>C_vir</code> once, SBUF-resident across all P iterations,</li>
-<li>for each auxiliary index P: two sequential <code>nisa.nc_matmul</code> calls with the intermediate <code>(i, ν)</code> tile round-tripping through kernel-scratch HBM to handle the partition-dim change,</li>
-<li>writes one <code>(nocc, nvir)</code> slice per P to the output HBM tensor.</li>
+<li><strong>CPU</strong>: two explicit aten steps on the operands' device:
+  <code>einsum("mi,mnP-&gt;inP")</code> then <code>einsum("na,inP-&gt;iaP")</code>.</li>
+<li><strong>Native TorchNeuron (Trn2/Trn3): <code>ao_to_mo_trn2_kernel</code>.</strong> Both stages are
+  plain GEMMs with the contraction index on the partition axis, so there are
+  no DMA transposes.</li>
+<li>Stage 1: <code>X[i, ν, P] = Σ_μ C_occ[μ, i] eri[μ, ν, P]</code>.</li>
+<li>Stage 2: <code>B[i, a, P] = Σ_ν C_vir[ν, a] X[i, ν, P]</code>.</li>
+<li>The auxiliary index is split across both physical cores at LNC=2.</li>
+<li><code>"auto"</code> uses the kernel for device-resident <code>eri</code> with <code>nocc ≤ 128</code> when
+    its SBUF working set fits and the stage-1 work <code>nocc·nbasis²·naux</code> is at
+    least 5e8 multiply-adds (about nbasis ≥ 256). Smaller problems lose to
+    the launch floor and the padding copies; otherwise it runs the two aten
+    steps.
+    <code>TRNTENSOR_AO_TO_MO=auto|trn2|aten|legacy</code> overrides the choice.</li>
 </ul>
-<p>The "two-step decomposed" form (<code>intermediate = einsum("mi,mnP-&gt;inP", ...)</code> followed by <code>einsum("na,inP-&gt;iaP", ...)</code>) materializes the <code>(nocc, nbasis, naux)</code> intermediate as a user-visible torch tensor. The fused NKI path keeps it in kernel scratch — the user only ever sees <code>eri</code>, <code>C_occ</code>, <code>C_vir</code>, and <code>B</code>.</p>
-<h3 id="current-limitations_1">Current limitations<a class="headerlink" href="#current-limitations_1" title="Permanent link">&para;</a></h3>
+<p>Measured on Trn2 (fp32, one LNC=2 core, device-resident, warm, #51):</p>
+<table>
+<thead>
+<tr>
+<th>nbasis, nocc, naux</th>
+<th>two aten einsums</th>
+<th>Trn2 kernel (op)</th>
+<th><code>ao_to_mo_transform</code>, <code>"auto"</code></th>
+<th>original kernel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>64, 8, 128</td>
+<td>0.41 ms</td>
+<td>—</td>
+<td>0.41 ms (aten)</td>
+<td>6.0 ms (#49)</td>
+</tr>
+<tr>
+<td>128, 16, 256</td>
+<td>0.49 ms</td>
+<td>0.43 ms</td>
+<td>0.49 ms (aten)</td>
+<td>16.1 ms</td>
+</tr>
+<tr>
+<td>256, 32, 512</td>
+<td>1.23 ms</td>
+<td>1.11 ms</td>
+<td>0.92 ms</td>
+<td>112 ms (#49)</td>
+</tr>
+<tr>
+<td>512, 32, 1024</td>
+<td>7.30 ms</td>
+<td>4.56 ms</td>
+<td>4.72 ms</td>
+<td>—</td>
+</tr>
+<tr>
+<td>768, 48, 1536</td>
+<td>18.3 ms</td>
+<td>11.8 ms</td>
+<td>12.0 ms</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>The op column takes tile-multiple inputs (the raw kernel). The <code>"auto"</code>
+  column includes the padding of <code>nvir</code> to 128 and is the shipped route. At
+  nbasis 64 and 128 it measured 0.79 and 0.57 ms with the kernel forced,
+  which is why <code>"auto"</code> keeps aten there.</p>
 <ul>
-<li>Single-tile path only: <code>nbasis ≤ 128</code>, <code>nocc * naux ≤ 512</code>, and <code>nvir * naux ≤ 512</code>. Larger systems raise <code>NotImplementedError</code>. K-tiling and N-tiling are a follow-up.</li>
-<li>The intermediate briefly visits kernel-scratch HBM to change partition dim between the two nc_matmul steps. A future version may keep it fully SBUF-resident if NKI adds an in-SBUF transpose primitive.</li>
+<li><strong>PyTorch/XLA path (Trn1)</strong>: the original kernel. It loops over P, with the
+  <code>(i, ν)</code> intermediate round-tripping through kernel-scratch HBM. On the
+  native path it is deprecated.</li>
+</ul>
+<h3 id="current-limitations">Current limitations<a class="headerlink" href="#current-limitations" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Both NKI kernels need <code>nocc ≤ 128</code>; larger <code>nocc</code> runs the aten steps (native) or raises <code>NotImplementedError</code> (XLA).</li>
+<li>The <code>(nocc, nbasis, naux)</code> intermediate goes through kernel-scratch HBM between the two stages, as it does between the two aten einsums. Stage 1 leaves <code>i</code> on the partition axis, and stage 2 needs <code>ν</code> there.</li>
 </ul>
 
 

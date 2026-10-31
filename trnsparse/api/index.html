@@ -4201,6 +4201,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#multi-core-trnsparsemulticore-native-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-core (trnsparse.multicore, native path)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5224,6 +5235,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#multi-core-trnsparsemulticore-native-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-core (trnsparse.multicore, native path)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5295,6 +5317,35 @@ lineages, detected on the first kernel launch (force with
 on the host; dense operands and BSR <code>blocks</code> may be on <code>neuron</code>; results are
 on the dense operand's device. See
 <a href="../installation/#placement-sparse-structure-on-the-host">Installation</a>.</p>
+<h2 id="multi-core-trnsparsemulticore-native-path">Multi-core (<code>trnsparse.multicore</code>, native path)<a class="headerlink" href="#multi-core-trnsparsemulticore-native-path" title="Permanent link">&para;</a></h2>
+<p>A Trn2 chip at LNC=2 has four logical NeuronCores, which TorchNeuron
+exposes as <code>neuron:0</code> … <code>neuron:3</code> (<code>NEURON_RT_VISIBLE_CORES=0-3</code>). Each
+static kernel already splits its work across the two physical cores of one
+logical core; these classes split it across logical cores.</p>
+<ul>
+<li><code>logical_cores(n=None)</code>: the visible logical cores as devices.</li>
+<li><code>partition_block_rows(row_ptrs, n_parts)</code>: block rows split into groups
+  balanced by stored blocks (the same greedy as the in-kernel split).</li>
+<li><code>ShardedBSR(A, devices=None, pretransposed=True)</code>: A split by block rows,
+  with each core's blocks resident on that core.</li>
+<li><code>.replicate(B)</code> copies B to every core.</li>
+<li><code>.spmm(B_replicas)</code> returns one output per core, issuing one kernel
+    launch per core without waiting.</li>
+<li><code>.gather(outs)</code> assembles C on the host.</li>
+<li><code>pretransposed=True</code> runs the pre-transposed kernel (no in-kernel
+    transpose, fewer DMAs, and B tiles shared by groups of up to 8 block
+    rows). Gradients reach each core's B replica and block copy.</li>
+<li><code>ShardedAttention(mask, devices=None)</code>: a single-head block-sparse
+  attention forward, split by query block rows. Use <code>.shard_rows(Q)</code>,
+  <code>.replicate_kv(K, V)</code>, <code>.forward(Qts, KVs)</code> and <code>.gather(outs)</code>. It is
+  forward only. For several heads, put whole heads on different cores and
+  call <code>block_sparse_attention_tiled</code> there; that path has autograd.</li>
+</ul>
+<p>TorchNeuron does not copy tensors between logical cores. A <code>neuron:0</code>
+tensor's <code>.to("neuron:1")</code> comes back still on core 0, and <code>copy_</code> across
+cores raises. So per-core operands are built on the host and copied once,
+and results return through the host. The kernel ops run on the logical core
+of their operands, and operands on two different cores are an error.</p>
 
 
 

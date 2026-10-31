@@ -4396,6 +4396,78 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#trn2-across-the-logical-neuroncores-of-one-chip-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trn2: across the logical NeuronCores of one chip (#30)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trn2: across the logical NeuronCores of one chip (#30)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bsr-spmm-fp32-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BSR SpMM (fp32, ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-sparse-attention-forward-one-head-query-rows-split-fp32-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Block-sparse attention forward, one head, query rows split (fp32, ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-sparse-attention-four-heads-whole-heads-per-core-fp32-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Block-sparse attention, four heads, whole heads per core (fp32, ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-process-per-core-bsr-n-8192-width-512-pre-t-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One process per core (BSR, n = 8192, width 512, pre-T, ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-multi-core-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the multi-core tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5435,6 +5507,78 @@
     <span class="md-ellipsis">
       
         Reading the Trn2 tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trn2-across-the-logical-neuroncores-of-one-chip-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trn2: across the logical NeuronCores of one chip (#30)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trn2: across the logical NeuronCores of one chip (#30)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bsr-spmm-fp32-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BSR SpMM (fp32, ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-sparse-attention-forward-one-head-query-rows-split-fp32-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Block-sparse attention forward, one head, query rows split (fp32, ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-sparse-attention-four-heads-whole-heads-per-core-fp32-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Block-sparse attention, four heads, whole heads per core (fp32, ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-process-per-core-bsr-n-8192-width-512-pre-t-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One process per core (BSR, n = 8192, width 512, pre-T, ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-multi-core-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the multi-core tables
       
     </span>
   </a>
@@ -7102,6 +7246,1222 @@ interpolation between measured densities):</p>
   (device scatter of nnz triplets instead of a full dense H2D copy), but
   stays far behind <code>torch.sparse</code> on CPU at low density and behind dense
   aten when A is already dense on the device. On Trainium, use BSR.</li>
+</ul>
+<h2 id="trn2-across-the-logical-neuroncores-of-one-chip-30">Trn2: across the logical NeuronCores of one chip (#30)<a class="headerlink" href="#trn2-across-the-logical-neuroncores-of-one-chip-30" title="Permanent link">&para;</a></h2>
+<p><strong>Setup.</strong>
+- Hardware: <code>trn2.3xlarge</code> at LNC=2, all four logical NeuronCores visible
+  to one process (<code>NEURON_RT_VISIBLE_CORES=0-3</code>), with the whole chip
+  reserved for these runs.
+- Software: Neuron SDK 2.33 venv with <code>torch</code> 2.14.0, <code>torch-neuronx</code>
+  2.14.3, <code>nki</code> 0.7.0 and <code>neuronx-cc</code> 2.28. fp32 throughout.
+- Host: <code>taskset -c 8,9</code>, <code>OMP_NUM_THREADS=2</code>.
+- Script: <code>benchmarks/bench_multicore_trn2.py</code>.
+- Operands are built on the host and copied once to every core that
+  uses them. The time covers issuing one launch per core from one Python
+  thread and synchronizing every core used; host gathers are excluded.
+- <strong>Dense baselines are split too:</strong> "dense kc" is aten <code>A @ B</code> with A's
+  rows split over k cores and B on each. SDPA "4c" splits the query rows
+  (one head) or the heads (four heads) the same way.
+- "API 1c" is the public one-core <code>bsr_spmm</code>, the path from #36, now with
+  keyed ops. "plain" is <code>ShardedBSR(..., pretransposed=False)</code>, the #36
+  kernel. "pre-T" is the new pre-transposed, row-grouped kernel.
+- Rounds: BSR and single-head attention show the lower of two rounds'
+  warm medians (15 calls each). The four-head runs are one round.
+  Sub-millisecond cells carry about ±0.1–0.2 ms of noise. The crossovers
+  interpolate linearly between the measured densities.</p>
+<p><strong>Crossover density vs dense aten</strong> (BSR 128×128):</p>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>width</th>
+<th>API 1c vs dense 1c (#36 path)</th>
+<th>pre-T 1c vs dense 1c</th>
+<th>best of pre-T 1/2/4c vs dense 1c</th>
+<th>pre-T 4c vs dense 4c</th>
+<th>best sparse (any cores) vs best dense (any cores)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>~33%</td>
+<td>~82%</td>
+<td>~96%</td>
+<td>~20%</td>
+<td>~62%</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>~65%</td>
+<td>&gt;100%</td>
+<td>&gt;100%</td>
+<td>~69%</td>
+<td>~69%</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>~69%</td>
+<td>~97%</td>
+<td>&gt;100%</td>
+<td>~74%</td>
+<td>~77%</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>512</td>
+<td>~69%</td>
+<td>~98%</td>
+<td>&gt;100%</td>
+<td>~50%</td>
+<td>~50%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="bsr-spmm-fp32-ms">BSR SpMM (fp32, ms)<a class="headerlink" href="#bsr-spmm-fp32-ms" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>width</th>
+<th>dens.</th>
+<th>blocks</th>
+<th>dense 1c</th>
+<th>dense 2c</th>
+<th>dense 4c</th>
+<th>API 1c (#36)</th>
+<th>plain 1c</th>
+<th>plain 4c</th>
+<th><strong>pre-T 1c</strong></th>
+<th><strong>pre-T 2c</strong></th>
+<th><strong>pre-T 4c</strong></th>
+<th>pre-T 4c issue</th>
+<th>pre-T 1c-&gt;4c</th>
+<th>dense 1c / best sparse</th>
+<th>dense 4c / pre-T 4c</th>
+<th>CPU dense</th>
+<th>rel err</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>1%</td>
+<td>41</td>
+<td>0.85</td>
+<td>0.60</td>
+<td>0.63</td>
+<td>0.28</td>
+<td>0.24</td>
+<td>0.50</td>
+<td><strong>0.24</strong></td>
+<td><strong>0.36</strong></td>
+<td><strong>0.53</strong></td>
+<td>0.43</td>
+<td>0.45x</td>
+<td>3.57x</td>
+<td>1.21x</td>
+<td>56.36</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>5%</td>
+<td>205</td>
+<td>0.85</td>
+<td>0.60</td>
+<td>0.63</td>
+<td>0.36</td>
+<td>0.32</td>
+<td>0.55</td>
+<td><strong>0.27</strong></td>
+<td><strong>0.37</strong></td>
+<td><strong>0.54</strong></td>
+<td>0.45</td>
+<td>0.49x</td>
+<td>3.19x</td>
+<td>1.17x</td>
+<td>56.36</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>10%</td>
+<td>410</td>
+<td>0.85</td>
+<td>0.60</td>
+<td>0.63</td>
+<td>0.44</td>
+<td>0.42</td>
+<td>0.63</td>
+<td><strong>0.29</strong></td>
+<td><strong>0.36</strong></td>
+<td><strong>0.57</strong></td>
+<td>0.35</td>
+<td>0.51x</td>
+<td>2.91x</td>
+<td>1.11x</td>
+<td>56.36</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>25%</td>
+<td>1024</td>
+<td>0.85</td>
+<td>0.60</td>
+<td>0.63</td>
+<td>0.70</td>
+<td>0.81</td>
+<td>0.90</td>
+<td><strong>0.37</strong></td>
+<td><strong>0.39</strong></td>
+<td><strong>0.68</strong></td>
+<td>0.39</td>
+<td>0.55x</td>
+<td>2.28x</td>
+<td>0.94x</td>
+<td>56.36</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>50%</td>
+<td>2048</td>
+<td>0.85</td>
+<td>0.60</td>
+<td>0.63</td>
+<td>1.58</td>
+<td>1.30</td>
+<td>0.94</td>
+<td><strong>0.58</strong></td>
+<td><strong>0.51</strong></td>
+<td><strong>0.76</strong></td>
+<td>0.38</td>
+<td>0.76x</td>
+<td>1.66x</td>
+<td>0.83x</td>
+<td>56.36</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>75%</td>
+<td>3072</td>
+<td>0.85</td>
+<td>0.58</td>
+<td>0.48</td>
+<td>1.84</td>
+<td>-</td>
+<td>-</td>
+<td><strong>0.74</strong></td>
+<td><strong>0.59</strong></td>
+<td><strong>0.81</strong></td>
+<td>0.38</td>
+<td>0.91x</td>
+<td>1.44x</td>
+<td>0.59x</td>
+<td>-</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>100%</td>
+<td>4096</td>
+<td>0.85</td>
+<td>0.58</td>
+<td>0.48</td>
+<td>2.35</td>
+<td>-</td>
+<td>-</td>
+<td><strong>1.44</strong></td>
+<td><strong>0.94</strong></td>
+<td><strong>1.04</strong></td>
+<td>0.59</td>
+<td>1.39x</td>
+<td>0.91x</td>
+<td>0.46x</td>
+<td>-</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>1%</td>
+<td>41</td>
+<td>2.69</td>
+<td>1.53</td>
+<td>1.46</td>
+<td>0.32</td>
+<td>0.29</td>
+<td>0.51</td>
+<td><strong>0.25</strong></td>
+<td><strong>0.31</strong></td>
+<td><strong>0.50</strong></td>
+<td>0.37</td>
+<td>0.50x</td>
+<td>10.75x</td>
+<td>2.93x</td>
+<td>185.06</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>5%</td>
+<td>205</td>
+<td>2.69</td>
+<td>1.53</td>
+<td>1.46</td>
+<td>0.50</td>
+<td>0.72</td>
+<td>0.58</td>
+<td><strong>0.31</strong></td>
+<td><strong>0.35</strong></td>
+<td><strong>0.53</strong></td>
+<td>0.39</td>
+<td>0.58x</td>
+<td>8.79x</td>
+<td>2.75x</td>
+<td>185.06</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>10%</td>
+<td>410</td>
+<td>2.69</td>
+<td>1.53</td>
+<td>1.46</td>
+<td>0.60</td>
+<td>0.99</td>
+<td>0.93</td>
+<td><strong>0.39</strong></td>
+<td><strong>0.56</strong></td>
+<td><strong>0.56</strong></td>
+<td>0.37</td>
+<td>0.69x</td>
+<td>6.95x</td>
+<td>2.60x</td>
+<td>185.06</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>25%</td>
+<td>1024</td>
+<td>2.69</td>
+<td>1.53</td>
+<td>1.46</td>
+<td>1.41</td>
+<td>1.41</td>
+<td>0.96</td>
+<td><strong>1.04</strong></td>
+<td><strong>0.81</strong></td>
+<td><strong>0.89</strong></td>
+<td>0.42</td>
+<td>1.17x</td>
+<td>3.32x</td>
+<td>1.64x</td>
+<td>185.06</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>50%</td>
+<td>2048</td>
+<td>2.69</td>
+<td>1.53</td>
+<td>1.46</td>
+<td>2.28</td>
+<td>1.97</td>
+<td>1.30</td>
+<td><strong>1.50</strong></td>
+<td><strong>1.14</strong></td>
+<td><strong>1.08</strong></td>
+<td>0.38</td>
+<td>1.39x</td>
+<td>2.50x</td>
+<td>1.36x</td>
+<td>185.06</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>75%</td>
+<td>3072</td>
+<td>2.65</td>
+<td>1.48</td>
+<td>1.14</td>
+<td>2.99</td>
+<td>-</td>
+<td>-</td>
+<td><strong>2.07</strong></td>
+<td><strong>1.48</strong></td>
+<td><strong>1.30</strong></td>
+<td>0.59</td>
+<td>1.59x</td>
+<td>2.04x</td>
+<td>0.87x</td>
+<td>-</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>100%</td>
+<td>4096</td>
+<td>2.65</td>
+<td>1.48</td>
+<td>1.14</td>
+<td>3.73</td>
+<td>-</td>
+<td>-</td>
+<td><strong>2.59</strong></td>
+<td><strong>1.78</strong></td>
+<td><strong>1.71</strong></td>
+<td>0.48</td>
+<td>1.51x</td>
+<td>1.55x</td>
+<td>0.66x</td>
+<td>-</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>1%</td>
+<td>164</td>
+<td>5.79</td>
+<td>2.37</td>
+<td>1.92</td>
+<td>0.38</td>
+<td>0.57</td>
+<td>0.64</td>
+<td><strong>0.31</strong></td>
+<td><strong>0.41</strong></td>
+<td><strong>0.65</strong></td>
+<td>0.42</td>
+<td>0.47x</td>
+<td>18.87x</td>
+<td>2.95x</td>
+<td>228.78</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>5%</td>
+<td>819</td>
+<td>5.79</td>
+<td>2.37</td>
+<td>1.92</td>
+<td>0.66</td>
+<td>0.71</td>
+<td>0.80</td>
+<td><strong>0.41</strong></td>
+<td><strong>0.43</strong></td>
+<td><strong>0.61</strong></td>
+<td>0.41</td>
+<td>0.67x</td>
+<td>14.09x</td>
+<td>3.12x</td>
+<td>228.78</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>10%</td>
+<td>1638</td>
+<td>5.79</td>
+<td>2.37</td>
+<td>1.92</td>
+<td>1.03</td>
+<td>1.01</td>
+<td>1.02</td>
+<td><strong>0.54</strong></td>
+<td><strong>0.47</strong></td>
+<td><strong>0.71</strong></td>
+<td>0.54</td>
+<td>0.76x</td>
+<td>12.28x</td>
+<td>2.70x</td>
+<td>228.78</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>25%</td>
+<td>4096</td>
+<td>5.79</td>
+<td>2.37</td>
+<td>1.92</td>
+<td>2.67</td>
+<td>2.21</td>
+<td>1.18</td>
+<td><strong>1.19</strong></td>
+<td><strong>1.00</strong></td>
+<td><strong>0.85</strong></td>
+<td>0.41</td>
+<td>1.40x</td>
+<td>6.79x</td>
+<td>2.25x</td>
+<td>228.78</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>50%</td>
+<td>8192</td>
+<td>5.79</td>
+<td>2.37</td>
+<td>1.92</td>
+<td>4.46</td>
+<td>3.58</td>
+<td>2.24</td>
+<td><strong>3.39</strong></td>
+<td><strong>1.48</strong></td>
+<td><strong>1.47</strong></td>
+<td>0.62</td>
+<td>2.30x</td>
+<td>3.93x</td>
+<td>1.30x</td>
+<td>228.78</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>75%</td>
+<td>12288</td>
+<td>5.76</td>
+<td>2.29</td>
+<td>1.83</td>
+<td>6.38</td>
+<td>-</td>
+<td>-</td>
+<td><strong>3.29</strong></td>
+<td><strong>1.79</strong></td>
+<td><strong>1.85</strong></td>
+<td>0.58</td>
+<td>1.78x</td>
+<td>3.22x</td>
+<td>0.99x</td>
+<td>-</td>
+<td>3e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>100%</td>
+<td>16384</td>
+<td>5.76</td>
+<td>2.29</td>
+<td>1.83</td>
+<td>8.27</td>
+<td>-</td>
+<td>-</td>
+<td><strong>6.47</strong></td>
+<td><strong>3.65</strong></td>
+<td><strong>2.90</strong></td>
+<td>0.67</td>
+<td>2.24x</td>
+<td>1.99x</td>
+<td>0.63x</td>
+<td>-</td>
+<td>3e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>512</td>
+<td>1%</td>
+<td>164</td>
+<td>10.64</td>
+<td>5.54</td>
+<td>2.90</td>
+<td>0.48</td>
+<td>0.68</td>
+<td>0.60</td>
+<td><strong>0.33</strong></td>
+<td><strong>0.39</strong></td>
+<td><strong>0.55</strong></td>
+<td>0.38</td>
+<td>0.61x</td>
+<td>31.88x</td>
+<td>5.28x</td>
+<td>746.80</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>512</td>
+<td>5%</td>
+<td>819</td>
+<td>10.64</td>
+<td>5.54</td>
+<td>2.90</td>
+<td>1.03</td>
+<td>1.06</td>
+<td>0.88</td>
+<td><strong>0.95</strong></td>
+<td><strong>0.71</strong></td>
+<td><strong>0.71</strong></td>
+<td>0.57</td>
+<td>1.33x</td>
+<td>15.00x</td>
+<td>4.07x</td>
+<td>746.80</td>
+<td>1e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>512</td>
+<td>10%</td>
+<td>1638</td>
+<td>10.64</td>
+<td>5.54</td>
+<td>2.90</td>
+<td>2.12</td>
+<td>1.96</td>
+<td>1.20</td>
+<td><strong>1.08</strong></td>
+<td><strong>0.96</strong></td>
+<td><strong>0.95</strong></td>
+<td>0.42</td>
+<td>1.14x</td>
+<td>11.19x</td>
+<td>3.05x</td>
+<td>746.80</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>512</td>
+<td>25%</td>
+<td>4096</td>
+<td>10.64</td>
+<td>5.54</td>
+<td>2.90</td>
+<td>4.00</td>
+<td>3.57</td>
+<td>2.27</td>
+<td><strong>2.73</strong></td>
+<td><strong>1.66</strong></td>
+<td><strong>1.70</strong></td>
+<td>0.60</td>
+<td>1.61x</td>
+<td>6.42x</td>
+<td>1.71x</td>
+<td>746.80</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>512</td>
+<td>50%</td>
+<td>8192</td>
+<td>10.64</td>
+<td>5.54</td>
+<td>2.90</td>
+<td>7.23</td>
+<td>6.46</td>
+<td>3.73</td>
+<td><strong>5.63</strong></td>
+<td><strong>2.91</strong></td>
+<td><strong>2.92</strong></td>
+<td>0.60</td>
+<td>1.93x</td>
+<td>3.66x</td>
+<td>0.99x</td>
+<td>746.80</td>
+<td>2e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>512</td>
+<td>75%</td>
+<td>12288</td>
+<td>10.98</td>
+<td>5.68</td>
+<td>3.01</td>
+<td>12.95</td>
+<td>-</td>
+<td>-</td>
+<td><strong>7.44</strong></td>
+<td><strong>4.20</strong></td>
+<td><strong>4.17</strong></td>
+<td>0.46</td>
+<td>1.78x</td>
+<td>2.63x</td>
+<td>0.72x</td>
+<td>-</td>
+<td>3e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>512</td>
+<td>100%</td>
+<td>16384</td>
+<td>10.98</td>
+<td>5.68</td>
+<td>3.01</td>
+<td>16.80</td>
+<td>-</td>
+<td>-</td>
+<td><strong>11.45</strong></td>
+<td><strong>6.28</strong></td>
+<td><strong>5.34</strong></td>
+<td>0.68</td>
+<td>2.14x</td>
+<td>2.06x</td>
+<td>0.56x</td>
+<td>-</td>
+<td>3e-07</td>
+</tr>
+</tbody>
+</table>
+<h3 id="block-sparse-attention-forward-one-head-query-rows-split-fp32-ms">Block-sparse attention forward, one head, query rows split (fp32, ms)<a class="headerlink" href="#block-sparse-attention-forward-one-head-query-rows-split-fp32-ms" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>seq</th>
+<th>hd</th>
+<th>mask</th>
+<th>block dens.</th>
+<th>SDPA dense 1c</th>
+<th>SDPA dense 4c (rows split)</th>
+<th>SDPA masked 1c</th>
+<th>SDPA masked 4c</th>
+<th>API 1c</th>
+<th><strong>sparse 1c</strong></th>
+<th><strong>sparse 2c</strong></th>
+<th><strong>sparse 4c</strong></th>
+<th>1c-&gt;4c</th>
+<th>rel err</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8192</td>
+<td>64</td>
+<td>dilated</td>
+<td>25.0%</td>
+<td>0.72</td>
+<td>1.05</td>
+<td>5.13</td>
+<td>4.22</td>
+<td>1.97</td>
+<td><strong>1.55</strong></td>
+<td><strong>1.14</strong></td>
+<td><strong>1.29</strong></td>
+<td>1.20x</td>
+<td>1e-06</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>64</td>
+<td>global</td>
+<td>7.7%</td>
+<td>0.72</td>
+<td>1.05</td>
+<td>5.14</td>
+<td>4.20</td>
+<td>1.09</td>
+<td><strong>0.76</strong></td>
+<td><strong>0.84</strong></td>
+<td><strong>0.84</strong></td>
+<td>0.91x</td>
+<td>9e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>64</td>
+<td>local</td>
+<td>4.6%</td>
+<td>0.72</td>
+<td>1.05</td>
+<td>5.04</td>
+<td>3.85</td>
+<td>0.85</td>
+<td><strong>0.55</strong></td>
+<td><strong>0.57</strong></td>
+<td><strong>0.90</strong></td>
+<td>0.61x</td>
+<td>9e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>dilated</td>
+<td>25.0%</td>
+<td>0.77</td>
+<td>1.06</td>
+<td>5.03</td>
+<td>4.22</td>
+<td>1.88</td>
+<td><strong>1.42</strong></td>
+<td><strong>1.30</strong></td>
+<td><strong>1.25</strong></td>
+<td>1.14x</td>
+<td>9e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>global</td>
+<td>7.7%</td>
+<td>0.77</td>
+<td>1.06</td>
+<td>5.13</td>
+<td>4.17</td>
+<td>1.21</td>
+<td><strong>0.89</strong></td>
+<td><strong>0.68</strong></td>
+<td><strong>0.93</strong></td>
+<td>0.95x</td>
+<td>9e-07</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>local</td>
+<td>4.6%</td>
+<td>0.77</td>
+<td>1.06</td>
+<td>5.04</td>
+<td>4.09</td>
+<td>1.03</td>
+<td><strong>0.72</strong></td>
+<td><strong>0.70</strong></td>
+<td><strong>0.85</strong></td>
+<td>0.85x</td>
+<td>9e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>64</td>
+<td>dilated</td>
+<td>25.0%</td>
+<td>2.04</td>
+<td>1.82</td>
+<td>32.17</td>
+<td>9.23</td>
+<td>6.17</td>
+<td><strong>5.68</strong></td>
+<td><strong>3.10</strong></td>
+<td><strong>2.99</strong></td>
+<td>1.90x</td>
+<td>1e-06</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>64</td>
+<td>global</td>
+<td>3.9%</td>
+<td>2.04</td>
+<td>1.82</td>
+<td>32.46</td>
+<td>9.17</td>
+<td>1.86</td>
+<td><strong>1.34</strong></td>
+<td><strong>0.93</strong></td>
+<td><strong>1.14</strong></td>
+<td>1.18x</td>
+<td>9e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>64</td>
+<td>local</td>
+<td>2.3%</td>
+<td>2.04</td>
+<td>1.82</td>
+<td>31.89</td>
+<td>6.58</td>
+<td>1.18</td>
+<td><strong>0.85</strong></td>
+<td><strong>0.91</strong></td>
+<td><strong>1.00</strong></td>
+<td>0.85x</td>
+<td>8e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>dilated</td>
+<td>25.0%</td>
+<td>2.22</td>
+<td>1.96</td>
+<td>32.94</td>
+<td>10.67</td>
+<td>5.71</td>
+<td><strong>5.17</strong></td>
+<td><strong>2.91</strong></td>
+<td><strong>2.88</strong></td>
+<td>1.80x</td>
+<td>1e-06</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>global</td>
+<td>3.9%</td>
+<td>2.22</td>
+<td>1.96</td>
+<td>32.61</td>
+<td>8.39</td>
+<td>2.16</td>
+<td><strong>1.64</strong></td>
+<td><strong>1.01</strong></td>
+<td><strong>1.16</strong></td>
+<td>1.42x</td>
+<td>9e-07</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>local</td>
+<td>2.3%</td>
+<td>2.22</td>
+<td>1.96</td>
+<td>32.58</td>
+<td>9.37</td>
+<td>1.80</td>
+<td><strong>1.58</strong></td>
+<td><strong>1.03</strong></td>
+<td><strong>1.10</strong></td>
+<td>1.44x</td>
+<td>9e-07</td>
+</tr>
+</tbody>
+</table>
+<h3 id="block-sparse-attention-four-heads-whole-heads-per-core-fp32-ms">Block-sparse attention, four heads, whole heads per core (fp32, ms)<a class="headerlink" href="#block-sparse-attention-four-heads-whole-heads-per-core-fp32-ms" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>seq</th>
+<th>hd</th>
+<th>mask</th>
+<th>block dens.</th>
+<th>SDPA fwd 1c</th>
+<th>SDPA fwd 4c</th>
+<th><strong>sparse fwd 1c</strong></th>
+<th><strong>sparse fwd 4c</strong></th>
+<th>SDPA fwd+bwd 1c</th>
+<th>SDPA fwd+bwd 4c</th>
+<th><strong>sparse fwd+bwd 1c</strong></th>
+<th><strong>sparse fwd+bwd 2c</strong></th>
+<th><strong>sparse fwd+bwd 4c</strong></th>
+<th>fwd+bwd 1c-&gt;4c</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8192</td>
+<td>64</td>
+<td>dilated</td>
+<td>25.0%</td>
+<td>2.09</td>
+<td>1.64</td>
+<td><strong>6.93</strong></td>
+<td><strong>4.25</strong></td>
+<td>12.99</td>
+<td>12.46</td>
+<td><strong>18.70</strong></td>
+<td><strong>14.94</strong></td>
+<td><strong>13.22</strong></td>
+<td>1.42x</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>64</td>
+<td>global</td>
+<td>7.7%</td>
+<td>2.09</td>
+<td>1.64</td>
+<td><strong>3.77</strong></td>
+<td><strong>2.92</strong></td>
+<td>12.99</td>
+<td>12.46</td>
+<td><strong>10.45</strong></td>
+<td><strong>10.23</strong></td>
+<td><strong>9.58</strong></td>
+<td>1.09x</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>64</td>
+<td>local</td>
+<td>4.6%</td>
+<td>2.09</td>
+<td>1.64</td>
+<td><strong>2.93</strong></td>
+<td><strong>2.48</strong></td>
+<td>12.99</td>
+<td>12.46</td>
+<td><strong>9.70</strong></td>
+<td><strong>9.28</strong></td>
+<td><strong>7.56</strong></td>
+<td>1.28x</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>dilated</td>
+<td>25.0%</td>
+<td>2.17</td>
+<td>1.65</td>
+<td><strong>6.32</strong></td>
+<td><strong>3.72</strong></td>
+<td>13.60</td>
+<td>10.51</td>
+<td><strong>18.44</strong></td>
+<td><strong>14.63</strong></td>
+<td><strong>13.24</strong></td>
+<td>1.39x</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>global</td>
+<td>7.7%</td>
+<td>2.17</td>
+<td>1.65</td>
+<td><strong>4.35</strong></td>
+<td><strong>3.17</strong></td>
+<td>13.60</td>
+<td>10.51</td>
+<td><strong>12.94</strong></td>
+<td><strong>10.39</strong></td>
+<td><strong>8.83</strong></td>
+<td>1.47x</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>local</td>
+<td>4.6%</td>
+<td>2.17</td>
+<td>1.65</td>
+<td><strong>3.70</strong></td>
+<td><strong>2.67</strong></td>
+<td>13.60</td>
+<td>10.51</td>
+<td><strong>10.94</strong></td>
+<td><strong>9.18</strong></td>
+<td><strong>8.65</strong></td>
+<td>1.26x</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>64</td>
+<td>dilated</td>
+<td>25.0%</td>
+<td>7.47</td>
+<td>4.18</td>
+<td><strong>22.28</strong></td>
+<td><strong>10.06</strong></td>
+<td>48.65</td>
+<td>27.60</td>
+<td><strong>77.94</strong></td>
+<td><strong>49.78</strong></td>
+<td><strong>37.63</strong></td>
+<td>2.07x</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>64</td>
+<td>global</td>
+<td>3.9%</td>
+<td>7.47</td>
+<td>4.18</td>
+<td><strong>6.02</strong></td>
+<td><strong>3.85</strong></td>
+<td>48.65</td>
+<td>27.60</td>
+<td><strong>17.87</strong></td>
+<td><strong>13.01</strong></td>
+<td><strong>14.06</strong></td>
+<td>1.27x</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>64</td>
+<td>local</td>
+<td>2.3%</td>
+<td>7.47</td>
+<td>4.18</td>
+<td><strong>4.23</strong></td>
+<td><strong>3.37</strong></td>
+<td>48.65</td>
+<td>27.60</td>
+<td><strong>14.30</strong></td>
+<td><strong>11.82</strong></td>
+<td><strong>10.45</strong></td>
+<td>1.37x</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>dilated</td>
+<td>25.0%</td>
+<td>7.88</td>
+<td>4.50</td>
+<td><strong>19.86</strong></td>
+<td><strong>9.14</strong></td>
+<td>50.32</td>
+<td>25.92</td>
+<td><strong>76.25</strong></td>
+<td><strong>52.44</strong></td>
+<td><strong>40.18</strong></td>
+<td>1.90x</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>global</td>
+<td>3.9%</td>
+<td>7.88</td>
+<td>4.50</td>
+<td><strong>6.69</strong></td>
+<td><strong>4.10</strong></td>
+<td>50.32</td>
+<td>25.92</td>
+<td><strong>19.22</strong></td>
+<td><strong>13.80</strong></td>
+<td><strong>13.23</strong></td>
+<td>1.45x</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>128</td>
+<td>local</td>
+<td>2.3%</td>
+<td>7.88</td>
+<td>4.50</td>
+<td><strong>6.03</strong></td>
+<td><strong>3.61</strong></td>
+<td>50.32</td>
+<td>25.92</td>
+<td><strong>15.97</strong></td>
+<td><strong>11.87</strong></td>
+<td><strong>11.92</strong></td>
+<td>1.34x</td>
+</tr>
+</tbody>
+</table>
+<h3 id="one-process-per-core-bsr-n-8192-width-512-pre-t-ms">One process per core (BSR, n = 8192, width 512, pre-T, ms)<a class="headerlink" href="#one-process-per-core-bsr-n-8192-width-512-pre-t-ms" title="Permanent link">&para;</a></h3>
+<p><code>benchmarks/bench_multiproc_trn2.py</code>: each process owns one core and its
+share of the block rows, and all processes are pinned to the same two host
+CPUs.</p>
+<table>
+<thead>
+<tr>
+<th>processes</th>
+<th>barrier</th>
+<th>dense (rows split)</th>
+<th>1%</th>
+<th>5%</th>
+<th>10%</th>
+<th>25%</th>
+<th>50%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0.02</td>
+<td>2.31</td>
+<td>0.28</td>
+<td>0.32</td>
+<td>0.41</td>
+<td>0.70</td>
+<td>1.20</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0.05</td>
+<td>1.54</td>
+<td>0.44</td>
+<td>0.39</td>
+<td>0.36</td>
+<td>0.69</td>
+<td>0.89</td>
+</tr>
+<tr>
+<td>4</td>
+<td>0.11</td>
+<td>1.66</td>
+<td>0.84</td>
+<td>1.02</td>
+<td>0.78</td>
+<td>1.10</td>
+<td>1.12</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reading-the-multi-core-tables">Reading the multi-core tables<a class="headerlink" href="#reading-the-multi-core-tables" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>The per-block fix moved the crossover more than extra cores did.</strong></li>
+<li>On one core, the pre-transposed, row-grouped kernel is 1.1–2.2×
+    faster than the #36 kernel at 25–50% density.</li>
+<li>It beats dense aten on that same core up to ~82–98% block density,
+    and still beats it at 100% for n = 8192, width 512. In #36 the
+    crossover was ~26–49% on two physical cores.</li>
+<li>Where the time goes: B-tile loads, shared across up to 8 block rows
+    of a group, and the in-kernel transpose, now gone.</li>
+<li><strong>Four logical cores pay only for large work per call.</strong></li>
+<li>Speedup from one core to four (pre-T): 1.4–2.3× at n = 16384 and
+    25–100% density, 1.2–1.6× at n = 8192 and width 512 above 25%.</li>
+<li>It is a <em>slowdown</em> (0.45–0.8×) below ~0.6 ms of single-core work.</li>
+<li><strong>Why the speedup stops there:</strong></li>
+<li>One Python thread issues the launches, at about 0.1 ms each (0.4–0.7 ms
+    for four).</li>
+<li>Concurrent kernels on different logical cores also slow each other.
+    At n = 16384, width 512, 50% density, one shard takes 1.15–1.3 ms alone
+    and 1.9–2.9 ms with all four running. Dense aten slabs barely contend
+    (2.5 ms alone, 3.1 ms for four).</li>
+<li>Two cores reach most of the four-core gain.</li>
+<li>One process per core does not help with two host CPUs: four processes
+    are no faster than one.</li>
+<li><strong>Against dense split the same way, the crossover drops.</strong> Dense aten
+  scales better across cores (3.7× from one to four at n = 16384, width
+  512), so the four-core crossovers are ~50–74% at n = 16384 and ~69% at
+  n = 8192, width 512. At n = 8192, width 128 both sides sit on the launch
+  floor (0.5–0.7 ms), so splitting is pointless there.</li>
+<li><strong>Attention, one head:</strong></li>
+<li>The forward on one core now beats unmasked dense SDPA at seq 16384
+    for local and global masks: 0.85–1.6 ms vs 2.0–2.2 ms.</li>
+<li>At seq 8192 it ties: 0.55–0.89 ms vs 0.72–0.77 ms.</li>
+<li>Splitting query rows over cores pays only for the 25% dilated mask at
+    seq 16384: 5.2–5.7 → 2.9–3.0 ms, but that is still slower than dense
+    SDPA at 1.8–2.2 ms.</li>
+<li>Masked SDPA (32–33 ms at 16384 on one core, 6.6–11 ms on four) loses
+    to every sparse configuration.</li>
+<li><strong>Attention, four heads (fwd+bwd):</strong></li>
+<li>With whole heads per core, sparse beats dense SDPA split the same way
+    at seq 16384 for local and global masks: 10.5–14 ms vs 26–28 ms.</li>
+<li>At seq 8192 the margin is narrower: 7.6–9.6 vs 10.5–12.5 ms.</li>
+<li>The 25% dilated mask loses at both lengths.</li>
+<li>Core scaling is 1.1–2.1×, held back by about 10–20 host-issued aten
+    ops per head on the public path.</li>
 </ul>
 
 
