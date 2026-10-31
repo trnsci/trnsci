@@ -209,6 +209,10 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnblas-the-92-that-was-18-and-the-df-mp2-win-that-holds-up/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/trnfft-batch-fusion-and-the-first-fft-result-that-beats-the-cpu/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
@@ -561,6 +565,10 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/category/trnblas/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/category/trnfft/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
@@ -570,10 +578,6 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnsparse/</loc>
-         <lastmod>2026-10-31</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/trnblas/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>

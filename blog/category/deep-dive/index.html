@@ -5103,6 +5103,48 @@
             in
             
               <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trnblas/" class="md-meta__link">trnblas</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              12 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnblas-the-92-that-was-18-and-the-df-mp2-win-that-holds-up"><a class="toclink" href="../../trnblas-the-92-that-was-18-and-the-df-mp2-win-that-holds-up/">trnblas: the 92× that was 1.8×, and the DF-MP2 win that holds up</a></h2>
+<p>trnblas published a 92× speedup for its fused pair-energy kernel on Trn2, and it was wrong: the aten baseline had slowed because device memory was filling up, and against a fair baseline the kernel is 1.8× faster. What survives is narrower and more useful. GEMM routes to aten, a fused kernel keeps the energy step where it avoids work aten can't, and the metric Cholesky moves to the host, which makes density-fitted MP2 1.1–1.8× faster than aten on the molecules where the device beats the CPU at all. The post is for anyone benchmarking TorchNeuron eager code, and for chemists deciding which DF-MP2 stages belong on Trainium.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnblas-the-92-that-was-18-and-the-df-mp2-win-that-holds-up/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
               <a href="../trnfft/" class="md-meta__link">trnfft</a></li>
         
         
@@ -5470,50 +5512,6 @@ Aten <code>randn</code> is still about 11× faster, and the host CPU still wins 
     
       <nav class="md-post__action">
         <a href="../../trntensor-the-mock-all-reduce-meets-four-real-ranks/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-30 00:00:00+00:00">April 30, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              4 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-the-neuroncore-is-the-unit-of-parallelism"><a class="toclink" href="../../trnfft-the-neuroncore-is-the-unit-of-parallelism/">trnfft: the NeuronCore is the unit of parallelism</a></h2>
-<p>v0.20 ships multi-NeuronCore batch-split FFT. B transforms dispatched across C NeuronCores
-gives B/C per core — no shared state, no communication, linear scaling up to B = C. The
-architecture made this obvious. Getting the dispatch infrastructure right was less so.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trnfft-the-neuroncore-is-the-unit-of-parallelism/">
           Continue reading
         </a>
       </nav>
