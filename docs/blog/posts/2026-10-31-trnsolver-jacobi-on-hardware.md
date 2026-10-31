@@ -11,7 +11,7 @@ trnsolver's batched block-Jacobi `eigh` now beats 2-thread CPU LAPACK by 1.5–2
 <!-- more -->
 
 !!! note "Code status"
-    The one-sided Jacobi kernel ([trnsolver#50](https://github.com/trnsci/trnsolver/pull/50)) shipped in [v0.17.0](https://github.com/trnsci/trnsolver/releases/tag/v0.17.0). The block kernel and the `method="auto"` region ([#52](https://github.com/trnsci/trnsolver/pull/52)) are on `main`, in the upcoming v0.18.0. The Householder device pipeline ([#45](https://github.com/trnsci/trnsolver/pull/45), [#47](https://github.com/trnsci/trnsolver/pull/47), [#49](https://github.com/trnsci/trnsolver/pull/49)) stays as draft PRs, kept for their measurements. Everything ran on a trn2.3xlarge with public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631).
+    The one-sided Jacobi kernel ([trnsolver#50](https://github.com/trnsci/trnsolver/pull/50)) shipped in [v0.17.0](https://github.com/trnsci/trnsolver/releases/tag/v0.17.0). The block kernel and the `method="auto"` region ([#52](https://github.com/trnsci/trnsolver/pull/52)) are in [v0.18.0](https://github.com/trnsci/trnsolver/tree/v0.18.0). The Householder device pipeline ([#45](https://github.com/trnsci/trnsolver/pull/45), [#47](https://github.com/trnsci/trnsolver/pull/47), [#49](https://github.com/trnsci/trnsolver/pull/49)) stays as draft PRs, kept for their measurements. Everything ran on a trn2.3xlarge with public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631).
 
 ## The problem
 
