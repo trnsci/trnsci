@@ -12,13 +12,26 @@ Density-fitted MP2 correlation energy on a small synthetic system.
 | AO-pair Schwarz screening (report only) | `trnsparse` | `schwarz_bounds`, `sparsity_stats` |
 | Cholesky of DF metric J | `trnsolver` | `cholesky` |
 | Half-transform (μν\|P) → (ia\|P) | `trnblas` | `gemm`, `batched_gemm`, `trsm` |
-| Pair-energy contraction T_ab = B_iaP B_jbP | `trntensor` | `einsum`, `estimate_flops` |
+| Closed-shell MP2 energy Σ T(2T − Tᵀ)/Δ, T_iajb = Σ_P B_iaP B_jbP | `trntensor` | `mp2_energy`, `estimate_flops` |
 
 ```bash
 python examples/quantum_chemistry/df_mp2_synthetic.py --demo
+python examples/quantum_chemistry/df_mp2_synthetic.py --demo --device neuron   # Trn2/Trn3, TorchNeuron
 ```
 
+With `--device neuron` the inputs are built on the host and copied to the device once; each library's `auto` dispatch then picks an NKI kernel or aten for the device-resident tensors. The first call per shape includes compilation.
+
 The inputs are random; the energy number is not physically meaningful. This is a **plumbing** demo that exercises the API surfaces across four libraries end-to-end. For a chemistry-valid calculation, drive the pipeline with AO integrals and SCF MO coefficients from a real quantum-chemistry driver (see `pyscf_bridge_sketch.md` for notes on what that looks like).
+
+## `df_mp2_profile.py`
+
+End-to-end profile of the pipeline above across a ladder of synthetic sizes: per-stage time, the route each library's `auto` dispatch picked, and stage-output and energy error against a float64 host reference. Modes `cpu` (all libraries on their pytorch backend), `host-auto` (host tensors, `auto` backends) and `neuron` (device-resident). Pipelines `example` (this example's stage functions) and `fused` (`trntensor.ao_to_mo_transform`, `trnblas.metric_inv_half`, `trntensor.mp2_energy`).
+
+```bash
+NEURON_RT_VISIBLE_CORES=2 OMP_NUM_THREADS=2 taskset -c 8,9 \
+    python examples/quantum_chemistry/df_mp2_profile.py \
+    --sizes s,m,l,xl --modes cpu,neuron --json df_mp2_profile.jsonl
+```
 
 ## `pyscf_bridge_sketch.md`
 

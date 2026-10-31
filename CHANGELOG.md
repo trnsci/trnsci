@@ -5,6 +5,28 @@ All notable changes to the trnsci umbrella package.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `examples/quantum_chemistry/df_mp2_synthetic.py`: the pair-energy stage
+  computed only the direct term `Σ T²/Δ` (about 30% off the closed-shell
+  DF-MP2 energy on the demo system). It now calls `trntensor.mp2_energy`,
+  `Σ T(2T − Tᵀ)/Δ`, which matches a float64 reference to ~1e-7. This also
+  removes the per-(i, j) Python loop, which synced the device once per pair.
+- The metric stage built its identity on the host; it now follows `J`'s device.
+
+### Added
+
+- `--device neuron` for the DF-MP2 example. Inputs are built on the host and
+  copied to the device once.
+- `examples/quantum_chemistry/df_mp2_profile.py`: an end-to-end profile across
+  a size ladder. It reports per-stage time, the route each library's `auto`
+  dispatch picked, and error against float64, in `cpu` / `host-auto` /
+  `neuron` modes.
+- Integration test pinning the example energy to the float64 closed-shell
+  reference.
+
 ## [0.1.0] — 2026-04-13
 
 Initial umbrella release.

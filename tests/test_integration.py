@@ -65,3 +65,19 @@ def test_schwarz_screening_bounds():
     assert trnsparse.screen_quartets(Q, threshold=0.0).all()
     # Huge threshold drops everything.
     assert trnsparse.screen_quartets(Q, threshold=1e30).sum().item() == 0
+
+
+def test_df_mp2_energy_matches_fp64_closed_shell():
+    """The pipeline energy is the closed-shell DF-MP2 energy
+    Σ T(2T - Tᵀ)/Δ, to fp32 accuracy (the direct-only Σ T²/Δ is ~30% off)."""
+    import df_mp2_profile as prof
+    import df_mp2_synthetic as demo
+
+    eri, J, C_occ, C_vir, eps_occ, eps_vir, _ = demo.synthetic_system(
+        n_ao=16, n_aux=40, n_occ=4, seed=3
+    )
+    ia_P = demo.half_transform(eri, C_occ, C_vir)
+    B = demo.metric_contract(ia_P, J)
+    e, _ = demo.pair_energy(B, eps_occ, eps_vir)
+    _, _, e_ref = prof.reference_fp64(eri, J, C_occ, C_vir, eps_occ, eps_vir)
+    assert abs(e - e_ref) <= 1e-5 * abs(e_ref)
