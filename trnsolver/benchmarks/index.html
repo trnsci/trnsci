@@ -3901,6 +3901,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#df-rhf-scf-end-to-end-trn2-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-RHF SCF end to end (Trn2, #15)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#notes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5332,6 +5343,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#df-rhf-scf-end-to-end-trn2-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DF-RHF SCF end to end (Trn2, #15)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#notes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5537,6 +5559,167 @@
 <p>Reproduce: <code>AWS_PROFILE=aws ./scripts/run_cuda_tests.sh g5</code>.</p>
 <h2 id="trainium-results-trn1-trn2">Trainium results (trn1 / trn2)<a class="headerlink" href="#trainium-results-trn1-trn2" title="Permanent link">&para;</a></h2>
 <p><em>Pending — classical Jacobi was architecturally mismatched to NKI (see <a href="https://github.com/trnsci/trnsolver/issues/9">#9</a> post-mortem). Phase 1 redesign is iterating against the new NKI 0.3.0 CPU simulator (Neuron SDK 2.29, April 2026) with full-sweep Jacobi / Householder-QR / block-Jacobi candidates; hardware numbers will land once the redesigned kernel validates in simulation.</em></p>
+<h2 id="df-rhf-scf-end-to-end-trn2-15">DF-RHF SCF end to end (Trn2, #15)<a class="headerlink" href="#df-rhf-scf-end-to-end-trn2-15" title="Permanent link">&para;</a></h2>
+<p><code>scripts/bench_scf.py</code> on trn2.3xlarge, SDK 2.33 native TorchNeuron, LNC=2,
+one logical NeuronCore, host threads pinned to one physical core
+(<code>OMP_NUM_THREADS=2 taskset -c 2,8</code>). PySCF cc-pVDZ / cc-pvdz-jkfit
+integrals (<code>h2-lattice:16</code> is the synthetic s-Gaussian system). fp32 on
+CPU and device; the reference is PySCF's float64 DF-RHF energy on the same
+integrals, which the float64 loop (<code>cpu64</code>) reproduces to 1e-11 Eh. Warm
+times; the first run of each shape pays a one-off compile (6-10 s at water,
+up to 455 s at n_ao = 970). The CPU runs keep the unpacked integrals
+resident (at n_ao = 970, <code>--k-cache-gb 24</code>); one logical core's 24 GB holds
+them only without the packed copy (<code>--jk-square</code>).</p>
+<table>
+<thead>
+<tr>
+<th>system</th>
+<th>n_ao / naux / nocc</th>
+<th>CPU fp32: iters, total</th>
+<th>device: iters, total</th>
+<th>speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>water</td>
+<td>24 / 116 / 5</td>
+<td>10, 5.3 ms</td>
+<td>10, 60.2 ms</td>
+<td>0.09x</td>
+</tr>
+<tr>
+<td>benzene</td>
+<td>114 / 558 / 21</td>
+<td>11, 113 ms</td>
+<td>10, 130 ms</td>
+<td>0.87x</td>
+</tr>
+<tr>
+<td>h2-lattice:16</td>
+<td>128 / 256 / 16</td>
+<td>10, 93.0 ms</td>
+<td>8, 61.9 ms</td>
+<td>1.5x</td>
+</tr>
+<tr>
+<td>C10H22</td>
+<td>250 / 1206 / 41</td>
+<td>16, 2.82 s</td>
+<td>16, 0.30 s</td>
+<td>9.5x</td>
+</tr>
+<tr>
+<td>C20H42</td>
+<td>490 / 2366 / 81</td>
+<td>15, 28.0 s</td>
+<td>15, 0.74 s</td>
+<td>38x</td>
+</tr>
+<tr>
+<td>C40H82</td>
+<td>970 / 4686 / 161</td>
+<td>22, 493 s</td>
+<td>22, 9.62 s (packed); 22, 6.36 s (<code>--jk-square</code>); 19, 4.06 s (<code>--jk-square</code>, J/K on 4 cores)</td>
+<td>51x; 78x; 121x</td>
+</tr>
+</tbody>
+</table>
+<p>Energy against the float64 reference: the fp32 total energy is off by
+8e-6 to 6e-4 Eh on the device and up to 2e-2 Eh on the CPU (fp32
+accumulation in the host BLAS J and K; at C10H22 with a laptop BLAS,
+1.6e-3 Eh from J and 7e-4 Eh from K). Re-evaluating it in float64 at the
+fp32 orbitals (<code>E(C)</code>) gives 2e-10 to 5e-7 Eh up to n_ao = 490 and 5e-8
+to 1e-7 Eh at 970, so the fp32 loops converge to the right orbitals; a
+final float64 energy evaluation recovers the energy.</p>
+<p>Median per-iteration stage times on the device (ms):</p>
+<table>
+<thead>
+<tr>
+<th>system</th>
+<th>J/K</th>
+<th>DIIS</th>
+<th>eigh</th>
+<th>other</th>
+<th>largest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>water</td>
+<td>1.49</td>
+<td>2.01</td>
+<td>2.18</td>
+<td>1.17</td>
+<td>eigh (32%)</td>
+</tr>
+<tr>
+<td>benzene</td>
+<td>3.84</td>
+<td>3.22</td>
+<td>5.48</td>
+<td>3.05</td>
+<td>eigh (35%)</td>
+</tr>
+<tr>
+<td>C10H22</td>
+<td>7.93</td>
+<td>3.11</td>
+<td>8.94</td>
+<td>3.18</td>
+<td>eigh (39%)</td>
+</tr>
+<tr>
+<td>C20H42</td>
+<td>27.7</td>
+<td>5.02</td>
+<td>16.3</td>
+<td>1.86</td>
+<td>J/K (54%)</td>
+</tr>
+<tr>
+<td>C40H82 (packed)</td>
+<td>361</td>
+<td>6.82</td>
+<td>65.6</td>
+<td>3.95</td>
+<td>J/K (83%)</td>
+</tr>
+<tr>
+<td>C40H82 (<code>--jk-square</code>)</td>
+<td>213</td>
+<td>6.99</td>
+<td>71.3</td>
+<td>4.25</td>
+<td>J/K (72%)</td>
+</tr>
+<tr>
+<td>C40H82 (<code>--jk-square</code>, J/K on 4 cores)</td>
+<td>139</td>
+<td>6.81</td>
+<td>63.4</td>
+<td>4.25</td>
+<td>J/K (65%)</td>
+</tr>
+</tbody>
+</table>
+<p>On the CPU, J/K is 74-99% of every iteration from n_ao = 114 up.</p>
+<p>J/K split over logical NeuronCores at C40H82 (whole chip, <code>neuron-jk&lt;k&gt;</code>
+modes, one Python thread issuing to every core, inputs and partial
+results staged through the host): per iteration 437 / 325 / 306 ms on
+1 / 2 / 4 cores with packed integrals, 289 / 221 / 214 ms with
+<code>--jk-square</code>; the J/K stage itself goes 213 -&gt; 139 ms on 4 cores (1.5x).
+Within one aux block of 532 at n_ao = 970, the gather that unpacks the
+packed triangle takes 28 ms, the half-transform GEMM 5.7 ms, the permute
+4.4 ms and the SYRK 5.8 ms; the two GEMMs run at about 28 TFLOP/s.</p>
+<p><code>eigh</code> here is one n x n solve per iteration. On a <code>neuron</code> tensor it is
+<code>torch.linalg.eigh</code>, which TorchNeuron computes on the host: 1.5 / 2.2 /
+4.4 / 17 / 105 ms at n = 64 / 128 / 256 / 512 / 1024, against 0.15 / 0.58 /
+2.5 / 12 / 91 ms for host LAPACK on the same two threads. The batched
+Jacobi kernel and the process pool are for batches; for one n = 64 / 128
+matrix the Jacobi kernel takes 8.6 / 12 ms. A GEMM-only replacement
+(canonical purification, <code>--solver purify</code>) took 36 / 48 / 111 ms
+compiled at n = 250 / 490 / 970.</p>
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>inv_sqrt_spd_ns</code> is Newton-Schulz — all GEMM. On CPU it loses to the eigendecomposition path because eigh is heavily optimized in LAPACK/MKL. On GPU it wins at n ≥ 256 because the workload shape fits the Tensor Core pipeline. Trainium's Tensor Engine should show a similar win once <code>trnblas</code> GEMM validates on hardware.</li>
