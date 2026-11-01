@@ -16,6 +16,9 @@ most of the engineering work actually lived.
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    On the NKI path, `precision="double"` was not the escape hatch the fit section below describes. The code of this period already sent "double" past N = 1024 to the FP32 Stockham kernels, and on Trn2 with trnfft 0.25.0 every "double" Bluestein FFT at N > 512 returned inf/NaN with no error, because Bluestein promotes to float64 and those kernels are FP32-only ([trnfft#108](https://github.com/trnsci/trnfft/issues/108); earlier releases were not measured). Since [v0.26.0](https://github.com/trnsci/trnfft/releases/tag/v0.26.0) ([#109](https://github.com/trnsci/trnfft/pull/109)), "double" past the FP64 GEMM range computes on the host in FP64, so the sentence now holds.
+
 ## The problem
 
 cuFFT works by dispatching radix-2 (or mixed-radix) butterfly stages, each one

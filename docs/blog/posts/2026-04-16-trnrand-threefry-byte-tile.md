@@ -16,6 +16,9 @@ The library said it out loud without waiting for the op.
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    The root cause below is wrong. The Philox failure came from the kernel's own int32↔uint32 `nl.copy`, a saturating value conversion, and from integer ops with a `(P, 1)` operand lowering to the float-only `tensor_scalar_arith`, not from a missing NKI integer-multiply primitive ([trnrand#56](https://github.com/trnsci/trnrand/issues/56)). With `tile.view()` bitcasts, [trnrand v0.8.0](https://github.com/trnsci/trnrand/releases/tag/v0.8.0) made Philox bit-exact on Trn2 without any new primitive, so Philox is no longer waiting on AWS: Threefry4x32-20 stays the default, and Philox ships alongside it. The [full-words post](2026-10-27-trnrand-full-words.md) has the details.
+
 ## The problem
 
 Philox 4x32-10 needs one primitive NKI cannot provide exactly: a 32x32-bit

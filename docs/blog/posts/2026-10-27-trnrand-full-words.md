@@ -19,6 +19,9 @@ Aten `randn` is still about 11× faster, and the host CPU still wins at every si
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    The fit section's "partitioned multi-chip draws" did not hold in the releases this post describes. In trnrand 0.7.0–0.11.0, a `Generator(partition_rank=r, partition_size=P)` with P > 1 on the NKI path advanced its counter by one rank's share per draw, so from the second draw on rank r reused rank r+1's counters, and with `key_mode="counter"` the ranks returned duplicate values ([trnrand#72](https://github.com/trnsci/trnrand/pull/72), fixed in [v0.12.0](https://github.com/trnsci/trnrand/releases/tag/v0.12.0)). Separately, `get_state()`/`set_state()` did not save the NKI stream counter until [v0.12.1](https://github.com/trnsci/trnrand/releases/tag/v0.12.1) ([#75](https://github.com/trnsci/trnrand/pull/75)). Unpartitioned generators, which this post's measurements use, are unaffected.
+
 ## The problem
 
 trnrand is the suite's cuRAND analog. Its default on-device generator is Threefry4x32-20,

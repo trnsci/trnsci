@@ -15,6 +15,9 @@ That discovery, and the fix, is what Phase 1 is mostly about.
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    The `n_fft = 128` STFT row timed a wrong result. The benchmark's 16,000-sample waveform at hop 64 gives 251 frames, and the DFT-GEMM kernel computed only whole 128-row tiles, so frames 128–250 were never written ([trnfft#99](https://github.com/trnsci/trnfft/pull/99), [#101](https://github.com/trnsci/trnfft/pull/101), fixed in [v0.25.0](https://github.com/trnsci/trnfft/releases/tag/v0.25.0)). Its 1,127 µs and 13.1× figures are not a valid measurement and were not re-run on trn1. The `n_fft = 256` row (126 frames) and the B = 32 batched rows are unaffected.
+
 ## The problem
 
 Trainium has no complex dtype. The first consequence is obvious: every complex multiply

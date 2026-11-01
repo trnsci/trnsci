@@ -10,6 +10,9 @@ Before [trnsparse#34](https://github.com/trnsci/trnsparse/pull/34), no sparse pa
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    The crossover table and the takeaway's "up to about 49%" describe the #36 kernel and are now too low. [trnsparse#38](https://github.com/trnsci/trnsparse/pull/38), in [v0.10.0](https://github.com/trnsci/trnsparse/releases/tag/v0.10.0), stores the blocks pre-transposed, brings up to 16 of a row's blocks per DMA and groups block rows so each B tile loads once per group. On one core in fp32 it beats dense aten up to about 82% block density at n = 8192, width 128, at every density measured at width 512, and up to about 97–98% at n = 16384. The bf16 crossovers were not re-measured.
+
 ## The problem
 
 cuSPARSE's model is that the sparse matrix lives on the device. Row pointers, column indices and values are device arrays, and the kernel resolves the indirection at run time. A naive port to TorchNeuron fails at once, because `torch.sparse_csr_tensor` has no `neuron` implementation ([aws-neuron-sdk#1442](https://github.com/aws-neuron/aws-neuron-sdk/issues/1442), [trnsparse#30](https://github.com/trnsci/trnsparse/issues/30)). The [window-1 post](https://trnsci.dev/blog/trnsparse-from-1430-to-3030-on-nki-07/) concluded that this costs BSR "almost nothing", since the structure is a scheduling input and scheduling already happens on the host.

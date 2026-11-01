@@ -10,6 +10,9 @@ On the native TorchNeuron path, trntensor's hand-written NKI kernels did not bea
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    "The kernels don't" no longer holds. Kernels rewritten for Trn2 beat aten in their `auto` regions: AO→MO by 1.3–1.6× at nbasis ≥ 256 and the MP2 energy by 1.25–1.9× above 3 GFLOP per occupied row ([trntensor#52](https://github.com/trnsci/trntensor/pull/52), [v0.19.0](https://github.com/trnsci/trntensor/releases/tag/v0.19.0)). The new fused DF exchange build takes K at n_ao = 970 to 94 ms, against 304 ms for the aten-and-`syrk` unpack path ([#62](https://github.com/trnsci/trntensor/pull/62), [#66](https://github.com/trnsci/trntensor/pull/66), v0.21.0–[v0.22.0](https://github.com/trnsci/trntensor/releases/tag/v0.22.0)). Plain matmul and bmm still lose to aten, and the planner result below stands; the kernel tables measure the original NKI 0.3-era kernels.
+
 ## The problem
 
 trntensor's NKI kernels were written against NKI 0.3 on trn1, behind the PyTorch/XLA path. Their purpose rested on two posts. [When the kernel boundary is the API](2026-04-15-trntensor-kernel-boundary-as-api.md) argued that fused primitives such as `mp2_energy` and `ao_to_mo_transform` are the native Trainium shape for contraction. [Dispatch granularity is the architecture](2026-04-17-trntensor-dispatch-is-the-architecture.md) argued that a fixed 0.67 ms XLA dispatch floor meant the kernel boundary belonged at the loop.

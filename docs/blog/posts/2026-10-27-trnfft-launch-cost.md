@@ -10,6 +10,9 @@ On the native TorchNeuron device in Neuron SDK 2.33.0, trnfft's N=1024 FFT dropp
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    Two statements here are out of date. The native-path port ([trnfft#88](https://github.com/trnsci/trnfft/pull/88)) shipped in [v0.24.0](https://github.com/trnsci/trnfft/releases/tag/v0.24.0), and since [v0.25.0](https://github.com/trnsci/trnfft/releases/tag/v0.25.0) power-of-2 FP32 N ≥ 8192 runs as a six-step FFT on the fused four-step kernel instead of per-stage Stockham ([#95](https://github.com/trnsci/trnfft/pull/95), [#96](https://github.com/trnsci/trnfft/pull/96)): 1.72 ms instead of 115 ms at 2^20 and 9.15 ms instead of 2006 ms at 2^24, with 13–16× lower error. On device-resident input that is 1.5–11× faster than a 2-thread CPU from 2^20 to 2^24, and [batch fusion](2026-10-31-trnfft-batch-fusion.md) also beat that CPU at N = 4096, B ≥ 1024, so "the CPU wins every cell" holds only for the tables in this post.
+
 !!! note "Status"
     Shipped in [trnfft v0.23.0](https://github.com/trnsci/trnfft/releases/tag/v0.23.0). The launch work is PR [trnsci/trnfft#84](https://github.com/trnsci/trnfft/pull/84) ([#82](https://github.com/trnsci/trnfft/issues/82)); the large-n fix is PR [#85](https://github.com/trnsci/trnfft/pull/85) ([#83](https://github.com/trnsci/trnfft/issues/83)), stacked on it. Both are merged. Measurements: trn2.3xlarge, public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631), LNC=2, native `neuron` device.
 
