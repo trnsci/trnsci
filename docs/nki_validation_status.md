@@ -19,23 +19,22 @@ Per-kernel details live in each sub-project's `docs/architecture.md`. Per-phase 
 |---|---|---|---|---|
 | [trnfft](https://github.com/trnsci/trnfft) | [#51](https://github.com/trnsci/trnfft/issues/51) | ✅ Hardware-validated | butterfly FFT, batched FFT, complex GEMM, DFT-as-GEMM fast path, Kahan butterfly | [trnfft: FFT on hardware that doesn't want to be an FFT engine](https://trnsci.dev/blog/trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/) |
 | [trnblas](https://github.com/trnsci/trnblas) | [#21](https://github.com/trnsci/trnblas/issues/21) | ✅ Hardware-validated | GEMM, SYRK, fused DF-MP2 energy reduction | [trnblas: fusing DF-MP2 energy reduction into one NKI kernel](https://trnsci.dev/blog/trnblas-fusing-df-mp2-energy-reduction-into-one-nki-kernel/) |
-| [trnrand](https://github.com/trnsci/trnrand) | [#18](https://github.com/trnsci/trnrand/issues/18) | 🚧 Simulator-validated, upstream-blocked | Philox 4×32-10, Box-Muller | [trnrand: RNG is a four-engine workload](https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/) |
-| [trnsolver](https://github.com/trnsci/trnsolver) | [#26](https://github.com/trnsci/trnsolver/issues/26) | 🕑 Simulator-validated | batched-sweep Jacobi `eigh`, Newton–Schulz inverse-sqrt, CG / GMRES with Jacobi preconditioner | [trnsolver: Jacobi for Trainium](https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/) |
-| [trnsparse](https://github.com/trnsci/trnsparse) | [#14](https://github.com/trnsci/trnsparse/issues/14) | ✅ Hardware-validated | BSR-128 SpMM, fused screened SpMM, CSR-materialized SpMM | [trnsparse: the tile is the unit, not the nonzero](https://trnsci.dev/blog/trnsparse-the-tile-is-the-unit-not-the-nonzero/) |
-| [trntensor](https://github.com/trnsci/trntensor) | [#27](https://github.com/trnsci/trntensor/issues/27) | ✅ Hardware-validated | 2-index + batched `nc_matmul`, fused MP2 energy, 4-index AO→MO transform | [trntensor: when the kernel boundary is the API](https://trnsci.dev/blog/trntensor-when-the-kernel-boundary-is-the-api/) |
+| [trnrand](https://github.com/trnsci/trnrand) | [#18](https://github.com/trnsci/trnrand/issues/18) | ✅ Hardware-validated | Threefry4×32-20 (the NKI generator), Philox 4×32-10, Box-Muller, Sobol / Halton | [trnrand: RNG is a four-engine workload](https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/) |
+| [trnsolver](https://github.com/trnsci/trnsolver) | [#26](https://github.com/trnsci/trnsolver/issues/26) | ✅ Hardware-validated | Householder `eigh` (single tile, n ≤ 128), batched and block Jacobi `eigh` (`method="jacobi"`, opt-in multi-core), Newton–Schulz inverse-sqrt, CG / GMRES with Jacobi preconditioner | [trnsolver: Jacobi for Trainium](https://trnsci.dev/blog/trnsolver-jacobi-for-trainium--when-the-hardware-inverts-the-algorithm-choice/) |
+| [trnsparse](https://github.com/trnsci/trnsparse) | [#14](https://github.com/trnsci/trnsparse/issues/14) | ✅ Hardware-validated | BSR-128 SpMM (static-structure and gather), fused screened SpMM, block-sparse attention, fused CG / PCG (`cg_bsr_fused`) | [trnsparse: the tile is the unit, not the nonzero](https://trnsci.dev/blog/trnsparse-the-tile-is-the-unit-not-the-nonzero/) |
+| [trntensor](https://github.com/trnsci/trntensor) | [#27](https://github.com/trnsci/trntensor/issues/27) | ✅ Hardware-validated | fused MP2 energy, AO→MO transform, fused DF exchange / Coulomb (`df_exchange`, `df_coulomb`); the matmul / bmm kernels are deprecated on the native device | [trntensor: when the kernel boundary is the API](https://trnsci.dev/blog/trntensor-when-the-kernel-boundary-is-the-api/) |
 
 ## Trn2 / native TorchNeuron (Neuron SDK 2.33)
 
-All six libraries were validated on a trn2.3xlarge with Neuron SDK 2.33.0 (TorchNeuron public beta, NKI 0.7.0, neuronx-cc 2.28) in October 2026. The validated releases are trnfft 0.23.0, trnblas 0.6.0, trnrand 0.8.0, trnsolver 0.16.0, trnsparse 0.7.0 and trntensor 0.17.0.
+All six libraries ship native TorchNeuron dispatch (`nki_op` on the `neuron` device) next to the PyTorch/XLA path; the native ports merged on 2026-10-30. The current PyPI releases were validated on a trn2.3xlarge with Neuron SDK 2.33.0 (TorchNeuron public beta, NKI 0.7.0, neuronx-cc 2.28) on 2026-11-01, with the NKI trace cache at its TorchNeuron default (on): trnfft 0.26.0, trnblas 0.9.1, trnrand 0.12.1, trnsolver 0.20.0, trnsparse 0.12.1 and trntensor 0.22.0.
 
-- trnrand runs natively (`nki_op` dispatch on the `neuron` device).
-- The other five ran their existing kernels on the native device through a test-only shim. Their native `nki_op` ports are open PRs, awaiting a Trn2 run: trnfft#88, trnblas#52, trnsolver#44, trnsparse#32, trntensor#46.
+On the native device each library's `auto` dispatch sends an op to an NKI kernel only where the kernel measured faster than aten on the device, and to aten otherwise. Dense GEMMs (trnblas) and plain einsum matmul / bmm (trntensor) go to aten; the fused kernels (DF-MP2 pair energy, AO→MO, BSR SpMM, block-sparse attention) are where NKI wins. trnfft has no aten alternative to route to, because aten has no FFT on the device. In most libraries a kernel error falls back to torch with a warning unless `<LIB>_REQUIRE_NKI=1` is set.
 
 Scoreboard and evidence: [trnsci#35](https://github.com/trnsci/trnsci/issues/35). Platform policy: [installation](installation.md#hardware-compatibility).
 
 **Legend:**
 
-- ✅ **Hardware-validated** — kernels pass `@pytest.mark.neuron` on trn1; NKI is the default dispatch target when `neuronxcc` is available.
+- ✅ **Hardware-validated** — kernels pass `@pytest.mark.neuron` on hardware (trn1 on the XLA path, Trn2 on the native path). On the native device, `auto` picks the NKI kernel where it measured faster than aten.
 - 🕑 **Simulator-validated** — kernels pass `nki-simulator` CI; hardware runs queued. PyTorch is the default until hardware passes.
 - 🚧 **Simulator-validated, upstream-blocked** — kernels compile and run; the library has a named, trackable NKI primitive gap preventing numerically-correct hardware output. See the blog retrospective for specifics.
 
@@ -47,15 +46,14 @@ Scoreboard and evidence: [trnsci#35](https://github.com/trnsci/trnsci/issues/35)
 
 ## Looking ahead
 
-- **trnrand**'s Phase 1 closes when either an NKI integer-multiply primitive or a bitwise-exact `nl.copy` path lands. Tracked in [aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308).
-- **trnsolver**'s hardware validation is the remaining simulator-to-hardware gap; Phase 3 introduces the Tensor Engine reformulation of the Jacobi rotation and dispatch-count reduction.
+- **Phase 1 trackers are closed for all six libraries.** trnrand's Philox kernel, long attributed to [aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308), was failing on a saturating int32/uint32 cast in the kernel itself; trnrand 0.8.0 fixed it (trnrand#56).
 - Phases 2–5 (precision, single-chip perf, multi-chip, generation-specific optimization) build on top of Phase 1 per the [roadmap](roadmap.md) and are tracked per sub-project via the matching `phase-N` labels.
 
 ## Design RFCs
 
 Sub-projects with published design docs for upcoming phases:
 
-- [trnblas: fused DF-MP2 pair-energy kernel (Phase 3)](https://trnsci.dev/trnblas/design/fused_df_mp2_energy_kernel/) — collapse `(T*(2T−T.T)/denom).sum()` into one SBUF-resident Vector+Scalar pass; targets 3–6× speedup on the DF-MP2 hot path.
+- [trnblas: fused DF-MP2 pair-energy kernel (Phase 3)](https://trnsci.dev/trnblas/design/fused_df_mp2_energy_kernel/) — collapse `(T*(2T−T.T)/denom).sum()` into one SBUF-resident Vector+Scalar pass; targeted 3–6× on the DF-MP2 hot path. Shipped as `pair_energy_sym`; on Trn2 it measures 1.8× faster than aten (an earlier 92× figure was wrong, trnblas#57).
 - [trnrand: SBUF-resident streaming Generator (Phase 3)](https://trnsci.dev/trnrand/design/sbuf_resident_generator/) — pre-compiled multi-distribution kernel with pipelined GpSimd / Vector / Scalar engines.
 - [trnrand: counter-partitioned multi-chip RNG (Phase 4)](https://trnsci.dev/trnrand/design/counter_partitioned_multichip/) — bit-exact cross-cluster-size RNG via Philox counter-space partitioning.
 

@@ -80,12 +80,12 @@ Rough projection of what each phase means for each library. Not every phase appl
 | 4 multi-chip | N-chip large FFT | tensor-parallel GEMM | stream-partitioned RNG | parallel Jacobi sweeps | sharded sparse | sharded contraction |
 | 5 generation | trn2 larger SBUF path | trn2 FP16-accumulate path | trn2 PSUM sizing | trn2 rotation blocks | trn2 DMA bandwidth | trn2 fused paths |
 
-## Current state (2026-04-13)
+## Current state (2026-11-01)
 
-- **Phase 1 complete:** `trnfft` (butterfly + complex GEMM kernels, hardware-validated on trn1.2xlarge in v0.8.0) and `trnblas` (GEMM, SYRK, MP2 energy reduction, hardware-validated with end-to-end DF-MP2 timings).
-- **Phase 1 scaffolded, awaiting hardware validation:** `trnrand`, `trnsolver`, `trnsparse`, `trntensor`. All four have NKI code in `nki/dispatch.py`, a provisioned Terraform module under `infra/terraform/`, and a `scripts/run_neuron_tests.sh` runner. The remaining work is a hardware-validation sweep.
-- **Touching Phase 2:** `trnblas` has PySCF validation against real chemistry at nanohartree tolerance on small molecules, which is early Phase 2 precision work for dense GEMM.
-- **Setting up Phase 3:** `trnsolver` has published CPU baselines against LAPACK and scipy, which is the infrastructure Phase 3 benchmarks will compare against.
+- **Phase 1 complete in all six libraries.** Every Phase 1 tracker is closed. All six ship native TorchNeuron dispatch on Trn2/Trn3 (Neuron SDK 2.33) next to the PyTorch/XLA path, which stays in maintenance on Trn1. The current releases (trnfft 0.26.0, trnblas 0.9.1, trnrand 0.12.1, trnsolver 0.20.0, trnsparse 0.12.1, trntensor 0.22.0) passed their neuron suites on Trn2 with the TorchNeuron-default trace cache ([#35](https://github.com/trnsci/trnsci/issues/35)).
+- **Phase 3 single-chip performance is measured, not assumed.** On the native device, `auto` routes each op to an NKI kernel only where it beat aten. Dense GEMM and plain einsum matmul / bmm go to aten; fused kernels (DF-MP2 pair energy, AO→MO, DF exchange / Coulomb, static-structure BSR SpMM, block-sparse attention) carry the wins. trnfft is the only FFT on the device; its batch-fused four-step beats the CPU on large batches.
+- **Phase 4 within one chip has started:** opt-in multi-core paths in trnblas (`trnblas.parallel`), trnrand (`set_cores`), trnsolver (`TRNSOLVER_EIGH_CORES`), trnsparse (`ShardedBSR` / `ShardedAttention`) and trntensor (reduce-parallel einsum with a multi-rank all-reduce).
+- **Phase 2:** double-double FP64 GEMM ([trnblas#22](https://github.com/trnsci/trnblas/issues/22)) is still the keystone. trnblas matches PySCF DF-MP2 energies to ≤ 3.5e-7 Ha on real molecules.
 
 Live progress counter in [`trnsci/trnsci#1`](https://github.com/trnsci/trnsci/issues/1).
 

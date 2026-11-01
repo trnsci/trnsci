@@ -1,6 +1,6 @@
 # Installation
 
-## From PyPI (once published)
+## From PyPI
 
 ```bash
 # All six libraries
@@ -30,7 +30,7 @@ trnsci runs NKI kernels through two PyTorch integrations. Which one you get depe
 
 | Instance | PyTorch integration | Status in trnsci |
 |---|---|---|
-| **Trn2, Trn3** | **TorchNeuron** (native PyTorch backend, `device="neuron"`). Neuron SDK 2.33+, PyTorch 2.13/2.14, NKI 0.7 | Primary target. Validated on trn2.3xlarge with SDK 2.33.0 (public beta); see [#35](https://github.com/trnsci/trnsci/issues/35). Library-by-library native ports are in progress. |
+| **Trn2, Trn3** | **TorchNeuron** (native PyTorch backend, `device="neuron"`). Neuron SDK 2.33+, PyTorch 2.13/2.14, NKI 0.7 | Primary target. Validated on trn2.3xlarge with SDK 2.33.0 (public beta); see [#35](https://github.com/trnsci/trnsci/issues/35). All six libraries ship native dispatch (since 2026-10-30). |
 | **Trn1, Inf2** | **PyTorch/XLA** (`torch-neuronx` 2.9). Deep Learning AMI Neuron PyTorch 2.9 (Ubuntu 24.04) | Maintenance only. TorchNeuron does not support Trn1/Inf2, and PyTorch 2.9 is the last PyTorch/XLA release. Bug fixes only, no new kernels. |
 
 ### XLA path deprecation

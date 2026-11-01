@@ -6,9 +6,9 @@ The suite is six independent libraries. Each has its own repository, changelog, 
 |---|---|---|---|
 | **trnfft** | cuFFT-equivalent — FFT, complex tensors, STFT | [trnsci.dev/trnfft/](/trnfft/) | [github.com/trnsci/trnfft](https://github.com/trnsci/trnfft) |
 | **trnblas** | cuBLAS-equivalent — BLAS Levels 1–3 | [trnsci.dev/trnblas/](/trnblas/) | [github.com/trnsci/trnblas](https://github.com/trnsci/trnblas) |
-| **trnrand** | cuRAND-equivalent — Philox PRNG, Sobol QMC | [trnsci.dev/trnrand/](/trnrand/) | [github.com/trnsci/trnrand](https://github.com/trnsci/trnrand) |
+| **trnrand** | cuRAND-equivalent — Threefry/Philox PRNG, Sobol/Halton QMC | [trnsci.dev/trnrand/](/trnrand/) | [github.com/trnsci/trnrand](https://github.com/trnsci/trnrand) |
 | **trnsolver** | cuSOLVER-equivalent — factorizations, eigh | [trnsci.dev/trnsolver/](/trnsolver/) | [github.com/trnsci/trnsolver](https://github.com/trnsci/trnsolver) |
-| **trnsparse** | cuSPARSE-equivalent — CSR/COO, SpMV/SpMM | [trnsci.dev/trnsparse/](/trnsparse/) | [github.com/trnsci/trnsparse](https://github.com/trnsci/trnsparse) |
+| **trnsparse** | cuSPARSE-equivalent — BSR-128/CSR/COO, SpMV/SpMM, block-sparse attention | [trnsci.dev/trnsparse/](/trnsparse/) | [github.com/trnsci/trnsparse](https://github.com/trnsci/trnsparse) |
 | **trntensor** | cuTENSOR-equivalent — einsum, CP/Tucker | [trnsci.dev/trntensor/](/trntensor/) | [github.com/trnsci/trntensor](https://github.com/trnsci/trntensor) |
 
 !!! note "How this site is built"

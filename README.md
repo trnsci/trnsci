@@ -17,9 +17,9 @@ Scientific computing suite for AWS Trainium via NKI. Six focused libraries provi
 |---|---|---|
 | [trnfft](trnfft/) | cuFFT | FFT, complex tensors, complex NN layers |
 | [trnblas](trnblas/) | cuBLAS | Level 1–3 BLAS, batched GEMM |
-| [trnrand](trnrand/) | cuRAND | Philox PRNG, Sobol/Halton QMC, LHS |
+| [trnrand](trnrand/) | cuRAND | Threefry/Philox PRNG, Sobol/Halton QMC, LHS |
 | [trnsolver](trnsolve/) | cuSOLVER | Cholesky/LU/QR, Jacobi eigh, CG/GMRES |
-| [trnsparse](trnsparse/) | cuSPARSE | CSR/COO, SpMV/SpMM, Schwarz screening |
+| [trnsparse](trnsparse/) | cuSPARSE | BSR-128/CSR/COO, SpMV/SpMM, block-sparse attention, Schwarz screening |
 | [trntensor](trntensor/) | cuTENSOR | einsum with contraction planning, CP/Tucker |
 
 ## Install
@@ -50,13 +50,14 @@ make test-all      # run pytest across all sub-projects
 
 ```bash
 python examples/quantum_chemistry/df_mp2_synthetic.py --demo
+python examples/quantum_chemistry/df_mp2_synthetic.py --demo --device neuron   # Trn2/Trn3
 ```
 
-DF-MP2 energy evaluation composing `trnblas` (half-transforms), `trnsolver` (Cholesky of DF metric), and `trntensor` (einsum contraction). See also `examples/nvidia_samples/` for direct ports of canonical NVIDIA CUDA samples.
+Closed-shell DF-MP2 energy evaluation composing `trnrand` (synthetic inputs), `trnsparse` (Schwarz screening report), `trnsolver` (Cholesky of the DF metric), `trnblas` (half-transforms) and `trntensor` (`mp2_energy`), checked against a float64 reference. `examples/quantum_chemistry/df_mp2_profile.py` profiles the same pipeline across a ladder of sizes. See also `examples/nvidia_samples/` for direct ports of canonical NVIDIA CUDA samples.
 
 ## Status
 
-All sub-projects are **Alpha**. CPU/PyTorch fallback is functional end-to-end. NKI kernels are scaffolded across the suite; on-hardware validation is the next milestone.
+All sub-projects are **Alpha**. CPU/PyTorch fallback is functional end-to-end. All six libraries ship NKI kernels with native TorchNeuron dispatch on Trn2/Trn3 (Neuron SDK 2.33), and their current releases are validated on Trn2 ([#35](https://github.com/trnsci/trnsci/issues/35)). The PyTorch/XLA path on Trn1 is in maintenance. On the native device, `auto` dispatch uses an NKI kernel only where it measured faster than aten. Per-library detail: [NKI validation status](docs/nki_validation_status.md).
 
 ## Roadmap
 

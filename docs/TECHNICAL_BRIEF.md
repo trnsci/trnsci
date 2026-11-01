@@ -80,9 +80,9 @@ The `precision=` kwarg (trnfft, trntensor), `iterative_refinement=True` (trnsolv
 
 **Architectural fit:** GpSimd is the right home for Philox and Threefry — 8 fully-programmable 512-bit vector cores running straight-line integer arithmetic, none of which requires the Tensor Engine. Box-Muller transcendentals belong on VectorE. SBUF-resident output for downstream fusion (trnfft noise injection, trnblas stochastic trace) is the key performance argument.
 
-**Philox status:** Blocked on aws-neuron-sdk#1308 (no exact integer arithmetic above 2²⁴). Threefry4×32-20 is the hardware-validated path — designed for exactly this class of hardware constraint. Philox validation reopens when AWS ships a bitwise-exact primitive.
+**Philox status:** The failures once attributed to aws-neuron-sdk#1308 were a saturating int32/uint32 cast in trnrand's own kernel, fixed in trnrand 0.8.0 (trnrand#56); Philox passes on Trn2 in the 2026-11-01 device audit (trnsci#35). Threefry4×32-20 remains the NKI generator behind `Generator`.
 
-**What doesn't fit honestly:** Don't publish Philox hardware benchmarks until aws-neuron-sdk#1308 resolves. The distribution mean 0.31 vs expected 0.5 is documented; pretending otherwise would be a credibility problem.
+**What doesn't fit honestly:** The distribution mean of 0.31 vs an expected 0.5 was trnrand's own cast bug (#56), long blamed on aws-neuron-sdk#1308. Check the kernel before blaming upstream. Bit-identical Threefry has a floor of about 2× aten on Trn2, because GpSimd and Vector share an SBUF port.
 
 ---
 
