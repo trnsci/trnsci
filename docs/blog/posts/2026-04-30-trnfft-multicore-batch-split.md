@@ -7,10 +7,13 @@ comments: true
 # trnfft: the NeuronCore is the unit of parallelism
 
 v0.20 ships multi-NeuronCore batch-split FFT. B transforms dispatched across C NeuronCores
-gives B/C per core — no shared state, no communication, linear scaling up to B = C. The
+gives B/C per core — no shared state, no communication, and on paper linear scaling up to B = C. The
 architecture made this obvious. Getting the dispatch infrastructure right was less so.
 
 <!-- more -->
+
+!!! warning "Correction (2026-11-01)"
+    The linear-scaling model did not hold on hardware. On one Trn2 chip (4 logical cores, native TorchNeuron), [trnfft#95](https://github.com/trnsci/trnfft/pull/95) measured the host-input batch split at 25–37% efficiency on 4 cores and never faster than a 2-thread CPU, because host-to-device copies run at 11–13 GB/s however many cores copy at once. Shards that the caller keeps resident on each core scale better, 87% and 55% on 2 and 4 cores at 16384 × 4096, and splitting one six-step transform across cores was slower than one core.
 
 ## The problem
 

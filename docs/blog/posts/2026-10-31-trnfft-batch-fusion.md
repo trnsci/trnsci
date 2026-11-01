@@ -10,6 +10,9 @@ trnfft's four-step FFT now runs a whole batch in one NKI launch. At N=4096 with 
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    "Larger N still goes through per-stage Stockham launches" is no longer true. Since [trnfft v0.25.0](https://github.com/trnsci/trnfft/releases/tag/v0.25.0), power-of-2 FP32 N ≥ 8192 defaults to a six-step FFT built from two batched passes of this post's fused kernel ([trnfft#95](https://github.com/trnsci/trnfft/pull/95), [#96](https://github.com/trnsci/trnfft/pull/96)). It was 9.7–340× faster than the Stockham path in every case measured from 2^13 to 2^26, with 11–17× lower error; `TRNFFT_SIX_STEP=0` restores the old route.
+
 !!! note "Status"
     Merged in PR [trnsci/trnfft#91](https://github.com/trnsci/trnfft/pull/91) (follow-up to [#82](https://github.com/trnsci/trnfft/issues/82)) and tagged in [trnfft v0.24.0](https://github.com/trnsci/trnfft/tree/v0.24.0), along with the native TorchNeuron dispatch ([#88](https://github.com/trnsci/trnfft/pull/88)) and the `bf16_refined` fix ([#87](https://github.com/trnsci/trnfft/pull/87)). The tag is not on PyPI yet. Measurements: trn2.3xlarge, public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631), native `neuron` device, NeuronCore 3, `OMP_NUM_THREADS=2` for both the device and CPU runs, on a box shared with other work.
 

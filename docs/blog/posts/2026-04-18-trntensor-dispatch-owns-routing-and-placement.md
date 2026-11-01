@@ -10,6 +10,9 @@ v0.8.0 closed a gap where every binary step in a 3+ operand chain bypassed the d
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-01)"
+    The misoriented output was not a niche. `_plan_binary` chose the matmul or bmm strategy for any two-operand einsum of the right rank without checking index order, so `einsum("ij,jk->ki", A, B)` returned `A @ B` (silently, for square operands) and permuted batched outputs came back as `(b, i, k)`. A sweep found 228 of 364 two-operand cases wrong or raising, on every backend, in every release through 0.21.0 ([trntensor#65](https://github.com/trnsci/trntensor/pull/65), fixed in [v0.22.0](https://github.com/trnsci/trntensor/releases/tag/v0.22.0)). The `"kl,ik->il"` fix described below was correct for the case it covered.
+
 ## The problem
 
 **Part A — v0.8.0.** The greedy path planner ([v0.6.0](https://github.com/trnsci/trntensor/issues/29)) selects an optimal binary-contraction order for 3+ operand einsums and decomposes the chain into binary steps. The problem was in `_execute_path`'s per-step dispatch line:

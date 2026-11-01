@@ -12,12 +12,16 @@ Trainium: GpSimd for the integer multiply-XOR rounds, and the Vector Engine
 for the `cos`/`sin`/`log`/`sqrt` pairs that turn uniforms into normals. The
 kernels compile, dispatch, and run the correct Python algorithm end to end.
 They do not currently produce correct numerical output, for a specific and
-reproducible reason that traces back to an NKI platform property — not to
-the kernel design. This is a retrospective about what the four-engine
-framing does for RNG, what shipped in 0.3.0, and the one integer-primitive
-gap that stands between the current state and hardware-validated Philox.
+reproducible reason that this post attributed to an NKI platform property;
+it was later traced to the kernel's own int32↔uint32 casts. This is a
+retrospective about what the four-engine framing does for RNG, what shipped
+in 0.3.0, and the integer-precision problem that blocked hardware-validated
+Philox.
 
 <!-- more -->
+
+!!! warning "Correction (2026-11-01)"
+    The cause was how the kernel used NKI, not a missing primitive. The Philox tests xfailed against [aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308) were failing on the kernel's own int32↔uint32 `nl.copy`, a saturating value conversion rather than a bitcast, and the 2²⁴ limit came from integer ops with a `(P, 1)` operand lowering to the float-only `tensor_scalar_arith` ([trnrand#56](https://github.com/trnsci/trnrand/issues/56)). With `tile.view()` bitcasts, [trnrand v0.8.0](https://github.com/trnsci/trnrand/releases/tag/v0.8.0) made Philox bit-exact on Trn2, 512 of 512 words, with no new integer-multiply primitive ([full-words post](2026-10-27-trnrand-full-words.md)). trnrand's default on-device generator has been Threefry4x32-20 since 0.4.0, and Philox ships alongside it.
 
 ## The problem
 
