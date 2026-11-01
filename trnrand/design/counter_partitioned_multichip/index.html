@@ -5652,19 +5652,19 @@ partitioning).</p>
 
 <span class="n">gen</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span>
     <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
-    <span class="n">partition_rank</span><span class="o">=</span><span class="n">xm</span><span class="o">.</span><span class="n">get_ordinal</span><span class="p">(),</span>      <span class="c1"># 0 ≤ rank &lt; size</span>
-    <span class="n">partition_size</span><span class="o">=</span><span class="n">xm</span><span class="o">.</span><span class="n">xrt_world_size</span><span class="p">(),</span>   <span class="c1"># total chips in cluster</span>
+    <span class="n">partition_rank</span><span class="o">=</span><span class="n">xm</span><span class="o">.</span><span class="n">get_ordinal</span><span class="p">(),</span>  <span class="c1"># 0 ≤ rank &lt; size</span>
+    <span class="n">partition_size</span><span class="o">=</span><span class="n">xm</span><span class="o">.</span><span class="n">xrt_world_size</span><span class="p">(),</span>  <span class="c1"># total chips in cluster</span>
 <span class="p">)</span>
 
 <span class="c1"># Subsequent calls take this chip's subrange of the logical stream:</span>
-<span class="n">samples</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>   <span class="c1"># emits N/P samples on chip rank</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>  <span class="c1"># emits N/P samples on chip rank</span>
 </code></pre></div>
 <p>Defaults (<code>rank=0, size=1</code>) preserve the single-chip behavior
 identically. Users who never use multi-chip pay nothing.</p>
 <h3 id="generatoradvancen-checkpoint-primitive"><code>Generator.advance(n)</code> — checkpoint primitive<a class="headerlink" href="#generatoradvancen-checkpoint-primitive" title="Permanent link">&para;</a></h3>
 <p>A cheap way to skip forward in the logical stream:</p>
-<div class="highlight"><pre><span></span><code><span class="n">gen</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>   <span class="c1"># skip 1M samples; counter jumps, no work done</span>
-<span class="n">gen</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1_000</span><span class="p">)</span>       <span class="c1"># emits samples (1M+1) through (1M+1000)</span>
+<div class="highlight"><pre><span></span><code><span class="n">gen</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>  <span class="c1"># skip 1M samples; counter jumps, no work done</span>
+<span class="n">gen</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1_000</span><span class="p">)</span>  <span class="c1"># emits samples (1M+1) through (1M+1000)</span>
 </code></pre></div>
 <p>This enables:
 - <strong>Warm-starting</strong> an experiment at a specific point in the stream.
@@ -5700,13 +5700,12 @@ wins multiply cleanly.</p>
 
 <span class="c1"># P-chip run, concatenated in rank order</span>
 <span class="n">per_chip</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
-      <span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+    <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="n">P</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
 <span class="p">]</span>
 <span class="n">multi</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">per_chip</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">multi</span><span class="p">)</span>   <span class="c1"># byte-for-byte</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">multi</span><span class="p">)</span>  <span class="c1"># byte-for-byte</span>
 </code></pre></div>
 <h3 id="2-seed-invariance">2. Seed invariance<a class="headerlink" href="#2-seed-invariance" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">g16</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
@@ -5719,12 +5718,12 @@ wins multiply cleanly.</p>
 experiment gives the user a consistent stream, not a different one.</p>
 <h3 id="3-checkpoint-resumption">3. Checkpoint resumption<a class="headerlink" href="#3-checkpoint-resumption" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Record position</span>
-<span class="n">position</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">position</span><span class="p">()</span>   <span class="c1"># returns the current counter</span>
+<span class="n">position</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">position</span><span class="p">()</span>  <span class="c1"># returns the current counter</span>
 
 <span class="c1"># ... run, crash, restart on different chip count ...</span>
 
 <span class="n">new_gen</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">partition_rank</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">partition_size</span><span class="o">=</span><span class="n">P_new</span><span class="p">)</span>
-<span class="n">new_gen</span><span class="o">.</span><span class="n">advance_to</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>   <span class="c1"># resume from the same logical index</span>
+<span class="n">new_gen</span><span class="o">.</span><span class="n">advance_to</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>  <span class="c1"># resume from the same logical index</span>
 </code></pre></div>
 <p>Position is a single integer (the global counter index), portable
 across cluster topologies.</p>
@@ -5830,8 +5829,7 @@ offset parameter. A future test can assert:</p>
 <span class="n">full</span> <span class="o">=</span> <span class="n">philox_uniform_cpu</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">counter_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">P</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">]:</span>
     <span class="n">chunks</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">philox_uniform_cpu</span><span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">counter_offset</span><span class="o">=</span><span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">philox_uniform_cpu</span><span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">counter_offset</span><span class="o">=</span><span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">//</span> <span class="n">P</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">full</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">chunks</span><span class="p">))</span>
 </code></pre></div>

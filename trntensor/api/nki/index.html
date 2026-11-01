@@ -5593,6 +5593,14 @@ supported in maintenance mode."</p>
 <td>Native path: force the <code>ao_to_mo_transform</code> executor (<code>trn2</code> = the Trn2 kernel, or <code>ao_to_mo_trn2_packed_kernel</code> for a packed 2-D <code>eri</code>; <code>legacy</code> = the original kernel, deprecated there; <code>aten</code> and <code>legacy</code> unpack a packed <code>eri</code> first).</td>
 </tr>
 <tr>
+<td><code>TRNTENSOR_DF_EXCHANGE=auto\|trn2\|aten</code></td>
+<td>Native path: force the <code>df_exchange</code> executor (<code>trn2</code> = <code>df_half_packed_kernel</code> + <code>df_exchange_syrk_kernel</code> on packed integrals; <code>aten</code> = row gather + einsum + one GEMM). <code>auto</code> uses the kernels for device-resident packed <code>B</code> from <code>nocc·nbasis²·naux</code> = 1e7 (#60).</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_DF_COULOMB=auto\|trn2\|aten</code></td>
+<td>Native path: force the <code>df_coulomb</code> executor (<code>trn2</code> = <code>df_coulomb_d_kernel</code> + <code>df_coulomb_j_kernel</code>; <code>aten</code> = two GEMVs). <code>auto</code> uses the kernels for device-resident packed <code>B</code> from <code>npair·naux</code> = 1e7 (#60).</td>
+</tr>
+<tr>
 <td><code>TRNTENSOR_HOST_ROUTE=auto\|host\|device</code></td>
 <td>Native path, <code>"auto"</code> backend, all operands on the host: where the work runs (#56). <code>auto</code> (default) uploads it once it reaches the measured thresholds below; <code>host</code> keeps it on the host; <code>device</code> always uploads. Covers <code>mp2_energy</code>, <code>ao_to_mo_transform</code>, <code>einsum</code> / <code>multi_einsum</code> (matmul, bmm, generic and multi-operand plans). Only float32 / bfloat16 / float16 operands are uploaded. <code>set_backend("pytorch")</code> and <code>set_backend("nki")</code> ignore it.</td>
 </tr>
@@ -5980,6 +5988,16 @@ device-resident <code>auto</code> route + download. <strong>Bold</strong> is wha
 <li><code>batched_matmul_kernel(a, b)</code> — per-batch-slice matmul. Batch dim
   iterated via <code>nl.affine_range</code>; each slice reuses the stationary-A
   tile layout.</li>
+<li><code>df_half_packed_kernel(eri_v, img, C_occ, nub)</code> and
+  <code>df_exchange_syrk_kernel(xt, kin, banks)</code> — the fused DF exchange build
+  behind <code>trntensor.df_exchange</code> (#60): packed-row gather and half transform
+  into <code>Xt[P, i, ν]</code> (aux on partitions), then the PSUM SYRK over aux tiles
+  with upper-triangle strips mirrored on the Tensor Engine. Tilings from
+  <code>df_half_tiling</code>, <code>df_group_chunks</code> and <code>df_exchange_blocks</code>.</li>
+<li><code>df_coulomb_d_kernel(B, pw)</code> and <code>df_coulomb_j_kernel(B, d_b)</code> — the DF
+  Coulomb build behind <code>trntensor.df_coulomb</code> (#60): <code>d = Bᵀ pw</code> and
+  <code>J = B d</code>, each streaming packed <code>B</code> once in 128-row tiles on the Vector
+  Engine.</li>
 </ul>
 <p>The DF-MP2 pair pattern <code>einsum("ap,bp-&gt;ab")</code> is served by
 <code>matmul_kernel</code> through the planner's <code>transB=True</code> route — no

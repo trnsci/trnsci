@@ -5414,10 +5414,10 @@ not have a grad_fn
 workloads that need gradients of a loss with respect to distribution
 parameters, keep the gradient on the parameters and use trnrand only
 for the non-differentiable noise:</p>
-<div class="highlight"><pre><span></span><code><span class="n">eps</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>          <span class="c1"># no grad; pure noise</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">eps</span>                      <span class="c1"># grad flows through mu, sigma</span>
+<div class="highlight"><pre><span></span><code><span class="n">eps</span> <span class="o">=</span> <span class="n">trnrand</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># no grad; pure noise</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">eps</span>  <span class="c1"># grad flows through mu, sigma</span>
 <span class="n">loss</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>                           <span class="c1"># mu.grad, sigma.grad populated</span>
+<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>  <span class="c1"># mu.grad, sigma.grad populated</span>
 </code></pre></div>
 <p>This is the standard pattern and mirrors how <code>torch.randn()</code> is used in
 <code>torch.nn.functional.gumbel_softmax</code>, VAE encoders, and diffusion

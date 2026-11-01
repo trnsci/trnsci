@@ -4902,6 +4902,100 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#trntensordf_exchangeb-c_occ-alpha10-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trntensor.df_exchange(B, C_occ, alpha=1.0) -&gt; Tensor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="trntensor.df_exchange(B, C_occ, alpha=1.0) -&gt; Tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#arguments_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arguments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-the-k-build-of-a-df-rhf-iteration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example — the K build of a DF-RHF iteration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-behaviour_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measured-on-trn2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured on Trn2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-limitations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trntensordf_coulombb-d-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trntensor.df_coulomb(B, D) -&gt; Tensor
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5456,6 +5550,100 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#trntensordf_exchangeb-c_occ-alpha10-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trntensor.df_exchange(B, C_occ, alpha=1.0) -&gt; Tensor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="trntensor.df_exchange(B, C_occ, alpha=1.0) -&gt; Tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#arguments_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arguments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-the-k-build-of-a-df-rhf-iteration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example — the K build of a DF-RHF iteration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-behaviour_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measured-on-trn2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured on Trn2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-limitations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trntensordf_coulombb-d-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trntensor.df_coulomb(B, D) -&gt; Tensor
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5789,6 +5977,249 @@ Packing pays only when the integrals already arrive packed.</p>
 <li>Both NKI kernels need <code>nocc ≤ 128</code>; larger <code>nocc</code> runs the aten steps (native) or raises <code>NotImplementedError</code> (XLA).</li>
 <li>The <code>(nocc, nbasis, naux)</code> intermediate goes through kernel-scratch HBM between the two stages, as it does between the two aten einsums. Stage 1 leaves <code>i</code> on the partition axis, and stage 2 needs <code>ν</code> there.</li>
 </ul>
+<h2 id="trntensordf_exchangeb-c_occ-alpha10-tensor"><code>trntensor.df_exchange(B, C_occ, alpha=1.0) -&gt; Tensor</code><a class="headerlink" href="#trntensordf_exchangeb-c_occ-alpha10-tensor" title="Permanent link">&para;</a></h2>
+<p>Density-fitted exchange matrix straight from packed three-centre integrals (#60).</p>
+<div class="highlight"><pre><span></span><code>K[μ, ν] = alpha · Σ_{i, P} X[i, μ, P] X[i, ν, P],    X[i, ν, P] = Σ_λ C_occ[λ, i] B[λν, P]
+</code></pre></div>
+<p>For a closed-shell density <code>D = 2 C_occ C_occᵀ</code>, the SCF exchange matrix is
+<code>df_exchange(B, C_occ, alpha=2.0)</code>.</p>
+<h3 id="arguments_2">Arguments<a class="headerlink" href="#arguments_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>B</code> — the packed lower triangle <code>(npair, naux)</code> (row <code>μ(μ+1)/2 + ν</code>,
+  <code>pack_tril</code> order), PySCF's <code>_cderi</code> <code>(naux, npair)</code>, or the full
+  <code>(nbasis, nbasis, naux)</code> square (aten route).</li>
+<li><code>C_occ: (nbasis, nocc)</code> — occupied orbital coefficients.</li>
+<li><code>alpha</code> — scale factor.</li>
+</ul>
+<h3 id="returns_2">Returns<a class="headerlink" href="#returns_2" title="Permanent link">&para;</a></h3>
+<p>The symmetric <code>(nbasis, nbasis)</code> matrix, on <code>B</code>'s device.</p>
+<h3 id="example-the-k-build-of-a-df-rhf-iteration">Example — the K build of a DF-RHF iteration<a class="headerlink" href="#example-the-k-build-of-a-df-rhf-iteration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">B_d</span> <span class="o">=</span> <span class="n">B_packed</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">"neuron"</span><span class="p">)</span>  <span class="c1"># once: (npair, naux), never unpacked</span>
+<span class="n">K</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">df_exchange</span><span class="p">(</span><span class="n">B_d</span><span class="p">,</span> <span class="n">C_occ_d</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="backend-behaviour_2">Backend behaviour<a class="headerlink" href="#backend-behaviour_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Native TorchNeuron (Trn2/Trn3): two NKI launches per group of aux chunks.</strong></li>
+<li><code>df_half_packed_kernel</code> gathers the packed rows in place with batched
+    indirect DMA (the gather of <code>ao_to_mo_transform</code>'s packed kernel, #54)
+    and forms the half-transformed <code>Xt[P, i, ν]</code> with the aux index on the
+    partition axis: each gathered <code>(128 λ, aux)</code> block is the stationary
+    operand and the resident <code>C_occ</code> λ-tile the moving one. The full
+    <code>(n, n, naux)</code> square never exists.</li>
+<li><code>df_exchange_syrk_kernel</code> accumulates <code>K</code> in PSUM over 128-row aux
+    tiles, computes only the upper-triangle 128-row strips, and mirrors them
+    on the Tensor Engine on the way out. Two running partial Ks are chained
+    through the launches, so there are no extra adds per group.</li>
+<li>Both launches split across the programs of the logical core: the first
+    by aux chunks (or ν groups), the second by occupied orbitals (padded to
+    an even count). At LNC=2 both physical cores work.</li>
+<li>The aux chunk width is a divisor of naux, so <code>B</code> is never copied or
+    padded. Traced NKI loops unroll, so the dispatcher runs the pair over
+    groups of chunks to bound the compile time (about a minute per shape at
+    n_ao = 970) and the <code>Xt</code> scratch.</li>
+<li><code>"auto"</code> uses the kernels for device-resident <code>B</code> with <code>nocc ≤ 512</code>
+    once <code>nocc·nbasis²·naux</code> reaches 1e7 multiply-adds.
+    <code>TRNTENSOR_DF_EXCHANGE=auto|trn2|aten</code> overrides the choice.</li>
+<li><strong>Otherwise (CPU, small problems)</strong>: aten on <code>B</code>'s device. Blocks of rows
+  of the square are gathered (1 GiB at a time), half-transformed with one
+  einsum into <code>(ν, i, P)</code> order, and <code>K</code> is one GEMM.</li>
+</ul>
+<h3 id="measured-on-trn2">Measured on Trn2<a class="headerlink" href="#measured-on-trn2" title="Permanent link">&para;</a></h3>
+<p>PySCF cc-pVDZ / cc-pvdz-jkfit integrals, fp32, warm medians, device-resident
+inputs, one logical core. <em>Unpack path</em> is the K build of
+<code>trnsolver/examples/scf_df_rhf.py</code> before this change: <code>unpack_tril</code> of
+aux blocks (the square kept resident when it fits in 4 GB), the
+half-transform <code>einsum</code>, and <code>trnblas.syrk</code>. Error is the max-abs error over
+max |K| against float64.</p>
+<table>
+<thead>
+<tr>
+<th>system</th>
+<th>n_ao / naux / nocc</th>
+<th>LNC</th>
+<th>unpack path</th>
+<th><code>df_exchange</code></th>
+<th>speedup</th>
+<th>error, unpack</th>
+<th>error, <code>df_exchange</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>water</td>
+<td>24 / 116 / 5</td>
+<td>2</td>
+<td>0.82 ms</td>
+<td>1.32 ms (kernels; <code>"auto"</code> runs aten, 1.16 ms)</td>
+<td>—</td>
+<td>7.5e-8</td>
+<td>1.9e-7</td>
+</tr>
+<tr>
+<td>benzene</td>
+<td>114 / 558 / 21</td>
+<td>2</td>
+<td>1.43 ms</td>
+<td>1.35 ms</td>
+<td>1.06x</td>
+<td>5.8e-7</td>
+<td>2.6e-7</td>
+</tr>
+<tr>
+<td>C10H22</td>
+<td>250 / 1206 / 41</td>
+<td>2</td>
+<td>3.17 ms</td>
+<td>2.18 ms</td>
+<td>1.46x</td>
+<td>3.6e-7</td>
+<td>4.8e-7</td>
+</tr>
+<tr>
+<td>C20H42</td>
+<td>490 / 2366 / 81</td>
+<td>2</td>
+<td>15.5 ms</td>
+<td>9.33 ms</td>
+<td>1.66x</td>
+<td>6.1e-7</td>
+<td>6.6e-7</td>
+</tr>
+<tr>
+<td>C40H82</td>
+<td>970 / 4686 / 161</td>
+<td>2</td>
+<td>304 ms</td>
+<td>118 ms</td>
+<td>2.58x</td>
+<td>8.3e-7</td>
+<td>8.1e-7</td>
+</tr>
+<tr>
+<td>C10H22</td>
+<td>250 / 1206 / 41</td>
+<td>1</td>
+<td>4.71 ms</td>
+<td>3.46 ms</td>
+<td>1.36x</td>
+<td>3.6e-7</td>
+<td>8.1e-7</td>
+</tr>
+<tr>
+<td>C20H42</td>
+<td>490 / 2366 / 81</td>
+<td>1</td>
+<td>25.9 ms</td>
+<td>16.9 ms</td>
+<td>1.53x</td>
+<td>6.1e-7</td>
+<td>1.1e-6</td>
+</tr>
+<tr>
+<td>C40H82</td>
+<td>970 / 4686 / 161</td>
+<td>1</td>
+<td>424 ms</td>
+<td>230 ms</td>
+<td>1.84x</td>
+<td>8.3e-7</td>
+<td>1.5e-6</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Up to n_ao = 490 the unpack path keeps its square resident (it fits in
+  4 GB), so it pays no gather per call; at 970 it unpacks 9 aux blocks per
+  call. <code>df_exchange</code> never builds the square.</li>
+<li><code>df_exchange</code> scales 1.59x / 1.81x / 1.95x from LNC=1 to LNC=2 at
+  n_ao = 250 / 490 / 970.</li>
+<li>At n_ao = 970 each launch pair takes 2 aux chunks of 213; there are 11
+  pairs. Padding naux to 4736 (chunks of 128, so no partial tiles) measured
+  126 ms, not faster: the narrower gathered rows cost more than the partial
+  tiles. Eight PSUM banks per SYRK pass instead of six made no difference.</li>
+<li>Without the <code>Xt[P, g, i, v]</code> store layout (ν innermost, 64-byte DMA
+  writes) the same call took 488 ms.</li>
+</ul>
+<h3 id="current-limitations_1">Current limitations<a class="headerlink" href="#current-limitations_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>nocc ≤ 512</code> (one PSUM bank of the stage-1 output).</li>
+<li><code>naux</code> needs a divisor in [32, 512] (else the aten route runs).</li>
+<li>The kernels run the Tensor Engine in fp32, which is what bounds them now.
+  At n_ao = 970 the half transform runs at about 17 TFLOP/s and the SYRK at
+  about 26 TFLOP/s per LNC=2 core (each counts the padded tiles).</li>
+<li>Host <code>B</code> runs the aten route on the host; upload it once and keep it on
+  the device.</li>
+</ul>
+<h2 id="trntensordf_coulombb-d-tensor"><code>trntensor.df_coulomb(B, D) -&gt; Tensor</code><a class="headerlink" href="#trntensordf_coulombb-d-tensor" title="Permanent link">&para;</a></h2>
+<p>The density-fitted Coulomb matrix from the same packed integrals (#60).</p>
+<div class="highlight"><pre><span></span><code>J[μ, ν] = Σ_P B[μν, P] d[P],    d[P] = Σ_{λσ} D[λ, σ] B[λσ, P]
+</code></pre></div>
+<p><code>D</code> is a symmetric <code>(nbasis, nbasis)</code> density, or its weighted packed form
+<code>(npair,)</code> (<code>w·D[μ, ν]</code> for <code>ν ≤ μ</code>, <code>w</code> = 1 on the diagonal and 2 off
+it), in which case the packed <code>(npair,)</code> J comes back. A caller that keeps
+the aux index in blocks then packs and unpacks once per call instead of per
+block; on the device those are element gathers.</p>
+<ul>
+<li><strong>Native TorchNeuron</strong>: two launches, <code>df_coulomb_d_kernel</code> and
+  <code>df_coulomb_j_kernel</code>. Each streams <code>B</code> once in contiguous 128-row tiles
+  (DMAs up to 4096 columns wide), rows split across the programs, with fused
+  Vector Engine instructions: a multiply-add per tile for <code>d</code>, a
+  multiply-reduce per 128 columns for <code>J</code>. The partial sums are kept short:
+  <code>d</code> in groups of 32 tiles, <code>J</code> in 128-column chunks. At n_ao = 970 one
+  fp32 chain over all 4686 columns gave J 2.4e-6 off float64 and
+  512-column chunks 5.7e-7; 128-column chunks give 2.8e-7. The &lt; 256
+  leftover rows run as aten GEMVs. <code>"auto"</code> uses the kernels for
+  device-resident <code>B</code> from <code>npair·naux</code> = 1e7.
+  <code>TRNTENSOR_DF_COULOMB=auto|trn2|aten</code> overrides.</li>
+<li><strong>Otherwise</strong>: two GEMVs.</li>
+</ul>
+<p>Measured on Trn2 (fp32, warm; the J of <code>scf_df_rhf.py</code>'s <code>DFJK</code> on the
+core-guess density, error vs float64 relative to max |J|):</p>
+<table>
+<thead>
+<tr>
+<th>n_ao / naux</th>
+<th>LNC</th>
+<th>two GEMVs per aux block (before)</th>
+<th><code>df_coulomb</code>, one block</th>
+<th>speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>250 / 1206</td>
+<td>2</td>
+<td>3.81 ms, 2.1e-7</td>
+<td>2.90 ms, 2.4e-7</td>
+<td>1.31x</td>
+</tr>
+<tr>
+<td>490 / 2366</td>
+<td>2</td>
+<td>12.6 ms, 1.9e-7</td>
+<td>8.83 ms, 2.7e-7</td>
+<td>1.43x</td>
+</tr>
+<tr>
+<td>970 / 4686</td>
+<td>2</td>
+<td>86.7 ms (9 blocks), 1.9e-7</td>
+<td>46.0 ms, 2.8e-7</td>
+<td>1.89x</td>
+</tr>
+<tr>
+<td>970 / 4686</td>
+<td>1</td>
+<td>126 ms (9 blocks), 2.4e-7</td>
+<td>81.7 ms, 2.6e-7</td>
+<td>1.55x</td>
+</tr>
+</tbody>
+</table>
+<p>It also allows a single block: at n_ao = 970 the aten GEMV on one 8.8 GB
+block compiled to a 26.7 GB graph and did not fit in HBM. With the DMA as
+narrow as the 128-column reduce, the kernel was descriptor-bound (76 ms at
+970).</p>
 
 
 

@@ -5704,6 +5704,50 @@ final float64 energy evaluation recovers the energy.</p>
 </tbody>
 </table>
 <p>On the CPU, J/K is 74-99% of every iteration from n_ao = 114 up.</p>
+<p><strong>Fused J/K (trntensor#60).</strong> With trntensor's <code>df_exchange</code> and
+<code>df_coulomb</code>, <code>DFJK</code> builds K from the packed rows in place (gather, half
+transform and PSUM SYRK in NKI kernels, no square) and J in two streaming
+passes, with the packed copy in one block. Same setup, LNC=2, <code>neuron-nosync</code>
+time to convergence and stage-synchronised J/K per iteration:</p>
+<table>
+<thead>
+<tr>
+<th>system</th>
+<th>unpack path: iters, total, J/K</th>
+<th>fused: iters, total, J/K</th>
+<th>speedup</th>
+<th>E(C) - E_ref, unpack / fused</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C10H22</td>
+<td>16, 352 ms, 8.35 ms</td>
+<td>14, 229 ms, 5.24 ms</td>
+<td>1.53x</td>
+<td>+3.1e-9 / +6.2e-8</td>
+</tr>
+<tr>
+<td>C20H42</td>
+<td>15, 756 ms, 27.9 ms</td>
+<td>15, 587 ms, 18.1 ms</td>
+<td>1.29x</td>
+<td>+4.8e-7 / +4.7e-7</td>
+</tr>
+<tr>
+<td>C40H82</td>
+<td>22, 9.68 s, 365 ms</td>
+<td>20, 4.71 s, 163 ms</td>
+<td>2.05x</td>
+<td>+1.1e-7 / +2.0e-6</td>
+</tr>
+</tbody>
+</table>
+<p>The fused C40H82 run is faster than <code>--jk-square</code> (6.36 s) without holding
+the 17.6 GB square, so it is not limited to n_ao below about 1000. eigh
+(66 ms, host LAPACK) is now 28% of its iteration. At LNC=1 (one physical
+core, 12 GB) C40H82 converges in 7.7 s fused; the packed unpack path runs
+out of device memory there.</p>
 <p>J/K split over logical NeuronCores at C40H82 (whole chip, <code>neuron-jk&lt;k&gt;</code>
 modes, one Python thread issuing to every core, inputs and partial
 results staged through the host): per iteration 437 / 325 / 306 ms on

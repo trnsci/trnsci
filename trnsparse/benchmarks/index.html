@@ -4725,6 +4725,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#trn2-fused-cg-fixed-per-iteration-cost-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trn2: fused CG fixed per-iteration cost (#22)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -6071,6 +6082,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trn2-fused-cg-fixed-per-iteration-cost-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trn2: fused CG fixed per-iteration cost (#22)
+      
+    </span>
+  </a>
   
 </li>
       
@@ -12078,6 +12100,1245 @@ exceeds the iterations' time). Reproduce with <code>bench_cg_fused_trn2.py
 <li><strong>One process per logical core.</strong> The column matvec doubles the
   single-core rate (294 against 147 solves/s). Going to 2 and 4 cores
   scales 2.15x and 2.38x, limited by the 2 shared host CPUs as in #40.</li>
+</ul>
+<h2 id="trn2-fused-cg-fixed-per-iteration-cost-22">Trn2: fused CG fixed per-iteration cost (#22)<a class="headerlink" href="#trn2-fused-cg-fixed-per-iteration-cost-22" title="Permanent link">&para;</a></h2>
+<p>Same machine, matrices, pinning and method as the sections above (SDK
+2.33, one logical core, host on 2 CPUs, tol 1e-5). "#41" is <code>main</code> after</p>
+<h1 id="41-new-is-this-change-with-the-default-standard-recurrence">41; "new" is this change with the default (standard) recurrence;<a class="headerlink" href="#41-new-is-this-change-with-the-default-standard-recurrence" title="Permanent link">&para;</a></h1>
+<p>"Chronopoulos–Gear" is the opt-in <code>recurrence="chronopoulos_gear"</code> (plain
+CG only). LNC=1 runs on one physical core (<code>NEURON_LOGICAL_NC_CONFIG=1</code>).
+Time to tolerance is a warm median of 9 solves; per-iteration times are
+(t(576) − t(64)) / 512 with tol = 0, median of 7. True residual and error
+are against the fp64 A and an fp64 direct solve.</p>
+<h4 id="where-one-plain-cg-iteration-goes-n-4096-256-blocks-lnc2-device-profile-slower-core">Where one plain CG iteration goes (n = 4096, 256 blocks, LNC=2, device profile, slower core)<a class="headerlink" href="#where-one-plain-cg-iteration-goes-n-4096-256-blocks-lnc2-device-profile-slower-core" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>step</th>
+<th style="text-align: right;">#41 (µs)</th>
+<th style="text-align: right;">new (µs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>matvec (TensorE, ~131 blocks on this core)</td>
+<td style="text-align: right;">10.3</td>
+<td style="text-align: right;">9.3 (column groups balanced)</td>
+</tr>
+<tr>
+<td>finish the matvec: PSUM copies, transposes, copy</td>
+<td style="text-align: right;">2.2 (4 + 4 + 1 ops)</td>
+<td style="text-align: right;">0.95 (1 + 1 + 1)</td>
+</tr>
+<tr>
+<td>exchange 1</td>
+<td style="text-align: right;">2.9 (partial p.Ap, default DMA)</td>
+<td style="text-align: right;">0.85 (rows of A p, GpSimd DMA)</td>
+</tr>
+<tr>
+<td>p.Ap (multiply-reduce, ones matmul)</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: right;">0.6</td>
+</tr>
+<tr>
+<td>step size, x and r updates</td>
+<td style="text-align: right;">1.2</td>
+<td style="text-align: right;">0.65 (x moved into the next matvec)</td>
+</tr>
+<tr>
+<td>exchange 2 (+ copies)</td>
+<td style="text-align: right;">2.4 (rows of r)</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td>r.r</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.6</td>
+</tr>
+<tr>
+<td>beta, p update</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td><strong>fixed part</strong></td>
+<td style="text-align: right;"><strong>~10.8</strong></td>
+<td style="text-align: right;"><strong>~4.4</strong></td>
+</tr>
+</tbody>
+</table>
+<p>At LNC=1 the fixed part is about 3.5 µs (#41: about 8 µs).</p>
+<h4 id="s-per-plain-cg-iteration-t576-t64-512">µs per plain CG iteration ((t(576) − t(64)) / 512)<a class="headerlink" href="#s-per-plain-cg-iteration-t576-t64-512" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">blocks</th>
+<th style="text-align: right;">#41 LNC=2</th>
+<th style="text-align: right;">new LNC=2</th>
+<th style="text-align: right;">C–G LNC=2</th>
+<th style="text-align: right;">#41 LNC=2 no split</th>
+<th style="text-align: right;">new LNC=2 no split</th>
+<th style="text-align: right;">#41 LNC=1</th>
+<th style="text-align: right;">new LNC=1</th>
+<th style="text-align: right;">C–G LNC=1</th>
+<th>new vs #41 (LNC=2 / LNC=1)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">19.5</td>
+<td style="text-align: right;">14.6</td>
+<td style="text-align: right;">13.7</td>
+<td style="text-align: right;">23.1</td>
+<td style="text-align: right;">20.5</td>
+<td style="text-align: right;">21.9</td>
+<td style="text-align: right;">20.1</td>
+<td style="text-align: right;">18.5</td>
+<td>1.33x / 1.09x</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">21.9</td>
+<td style="text-align: right;">15.3</td>
+<td style="text-align: right;">14.8</td>
+<td style="text-align: right;">26.0</td>
+<td style="text-align: right;">21.1</td>
+<td style="text-align: right;">25.5</td>
+<td style="text-align: right;">20.2</td>
+<td style="text-align: right;">19.0</td>
+<td>1.43x / 1.26x</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">31.7</td>
+<td style="text-align: right;">24.3</td>
+<td style="text-align: right;">23.3</td>
+<td style="text-align: right;">71.9</td>
+<td style="text-align: right;">67.9</td>
+<td style="text-align: right;">68.3</td>
+<td style="text-align: right;">62.4</td>
+<td style="text-align: right;">61.7</td>
+<td>1.30x / 1.09x</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">31.0</td>
+<td style="text-align: right;">24.1</td>
+<td style="text-align: right;">22.9</td>
+<td style="text-align: right;">63.2</td>
+<td style="text-align: right;">63.2</td>
+<td style="text-align: right;">58.7</td>
+<td style="text-align: right;">57.6</td>
+<td style="text-align: right;">56.6</td>
+<td>1.29x / 1.02x</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">87.0</td>
+<td style="text-align: right;">67.9</td>
+<td style="text-align: right;">67.8</td>
+<td style="text-align: right;">186.0</td>
+<td style="text-align: right;">176.6</td>
+<td style="text-align: right;">168.2</td>
+<td style="text-align: right;">155.4</td>
+<td style="text-align: right;">154.1</td>
+<td>1.28x / 1.08x</td>
+</tr>
+</tbody>
+</table>
+<h4 id="s-per-pcg-iteration-t576-t64-512">µs per PCG iteration ((t(576) − t(64)) / 512)<a class="headerlink" href="#s-per-pcg-iteration-t576-t64-512" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">blocks</th>
+<th style="text-align: right;">#41 LNC=2</th>
+<th style="text-align: right;">new LNC=2</th>
+<th style="text-align: right;">#41 LNC=1</th>
+<th style="text-align: right;">new LNC=1</th>
+<th>new vs #41 (LNC=2 / LNC=1)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">22.9</td>
+<td style="text-align: right;">18.4</td>
+<td style="text-align: right;">26.2</td>
+<td style="text-align: right;">23.2</td>
+<td>1.24x / 1.13x</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">27.2</td>
+<td style="text-align: right;">20.3</td>
+<td style="text-align: right;">31.4</td>
+<td style="text-align: right;">23.8</td>
+<td>1.34x / 1.32x</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">36.7</td>
+<td style="text-align: right;">29.8</td>
+<td style="text-align: right;">72.1</td>
+<td style="text-align: right;">65.1</td>
+<td>1.23x / 1.11x</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">37.3</td>
+<td style="text-align: right;">30.5</td>
+<td style="text-align: right;">77.9</td>
+<td style="text-align: right;">68.8</td>
+<td>1.22x / 1.13x</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">91.7</td>
+<td style="text-align: right;">78.4</td>
+<td style="text-align: right;">170.5</td>
+<td style="text-align: right;">166.2</td>
+<td>1.17x / 1.03x</td>
+</tr>
+</tbody>
+</table>
+<h4 id="plain-cg-lnc2-ms-to-tol-1e-5-warm-median-of-9">Plain CG, LNC=2 (ms to tol 1e-5, warm median of 9)<a class="headerlink" href="#plain-cg-lnc2-ms-to-tol-1e-5-warm-median-of-9" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">blocks</th>
+<th style="text-align: right;">κ</th>
+<th style="text-align: right;">#41</th>
+<th style="text-align: right;">new</th>
+<th style="text-align: right;">speedup</th>
+<th style="text-align: right;">Chronopoulos–Gear</th>
+<th style="text-align: right;">C–G speedup</th>
+<th>iters (#41 / new / C–G)</th>
+<th>true res (#41 / new / C–G)</th>
+<th>err vs fp64 (#41 / new / C–G)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.31</td>
+<td style="text-align: right;">1.72</td>
+<td style="text-align: right;">1.34x</td>
+<td style="text-align: right;">1.40</td>
+<td style="text-align: right;">1.66x</td>
+<td>117 / 118 / 123</td>
+<td>1.9e-05 / 1.9e-05 / 2.0e-05</td>
+<td>3.6e-06 / 3.5e-06 / 1.5e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.40</td>
+<td style="text-align: right;">0.96</td>
+<td style="text-align: right;">1.46x</td>
+<td style="text-align: right;">1.09</td>
+<td style="text-align: right;">1.28x</td>
+<td>36 / 36 / 37</td>
+<td>6.0e-06 / 9.0e-06 / 5.1e-06</td>
+<td>3.8e-06 / 4.0e-06 / 5.9e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.53</td>
+<td style="text-align: right;">1.79</td>
+<td style="text-align: right;">1.41x</td>
+<td style="text-align: right;">1.84</td>
+<td style="text-align: right;">1.38x</td>
+<td>116 / 120 / 126</td>
+<td>1.5e-05 / 1.9e-05 / 2.0e-05</td>
+<td>3.7e-06 / 3.5e-06 / 1.7e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.31</td>
+<td style="text-align: right;">1.14</td>
+<td style="text-align: right;">1.15x</td>
+<td style="text-align: right;">1.17</td>
+<td style="text-align: right;">1.12x</td>
+<td>25 / 25 / 25</td>
+<td>6.2e-06 / 5.4e-06 / 5.6e-06</td>
+<td>1.1e-06 / 1.1e-06 / 2.6e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">1.28</td>
+<td style="text-align: right;">1.18x</td>
+<td style="text-align: right;">1.29</td>
+<td style="text-align: right;">1.16x</td>
+<td>33 / 33 / 33</td>
+<td>6.9e-06 / 6.6e-06 / 6.7e-06</td>
+<td>3.1e-06 / 2.7e-06 / 5.0e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.05</td>
+<td style="text-align: right;">1.73</td>
+<td style="text-align: right;">1.18x</td>
+<td style="text-align: right;">1.65</td>
+<td style="text-align: right;">1.24x</td>
+<td>61 / 62 / 63</td>
+<td>9.2e-06 / 8.4e-06 / 7.0e-06</td>
+<td>6.1e-06 / 4.2e-06 / 4.6e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">3.47</td>
+<td style="text-align: right;">2.85</td>
+<td style="text-align: right;">1.22x</td>
+<td style="text-align: right;">2.90</td>
+<td style="text-align: right;">1.20x</td>
+<td>128 / 127 / 134</td>
+<td>1.5e-05 / 1.3e-05 / 2.7e-05</td>
+<td>3.5e-06 / 3.5e-06 / 1.9e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.43</td>
+<td style="text-align: right;">1.29</td>
+<td style="text-align: right;">1.10x</td>
+<td style="text-align: right;">1.23</td>
+<td style="text-align: right;">1.16x</td>
+<td>29 / 29 / 29</td>
+<td>8.7e-06 / 8.8e-06 / 8.6e-06</td>
+<td>5.1e-06 / 5.1e-06 / 1.2e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.94</td>
+<td style="text-align: right;">1.53</td>
+<td style="text-align: right;">1.27x</td>
+<td style="text-align: right;">1.51</td>
+<td style="text-align: right;">1.28x</td>
+<td>53 / 54 / 53</td>
+<td>8.5e-06 / 7.3e-06 / 8.7e-06</td>
+<td>6.1e-06 / 5.5e-06 / 6.1e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.53</td>
+<td style="text-align: right;">2.16</td>
+<td style="text-align: right;">1.18x</td>
+<td style="text-align: right;">2.07</td>
+<td style="text-align: right;">1.22x</td>
+<td>66 / 66 / 66</td>
+<td>8.0e-06 / 8.0e-06 / 8.4e-06</td>
+<td>5.1e-06 / 5.1e-06 / 5.8e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">4.85</td>
+<td style="text-align: right;">4.12</td>
+<td style="text-align: right;">1.18x</td>
+<td style="text-align: right;">3.86</td>
+<td style="text-align: right;">1.25x</td>
+<td>117 / 117 / 120</td>
+<td>8.9e-06 / 9.2e-06 / 7.6e-06</td>
+<td>4.4e-06 / 4.3e-06 / 4.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">122</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.75</td>
+<td style="text-align: right;">1.54</td>
+<td style="text-align: right;">1.13x</td>
+<td style="text-align: right;">1.27</td>
+<td style="text-align: right;">1.37x</td>
+<td>34 / 34 / 34</td>
+<td>9.8e-06 / 9.1e-06 / 9.9e-06</td>
+<td>4.2e-06 / 4.0e-06 / 1.1e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.13</td>
+<td style="text-align: right;">1.79</td>
+<td style="text-align: right;">1.19x</td>
+<td style="text-align: right;">1.84</td>
+<td style="text-align: right;">1.16x</td>
+<td>48 / 48 / 48</td>
+<td>7.0e-06 / 6.8e-06 / 7.6e-06</td>
+<td>8.5e-06 / 8.4e-06 / 8.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">3.47</td>
+<td style="text-align: right;">3.08</td>
+<td style="text-align: right;">1.13x</td>
+<td style="text-align: right;">3.01</td>
+<td style="text-align: right;">1.15x</td>
+<td>75 / 76 / 76</td>
+<td>8.0e-06 / 7.7e-06 / 7.2e-06</td>
+<td>1.0e-05 / 1.0e-05 / 9.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">11.6</td>
+<td style="text-align: right;">9.43</td>
+<td style="text-align: right;">1.23x</td>
+<td style="text-align: right;">9.38</td>
+<td style="text-align: right;">1.24x</td>
+<td>116 / 115 / 116</td>
+<td>9.4e-06 / 9.7e-06 / 9.2e-06</td>
+<td>9.7e-06 / 1.0e-05 / 9.8e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">1.57</td>
+<td style="text-align: right;">1.40</td>
+<td style="text-align: right;">1.13x</td>
+<td style="text-align: right;">1.34</td>
+<td style="text-align: right;">1.18x</td>
+<td>43 / 43 / 41</td>
+<td>5.0e-05 / 4.4e-05 / 1.1e-04</td>
+<td>2.3e-04 / 1.6e-04 / 2.0e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">1.98</td>
+<td style="text-align: right;">1.79</td>
+<td style="text-align: right;">1.11x</td>
+<td style="text-align: right;">1.78</td>
+<td style="text-align: right;">1.11x</td>
+<td>67 / 67 / 66</td>
+<td>1.4e-05 / 1.5e-05 / 3.9e-05</td>
+<td>1.2e-04 / 1.6e-04 / 6.8e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">6.99</td>
+<td style="text-align: right;">2.15</td>
+<td style="text-align: right;">3.25x</td>
+<td style="text-align: right;">2.09</td>
+<td style="text-align: right;">3.35x</td>
+<td>60 / 60 / 59</td>
+<td>1.3e-05 / 1.5e-05 / 2.8e-05</td>
+<td>2.8e-04 / 3.5e-04 / 2.0e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">20.1</td>
+<td style="text-align: right;">16.1</td>
+<td style="text-align: right;">1.25x</td>
+<td style="text-align: right;">16.0</td>
+<td style="text-align: right;">1.25x</td>
+<td>213 / 214 / 214</td>
+<td>1.0e-05 / 1.2e-05 / 3.5e-05</td>
+<td>1.5e-05 / 1.2e-05 / 4.1e-05</td>
+</tr>
+</tbody>
+</table>
+<h4 id="block-jacobi-pcg-lnc2-ms-to-tol-1e-5-warm-median-of-9">Block-Jacobi PCG, LNC=2 (ms to tol 1e-5, warm median of 9)<a class="headerlink" href="#block-jacobi-pcg-lnc2-ms-to-tol-1e-5-warm-median-of-9" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">blocks</th>
+<th style="text-align: right;">κ</th>
+<th style="text-align: right;">#41</th>
+<th style="text-align: right;">new</th>
+<th style="text-align: right;">speedup</th>
+<th>iters (#41 / new)</th>
+<th>true res (#41 / new)</th>
+<th>err vs fp64 (#41 / new)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.27</td>
+<td style="text-align: right;">1.93</td>
+<td style="text-align: right;">1.18x</td>
+<td>98 / 98</td>
+<td>2.0e-05 / 1.2e-05</td>
+<td>6.4e-06 / 6.4e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.33</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">1.37x</td>
+<td>26 / 26</td>
+<td>9.5e-06 / 9.4e-06</td>
+<td>5.3e-06 / 5.3e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.59</td>
+<td style="text-align: right;">2.30</td>
+<td style="text-align: right;">1.13x</td>
+<td>112 / 114</td>
+<td>1.2e-05 / 2.3e-05</td>
+<td>6.4e-06 / 6.0e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.37</td>
+<td style="text-align: right;">1.20</td>
+<td style="text-align: right;">1.14x</td>
+<td>21 / 21</td>
+<td>7.2e-06 / 7.3e-06</td>
+<td>1.8e-06 / 2.8e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.46</td>
+<td style="text-align: right;">1.48</td>
+<td style="text-align: right;">0.99x</td>
+<td>27 / 27</td>
+<td>3.6e-06 / 3.6e-06</td>
+<td>2.0e-06 / 2.4e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.13</td>
+<td style="text-align: right;">1.83</td>
+<td style="text-align: right;">1.16x</td>
+<td>50 / 50</td>
+<td>9.1e-06 / 9.0e-06</td>
+<td>6.5e-06 / 6.5e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">4.60</td>
+<td style="text-align: right;">4.02</td>
+<td style="text-align: right;">1.14x</td>
+<td>157 / 154</td>
+<td>1.2e-05 / 1.2e-05</td>
+<td>5.3e-06 / 5.9e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.47</td>
+<td style="text-align: right;">1.36</td>
+<td style="text-align: right;">1.08x</td>
+<td>24 / 24</td>
+<td>6.1e-06 / 6.3e-06</td>
+<td>2.7e-06 / 2.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.98</td>
+<td style="text-align: right;">1.78</td>
+<td style="text-align: right;">1.11x</td>
+<td>43 / 44</td>
+<td>1.0e-05 / 7.2e-06</td>
+<td>5.6e-06 / 3.3e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.53</td>
+<td style="text-align: right;">2.23</td>
+<td style="text-align: right;">1.13x</td>
+<td>49 / 49</td>
+<td>9.8e-06 / 9.7e-06</td>
+<td>5.0e-06 / 4.9e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">4.79</td>
+<td style="text-align: right;">3.85</td>
+<td style="text-align: right;">1.24x</td>
+<td>85 / 82</td>
+<td>7.3e-06 / 9.8e-06</td>
+<td>4.1e-06 / 6.4e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">122</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.82</td>
+<td style="text-align: right;">1.67</td>
+<td style="text-align: right;">1.09x</td>
+<td>30 / 30</td>
+<td>6.0e-06 / 6.0e-06</td>
+<td>3.7e-06 / 3.8e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.42</td>
+<td style="text-align: right;">2.26</td>
+<td style="text-align: right;">1.07x</td>
+<td>41 / 41</td>
+<td>9.4e-06 / 9.5e-06</td>
+<td>2.0e-05 / 2.0e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">3.47</td>
+<td style="text-align: right;">3.09</td>
+<td style="text-align: right;">1.12x</td>
+<td>61 / 61</td>
+<td>7.8e-06 / 7.9e-06</td>
+<td>8.7e-06 / 8.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">8.27</td>
+<td style="text-align: right;">7.27</td>
+<td style="text-align: right;">1.14x</td>
+<td>76 / 76</td>
+<td>7.8e-06 / 8.1e-06</td>
+<td>1.1e-05 / 1.1e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">1.63</td>
+<td style="text-align: right;">1.47</td>
+<td style="text-align: right;">1.11x</td>
+<td>33 / 33</td>
+<td>3.5e-05 / 3.3e-05</td>
+<td>2.3e-04 / 1.3e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">2.21</td>
+<td style="text-align: right;">1.93</td>
+<td style="text-align: right;">1.14x</td>
+<td>54 / 54</td>
+<td>1.5e-05 / 1.8e-05</td>
+<td>1.1e-04 / 1.6e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">7.99</td>
+<td style="text-align: right;">2.35</td>
+<td style="text-align: right;">3.39x</td>
+<td>54 / 54</td>
+<td>1.5e-05 / 1.3e-05</td>
+<td>3.2e-04 / 3.6e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">13.4</td>
+<td style="text-align: right;">11.8</td>
+<td style="text-align: right;">1.13x</td>
+<td>132 / 131</td>
+<td>1.3e-05 / 1.2e-05</td>
+<td>1.8e-05 / 9.6e-06</td>
+</tr>
+</tbody>
+</table>
+<h4 id="plain-cg-lnc1-ms-to-tol-1e-5-warm-median-of-9">Plain CG, LNC=1 (ms to tol 1e-5, warm median of 9)<a class="headerlink" href="#plain-cg-lnc1-ms-to-tol-1e-5-warm-median-of-9" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">blocks</th>
+<th style="text-align: right;">κ</th>
+<th style="text-align: right;">#41</th>
+<th style="text-align: right;">new</th>
+<th style="text-align: right;">speedup</th>
+<th style="text-align: right;">Chronopoulos–Gear</th>
+<th style="text-align: right;">C–G speedup</th>
+<th>iters (#41 / new / C–G)</th>
+<th>true res (#41 / new / C–G)</th>
+<th>err vs fp64 (#41 / new / C–G)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.80</td>
+<td style="text-align: right;">1.63</td>
+<td style="text-align: right;">1.11x</td>
+<td style="text-align: right;">1.56</td>
+<td style="text-align: right;">1.15x</td>
+<td>117 / 121 / 123</td>
+<td>1.8e-05 / 1.4e-05 / 1.6e-05</td>
+<td>3.7e-06 / 3.1e-06 / 1.5e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.24</td>
+<td style="text-align: right;">1.25</td>
+<td style="text-align: right;">0.99x</td>
+<td style="text-align: right;">1.20</td>
+<td style="text-align: right;">1.03x</td>
+<td>36 / 35 / 37</td>
+<td>5.9e-06 / 8.4e-06 / 4.8e-06</td>
+<td>3.8e-06 / 4.4e-06 / 6.8e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.16</td>
+<td style="text-align: right;">1.97</td>
+<td style="text-align: right;">1.10x</td>
+<td style="text-align: right;">1.85</td>
+<td style="text-align: right;">1.17x</td>
+<td>120 / 120 / 126</td>
+<td>1.9e-05 / 1.9e-05 / 2.0e-05</td>
+<td>3.5e-06 / 3.5e-06 / 1.7e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.21</td>
+<td style="text-align: right;">1.18</td>
+<td style="text-align: right;">1.03x</td>
+<td style="text-align: right;">1.15</td>
+<td style="text-align: right;">1.05x</td>
+<td>25 / 25 / 25</td>
+<td>5.4e-06 / 5.5e-06 / 5.4e-06</td>
+<td>1.1e-06 / 1.1e-06 / 2.6e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.38</td>
+<td style="text-align: right;">1.30</td>
+<td style="text-align: right;">1.06x</td>
+<td style="text-align: right;">1.27</td>
+<td style="text-align: right;">1.08x</td>
+<td>33 / 33 / 33</td>
+<td>6.6e-06 / 6.7e-06 / 6.7e-06</td>
+<td>2.7e-06 / 2.7e-06 / 5.0e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.73</td>
+<td style="text-align: right;">1.77</td>
+<td style="text-align: right;">0.98x</td>
+<td style="text-align: right;">1.64</td>
+<td style="text-align: right;">1.06x</td>
+<td>62 / 61 / 63</td>
+<td>8.0e-06 / 8.9e-06 / 7.2e-06</td>
+<td>4.9e-06 / 5.6e-06 / 4.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">3.71</td>
+<td style="text-align: right;">3.55</td>
+<td style="text-align: right;">1.04x</td>
+<td style="text-align: right;">3.60</td>
+<td style="text-align: right;">1.03x</td>
+<td>127 / 127 / 134</td>
+<td>1.3e-05 / 1.3e-05 / 2.7e-05</td>
+<td>3.5e-06 / 3.5e-06 / 1.9e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.28</td>
+<td style="text-align: right;">1.20</td>
+<td style="text-align: right;">1.06x</td>
+<td style="text-align: right;">1.11</td>
+<td style="text-align: right;">1.16x</td>
+<td>29 / 29 / 29</td>
+<td>9.6e-06 / 8.8e-06 / 9.9e-06</td>
+<td>4.5e-06 / 5.1e-06 / 9.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.91</td>
+<td style="text-align: right;">1.75</td>
+<td style="text-align: right;">1.09x</td>
+<td style="text-align: right;">1.59</td>
+<td style="text-align: right;">1.20x</td>
+<td>54 / 54 / 53</td>
+<td>7.0e-06 / 8.0e-06 / 8.9e-06</td>
+<td>5.4e-06 / 5.2e-06 / 6.3e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.77</td>
+<td style="text-align: right;">2.43</td>
+<td style="text-align: right;">1.14x</td>
+<td style="text-align: right;">2.45</td>
+<td style="text-align: right;">1.13x</td>
+<td>66 / 66 / 66</td>
+<td>8.4e-06 / 8.9e-06 / 8.4e-06</td>
+<td>5.0e-06 / 5.0e-06 / 5.2e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">9.40</td>
+<td style="text-align: right;">8.54</td>
+<td style="text-align: right;">1.10x</td>
+<td style="text-align: right;">8.55</td>
+<td style="text-align: right;">1.10x</td>
+<td>120 / 120 / 120</td>
+<td>6.1e-06 / 6.1e-06 / 9.9e-06</td>
+<td>2.9e-06 / 2.9e-06 / 4.8e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">122</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.64</td>
+<td style="text-align: right;">1.63</td>
+<td style="text-align: right;">1.00x</td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">1.09x</td>
+<td>34 / 34 / 34</td>
+<td>7.8e-06 / 8.6e-06 / 9.5e-06</td>
+<td>3.8e-06 / 4.1e-06 / 1.1e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.28</td>
+<td style="text-align: right;">2.03</td>
+<td style="text-align: right;">1.12x</td>
+<td style="text-align: right;">2.09</td>
+<td style="text-align: right;">1.09x</td>
+<td>48 / 48 / 48</td>
+<td>7.2e-06 / 7.4e-06 / 7.6e-06</td>
+<td>8.1e-06 / 8.5e-06 / 8.5e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">5.74</td>
+<td style="text-align: right;">5.73</td>
+<td style="text-align: right;">1.00x</td>
+<td style="text-align: right;">5.70</td>
+<td style="text-align: right;">1.01x</td>
+<td>75 / 75 / 76</td>
+<td>8.3e-06 / 8.3e-06 / 7.6e-06</td>
+<td>1.0e-05 / 1.0e-05 / 1.0e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">21.4</td>
+<td style="text-align: right;">20.0</td>
+<td style="text-align: right;">1.07x</td>
+<td style="text-align: right;">20.1</td>
+<td style="text-align: right;">1.06x</td>
+<td>115 / 115 / 116</td>
+<td>9.7e-06 / 9.7e-06 / 9.2e-06</td>
+<td>1.0e-05 / 1.0e-05 / 9.8e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">1.95</td>
+<td style="text-align: right;">1.45</td>
+<td style="text-align: right;">1.35x</td>
+<td style="text-align: right;">1.33</td>
+<td style="text-align: right;">1.46x</td>
+<td>43 / 42 / 41</td>
+<td>4.1e-05 / 3.8e-05 / 1.0e-04</td>
+<td>1.5e-04 / 2.5e-04 / 2.0e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">2.60</td>
+<td style="text-align: right;">2.02</td>
+<td style="text-align: right;">1.29x</td>
+<td style="text-align: right;">2.04</td>
+<td style="text-align: right;">1.28x</td>
+<td>67 / 67 / 92</td>
+<td>1.6e-05 / 1.7e-05 / 3.8e-05</td>
+<td>2.1e-05 / 5.9e-05 / 2.1e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">3.09</td>
+<td style="text-align: right;">2.49</td>
+<td style="text-align: right;">1.24x</td>
+<td style="text-align: right;">2.40</td>
+<td style="text-align: right;">1.28x</td>
+<td>59 / 60 / 59</td>
+<td>1.6e-05 / 1.5e-05 / 2.7e-05</td>
+<td>4.3e-04 / 3.7e-04 / 2.6e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">37.7</td>
+<td style="text-align: right;">35.0</td>
+<td style="text-align: right;">1.08x</td>
+<td style="text-align: right;">34.9</td>
+<td style="text-align: right;">1.08x</td>
+<td>214 / 214 / 214</td>
+<td>1.2e-05 / 1.2e-05 / 3.5e-05</td>
+<td>1.2e-05 / 1.2e-05 / 4.1e-05</td>
+</tr>
+</tbody>
+</table>
+<h4 id="block-jacobi-pcg-lnc1-ms-to-tol-1e-5-warm-median-of-9">Block-Jacobi PCG, LNC=1 (ms to tol 1e-5, warm median of 9)<a class="headerlink" href="#block-jacobi-pcg-lnc1-ms-to-tol-1e-5-warm-median-of-9" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">blocks</th>
+<th style="text-align: right;">κ</th>
+<th style="text-align: right;">#41</th>
+<th style="text-align: right;">new</th>
+<th style="text-align: right;">speedup</th>
+<th>iters (#41 / new)</th>
+<th>true res (#41 / new)</th>
+<th>err vs fp64 (#41 / new)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.98</td>
+<td style="text-align: right;">1.80</td>
+<td style="text-align: right;">1.10x</td>
+<td>98 / 98</td>
+<td>1.9e-05 / 1.1e-05</td>
+<td>6.2e-06 / 6.3e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.21</td>
+<td style="text-align: right;">1.19</td>
+<td style="text-align: right;">1.02x</td>
+<td>26 / 26</td>
+<td>9.5e-06 / 9.5e-06</td>
+<td>5.3e-06 / 5.3e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.58</td>
+<td style="text-align: right;">2.26</td>
+<td style="text-align: right;">1.14x</td>
+<td>114 / 114</td>
+<td>2.4e-05 / 2.4e-05</td>
+<td>5.9e-06 / 5.9e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.18</td>
+<td style="text-align: right;">1.17</td>
+<td style="text-align: right;">1.00x</td>
+<td>21 / 21</td>
+<td>7.2e-06 / 7.2e-06</td>
+<td>2.0e-06 / 2.0e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.44</td>
+<td style="text-align: right;">1.23</td>
+<td style="text-align: right;">1.17x</td>
+<td>27 / 27</td>
+<td>3.6e-06 / 3.6e-06</td>
+<td>2.1e-06 / 2.0e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.85</td>
+<td style="text-align: right;">1.82</td>
+<td style="text-align: right;">1.02x</td>
+<td>51 / 51</td>
+<td>9.8e-06 / 8.7e-06</td>
+<td>4.4e-06 / 3.6e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">5.38</td>
+<td style="text-align: right;">4.92</td>
+<td style="text-align: right;">1.09x</td>
+<td>161 / 161</td>
+<td>1.4e-05 / 1.4e-05</td>
+<td>4.5e-06 / 4.5e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.33</td>
+<td style="text-align: right;">1.24</td>
+<td style="text-align: right;">1.07x</td>
+<td>24 / 24</td>
+<td>5.8e-06 / 5.5e-06</td>
+<td>2.6e-06 / 2.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.06</td>
+<td style="text-align: right;">1.82</td>
+<td style="text-align: right;">1.13x</td>
+<td>44 / 43</td>
+<td>4.9e-06 / 9.8e-06</td>
+<td>3.1e-06 / 5.6e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.70</td>
+<td style="text-align: right;">2.35</td>
+<td style="text-align: right;">1.15x</td>
+<td>50 / 49</td>
+<td>6.1e-06 / 8.1e-06</td>
+<td>4.1e-06 / 4.6e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">7.42</td>
+<td style="text-align: right;">6.78</td>
+<td style="text-align: right;">1.10x</td>
+<td>82 / 82</td>
+<td>9.0e-06 / 9.0e-06</td>
+<td>6.4e-06 / 6.4e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">122</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">1.88</td>
+<td style="text-align: right;">1.61</td>
+<td style="text-align: right;">1.17x</td>
+<td>30 / 30</td>
+<td>6.0e-06 / 6.0e-06</td>
+<td>4.0e-06 / 4.1e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">2.71</td>
+<td style="text-align: right;">2.44</td>
+<td style="text-align: right;">1.11x</td>
+<td>41 / 41</td>
+<td>9.7e-06 / 9.7e-06</td>
+<td>2.0e-05 / 2.0e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">6.02</td>
+<td style="text-align: right;">5.55</td>
+<td style="text-align: right;">1.08x</td>
+<td>61 / 61</td>
+<td>7.9e-06 / 7.9e-06</td>
+<td>8.7e-06 / 8.7e-06</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1e+03</td>
+<td style="text-align: right;">14.5</td>
+<td style="text-align: right;">14.1</td>
+<td style="text-align: right;">1.03x</td>
+<td>76 / 76</td>
+<td>8.1e-06 / 8.1e-06</td>
+<td>1.1e-05 / 1.1e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">1.40</td>
+<td style="text-align: right;">1.43x</td>
+<td>33 / 33</td>
+<td>3.5e-05 / 3.2e-05</td>
+<td>2.6e-04 / 1.7e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">2.55</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">1.28x</td>
+<td>54 / 54</td>
+<td>1.5e-05 / 1.4e-05</td>
+<td>1.3e-05 / 6.4e-05</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">3.47</td>
+<td style="text-align: right;">2.68</td>
+<td style="text-align: right;">1.30x</td>
+<td>53 / 53</td>
+<td>1.3e-05 / 1.3e-05</td>
+<td>2.6e-04 / 3.0e-04</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1e+05</td>
+<td style="text-align: right;">24.1</td>
+<td style="text-align: right;">23.6</td>
+<td style="text-align: right;">1.02x</td>
+<td>131 / 131</td>
+<td>1.2e-05 / 1.2e-05</td>
+<td>1.5e-06 / 1.5e-06</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reading-the-fixed-cost-tables">Reading the fixed-cost tables<a class="headerlink" href="#reading-the-fixed-cost-tables" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>The fixed cost per plain CG iteration fell from about 11 µs to about
+  4.4 µs at LNC=2, and from about 8 µs to about 3.5 µs at LNC=1.</strong> The
+  biggest items were the exchanges (one per plain CG step instead of
+  two, through GpSimd's SBUF-to-SBUF DMA, with no copies thanks to the
+  segment layout) and the matvec tail (one PSUM copy and one transpose
+  per chunk instead of four, from the spread source vectors).</li>
+<li><strong>Per iteration</strong> the new kernel is 1.28–1.43x faster at LNC=2 split
+  for plain CG and 1.17–1.34x for PCG; at LNC=1, 1.02–1.26x (plain) and
+  1.03–1.32x (PCG). The matvec itself, about 270 ns per block on each of
+  four concurrent column groups, now dominates from about 128 resident
+  blocks per core; the row order that balances the groups takes 1–2 µs
+  off at 256–512 blocks.</li>
+<li><strong>Streamed blocks.</strong> When A does not fit in SBUF (n = 8192 with 512
+  blocks on one core, 1024 blocks) the HBM stream sets the pace. There the
+  kernel keeps the original row order and chunks of at most 32 rows,
+  which measured faster than one large chunk (a first version with the
+  balanced order and one 64-row chunk was 5–10% slower than #41 on these
+  cases at LNC=1; the shipped rule is 1.02–1.13x faster).</li>
+<li><strong>Time to tolerance</strong> changes by 0.98–1.46x (the low end is within run-to-run noise). It includes the launch and the
+  host-to-device and device-to-host copies (about 0.8–1 ms), which this
+  change does not touch, so the gain is largest where iterations
+  dominate. Two #41 entries at n = 8192, 256 blocks, κ = 1e5, LNC=2
+  (7.0 and 8.0 ms) are host-side outliers that persisted over 9 runs;
+  the 3.3x there is not a kernel effect.</li>
+<li><strong>Accuracy is unchanged</strong> for the default: iteration counts are within
+  ±3 and the true residuals and errors against fp64 match #41 within
+  run-to-run variation (both are fp32 with a different summation order).</li>
+<li><strong>Chronopoulos–Gear</strong> saves about 1 µs per iteration (0.1–1.6 µs in the
+  per-iteration table) but is less accurate: the true residual is up to
+  2–3x and the error up to 5x those of standard CG, and at n = 4096,
+  128 blocks, κ = 1e5 on one core it needed 92 iterations against 67. It
+  stays opt-in.</li>
+<li><strong>PSUM allocation.</strong> The production kernels no longer fall back to
+  neuronx-cc allocation and scheduling (#41 noted the fallback); the
+  per-scope PSUM tiles were worth about 0.3 µs per iteration.</li>
 </ul>
 
 

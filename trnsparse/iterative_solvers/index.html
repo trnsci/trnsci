@@ -4355,6 +4355,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#chronopoulosgear-recurrence-recurrence-opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chronopoulos–Gear recurrence (recurrence=, opt-in)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-limits-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What limits it
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5305,6 +5327,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#chronopoulosgear-recurrence-recurrence-opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chronopoulos–Gear recurrence (recurrence=, opt-in)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-limits-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What limits it
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5416,18 +5460,35 @@ kernel launch</strong>:</p>
   a trip are masked (alpha = beta = 0), so iteration counts and
   solutions are exact rather than rounded up to <code>check_every</code>.</li>
 <li><strong>At LNC=2 the two physical cores split the block rows.</strong> Each core
-  holds only its rows' blocks (so the SBUF capacity doubles), computes
-  its rows of A p and its half of p.Ap, and the cores swap with
-  <code>nisa.sendrecv</code> twice per step: the partial p.Ap (both cores add the
-  same pair, and a + b == b + a exactly), and their rows of r (and z),
-  after which each core holds the full r and z and computes r.z, r.r and
-  p = z + beta p over the full width itself. Either way both cores agree
-  bit for bit on every step size and on when to stop. (#40 used three
-  exchanges: partial r.z / r.r and p separately.) That is what lets them
-  run the same device-side loop:
+  holds only its rows' blocks (so the SBUF capacity doubles) and computes
+  its rows of every matvec. Full-width vectors use a <em>segment</em> layout:
+  core 0's rows, zero padded, then core 1's, so each core's rows are one
+  contiguous segment and an exchange is a single <code>nisa.sendrecv</code> of the
+  own segment into the other one, with no copies. Exchanges of up to
+  1 KiB per partition go through GpSimd's SBUF-to-SBUF DMA
+  (<code>dma_engine=gpsimd_dma</code>): about 0.9 µs for a few columns against
+  2.4 µs on the default DMA path.</li>
+<li>Plain CG exchanges <strong>once per step</strong>: the cores swap their rows of
+    q = A p, and then both compute p.q, r -= alpha q, r.r and
+    p = r + beta p over the full width with the same instructions on the
+    same data.</li>
+<li>PCG exchanges twice: the partial p.q (a few columns; both cores add
+    the same pair, and a + b == b + a exactly), then their rows of
+    z = D⁻¹ r together with the partial r.z and r.r in the segment's
+    extra columns.
+  Either way both cores agree bit for bit on every step size and on when
+  to stop. That is what lets them run the same device-side loop:
   neuronx-cc requires both per-core programs to have the same control
   flow (<code>NCC_IXGM002</code>). <code>TRNSPARSE_CORE_SPLIT=0</code> runs the whole solve
   on both cores instead.</li>
+<li><strong>Row order.</strong> When A is resident, each core's block rows are
+  reordered inside the kernel (<code>cg_row_order</code>) so that the four
+  concurrent TensorE column groups of the column matvec get about the
+  same number of stored blocks; the matvec takes as long as its busiest
+  group. b, x0 and x are permuted by DMA on the way in and out. When
+  blocks stream from HBM the stream sets the pace, and the original order
+  with chunks of at most 32 rows interleaves better with the stream DMAs,
+  so that is used instead.</li>
 <li><strong>Several right-hand sides</strong> <code>(n, R)</code> are R independent CG solves that
   share every matmul over a stored block (R stationary columns in the
   column matvec, R moving columns in the row matvec).</li>
@@ -5472,12 +5533,23 @@ moving column. In the column form the stationary operand is p_j and the
 block streams through as the moving operand, so the result is a row,
 <code>(A_idx p_j)ᵀ</code>. With column tiling (<code>tile_size=(128, 32)</code>) the PE array
 splits into four 32-column tiles that work concurrently. The kernel
-issues blocks round-robin over four row groups, so block row i of a
-16-row chunk lands at PSUM partition <code>32 (i % 4)</code>, free offset
-<code>128 ((i // 4) % 4)</code>. Each chunk is then copied to SBUF and put back in
-the column layout with one TensorE transpose per four block rows
-(<code>nc_transpose</code>, bit-exact; about 110 ns for 128x128 fp32). Same fp32
-products, different summation order. No relayout of the stored blocks is
+issues blocks round-robin over four row groups: row i = 4 c + g of a
+chunk goes to tile g. The result has to go back to the column layout
+with a TensorE transpose (<code>nc_transpose</code>, bit-exact):</p>
+<ul>
+<li>In #41 row i landed at PSUM partition <code>32 g</code>, free offset <code>128 c</code>, so a
+  16-row chunk filled four 128-column slots: four PSUM-to-SBUF copies and
+  four transposes.</li>
+<li>Now (fp32 A, R in 1, 2, 4, 8) the matvec's source vectors are kept
+  <em>spread</em>: each (128, R) block column sits after (G - 1) R zero columns.
+  The stationary operand for slot c is then the (c + 1) R columns ending
+  at the block, c R zeros and the block, so its product lands at PSUM
+  partitions <code>32 g + c R + k</code> of a single 128-column slot (the zeros add
+  0 to the other slots' rows). A chunk of up to 4 G rows (G R &lt;= 32, so
+  up to 128 rows for R = 1; 32 rows when blocks stream) needs one copy
+  and one transpose. The zero gaps are never written.</li>
+</ul>
+<p>Same fp32 products, different summation order. No relayout of the stored blocks is
 needed: the <code>Aᵀ</code> blocks the row form uses as stationary are exactly the
 moving operand the column form needs. <code>"column"</code> takes R &lt;= 32 (one
 32-column tile). <code>"auto"</code> (the default) picks it for R &lt;= 32 and <code>"row"</code>
@@ -5502,16 +5574,47 @@ replaces fp32; bf16 is at best an inner solver or a preconditioner. See <code>be
 <p>The kernel is fp32 (PSUM accumulates in fp32). The host path (no
 <code>neuron</code> device, or <code>set_backend("pytorch")</code>) runs the same masked
 algorithm in PyTorch in b's dtype, so fp64 stays fp64.</p>
-<p>What limits it (measured on Trn2, see <code>benchmarks.md</code>): with the row
-matvec (#40), each iteration costs about 0.5 µs per stored block (the
-fp32 weight load), resident or streamed alike. The column matvec brings
-that to about 0.05 µs per resident block. Now three other costs set the
-time per iteration: a fixed cost of about 8 µs (LNC=1) or 11 µs (LNC=2,
-two exchanges) for the chain of small VectorE / TensorE steps and the
-<code>sendrecv</code>s; the TensorE transposes (one per four block rows); and, for
-blocks past the SBUF budget, the HBM stream (64 KiB per fp32 block). So
-residency matters again: at n = 8192 with 1024 blocks, the 384 streamed
-blocks set the pace.</p>
+<h3 id="chronopoulosgear-recurrence-recurrence-opt-in">Chronopoulos–Gear recurrence (<code>recurrence=</code>, opt-in)<a class="headerlink" href="#chronopoulosgear-recurrence-recurrence-opt-in" title="Permanent link">&para;</a></h3>
+<p><code>recurrence="chronopoulos_gear"</code> (plain CG only) runs the
+Chronopoulos–Gear form of CG: the matvec is applied to r, s = A p is
+updated by recurrence, and</p>
+<div class="highlight"><pre><span></span><code>r' = r - alpha s;  p = r + beta p;  x += alpha p
+w = A r';  gamma' = r'.r';  delta = w.r'
+beta' = gamma' / gamma;  alpha' = gamma' / (delta - beta' gamma' / alpha)
+s' = w + beta' s
+</code></pre></div>
+<p>so both dot products of a step form one reduction phase, and r'.r' is
+ready while the matvec runs: only one dot product (delta) sits between
+the matvec and the next r update, against two in standard CG. In exact
+arithmetic it is CG. In floating point the recurrence for s drifts from
+A p, so the recursive residual can drift further from b - A x and the
+attainable accuracy is worse. On the benchmark matrices (tol 1e-5) the
+iteration counts match standard CG within a few percent, but the true
+residual is up to 2–3x larger and the error against fp64 up to 5x larger
+in some cases (<code>benchmarks.md</code>), so it stays opt-in. It saves about 1 µs
+per iteration. The host path runs the same recurrence.</p>
+<h3 id="what-limits-it">What limits it<a class="headerlink" href="#what-limits-it" title="Permanent link">&para;</a></h3>
+<p>Measured on Trn2 (see <code>benchmarks.md</code>):</p>
+<ul>
+<li>With the row matvec (#40) each iteration costs about 0.5 µs per stored
+  block (the fp32 weight load), resident or streamed alike.</li>
+<li>The column matvec costs one fp32 pass of 128 moving columns per block,
+  about 270 ns, on each of four concurrent column groups: about 70 ns per
+  block when the groups are balanced (hence the row order).</li>
+<li>The fixed cost per iteration, the chain of small VectorE / TensorE steps
+  and the exchanges, is now about 4 µs at LNC=2 and 3.5 µs at LNC=1 for
+  plain CG (#41: 11 and 8 µs). It is about 20 dependent instructions of
+  150–300 ns each: the PSUM copy, transpose and copy that finish each
+  matvec, the exchange, two dot products (multiply-reduce on VectorE, sum
+  over partitions on TensorE), the step sizes, and the r and p updates.
+  The Chronopoulos–Gear recurrence (opt-in) takes about 1 µs more off.</li>
+<li>Blocks past the SBUF budget stream from HBM (64 KiB per fp32 block), so
+  residency matters: at n = 8192 with 1024 blocks, the streamed blocks set
+  the pace.</li>
+</ul>
+<p>The kernel's PSUM tiles (four per scope) are allocated once per trip of
+the device loop and re-zeroed, so NKI's allocator no longer runs out of
+PSUM and falls back to neuronx-cc allocation and scheduling.</p>
 <h2 id="fused-power-iteration-power_iteration_bsr_fused">Fused power iteration: <code>power_iteration_bsr_fused</code><a class="headerlink" href="#fused-power-iteration-power_iteration_bsr_fused" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">op</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">prepare_cg_bsr</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"neuron"</span><span class="p">)</span>  <span class="c1"># A need not be SPD here</span>
 <span class="n">lam</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">power_iteration_bsr_fused</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
