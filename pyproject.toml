@@ -26,14 +26,14 @@ fft = ["trnfft>=0.25"]
 blas = ["trnblas>=0.9"]
 rand = ["trnrand>=0.12"]
 solver = ["trnsolver>=0.20"]
-sparse = ["trnsparse>=0.11"]
+sparse = ["trnsparse>=0.12"]
 tensor = ["trntensor>=0.21"]
 all = [
     "trnfft>=0.25",
     "trnblas>=0.9",
     "trnrand>=0.12",
     "trnsolver>=0.20",
-    "trnsparse>=0.11",
+    "trnsparse>=0.12",
     "trntensor>=0.21",
 ]
 neuron = [
