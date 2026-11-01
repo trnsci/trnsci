@@ -5328,10 +5328,11 @@ Trainium: GpSimd for the integer multiply-XOR rounds, and the Vector Engine
 for the <code>cos</code>/<code>sin</code>/<code>log</code>/<code>sqrt</code> pairs that turn uniforms into normals. The
 kernels compile, dispatch, and run the correct Python algorithm end to end.
 They do not currently produce correct numerical output, for a specific and
-reproducible reason that traces back to an NKI platform property — not to
-the kernel design. This is a retrospective about what the four-engine
-framing does for RNG, what shipped in 0.3.0, and the one integer-primitive
-gap that stands between the current state and hardware-validated Philox.</p>
+reproducible reason that this post attributed to an NKI platform property;
+it was later traced to the kernel's own int32↔uint32 casts. This is a
+retrospective about what the four-engine framing does for RNG, what shipped
+in 0.3.0, and the integer-precision problem that blocked hardware-validated
+Philox.</p>
 
     
       <nav class="md-post__action">

@@ -5219,7 +5219,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              9 min read
+                              10 min read
                             
                           </span>
                         </div>
@@ -5259,6 +5259,10 @@ bit-identical output. That result shipped in
 Aten <code>randn</code> is still about 11× faster, and the host CPU still wins at every size measured.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>The fit section's "partitioned multi-chip draws" did not hold in the releases this post describes. In trnrand 0.7.0–0.11.0, a <code>Generator(partition_rank=r, partition_size=P)</code> with P &gt; 1 on the NKI path advanced its counter by one rank's share per draw, so from the second draw on rank r reused rank r+1's counters, and with <code>key_mode="counter"</code> the ranks returned duplicate values (<a href="https://github.com/trnsci/trnrand/pull/72">trnrand#72</a>, fixed in <a href="https://github.com/trnsci/trnrand/releases/tag/v0.12.0">v0.12.0</a>). Separately, <code>get_state()</code>/<code>set_state()</code> did not save the NKI stream counter until <a href="https://github.com/trnsci/trnrand/releases/tag/v0.12.1">v0.12.1</a> (<a href="https://github.com/trnsci/trnrand/pull/75">#75</a>). Unpartitioned generators, which this post's measurements use, are unaffected.</p>
+</div>
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
 <p>trnrand is the suite's cuRAND analog. Its default on-device generator is Threefry4x32-20,
 chosen in April because it needs only add, XOR and rotate. The 2²⁴ exact-integer ceiling

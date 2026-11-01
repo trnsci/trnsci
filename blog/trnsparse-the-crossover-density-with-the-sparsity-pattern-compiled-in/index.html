@@ -5269,7 +5269,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              11 min read
+                              12 min read
                             
                           </span>
                         </div>
@@ -5300,6 +5300,10 @@
 <p>Before <a href="https://github.com/trnsci/trnsparse/pull/34">trnsparse#34</a>, no sparse path in trnsparse beat plain dense aten on Trn2 (<code>matmul</code>, or unmasked SDPA), and about 60% of each BSR SpMM call went to padding and gathering on the device. The fix is to treat the block structure, which TorchNeuron already forces onto the host, as compile-time constants: the kernel unrolls exactly the stored 128×128 blocks with fixed DMA addresses and no gather, at the cost of one compile per distinct structure. The result is a measured crossover density by matrix size, which anyone choosing between BSR and dense on Trainium can read off a table.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>The crossover table and the takeaway's "up to about 49%" describe the #36 kernel and are now too low. <a href="https://github.com/trnsci/trnsparse/pull/38">trnsparse#38</a>, in <a href="https://github.com/trnsci/trnsparse/releases/tag/v0.10.0">v0.10.0</a>, stores the blocks pre-transposed, brings up to 16 of a row's blocks per DMA and groups block rows so each B tile loads once per group. On one core in fp32 it beats dense aten up to about 82% block density at n = 8192, width 128, at every density measured at width 512, and up to about 97–98% at n = 16384. The bf16 crossovers were not re-measured.</p>
+</div>
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
 <p>cuSPARSE's model is that the sparse matrix lives on the device. Row pointers, column indices and values are device arrays, and the kernel resolves the indirection at run time. A naive port to TorchNeuron fails at once, because <code>torch.sparse_csr_tensor</code> has no <code>neuron</code> implementation (<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1442">aws-neuron-sdk#1442</a>, <a href="https://github.com/trnsci/trnsparse/issues/30">trnsparse#30</a>). The <a href="https://trnsci.dev/blog/trnsparse-from-1430-to-3030-on-nki-07/">window-1 post</a> concluded that this costs BSR "almost nothing", since the structure is a scheduling input and scheduling already happens on the host.</p>
 <p>Window 2 showed the cost was real, just paid elsewhere. On <code>main</code> at <code>1fafcaf</code>, the native path still behaved like a device-structure design: it built a padded <code>(M_tiles, K_max)</code> grid of blocks, gathered the matching slices of B on the device, and handed both to a kernel with fixed loop bounds. Two consequences:</p>

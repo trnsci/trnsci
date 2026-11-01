@@ -5252,7 +5252,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              11 min read
+                              12 min read
                             
                           </span>
                         </div>
@@ -5283,6 +5283,10 @@
 <p>On the native TorchNeuron device in Neuron SDK 2.33.0, trnfft's N=1024 FFT dropped from 7.56 ms to 0.33 ms. No kernel got faster; there were just fewer launches. When every launch costs a fixed ~0.25 ms, arithmetic barely registers, and the best-fitting shape is one Tensor Engine GEMM accumulating in PSUM, not a sequence of radix stages. The concession comes first: a multithreaded host CPU still beats trnfft at every size and batch measured. For anyone deciding whether a standalone FFT belongs on Trainium: mostly it doesn't, for specific reasons.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>Two statements here are out of date. The native-path port (<a href="https://github.com/trnsci/trnfft/pull/88">trnfft#88</a>) shipped in <a href="https://github.com/trnsci/trnfft/releases/tag/v0.24.0">v0.24.0</a>, and since <a href="https://github.com/trnsci/trnfft/releases/tag/v0.25.0">v0.25.0</a> power-of-2 FP32 N ≥ 8192 runs as a six-step FFT on the fused four-step kernel instead of per-stage Stockham (<a href="https://github.com/trnsci/trnfft/pull/95">#95</a>, <a href="https://github.com/trnsci/trnfft/pull/96">#96</a>): 1.72 ms instead of 115 ms at 2^20 and 9.15 ms instead of 2006 ms at 2^24, with 13–16× lower error. On device-resident input that is 1.5–11× faster than a 2-thread CPU from 2^20 to 2^24, and <a href="../trnfft-batch-fusion-and-the-first-fft-result-that-beats-the-cpu/">batch fusion</a> also beat that CPU at N = 4096, B ≥ 1024, so "the CPU wins every cell" holds only for the tables in this post.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Status</p>
 <p>Shipped in <a href="https://github.com/trnsci/trnfft/releases/tag/v0.23.0">trnfft v0.23.0</a>. The launch work is PR <a href="https://github.com/trnsci/trnfft/pull/84">trnsci/trnfft#84</a> (<a href="https://github.com/trnsci/trnfft/issues/82">#82</a>); the large-n fix is PR <a href="https://github.com/trnsci/trnfft/pull/85">#85</a> (<a href="https://github.com/trnsci/trnfft/issues/83">#83</a>), stacked on it. Both are merged. Measurements: trn2.3xlarge, public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631), LNC=2, native <code>neuron</code> device.</p>

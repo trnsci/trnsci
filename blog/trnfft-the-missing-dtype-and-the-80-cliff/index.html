@@ -5241,7 +5241,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              5 min read
+                              6 min read
                             
                           </span>
                         </div>
@@ -5276,6 +5276,10 @@ batch row in a Python loop, paying full XLA graph compilation overhead for each 
 <p>That discovery, and the fix, is what Phase 1 is mostly about.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>The <code>n_fft = 128</code> STFT row timed a wrong result. The benchmark's 16,000-sample waveform at hop 64 gives 251 frames, and the DFT-GEMM kernel computed only whole 128-row tiles, so frames 128–250 were never written (<a href="https://github.com/trnsci/trnfft/pull/99">trnfft#99</a>, <a href="https://github.com/trnsci/trnfft/pull/101">#101</a>, fixed in <a href="https://github.com/trnsci/trnfft/releases/tag/v0.25.0">v0.25.0</a>). Its 1,127 µs and 13.1× figures are not a valid measurement and were not re-run on trn1. The <code>n_fft = 256</code> row (126 frames) and the B = 32 batched rows are unaffected.</p>
+</div>
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
 <p>Trainium has no complex dtype. The first consequence is obvious: every complex multiply
 becomes four real multiplies. The second consequence is architectural: without a complex

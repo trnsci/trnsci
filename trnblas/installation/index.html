@@ -5491,9 +5491,17 @@ processes. The cache only versions source that belongs to an installed
 wheel (a <code>site-packages</code> tree with <code>.dist-info</code>); an editable install is
 not tracked and can get a stale kernel after you edit <code>dispatch.py</code>. When
 developing with <code>pip install -e</code>, turn the cache off before starting
-Python (the test suite's <code>conftest.py</code> does this by default):</p>
+Python:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">NKI_ENABLE_TRACE_CACHE</span><span class="o">=</span><span class="m">0</span>
 </code></pre></div>
+<p>The test suite keeps the cache on, as users run it, but gives each session
+a fresh, empty cache directory (<code>NKI_TRACE_CACHE_URL</code>), so edits never hit
+a stale entry.</p>
+<p>The cache also ignores constants captured in a kernel's closure
+(<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1454">aws-neuron/aws-neuron-sdk#1454</a>);
+trnblas's kernels take every specialising value as an argument
+(<code>tests/test_trace_cache_safety.py</code>). Set <code>NKI_ENABLE_TRACE_CACHE=0</code> if
+you write NKI kernels that a factory specialises through a closure.</p>
 <p>See the TorchNeuron
 <a href="https://github.com/aws-neuron/torch-neuronx/blob/main/docs/environment_variables.md">environment variables</a>
 reference.</p>

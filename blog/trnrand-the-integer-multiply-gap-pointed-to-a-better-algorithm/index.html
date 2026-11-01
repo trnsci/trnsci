@@ -5289,6 +5289,10 @@ designed in the same SC'11 paper for hardware without fast integer multiply.
 The library said it out loud without waiting for the op.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>The root cause below is wrong. The Philox failure came from the kernel's own int32↔uint32 <code>nl.copy</code>, a saturating value conversion, and from integer ops with a <code>(P, 1)</code> operand lowering to the float-only <code>tensor_scalar_arith</code>, not from a missing NKI integer-multiply primitive (<a href="https://github.com/trnsci/trnrand/issues/56">trnrand#56</a>). With <code>tile.view()</code> bitcasts, <a href="https://github.com/trnsci/trnrand/releases/tag/v0.8.0">trnrand v0.8.0</a> made Philox bit-exact on Trn2 without any new primitive, so Philox is no longer waiting on AWS: Threefry4x32-20 stays the default, and Philox ships alongside it. The <a href="../trnrand-from-byte-tiles-to-full-words-on-trn2/">full-words post</a> has the details.</p>
+</div>
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
 <p>Philox 4x32-10 needs one primitive NKI cannot provide exactly: a 32x32-bit
 integer multiply returning both halves (hi, lo) of the 64-bit result. NKI

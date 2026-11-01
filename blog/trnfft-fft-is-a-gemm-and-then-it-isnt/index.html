@@ -5317,6 +5317,10 @@ launches. Whether that argument holds at a given N, and at what cost, is where
 most of the engineering work actually lived.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>On the NKI path, <code>precision="double"</code> was not the escape hatch the fit section below describes. The code of this period already sent "double" past N = 1024 to the FP32 Stockham kernels, and on Trn2 with trnfft 0.25.0 every "double" Bluestein FFT at N &gt; 512 returned inf/NaN with no error, because Bluestein promotes to float64 and those kernels are FP32-only (<a href="https://github.com/trnsci/trnfft/issues/108">trnfft#108</a>; earlier releases were not measured). Since <a href="https://github.com/trnsci/trnfft/releases/tag/v0.26.0">v0.26.0</a> (<a href="https://github.com/trnsci/trnfft/pull/109">#109</a>), "double" past the FP64 GEMM range computes on the host in FP64, so the sentence now holds.</p>
+</div>
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
 <p>cuFFT works by dispatching radix-2 (or mixed-radix) butterfly stages, each one
 a massively parallel warp-per-butterfly operation on the GPU. A Trainium port

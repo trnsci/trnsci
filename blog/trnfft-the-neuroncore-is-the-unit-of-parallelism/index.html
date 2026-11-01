@@ -5241,7 +5241,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              4 min read
+                              5 min read
                             
                           </span>
                         </div>
@@ -5270,10 +5270,14 @@
 
 <h1 id="trnfft-the-neuroncore-is-the-unit-of-parallelism">trnfft: the NeuronCore is the unit of parallelism<a class="headerlink" href="#trnfft-the-neuroncore-is-the-unit-of-parallelism" title="Permanent link">&para;</a></h1>
 <p>v0.20 ships multi-NeuronCore batch-split FFT. B transforms dispatched across C NeuronCores
-gives B/C per core — no shared state, no communication, linear scaling up to B = C. The
+gives B/C per core — no shared state, no communication, and on paper linear scaling up to B = C. The
 architecture made this obvious. Getting the dispatch infrastructure right was less so.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>The linear-scaling model did not hold on hardware. On one Trn2 chip (4 logical cores, native TorchNeuron), <a href="https://github.com/trnsci/trnfft/pull/95">trnfft#95</a> measured the host-input batch split at 25–37% efficiency on 4 cores and never faster than a 2-thread CPU, because host-to-device copies run at 11–13 GB/s however many cores copy at once. Shards that the caller keeps resident on each core scale better, 87% and 55% on 2 and 4 cores at 16384 × 4096, and splitting one six-step transform across cores was slower than one core.</p>
+</div>
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
 <p><code>precision="bf16"</code> (v0.17) delivers ~1.2 ms per transform at N=256 on trn1. For a single
 spectrogram or a one-shot filter bank that is fine. For workloads that run thousands of

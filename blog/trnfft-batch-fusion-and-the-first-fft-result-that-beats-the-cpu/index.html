@@ -5252,7 +5252,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              11 min read
+                              12 min read
                             
                           </span>
                         </div>
@@ -5283,6 +5283,10 @@
 <p>trnfft's four-step FFT now runs a whole batch in one NKI launch. At N=4096 with 1,024 rows, the device goes from 10.1 ms to 0.93 ms, against 11.0 ms for a 2-thread host CPU. The previous post found the CPU winning every cell and called batch fusion "the next lever". It was, though the time it recovered wasn't launches: it was a DMA transpose repeated on every tile of every GEMM. The CPU still wins at B ≤ 128 and at N=256, so this matters for batched transforms on device-resident data, not for single calls.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-01)</p>
+<p>"Larger N still goes through per-stage Stockham launches" is no longer true. Since <a href="https://github.com/trnsci/trnfft/releases/tag/v0.25.0">trnfft v0.25.0</a>, power-of-2 FP32 N ≥ 8192 defaults to a six-step FFT built from two batched passes of this post's fused kernel (<a href="https://github.com/trnsci/trnfft/pull/95">trnfft#95</a>, <a href="https://github.com/trnsci/trnfft/pull/96">#96</a>). It was 9.7–340× faster than the Stockham path in every case measured from 2^13 to 2^26, with 11–17× lower error; <code>TRNFFT_SIX_STEP=0</code> restores the old route.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Status</p>
 <p>Merged in PR <a href="https://github.com/trnsci/trnfft/pull/91">trnsci/trnfft#91</a> (follow-up to <a href="https://github.com/trnsci/trnfft/issues/82">#82</a>) and tagged in <a href="https://github.com/trnsci/trnfft/tree/v0.24.0">trnfft v0.24.0</a>, along with the native TorchNeuron dispatch (<a href="https://github.com/trnsci/trnfft/pull/88">#88</a>) and the <code>bf16_refined</code> fix (<a href="https://github.com/trnsci/trnfft/pull/87">#87</a>). The tag is not on PyPI yet. Measurements: trn2.3xlarge, public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631), native <code>neuron</code> device, NeuronCore 3, <code>OMP_NUM_THREADS=2</code> for both the device and CPU runs, on a box shared with other work.</p>
