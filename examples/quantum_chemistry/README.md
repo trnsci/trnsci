@@ -21,7 +21,7 @@ python examples/quantum_chemistry/df_mp2_synthetic.py --demo --device neuron   #
 
 With `--device neuron` the inputs are built on the host and copied to the device once; each library's `auto` dispatch then picks an NKI kernel or aten for the device-resident tensors. The first call per shape includes compilation.
 
-The inputs are random; the energy number is not physically meaningful. This is a **plumbing** demo that exercises the API surfaces across four libraries end-to-end. For a chemistry-valid calculation, drive the pipeline with AO integrals and SCF MO coefficients from a real quantum-chemistry driver (see `pyscf_bridge_sketch.md` for notes on what that looks like).
+The inputs are random; the energy number is not physically meaningful. This is a **plumbing** demo that exercises the API surfaces across five libraries end-to-end. For a chemistry-valid calculation, drive the pipeline with AO integrals and SCF MO coefficients from a real quantum-chemistry driver (see `pyscf_bridge_sketch.md` for notes on what that looks like).
 
 ## `df_mp2_profile.py`
 

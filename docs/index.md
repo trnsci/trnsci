@@ -47,7 +47,7 @@ No other shipping accelerator — H100, B200, MI300X, TPU Trillium, Gaudi 3 — 
 pip install trnsci[all]
 ```
 
-Try the cross-library integration demo (composes trnblas, trnsolver, trntensor, and trnsparse into an end-to-end DF-MP2 energy evaluation, validated against PySCF to nanohartree tolerance):
+Try the cross-library integration demo (composes trnrand, trnsparse, trnsolver, trnblas and trntensor into an end-to-end closed-shell DF-MP2 energy evaluation on synthetic inputs, checked against a float64 reference; trnblas's own PySCF examples carry the real-molecule validation):
 
 ```bash
 git clone git@github.com:trnsci/trnsci.git
@@ -58,7 +58,7 @@ python examples/quantum_chemistry/df_mp2_synthetic.py --demo
 
 ## Status
 
-Phase 1 has landed across all six libraries. NKI paths run end-to-end and are exercised in CI via the NKI CPU simulator on every PR. Hardware validation on trn1 is complete for **trnfft** (butterfly FFT + complex GEMM, 70/70 benchmark cases) and **trnblas** (GEMM/SYRK + fused DF-MP2 energy, PySCF agreement to 10 µHa on H₂O / CH₄ / NH₃ at cc-pVDZ). **trnsolver**, **trnsparse**, and **trntensor** are simulator-validated with hardware runs in progress. **trnrand** ships a hardware-validated Threefry4×32 path; Philox is blocked on a named upstream integer-multiply issue ([aws-neuron-sdk#1308](https://github.com/aws-neuron/aws-neuron-sdk/issues/1308)).
+Phase 1 has landed across all six libraries, and every Phase 1 tracker is closed. NKI paths are exercised in CI via the NKI CPU simulator on every PR. All six libraries ship native TorchNeuron dispatch on Trn2/Trn3 (Neuron SDK 2.33); their current releases are validated on Trn2 ([#35](https://github.com/trnsci/trnsci/issues/35)), and the PyTorch/XLA path on Trn1 is in maintenance. On the native device, `auto` dispatch uses an NKI kernel only where it measured faster than aten: the fused kernels (DF-MP2 pair energy, AO→MO, BSR SpMM, block-sparse attention) win, dense GEMM goes to aten, and trnfft is the only FFT on the device.
 
 PyTorch fallback works end-to-end on any machine, with or without Neuron hardware. The [NKI validation status page](nki_validation_status.md) carries the per-library detail.
 

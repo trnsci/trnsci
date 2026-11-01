@@ -10,7 +10,7 @@ See [`nvidia_samples/README.md`](nvidia_samples/README.md) for the mapping table
 
 ## [`quantum_chemistry/`](quantum_chemistry/)
 
-Density-fitted MP2 plumbing demo composing `trnrand` + `trnsolver` + `trnblas` + `trntensor` end-to-end. This is the cross-library integration test — the single workload that touches the most libraries in the suite.
+Density-fitted MP2 plumbing demo composing `trnrand` + `trnsparse` + `trnsolver` + `trnblas` + `trntensor` end-to-end, plus `df_mp2_profile.py`, a per-stage profile of the same pipeline across a ladder of sizes. This is the cross-library integration test — the single workload that touches the most libraries in the suite.
 
 ## [`speech_enhancement/`](speech_enhancement/)
 

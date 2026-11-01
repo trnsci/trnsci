@@ -5,20 +5,22 @@ The canonical integration demo is `examples/quantum_chemistry/df_mp2_synthetic.p
 | Stage | Library | API used |
 |---|---|---|
 | Random occupied / virtual coefficients (demo only) | `trnrand` | `normal()` |
+| AO-pair Schwarz screening (report only) | `trnsparse` | `schwarz_bounds()`, `sparsity_stats()` |
 | Cholesky of the DF metric $J$ | `trnsolver` | `cholesky()` |
-| Half-transform $\mu\nu P \to ia P$ via GEMM | `trnblas` | `gemm()`, `batched_gemm()` |
-| Pair energy contraction $B_{iaP} B_{jbP}$ | `trntensor` | `einsum("ap,bp->ab", ...)` |
+| Half-transform $\mu\nu P \to ia P$ via GEMM, metric contraction | `trnblas` | `gemm()`, `batched_gemm()`, `trsm()` |
+| Closed-shell MP2 energy $\sum T(2T - T^\top)/\Delta$, $T_{iajb} = \sum_P B_{iaP} B_{jbP}$ | `trntensor` | `mp2_energy()` |
 | FLOPs estimate | `trntensor` | `estimate_flops()` |
 
-The same pattern could substitute `trnsparse` for the DF tensor when shell screening is enabled (not shown in the minimal demo — see `trnsparse/examples/sparse_fock.py`).
+The demo only reports the Schwarz screening; it does not drop pairs, because random inputs aren't chemistry-realistic. For screening inside a Fock build, see `trnsparse/examples/sparse_fock.py`.
 
 ## Run it
 
 ```bash
 python examples/quantum_chemistry/df_mp2_synthetic.py --demo
+python examples/quantum_chemistry/df_mp2_synthetic.py --demo --device neuron   # Trn2/Trn3, TorchNeuron
 ```
 
-Output reports per-stage wall time and a FLOPs estimate from the contraction planner.
+Output reports per-stage wall time, a FLOPs estimate from the contraction planner, and the energy. An integration test pins that energy to the float64 closed-shell reference (agreement is about 1e-7). `examples/quantum_chemistry/df_mp2_profile.py` runs the pipeline across a ladder of sizes and reports per-stage time, the route each library's `auto` dispatch picked, and error against float64.
 
 ## Why this example
 
