@@ -5988,12 +5988,13 @@ device-resident <code>auto</code> route + download. <strong>Bold</strong> is wha
 <li><code>batched_matmul_kernel(a, b)</code> — per-batch-slice matmul. Batch dim
   iterated via <code>nl.affine_range</code>; each slice reuses the stationary-A
   tile layout.</li>
-<li><code>df_half_packed_kernel(eri_v, img, C_occ, nub)</code> and
+<li><code>df_half_packed_kernel(eri_v, img, C_occ, nub, tp, tail)</code> and
   <code>df_exchange_syrk_kernel(xt, kin, banks)</code> — the fused DF exchange build
   behind <code>trntensor.df_exchange</code> (#60): packed-row gather and half transform
   into <code>Xt[P, i, ν]</code> (aux on partitions), then the PSUM SYRK over aux tiles
   with upper-triangle strips mirrored on the Tensor Engine. Tilings from
-  <code>df_half_tiling</code>, <code>df_group_chunks</code> and <code>df_exchange_blocks</code>.</li>
+  <code>df_half_tiling</code>, <code>df_group_chunks</code>, <code>df_groups</code>, <code>df_syrk_tiles</code> and
+  <code>df_exchange_blocks</code>.</li>
 <li><code>df_coulomb_d_kernel(B, pw)</code> and <code>df_coulomb_j_kernel(B, d_b)</code> — the DF
   Coulomb build behind <code>trntensor.df_coulomb</code> (#60): <code>d = Bᵀ pw</code> and
   <code>J = B d</code>, each streaming packed <code>B</code> once in 128-row tiles on the Vector
