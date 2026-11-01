@@ -5335,14 +5335,14 @@
 <h2 id="get-started">Get started<a class="headerlink" href="#get-started" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnsci<span class="o">[</span>all<span class="o">]</span>
 </code></pre></div>
-<p>Try the cross-library integration demo (composes trnblas, trnsolver, trntensor, and trnsparse into an end-to-end DF-MP2 energy evaluation, validated against PySCF to nanohartree tolerance):</p>
+<p>Try the cross-library integration demo (composes trnrand, trnsparse, trnsolver, trnblas and trntensor into an end-to-end closed-shell DF-MP2 energy evaluation on synthetic inputs, checked against a float64 reference; trnblas's own PySCF examples carry the real-molecule validation):</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:trnsci/trnsci.git
 <span class="nb">cd</span><span class="w"> </span>trnsci
 make<span class="w"> </span>install-dev
 python<span class="w"> </span>examples/quantum_chemistry/df_mp2_synthetic.py<span class="w"> </span>--demo
 </code></pre></div>
 <h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
-<p>Phase 1 has landed across all six libraries. NKI paths run end-to-end and are exercised in CI via the NKI CPU simulator on every PR. Hardware validation on trn1 is complete for <strong>trnfft</strong> (butterfly FFT + complex GEMM, 70/70 benchmark cases) and <strong>trnblas</strong> (GEMM/SYRK + fused DF-MP2 energy, PySCF agreement to 10 µHa on H₂O / CH₄ / NH₃ at cc-pVDZ). <strong>trnsolver</strong>, <strong>trnsparse</strong>, and <strong>trntensor</strong> are simulator-validated with hardware runs in progress. <strong>trnrand</strong> ships a hardware-validated Threefry4×32 path; Philox is blocked on a named upstream integer-multiply issue (<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1308">aws-neuron-sdk#1308</a>).</p>
+<p>Phase 1 has landed across all six libraries, and every Phase 1 tracker is closed. NKI paths are exercised in CI via the NKI CPU simulator on every PR. All six libraries ship native TorchNeuron dispatch on Trn2/Trn3 (Neuron SDK 2.33); their current releases are validated on Trn2 (<a href="https://github.com/trnsci/trnsci/issues/35">#35</a>), and the PyTorch/XLA path on Trn1 is in maintenance. On the native device, <code>auto</code> dispatch uses an NKI kernel only where it measured faster than aten: the fused kernels (DF-MP2 pair energy, AO→MO, BSR SpMM, block-sparse attention) win, dense GEMM goes to aten, and trnfft is the only FFT on the device.</p>
 <p>PyTorch fallback works end-to-end on any machine, with or without Neuron hardware. The <a href="nki_validation_status/">NKI validation status page</a> carries the per-library detail.</p>
 <p>Read more:</p>
 <ul>

@@ -5314,10 +5314,15 @@
 │   ├── __init__.py
 │   ├── einsum.py        # einsum(), multi_einsum()
 │   ├── plan.py          # ContractionPlan, plan_contraction(), estimate_flops()
-│   ├── decompose.py     # cp_decompose, tucker_decompose (HOSVD)
+│   ├── decompose.py     # cp_decompose, tucker_decompose (HOSVD), tt_decompose
+│   ├── quantum.py       # mp2_energy, ao_to_mo_transform, df_exchange, df_coulomb
+│   ├── parallel.py      # ShardedTensor, scatter, gather
 │   └── nki/
 │       ├── __init__.py
-│       └── dispatch.py  # Fused contraction kernels
+│       ├── _kernels.py  # @nki.jit kernels
+│       ├── _native.py   # TorchNeuron custom ops (nki_op), loaded lazily
+│       ├── collectives.py  # nki.collectives all-reduce (reduce-parallel)
+│       └── dispatch.py  # host wrappers, dispatch-path selection
 ├── tests/
 ├── examples/
 │   └── df_mp2_einsum.py # DF-MP2 energy via einsum
@@ -5325,15 +5330,16 @@
 <h2 id="contraction-planning">Contraction planning<a class="headerlink" href="#contraction-planning" title="Permanent link">&para;</a></h2>
 <p>The planner analyzes einsum subscripts and selects a dispatch target:</p>
 <ul>
-<li><strong>matmul</strong>: 2D contraction over a single shared index → <code>torch.matmul</code></li>
-<li><strong>bmm</strong>: batched 2D contraction → <code>torch.bmm</code></li>
+<li><strong>matmul</strong>: 2D contraction over a single shared index whose output lists A's free index then B's → <code>torch.matmul</code></li>
+<li><strong>bmm</strong>: exactly <code>bij,bjk-&gt;bik</code> → <code>torch.bmm</code></li>
 <li><strong>torch</strong>: complex patterns → <code>torch.einsum</code></li>
-<li><strong>path</strong>: 3+ operands → greedy binary contraction ordering; each binary step re-enters the full backend-selection stack so large sub-contractions still reach NKI</li>
+<li><strong>path</strong>: 3+ operands → greedy binary contraction ordering; each binary step re-enters the full backend-selection stack</li>
 <li><strong>nki</strong> (future): fused multi-index contractions on the Tensor Engine</li>
 </ul>
 <p><code>ContractionPlan</code> carries the dispatch decision, the FLOPs estimate, any reshape/transpose preamble, the greedy <code>contraction_path</code> for multi-operand contractions, and the <code>precision</code> setting — so the same plan can be re-executed cheaply without re-analyzing subscripts. Plans are cached by <code>(subscripts, shapes, precision)</code>; call <code>clear_plan_cache()</code> to invalidate after a backend change.</p>
 <h3 id="greedy-path-search">Greedy path search<a class="headerlink" href="#greedy-path-search" title="Permanent link">&para;</a></h3>
-<p>For 3+ operand contractions, <code>_greedy_path_search</code> selects the cheapest binary contraction order by minimizing per-step FLOP cost (product of all index sizes in the pair union). This is the same criterion as <code>opt_einsum</code>'s greedy mode. The resulting <code>contraction_path</code> drives <code>_execute_path</code>, which routes each binary step through the full backend-selection stack — a large sub-contraction in the middle of a 4-operand chain still dispatches to NKI if the matmul threshold is met.</p>
+<p>For 3+ operand contractions, <code>_greedy_path_search</code> selects the cheapest binary contraction order by minimizing per-step FLOP cost (product of all index sizes in the pair union). This is the same criterion as <code>opt_einsum</code>'s greedy mode. The resulting <code>contraction_path</code> drives <code>_execute_path</code>, which routes each binary step through the full backend-selection stack — a large sub-contraction in the middle of a 4-operand chain gets the same routing as a standalone call (on the native path that is aten on the device; on the XLA path, NKI above the matmul threshold).</p>
+<p>Before 0.22.0 the planner chose <code>matmul</code> / <code>bmm</code> without checking the output index order, so transposed or permuted outputs (<code>ij,jk-&gt;ki</code>, <code>bij,bjk-&gt;bki</code>) came back in the wrong layout on every backend (#64). Outputs in any other order now run through <code>torch.einsum</code>.</p>
 <h2 id="fused-contraction-reduction-the-architectural-core">Fused contraction-reduction: the architectural core<a class="headerlink" href="#fused-contraction-reduction-the-architectural-core" title="Permanent link">&para;</a></h2>
 <p>What makes trntensor different from <code>torch.einsum</code> or <code>trnblas.gemm</code> is <strong>fusion across the boundary between contraction and reduction</strong>. On Trainium:</p>
 <ul>
@@ -5348,11 +5354,11 @@
 term        = T * (2T - T^T) / Δ_{i,j,a,b}         (elementwise)
 E           = Σ_{i,j,a,b} term                      (reduction)
 </code></pre></div>
-<p>The fused kernel in <code>trntensor/nki/_kernels.py::mp2_energy_kernel</code> does all three in one program, iterating over <code>(i, j)</code> pairs in <code>affine_range</code>. No intermediate <code>T</code> tensor is ever materialized to HBM.</p>
-<p>This pattern — fused contract + elementwise + reduce with SBUF-resident intermediates — is what trntensor extends across the suite. Generic <code>einsum</code> dispatch to <code>matmul</code> / <code>bmm</code> kernels is the foundation; primitives like <code>mp2_energy</code> are the architectural flagships.</p>
-<p>A second pattern — <strong>fused multi-contraction</strong> with a SBUF-resident shared operand — is demonstrated by <code>ao_to_mo_transform</code>. The classical AO→MO integral transform chains two matmuls sharing the MO coefficient tensors; a cuTENSOR equivalent would issue two dispatches with the intermediate four-index tensor materialized to HBM between them. Our NKI kernel loads <code>C_occ</code> and <code>C_vir</code> once SBUF-resident across every auxiliary index P, does both matmuls in one program, and the per-P intermediate never appears as a user-visible tensor. The general case of "multi-step contraction DAG compiled to one NKI program" is the architectural superset cuTENSOR can't express; <code>ao_to_mo_transform</code> is the first concrete instance.</p>
-<p>A third pattern — <strong>user-level operand residency</strong> — exposes that same data-locality idea at the Python API level. Inside a kernel, intermediates live in PSUM/SBUF across steps. At the program level, operands can live on the XLA device across successive trntensor calls. <code>trntensor.to_xla(tensor)</code> pins an operand; subsequent trntensor calls with XLA inputs skip the per-dispatch host↔device transfer entirely. The DF-MP2 pipeline becomes "transfer once, run two fused kernels, pull back the scalar" — matching at the whole-program level what <code>mp2_energy_kernel</code> does at the per-kernel level. Users who understand residency get the architecture's full benefit; users who don't still get a correct (if slower) result.</p>
-<p><strong>Performance honest note.</strong> Fused kernels are architecturally correct. Without residency, per-dispatch overhead dominates at small chemistry sizes and the CPU fallback wins on benchmarks. With residency (<code>to_xla</code> / <code>from_xla</code>), the overhead is paid once per pipeline instead of once per call, and the fusion work starts paying for itself. See <a href="../benchmarks/">Benchmarks</a> for the current numbers.</p>
+<p>On the native TorchNeuron path (Trn2/Trn3), <code>mp2_energy_row_kernel</code> does all three per occupied row, using the pair symmetry <code>e_ij = e_ji</code>; on the XLA path (Trn1), <code>mp2_energy_kernel</code> does them in one program over <code>(i, j)</code> pairs. Neither materializes the intermediate <code>T</code> tensor to HBM. See <a href="../api/quantum/">Quantum-chemistry primitives</a>.</p>
+<p>This pattern — fused contract + elementwise + reduce with SBUF-resident intermediates — is what trntensor extends across the suite. Generic <code>einsum</code> dispatch is the foundation (on the native path dense matmul/bmm run on aten, which beat the NKI matmul kernels at every measured size, so those kernels are deprecated there); primitives like <code>mp2_energy</code>, <code>ao_to_mo_transform</code>, <code>df_exchange</code> and <code>df_coulomb</code> are the architectural flagships.</p>
+<p>A second pattern — <strong>fused multi-contraction</strong> with a SBUF-resident shared operand — is demonstrated by <code>ao_to_mo_transform</code>. The classical AO→MO integral transform chains two matmuls sharing the MO coefficient tensors; a cuTENSOR equivalent would issue two dispatches with the intermediate four-index tensor materialized to HBM between them. Our NKI kernels do both stages without the intermediate ever appearing as a user-visible tensor (it goes through kernel-scratch HBM between the stages), and on the native path they can read packed (μ≥ν) integrals in place. <code>df_exchange</code> and <code>df_coulomb</code> apply the same idea to the DF-SCF J/K build. The general case of "multi-step contraction DAG compiled to one NKI program" is the architectural superset cuTENSOR can't express; <code>ao_to_mo_transform</code> is the first concrete instance.</p>
+<p>A third pattern — <strong>user-level operand residency</strong> — exposes that same data-locality idea at the Python API level. Inside a kernel, intermediates live in PSUM/SBUF across steps. At the program level, operands can live on the device (<code>neuron</code> on TorchNeuron, the XLA device on Trn1) across successive trntensor calls. <code>trntensor.to_device(tensor)</code> pins an operand (<code>to_xla</code> is the older name); subsequent trntensor calls with device inputs skip the per-dispatch host↔device transfer entirely. The DF-MP2 pipeline becomes "transfer once, run two fused kernels, pull back the scalar" — matching at the whole-program level what <code>mp2_energy_kernel</code> does at the per-kernel level. Users who understand residency get the architecture's full benefit; users who don't still get a correct (if slower) result.</p>
+<p><strong>Performance honest note.</strong> At small chemistry sizes the per-launch floor dominates and <code>"auto"</code> keeps aten or the host. On Trn2 (native, device-resident) the row kernel is 1.25–1.9× faster than aten once each row launch carries at least 3 GFLOP, the Trn2 AO→MO kernel 1.3–1.6× at nbasis 256–768, and <code>df_exchange</code> takes K at n_ao = 970 from 304 to 94 ms. With residency (<code>to_device</code> / <code>from_device</code>) the transfer is paid once per pipeline; under <code>"auto"</code>, large host-input calls are uploaded above measured thresholds. See <a href="../api/quantum/">Quantum-chemistry primitives</a> and <a href="../api/nki/">NKI dispatch</a> for the tables.</p>
 <h2 id="precision-control">Precision control<a class="headerlink" href="#precision-control" title="Permanent link">&para;</a></h2>
 <p><code>einsum</code> and <code>plan_contraction</code> accept <code>precision=</code>:</p>
 <ul>
@@ -5367,7 +5373,9 @@ E           = Σ_{i,j,a,b} term                      (reduction)
   DF-MP2/CCSD reductions (e.g. a large sum into a scalar) where fp32
   accumulation error, K·u, would dominate.</li>
 <li><strong><code>"dd"</code></strong> — double-double accumulation via trnblas Phase 2 fused GEMM kernel.
-  Not yet available; raises <code>NotImplementedError</code>. Tracked in trnblas#22.</li>
+  On Trainium hosts it raises <code>NotImplementedError</code> until trnblas#22 lands. On
+  CPU it runs a software Ozaki-2 emulation for <code>matmul</code> plans and falls back
+  to <code>"kahan"</code> for <code>bmm</code> / <code>torch</code> plans.</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="c1"># Accumulate DF-MP2 energy with ~15-digit precision</span>
 <span class="n">E_corr</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ijab,ijab-&gt;"</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"kahan"</span><span class="p">)</span>

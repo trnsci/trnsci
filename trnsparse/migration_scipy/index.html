@@ -5348,8 +5348,8 @@ when you port code across.</p>
 </tr>
 <tr>
 <td><code>A @ x</code> with symmetric A</td>
-<td><code>spmv_symmetric(A, x)</code></td>
-<td>Exploits symmetry for ~2× throughput when you can guarantee it.</td>
+<td><code>spmv_symmetric(A, x, uplo="upper")</code></td>
+<td>Only the <code>uplo</code> triangle is referenced (as in BLAS <code>symv</code>), so A may store one triangle (half the memory) or the full matrix.</td>
 </tr>
 <tr>
 <td><code>alpha * A + beta * B</code></td>

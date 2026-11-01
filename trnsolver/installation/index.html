@@ -5404,7 +5404,7 @@ kernels on whichever one is installed:</p>
 <td>TorchNeuron (native)</td>
 <td>Trn2, Trn3</td>
 <td>Neuron SDK 2.33+, Python ≥ 3.12, <code>torch</code> 2.14, <code>torch-neuronx</code> 2.14.*</td>
-<td>Each kernel is a PyTorch custom op (<code>torch.ops.trnsolver.matvec</code>, <code>rank2_update</code>, <code>matmul</code>, <code>matmul_fp32out</code>, <code>apply_reflectors</code>) registered with <code>torch_neuronx.nki_op</code>; tensors live on <code>device="neuron"</code>.</td>
+<td>Each kernel is a PyTorch custom op (<code>torch.ops.trnsolver.matvec</code>, <code>rank2_update</code>, <code>matmul</code>, <code>matmul_fp32out</code>, <code>apply_reflectors</code>, <code>jacobi_sweeps</code>, <code>jacobi_block</code>) registered with <code>torch_neuronx.nki_op</code>; tensors live on <code>device="neuron"</code>.</td>
 </tr>
 <tr>
 <td>PyTorch/XLA</td>
@@ -5482,11 +5482,10 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <li>Python &gt;= 3.10</li>
 <li>PyTorch &gt;= 2.1</li>
 <li>NumPy &gt;= 1.24</li>
-<li>neuronxcc &gt;= 2.15 (optional, for Trainium hardware)</li>
-<li>torch-neuronx &gt;= 2.1 (optional, for Trainium hardware)</li>
+<li>Trainium hardware (optional): <code>[torchneuron]</code> — <code>torch&gt;=2.14</code>, <code>torch-neuronx&gt;=2.14</code>, <code>nki&gt;=0.6</code>, Python ≥ 3.12; or <code>[neuron]</code> (XLA lineage) — <code>nki&gt;=0.3.0</code>, <code>neuronxcc&gt;=2.24</code>, <code>torch-neuronx&gt;=2.9</code></li>
 </ul>
 <h2 id="hardware-compatibility">Hardware compatibility<a class="headerlink" href="#hardware-compatibility" title="Permanent link">&para;</a></h2>
-<p>The NKI Jacobi rotation kernel is scaffolded but not yet validated on hardware — <code>trnsolver.eigh</code> falls back to <code>torch.linalg.eigh</code> whenever the NKI path isn't selected. CPU/PyTorch correctness is preserved across all platforms.</p>
+<p>The NKI kernels, including the batched Jacobi <code>eigh</code> kernels, are validated on Trn2 (Neuron SDK 2.33, native TorchNeuron; trnsci/trnsci#35); the Householder-QR <code>eigh</code> path was validated on trn1.2xlarge in v0.4.0. Without NKI, or when a kernel path fails (unless <code>TRNSOLVER_REQUIRE_NKI=1</code>), every operation runs its PyTorch path. CPU/PyTorch correctness is preserved across all platforms.</p>
 <p>For a pre-built CI instance, see <a href="../aws_setup/">AWS Setup</a> and the Terraform module in <code>infra/terraform/</code>.</p>
 
 

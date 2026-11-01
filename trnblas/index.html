@@ -5183,8 +5183,11 @@ computing workloads that are GEMM-dominated.</p>
 That's fine for ML training but insufficient for scientific computing codes
 that need TRSM, SYRK, SYMM, and batched GEMM with specific transpose/scaling
 semantics.</p>
-<p>trnblas closes this gap — same BLAS API surface, NKI-accelerated GEMM on
-Trainium, PyTorch fallback everywhere else.</p>
+<p>trnblas closes this gap — same BLAS API surface, NKI kernels on Trainium,
+PyTorch fallback everywhere else. On Trn2/Trn3 (native TorchNeuron), <code>auto</code>
+routes GEMM-family calls by measured time: device-resident operands run as
+aten on the <code>neuron</code> device, host operands on the host CPU or as upload +
+aten. See <a href="api/nki/#backend-selection">NKI Backend</a>.</p>
 <h2 id="primary-use-case">Primary use case<a class="headerlink" href="#primary-use-case" title="Permanent link">&para;</a></h2>
 <p>DF-MP2 quantum chemistry on large molecules (&gt;3000 basis functions), where
 sustained GEMM throughput for tensor contractions dominates wall-time. See the
@@ -5198,7 +5201,9 @@ python<span class="w"> </span>examples/df_mp2_pyscf.py<span class="w"> </span>--
 <ul>
 <li><a href="https://github.com/trnsci/trnfft">trnfft</a> — FFT + complex ops for Trainium.</li>
 <li><a href="https://github.com/trnsci/trnrand">trnrand</a> — Random number generation (Philox/Sobol) for Trainium.</li>
-<li><code>trnsolver</code> <em>(planned)</em> — Linear solvers and eigendecomposition.</li>
+<li><a href="https://github.com/trnsci/trnsolver">trnsolver</a> — Linear solvers and eigendecomposition.</li>
+<li><a href="https://github.com/trnsci/trnsparse">trnsparse</a> — Sparse formats and SpMM.</li>
+<li><a href="https://github.com/trnsci/trntensor">trntensor</a> — einsum and tensor decompositions.</li>
 </ul>
 
 

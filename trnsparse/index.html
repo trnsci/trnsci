@@ -5178,8 +5178,15 @@
 <p><strong>Primary use case:</strong> Schwarz-screened Fock builds for large-basis quantum chemistry. At &gt;3000 basis functions, &gt;99% of shell quartets screen to zero. Storing and operating on the integral tensor in dense format wastes both memory and compute. <code>trnsparse</code> makes the sparsity explicit.</p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trnsparse
-pip<span class="w"> </span>install<span class="w"> </span>trnsparse<span class="o">[</span>neuron<span class="o">]</span><span class="w">   </span><span class="c1"># on Neuron hardware</span>
+
+<span class="c1"># Trn2/Trn3 with TorchNeuron (native PyTorch, Neuron SDK 2.33+)</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnsparse[torchneuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
+
+<span class="c1"># Trn1 / PyTorch-XLA lineage</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trnsparse[neuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
 </code></pre></div>
+<p>See <a href="installation/">Installation</a> for the two lineages and where sparse
+structure lives on the native <code>neuron</code> device.</p>
 <h2 id="quick-example">Quick example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">trnsparse</span>
@@ -5187,12 +5194,18 @@ pip<span class="w"> </span>install<span class="w"> </span>trnsparse<span class="
 <span class="n">dense</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
 <span class="n">dense</span><span class="p">[</span><span class="n">dense</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
 
-<span class="n">A</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">CSRMatrix</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span><span class="n">dense</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span><span class="n">dense</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">spmv</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
-<p>Alpha. CSR/COO formats, SpMV/SpMM, and Schwarz screening are functional via PyTorch fallback. NKI gather-matmul-scatter SpMM kernel is scaffolded; on-hardware validation is the next milestone.</p>
+<p>Alpha (0.x). CSR/COO are the construction and interop formats; <code>BSRMatrix</code>
+at <code>block_size=128</code> is the NKI compute format. BSR SpMM, screened SpMM,
+block-sparse attention (forward and backward), fused CG / PCG
+(<code>cg_bsr_fused</code>) and <code>ShardedBSR</code> across the logical NeuronCores of a chip
+are validated on Trn2 with native TorchNeuron (Neuron SDK 2.33). Without
+Neuron hardware every API runs on the PyTorch path. See
+<a href="benchmarks/">Benchmarks</a> for measured crossovers against dense aten.</p>
 <p>Part of the <a href="https://github.com/trnsci/trnsci">trnsci</a> scientific computing suite.</p>
 
 

@@ -4540,10 +4540,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#from-pypi-once-published" class="md-nav__link">
+  <a href="#from-pypi" class="md-nav__link">
     <span class="md-ellipsis">
       
-        From PyPI (once published)
+        From PyPI
       
     </span>
   </a>
@@ -5200,10 +5200,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#from-pypi-once-published" class="md-nav__link">
+  <a href="#from-pypi" class="md-nav__link">
     <span class="md-ellipsis">
       
-        From PyPI (once published)
+        From PyPI
       
     </span>
   </a>
@@ -5253,9 +5253,14 @@
 
 
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
-<h2 id="from-pypi-once-published">From PyPI (once published)<a class="headerlink" href="#from-pypi-once-published" title="Permanent link">&para;</a></h2>
+<h2 id="from-pypi">From PyPI<a class="headerlink" href="#from-pypi" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trntensor
-pip<span class="w"> </span>install<span class="w"> </span>trntensor<span class="o">[</span>neuron<span class="o">]</span><span class="w">   </span><span class="c1"># on Neuron hardware</span>
+
+<span class="c1"># Trn2/Trn3 with TorchNeuron (native PyTorch, Neuron SDK 2.33+, Python ≥ 3.12)</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trntensor[torchneuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
+
+<span class="c1"># Trn1 / PyTorch-XLA lineage</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trntensor[neuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
 </code></pre></div>
 <h2 id="from-source">From source<a class="headerlink" href="#from-source" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:trnsci/trntensor.git
@@ -5264,7 +5269,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 </code></pre></div>
 <h2 id="hardware-compatibility">Hardware compatibility<a class="headerlink" href="#hardware-compatibility" title="Permanent link">&para;</a></h2>
-<p>NKI kernels target <strong>Neuron SDK 2.24+</strong> on the <strong>Deep Learning AMI Neuron PyTorch 2.9 (Ubuntu 24.04)</strong> AMI. Without Neuron hardware, trntensor falls through to PyTorch ops (<code>torch.einsum</code>, <code>torch.matmul</code>, <code>torch.bmm</code>) — all APIs remain functional.</p>
+<p>The primary path is <strong>native TorchNeuron</strong> on Trn2/Trn3 (Neuron SDK 2.33+, <code>torch</code> 2.14, <code>torch-neuronx</code> 2.14.*), where each kernel is a <code>torch.ops.trntensor.*</code> custom op on the <code>neuron</code> device. The <strong>PyTorch/XLA</strong> path (Trn1, <code>torch-neuronx</code> 2.9 lineage, <code>nki&gt;=0.3.0</code>, Neuron SDK 2.29+) is kept in maintenance. See <a href="../api/nki/#dispatch-path">NKI dispatch</a> for how the path is chosen. Without Neuron hardware, trntensor falls through to PyTorch ops (<code>torch.einsum</code>, <code>torch.matmul</code>, <code>torch.bmm</code>) — all APIs remain functional.</p>
 
 
 

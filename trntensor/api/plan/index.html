@@ -5436,7 +5436,7 @@ Call <code>clear_plan_cache()</code> to invalidate (e.g. after a backend change)
 </tr>
 <tr>
 <td><code>"dd"</code></td>
-<td>Raises <code>NotImplementedError</code> at execution time (trnblas#22 pending)</td>
+<td>On Trainium hosts raises <code>NotImplementedError</code> at execution time (trnblas#22 pending); on CPU, Ozaki-2 emulation for <code>matmul</code> plans, <code>"kahan"</code> otherwise</td>
 </tr>
 <tr>
 <td><code>"sr"</code></td>
@@ -5519,11 +5519,16 @@ the planner returns.</p>
 </table>
 <h3 id="strategy-selection">Strategy selection<a class="headerlink" href="#strategy-selection" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><code>"matmul"</code></strong> — 2-operand, 2D tensors, single contracted index → <code>torch.matmul</code> (or NKI kernel when backend is <code>"nki"</code>)</li>
-<li><strong><code>"bmm"</code></strong> — 2-operand, 3D tensors, single contracted index + single batch index → <code>torch.bmm</code> (or NKI batched kernel)</li>
-<li><strong><code>"torch"</code></strong> — 2-operand fallback for patterns that don't fit matmul/bmm → <code>torch.einsum</code></li>
-<li><strong><code>"path"</code></strong> — 3+ operands → greedy binary contraction ordering; each binary step is dispatched through the full backend-selection stack so large sub-contractions still reach NKI</li>
+<li><strong><code>"matmul"</code></strong> — 2-operand, 2D tensors, single contracted index, output in the order <code>[A free, B free]</code> (e.g. <code>ij,jk-&gt;ik</code>, <code>ap,bp-&gt;ab</code>) → <code>torch.matmul</code> (or NKI kernel when backend is <code>"nki"</code>)</li>
+<li><strong><code>"bmm"</code></strong> — exactly <code>bij,bjk-&gt;bik</code> → <code>torch.bmm</code> (or NKI batched kernel)</li>
+<li><strong><code>"torch"</code></strong> — 2-operand fallback for patterns that don't fit matmul/bmm, including transposed or permuted outputs such as <code>ij,jk-&gt;ki</code> → <code>torch.einsum</code></li>
+<li><strong><code>"path"</code></strong> — 3+ operands → greedy binary contraction ordering; each binary step is dispatched through the full backend-selection stack</li>
 </ul>
+<p>Before 0.22.0 the index-order conditions above were not checked, so
+transposed or permuted outputs came back in the wrong layout on every backend
+(#64). On the native TorchNeuron path <code>backend</code> reports <code>"pytorch"</code> for
+matmul/bmm by default: they run on aten on the device (the NKI matmul kernels are
+deprecated there).</p>
 <h2 id="estimate_flopssubscripts-operands-int"><code>estimate_flops(subscripts, *operands) -&gt; int</code><a class="headerlink" href="#estimate_flopssubscripts-operands-int" title="Permanent link">&para;</a></h2>
 <p>Estimate multiply-add operations for a contraction as the product of
 all distinct index sizes.</p>

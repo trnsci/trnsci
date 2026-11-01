@@ -4239,10 +4239,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#spmmcsr-b-pytorch-fallback" class="md-nav__link">
+  <a href="#spmmcsr-b-densify-then-gemm-on-nki-torchsparse-otherwise" class="md-nav__link">
     <span class="md-ellipsis">
       
-        spmm(csr, B) — PyTorch fallback
+        spmm(csr, B) — densify-then-GEMM on NKI, torch.sparse otherwise
       
     </span>
   </a>
@@ -5323,10 +5323,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#spmmcsr-b-pytorch-fallback" class="md-nav__link">
+  <a href="#spmmcsr-b-densify-then-gemm-on-nki-torchsparse-otherwise" class="md-nav__link">
     <span class="md-ellipsis">
       
-        spmm(csr, B) — PyTorch fallback
+        spmm(csr, B) — densify-then-GEMM on NKI, torch.sparse otherwise
       
     </span>
   </a>
@@ -5465,7 +5465,7 @@ no gather step, no padding-within-tile waste. The architectural match is
 exact.</p>
 <p>Contrast with CSR, which stores individual nonzero elements. The v0.2.0
 NKI path for CSR materializes the matrix into a dense <code>(M, K)</code> tile
-before the matmul (see the <a href="#v020-csr-spmm-path">SpMM path</a> below) —
+before the matmul (see the <a href="#nki-dispatch-hierarchy">dispatch hierarchy</a> below) —
 necessary for correctness, but it pays the full <code>M × K</code> cost whether the
 matrix is sparse or not. BSR skips this because blocks are already dense.</p>
 <p><strong>Consequence for the library's shape:</strong> CSR remains the construction and
@@ -5482,11 +5482,14 @@ the PyTorch fallback is already within 2× of scipy; NKI adds nothing.</p>
 │   ├── formats.py       # CSRMatrix, COOMatrix, BSRMatrix, from_dense
 │   ├── ops.py           # spmv, spmm, bsr_spmm, screened_spmm, ...
 │   ├── screening.py     # schwarz_bounds, screen_quartets, density_screen
-│   ├── iterative.py     # cg_bsr, power_iteration_bsr, jacobi_preconditioner_bsr
+│   ├── iterative.py     # cg_bsr, cg_bsr_fused, power_iteration_bsr(_fused), chebyshev/richardson
+│   ├── multicore.py     # ShardedBSR, ShardedAttention (logical NeuronCores of one chip)
 │   └── nki/
 │       ├── __init__.py
-│       ├── kernels.py   # _bsr_spmm_kernel, _screened_spmm_kernel
-│       └── dispatch.py  # torch.autograd.Function wrappers + routing
+│       ├── kernels.py       # BSR / screened / attention / fused CG kernels
+│       ├── dispatch.py      # path selection, torch.autograd.Function wrappers (XLA/CPU)
+│       ├── _native.py       # TorchNeuron custom ops + register_autograd
+│       └── _native_attn.py  # trnsparse::bsr_attn / bsr_attn_bwd composite ops
 ├── tests/
 ├── examples/
 │   ├── sparse_fock.py             # Schwarz-screened Fock (3 paths + trnblas)
@@ -5498,11 +5501,16 @@ the PyTorch fallback is already within 2× of scipy; NKI adds nothing.</p>
 compute format. <code>nki/dispatch.py</code> exposes <code>HAS_NKI</code>,
 <code>set_backend("auto"|"pytorch"|"nki")</code>, <code>get_backend()</code>, and the NKI
 entry points.</p>
-<h3 id="spmmcsr-b-pytorch-fallback"><code>spmm(csr, B)</code> — PyTorch fallback<a class="headerlink" href="#spmmcsr-b-pytorch-fallback" title="Permanent link">&para;</a></h3>
-<p>Routes through <code>torch.sparse_csr_tensor</code> operations. Benchmarked within
-2× of scipy at typical shapes; the NKI per-op overhead doesn't pay off
-for CSR SpMM until the matrix is large enough that the v0.2.0 CSR kernel
-(densify-then-GEMM) would dominate anyway. SpMV also stays on this path.</p>
+<h3 id="spmmcsr-b-densify-then-gemm-on-nki-torchsparse-otherwise"><code>spmm(csr, B)</code> — densify-then-GEMM on NKI, <code>torch.sparse</code> otherwise<a class="headerlink" href="#spmmcsr-b-densify-then-gemm-on-nki-torchsparse-otherwise" title="Permanent link">&para;</a></h3>
+<p>On the <code>pytorch</code> backend (and under <code>auto</code> without NKI) this routes
+through <code>torch.sparse_csr_tensor</code> operations, benchmarked within 2× of
+scipy at typical shapes. Under <code>nki</code>, and under <code>auto</code> when NKI is
+available, A is densified on the host and the v0.2.0 dense GEMM kernel
+runs on the Tensor Engine (<code>trnsparse::spmm_dense</code> on the native path). It
+pays the full <code>M × K</code> cost, so on Trn2 it stays behind dense aten and far
+behind <code>torch.sparse</code> on CPU at low density (<a href="../benchmarks/">Benchmarks</a>):
+for repeated products on the device, use BSR. SpMV stays on the
+<code>torch.sparse</code> path (densified on the host when <code>x</code> is on a device).</p>
 <h3 id="bsr_spmmbsr-b-nki-_bsr_spmm_kernel"><code>bsr_spmm(bsr, B)</code> — NKI, <code>_bsr_spmm_kernel</code><a class="headerlink" href="#bsr_spmmbsr-b-nki-_bsr_spmm_kernel" title="Permanent link">&para;</a></h3>
 <p>One <code>nisa.nc_matmul</code> per nonzero block. Host-side preamble pads each
 block-row to the same <code>K_max</code> so the kernel's <code>affine_range</code> bounds are
@@ -5582,22 +5590,33 @@ the mask is treated as a discrete gate; <code>grad_A *= mask</code> and
 extension is a follow-up if asked for.</p>
 <h2 id="known-limits">Known limits<a class="headerlink" href="#known-limits" title="Permanent link">&para;</a></h2>
 <ul>
+<li><strong>BSR block size.</strong> The NKI kernels take <code>block_size=128</code> only. Other block
+  sizes run on the PyTorch path under <code>auto</code> and <code>nki</code> (correct, no NKI, no
+  failed compile since 0.12.0), and raise <code>NotImplementedError</code> under
+  <code>TRNSPARSE_REQUIRE_NKI=1</code>. <code>cg_bsr_fused</code> / <code>prepare_cg_bsr</code> raise
+  <code>ValueError</code> for any other block size.</li>
 <li><strong>Row-bucketing CSR</strong> (<a href="https://github.com/trnsci/trnsparse/issues/15">#15</a>) — parked.
   Requires NKI indirect-DMA gather (not exposed as of NKI 0.3.0). The CSR PyTorch
   fallback is within 2× of scipy; that's the current story.</li>
 <li><strong>Fused tile-level attention scores</strong> (<a href="https://github.com/trnsci/trnsparse/issues/25">#25</a>) —
-  <strong>v0.4.4 ships the NKI kernel pair</strong> (<code>_attn_stats_kernel</code> + <code>_attn_out_kernel</code>).
+  shipped: the NKI kernel pair in v0.4.4, the NKI backward in 0.5.1, and
+  K-tiling for <code>head_dim</code> a multiple of 128 (256, 512) in 0.6.0.
   <code>block_sparse_attention_tiled</code> routes through NKI on the <code>nki</code> backend; the
-  PyTorch two-pass reference remains on the <code>pytorch</code> backend. <code>head_dim ≤ 128</code>
-  in v0.4.4 (nc_matmul partition limit); <code>head_dim=256</code> requires K-tiling.</li>
+  PyTorch two-pass reference remains on the <code>pytorch</code> backend. <code>seq_len</code> must
+  be a multiple of the mask's block size (<code>ValueError</code> since 0.11.0). bf16
+  inputs raise on the gather kernels used for <code>head_dim &gt; 128</code>
+  (<a href="https://github.com/trnsci/trnsparse/issues/49">#49</a>); the static path
+  (<code>head_dim ≤ 128</code>) takes bf16.</li>
 <li><strong>Fused iterative solvers</strong> (<a href="https://github.com/trnsci/trnsparse/issues/22">#22</a>) —
-  CG blocked on <code>nl.affine_range</code> iteration-carried scalar state. <strong>v0.4.3 ships
-  <code>chebyshev_bsr</code> and <code>richardson_bsr</code></strong>: fixed-K solvers with pre-computed
-  coefficients (no inner products in the loop) that have the correct structure for
-  eventual NKI fusion. The "A SBUF-resident across all iterations" win remains gated
-  on <code>affine_range</code> vector-carry support.</li>
+  shipped in 0.11.0: <code>cg_bsr_fused</code> runs CG or block-Jacobi PCG in one launch
+  with A SBUF-resident and a device-side <code>nl.while_loop</code> convergence check, and
+  <code>power_iteration_bsr_fused</code> uses the same kernel. See
+  <a href="../iterative_solvers/">Iterative solvers</a>. <code>chebyshev_bsr</code> and
+  <code>richardson_bsr</code> (v0.4.3) remain host-driven loops over <code>bsr_spmm</code>.</li>
 <li><strong>Multi-chip sharded BSR</strong> (<a href="https://github.com/trnsci/trnsparse/issues/16">#16</a>) —
-  gated on suite-level multi-chip collectives.</li>
+  across the logical NeuronCores of one Trn2 chip, <code>ShardedBSR</code> and
+  <code>ShardedAttention</code> shipped in 0.10.0 (<code>trnsparse.multicore</code>). Sharding across
+  chips is still gated on suite-level multi-chip collectives.</li>
 <li><strong>SpMV stays PyTorch.</strong> Single output column on the Tensor Engine doesn't amortize
   compile + dispatch overhead.</li>
 </ul>

@@ -5255,7 +5255,7 @@
 <h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
 <p>trnrand kernels measured against two baselines on the same Trainium instance:</p>
 <ol>
-<li><strong>NKI</strong> — trnrand with <code>set_backend("nki")</code> (Philox on GpSimd; Box-Muller
+<li><strong>NKI</strong> — trnrand with <code>set_backend("nki")</code> (Threefry on GpSimd; Box-Muller
    on Vector Engine for <code>normal()</code>).</li>
 <li><strong>trnrand-PyTorch</strong> — trnrand with <code>set_backend("pytorch")</code> running on
    the host CPU (<code>torch.Generator</code> + <code>torch.empty(...).uniform_()</code> etc.).</li>
@@ -5279,15 +5279,19 @@ difference between trnrand and reaching for raw torch?"</em></p>
 <h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Small sizes are dispatch-bound.</strong> NKI kernel invocation has fixed overhead. Below some per-op threshold the host CPU wins for RNG, where each call already amortizes to a few hundred nanoseconds per element.</li>
-<li><strong>Philox is integer-heavy.</strong> GpSimd does the multiply-XOR rounds; the Tensor Engine isn't useful here. Don't expect Tensor-Engine-class speedups — the win comes from avoiding host→device transfer of the random tensor.</li>
-<li><strong>Quasi-random is host-only today.</strong> Sobol/Halton/LHS run via <code>torch.quasirandom</code> on the host. NKI scrambling is a v0.3 follow-up.</li>
+<li><strong>Threefry is integer-heavy.</strong> GpSimd does the add-rotate-xor rounds; the Tensor Engine isn't useful here. Don't expect Tensor-Engine-class speedups — the win comes from avoiding host→device transfer of the random tensor.</li>
+<li><strong>Quasi-random:</strong> Sobol and Halton have NKI kernels (v0.5.0); Latin Hypercube runs on the host.</li>
 <li><strong>FP32 throughout.</strong> BF16/FP16 paths are future work.</li>
 <li>Numbers vary 5-15% run-to-run; treat the table as approximate.</li>
 </ul>
 <h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
 <!-- BENCH_TABLE_START -->
 
-<p><em>Pending first run on trn1.2xlarge — see issue #3.</em></p>
+<p><em>Pending first run on trn1.2xlarge — see issue #3.</em> Trn2 (native
+TorchNeuron) timings for each release are in the
+<a href="https://github.com/trnsci/trnrand/blob/main/CHANGELOG.md">CHANGELOG</a>:
+v0.9.0 (full-word bulk kernels), v0.10.0 (<code>set_cores</code>) and v0.11.0
+(pinned host output).</p>
 <!-- BENCH_TABLE_END -->
 
 

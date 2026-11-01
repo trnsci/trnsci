@@ -5153,17 +5153,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#hfft-ihfft-not-implemented" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        hfft / ihfft — not implemented
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#license" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5200,10 +5189,10 @@
 <p>Part of the trnsci scientific computing suite (<a href="https://github.com/trnsci">github.com/trnsci</a>).</p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong><code>torch.fft</code>-compatible API</strong> — <code>fft</code>, <code>ifft</code>, <code>rfft</code>, <code>irfft</code>, <code>fft2</code>, <code>rfft2</code>, <code>irfft2</code>, <code>fftn</code>, <code>ifftn</code>, <code>rfftn</code>, <code>irfftn</code>, <code>stft</code>, <code>istft</code> (13 of ~15; <code>hfft</code> / <code>ihfft</code> are not implemented — see the <a href="#hfft-ihfft-not-implemented">API stance</a> below)</li>
+<li><strong><code>torch.fft</code>-compatible API</strong> — <code>fft</code>, <code>ifft</code>, <code>rfft</code>, <code>irfft</code>, <code>hfft</code>, <code>ihfft</code>, <code>fft2</code>, <code>rfft2</code>, <code>irfft2</code>, <code>fftn</code>, <code>ifftn</code>, <code>rfftn</code>, <code>irfftn</code>, <code>stft</code>, <code>istft</code> (<code>hfft</code> / <code>ihfft</code> since v0.16.0). <code>stft(window=None)</code> uses a Hann window, where <code>torch.stft</code> uses ones; pass <code>window</code> to match it.</li>
 <li><strong>ComplexTensor</strong> — split real/imaginary representation with full arithmetic</li>
 <li><strong>Complex NN layers</strong> — <code>ComplexLinear</code>, <code>ComplexConv1d</code>, <code>ComplexBatchNorm1d</code>, <code>ComplexModReLU</code></li>
-<li><strong>NKI acceleration</strong> — butterfly FFT, complex GEMM, ComplexLinear, and fused multiply kernels for Trainium. Validated on trn1.2xlarge; beats vanilla <code>torch.fft</code> for STFT and batched FFT. See <a href="benchmarks/">Benchmarks</a>.</li>
+<li><strong>NKI acceleration</strong> — DFT-GEMM, four-step and six-step FFTs, Stockham and butterfly stages, complex GEMM, ComplexLinear, and fused multiply kernels for Trainium. Validated on Trn2 (Neuron SDK 2.33, native TorchNeuron) and on trn1.2xlarge (XLA). See <a href="benchmarks/">Benchmarks</a> and the CHANGELOG.</li>
 <li><strong>Plan-based caching</strong> — FFTW-style plan creation and reuse</li>
 </ul>
 <h2 id="trn-suite">trn-* suite<a class="headerlink" href="#trn-suite" title="Permanent link">&para;</a></h2>
@@ -5224,23 +5213,6 @@
 <span class="n">X</span> <span class="o">=</span> <span class="n">trnfft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span>
 <span class="n">recovered</span> <span class="o">=</span> <span class="n">trnfft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="hfft-ihfft-not-implemented"><code>hfft</code> / <code>ihfft</code> — not implemented<a class="headerlink" href="#hfft-ihfft-not-implemented" title="Permanent link">&para;</a></h2>
-<p>The two <code>torch.fft</code> functions trnfft doesn't provide are <code>hfft</code> (Hermitian
-input → real output) and its inverse <code>ihfft</code>. These expect a
-conjugate-symmetric input tensor <code>X[k] = conj(X[N-k])</code>, which in practice
-only arises if you've just produced one via <code>rfft</code> — at which point the
-natural continuation is <code>irfft</code>, not <code>hfft</code>.</p>
-<p><strong>When you'd want them:</strong> if your workload <em>directly</em> produces a
-Hermitian-symmetric spectrum (e.g., reconstructing a real signal from a
-known symmetric frequency-domain representation) and you don't want the
-manual unpack/pack step that gets you there via <code>rfft</code> / <code>irfft</code>.</p>
-<p><strong>Workaround today:</strong> pack your symmetric input into the first <code>N//2+1</code>
-bins and call <code>irfft</code>. Unpack an <code>rfft</code> output to the full N bins when a
-Hermitian-input consumer expects it.</p>
-<p><strong>If you need these:</strong> <a href="https://github.com/trnsci/trnfft/issues">open an issue</a>
-with the concrete workload — the NKI butterfly kernels already implement
-the primitives; it's a matter of adding the normalization + axis
-conventions that match PyTorch.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p>Apache 2.0 — Copyright 2026 Scott Friedman</p>
 

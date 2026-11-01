@@ -5328,7 +5328,9 @@
 │   ├── quasi.py           # sobol, halton, latin_hypercube
 │   └── nki/
 │       ├── __init__.py    # Backend dispatch (set_backend / HAS_NKI)
-│       └── dispatch.py    # Philox kernel scaffold for on-device RNG
+│       ├── dispatch.py    # NKI kernels, host wrappers, dispatch-path selection
+│       ├── _native.py     # TorchNeuron custom ops (nki_op), loaded lazily
+│       └── program.py     # GeneratorProgram streaming builder
 ├── tests/
 ├── examples/mc_integration.py
 └── benchmarks/
@@ -5391,7 +5393,10 @@
 </tbody>
 </table>
 <h2 id="nki-strategy">NKI strategy<a class="headerlink" href="#nki-strategy" title="Permanent link">&para;</a></h2>
-<p>The Philox 4×32 counter-based RNG maps cleanly to Trainium:</p>
+<p>Counter-based RNGs map cleanly to Trainium. Every NKI distribution draws
+from Threefry4x32-20, which needs no 32-bit integer multiply; a Philox
+4×32-10 kernel ships alongside it (<code>torch.ops.trnrand.philox4x32</code>). Both are
+bit-exact against their CPU references on Trn2.</p>
 <ul>
 <li><strong>GpSimd engine</strong> runs the integer multiply-XOR rounds (the Tensor Engine
   is wasted on this).</li>
@@ -5400,11 +5405,12 @@
 <li><strong>Deterministic:</strong> <code>(counter, key) → output</code> — no state to synchronize
   across cores.</li>
 </ul>
-<p>Philox is preferred over Mersenne Twister precisely because it's stateless
-and trivially parallelizable. It's the same engine used by cuRAND and JAX.</p>
+<p>Counter-based RNGs are preferred over Mersenne Twister precisely because
+they're stateless and trivially parallelizable. Philox is cuRAND's default
+engine; Threefry is JAX's.</p>
 <h2 id="box-muller-for-normal">Box-Muller for <code>normal()</code><a class="headerlink" href="#box-muller-for-normal" title="Permanent link">&para;</a></h2>
-<p>The on-device normal path is a Box-Muller transform layered on the Philox
-uniform stream:</p>
+<p>The on-device normal path is a Box-Muller transform layered on the Threefry
+uniform stream, fused into the same kernel:</p>
 <ul>
 <li>Pairs of uniforms <code>(u1, u2)</code> → standard-normal pairs <code>(z1, z2)</code> via
   <code>r = √(-2 ln u1)</code>, <code>θ = 2π u2</code>, <code>z1 = r cos θ</code>, <code>z2 = r sin θ</code>.</li>
@@ -5446,14 +5452,16 @@ built on them) can be spread over several logical NeuronCores of one chip:</p>
 </ul>
 <h2 id="known-gaps">Known gaps<a class="headerlink" href="#known-gaps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>NKI Philox and Box-Muller kernels await validation.</strong> Both landed in
-  v0.1.0 with CPU conformance oracles (the three canonical Salmon et al.
-  SC'11 test vectors pass in
-  <code>tests/test_nki_philox.py::TestPhiloxReference::test_spec_vectors</code>).
-  Tracked on the <a href="https://github.com/trnsci/trnrand/milestones">v0.3.0 milestone</a>
-  (#1 Philox, #2 Box-Muller, #18 Phase 1).</li>
+<li><strong>Checkpoint/resume with <code>advance_to</code> needs <code>key_mode="counter"</code>.</strong> With
+  the default <code>key_mode="draw"</code>, each NKI draw takes a fresh key from the
+  host <code>torch.Generator</code>, and <code>advance</code> / <code>advance_to</code> move only the
+  Threefry counter, so a new generator advanced to <code>position()</code> draws
+  different values. On the PyTorch path they have no effect. Use
+  <code>get_state</code> / <code>set_state</code> (which carry the counter since v0.12.1), or
+  <code>key_mode="counter"</code>, which fixes the key per seed for <code>uniform</code>,
+  <code>normal</code> and <code>standard_normal</code> (#76).</li>
 </ul>
-<p><strong>Phase 1 iteration is no longer hardware-gated.</strong> Neuron SDK 2.29
+<p><strong>Kernel iteration is not hardware-gated.</strong> Neuron SDK 2.29
 (April 2026) brought NKI 0.3.0 Stable with a CPU simulator
 (<code>nki.simulate_kernel</code>); the <code>test-simulator</code> CI job exercises kernel
 correctness on <code>ubuntu-latest</code> without a trn1 instance. Use
@@ -5463,10 +5471,12 @@ via <code>scripts/run_neuron_tests.sh</code> are reserved for final real-device
 validation, not inner-loop iteration.
 - <strong>Halton degrades above ~20 dimensions</strong> — known algorithmic limitation.
   Sobol is preferred for <code>d &gt; 10</code>.
-- <strong>Quasi-random sequences are host-only.</strong> NKI scrambling for
-  Sobol/Halton is scoped for <a href="../roadmap/">v0.3.0</a> (#11, #12).
-- <strong>FP32 throughout.</strong> BF16 / FP16 output paths and multi-NeuronCore
-  sharding are v0.4+ candidates (see <a href="../roadmap/">roadmap</a>).</p>
+- <strong>NKI Sobol covers 10 dimensions and 2^24 points</strong> (it raises past
+  2^24), and its scrambling is a per-dimension random shift, not the Owen
+  scrambling of the CPU <code>SobolEngine</code> path. NKI Halton covers 10 dimensions
+  and indices below 2^22. Past those limits the NKI path raises; use
+  <code>set_backend("pytorch")</code>.
+- <strong>FP32 throughout.</strong> BF16 / FP16 output paths are future work.</p>
 
 
 

@@ -3008,6 +3008,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multi-core-bulk-draws" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-core bulk draws
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dispatch-path" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3019,10 +3030,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#philox-kernel" class="md-nav__link">
+  <a href="#threefry-and-philox-kernels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Philox kernel
+        Threefry and Philox kernels
       
     </span>
   </a>
@@ -5235,6 +5246,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multi-core-bulk-draws" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-core bulk draws
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dispatch-path" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5246,10 +5268,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#philox-kernel" class="md-nav__link">
+  <a href="#threefry-and-philox-kernels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Philox kernel
+        Threefry and Philox kernels
       
     </span>
   </a>
@@ -5278,7 +5300,7 @@
 
 <h1 id="nki-backend">NKI Backend<a class="headerlink" href="#nki-backend" title="Permanent link">&para;</a></h1>
 <p>The NKI dispatch layer controls whether RNG operations run on the native
-Trainium GpSimd engine (Philox 4×32) or fall back to <code>torch.Generator</code>.</p>
+Trainium GpSimd engine (Threefry4x32-20) or fall back to <code>torch.Generator</code>.</p>
 <h2 id="backend-selection">Backend selection<a class="headerlink" href="#backend-selection" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnrand</span>
 
@@ -5305,8 +5327,29 @@ Trainium GpSimd engine (Philox 4×32) or fall back to <code>torch.Generator</cod
 <td><code>TRNRAND_REQUIRE_NKI=1</code></td>
 <td>Kernel-path failures re-raise instead of silently falling back to PyTorch. Used by the validation suite to catch silent kernel breakage.</td>
 </tr>
+<tr>
+<td><code>TRNRAND_CORES=&lt;n&gt;\|auto</code></td>
+<td>Default for <code>set_cores</code> (below). Off (1) by default.</td>
+</tr>
+<tr>
+<td><code>TRNRAND_CORES_MIN_ELEMENTS</code></td>
+<td>Requests below this (default 8,388,608) stay on one core.</td>
+</tr>
+<tr>
+<td><code>TRNRAND_PINNED_OUTPUT=0</code></td>
+<td>Turns off pinned host output for large native-path draws (on by default since v0.11.0).</td>
+</tr>
+<tr>
+<td><code>TRNRAND_KEY_MODE=draw\|counter</code></td>
+<td>Default <code>Generator</code> key mode.</td>
+</tr>
 </tbody>
 </table>
+<h2 id="multi-core-bulk-draws">Multi-core bulk draws<a class="headerlink" href="#multi-core-bulk-draws" title="Permanent link">&para;</a></h2>
+<p><code>trnrand.set_cores(n | "auto" | None)</code> / <code>trnrand.get_cores()</code> (v0.10.0,
+opt-in) spread large native-path <code>uniform()</code> / <code>normal()</code> draws over
+several logical NeuronCores of one chip. Output is bit-identical for every
+core count. See <a href="../../architecture/#multi-core-bulk-draws-trn2-opt-in">Architecture</a>.</p>
 <h2 id="dispatch-path">Dispatch path<a class="headerlink" href="#dispatch-path" title="Permanent link">&para;</a></h2>
 <p>On Neuron hardware, kernels run on one of two <code>torch-neuronx</code> lineages,
 detected on the first kernel launch:</p>
@@ -5316,29 +5359,32 @@ detected on the first kernel launch:</p>
   <code>torch.compile(backend="neuron")</code>:
   <code>torch.ops.trnrand.philox4x32</code>, <code>box_muller</code>, <code>threefry4x32</code>,
   <code>threefry_normal</code>, <code>sobol_gray_code</code>, <code>halton</code>,
-  <code>threefry_streaming_normal</code>, <code>threefry_streaming_uniform</code>. The ops are
-  registered only once this path is selected.</li>
+  <code>threefry_streaming_normal</code>, <code>threefry_streaming_uniform</code>, and the bulk
+  kernels <code>threefry_bulk_normal</code> / <code>threefry_bulk_uniform</code> and their
+  full-word <code>threefry_bulk32_*</code> variants. The ops are registered only once
+  this path is selected.</li>
 <li><strong>XLA (Trn1)</strong> — kernels run on the <code>torch_xla</code> device, as before.</li>
 </ul>
 <p><code>set_backend</code> is unaffected: it still chooses NKI vs <code>torch.Generator</code>.
 See <a href="../../installation/#two-neuron-pytorch-lineages">Installation</a>.</p>
 <p>See <a href="../../developing_kernels/">Developing NKI kernels</a> for the simulator
 vs hardware workflow.</p>
-<h2 id="philox-kernel">Philox kernel<a class="headerlink" href="#philox-kernel" title="Permanent link">&para;</a></h2>
-<p>The NKI Philox kernel lives in <code>trnrand/nki/dispatch.py</code>. The strategy:</p>
+<h2 id="threefry-and-philox-kernels">Threefry and Philox kernels<a class="headerlink" href="#threefry-and-philox-kernels" title="Permanent link">&para;</a></h2>
+<p>The kernels live in <code>trnrand/nki/dispatch.py</code>. The strategy:</p>
 <ul>
 <li>Counter-based — <code>(counter, key) → output</code>, no shared state across tiles.</li>
-<li>Each tile gets a disjoint counter range and runs the multiply-XOR rounds
-  on the GpSimd engine.</li>
-<li>Same engine used by cuRAND and JAX.</li>
+<li>Each tile gets a disjoint counter range and runs its rounds on the
+  GpSimd engine.</li>
+<li>Every NKI distribution draws from Threefry4x32-20 (add-rotate-xor, no
+  integer multiply), with Box-Muller fused into the same kernel for
+  <code>normal()</code>. Philox 4×32-10 (cuRAND's default engine) ships as a separate
+  kernel, <code>torch.ops.trnrand.philox4x32</code>.</li>
 </ul>
-<p><strong>Status:</strong> migrated to NKI 0.3.0 namespace. Philox compiles + executes
-on trn1 hardware but output has an algorithmic bug under investigation
-(see <a href="https://github.com/trnsci/trnrand/issues/1">#1</a> /
-<a href="https://github.com/trnsci/trnrand/issues/26">#26</a>). Box-Muller passes
-the simulator; hits a trn1 compile restriction (<code>NCC_IBIR605</code>) that
-doesn't apply to trn2+. All <code>trnrand.*</code> generation falls back to
-<code>torch.Generator</code> by default until the kernel ships.</p>
+<p><strong>Status:</strong> both are bit-exact against their CPU references on Trn2
+(Neuron SDK 2.33, native TorchNeuron). The Philox output corruption was
+saturating int32/uint32 casts, fixed in v0.8.0 (#56). On Trn1 the fused
+Box-Muller kernel hits a compile restriction (<code>NCC_IBIR605</code>) that doesn't
+apply to trn2+.</p>
 
 
 

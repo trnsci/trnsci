@@ -5530,7 +5530,7 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <tbody>
 <tr>
 <td><code>TRNBLAS_REQUIRE_NKI=1</code></td>
-<td>Re-raise on NKI kernel errors instead of silently falling back to <code>torch.matmul</code>. Useful in the validation suite to surface kernel breakage. Unset (default): kernel exceptions fall back to PyTorch.</td>
+<td>Re-raise on NKI kernel errors instead of silently falling back to <code>torch.matmul</code>. Useful in the validation suite to surface kernel breakage. Under <code>set_backend("nki")</code>, dtypes the kernels do not compute (float64, for example) raise <code>NotImplementedError</code> instead of running in torch (v0.9.1). Unset (default): kernel exceptions fall back to PyTorch.</td>
 </tr>
 <tr>
 <td><code>TRNBLAS_USE_SIMULATOR=1</code></td>
@@ -5555,6 +5555,14 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <tr>
 <td><code>TRNBLAS_PAIR_ENERGY=auto\|sym\|aten\|legacy</code></td>
 <td>Native path, device-resident inputs only. Picks the <code>nki_batched_pair_energy</code> implementation: the LNC=2 symmetric kernel, aten (chunked GEMM + reduction), or the full-batch / chunked kernels. <code>auto</code> takes <code>sym</code> above 3 GFLOP per row launch.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_METRIC_SOLVE=auto\|host\|device</code></td>
+<td>Native path. Where <code>metric_inv_half</code> factors the metric: <code>auto</code> (default) uses float64 LAPACK on the host for J on the <code>neuron</code> device with naux ≤ 1024; above that, and for host tensors, <code>torch.linalg.cholesky</code> + <code>trsm</code> (v0.8.0).</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_CORES=&lt;n&gt;\|auto</code></td>
+<td>Opt-in single-process split of the DF-MP2 pair energy across <code>n</code> visible cores (same as <code>trnblas.set_cores</code>). Unset: one core. See <a href="../api/parallel/">Multi-core</a>.</td>
 </tr>
 <tr>
 <td><code>TRNBLAS_PINNED_OUTPUT=1\|0</code></td>

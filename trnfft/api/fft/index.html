@@ -1747,6 +1747,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#hfftinput-nnone-ihfftinput-nnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hfft(input, n=None) / ihfft(input, n=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5385,6 +5396,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#hfftinput-nnone-ihfftinput-nnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hfft(input, n=None) / ihfft(input, n=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5532,9 +5554,11 @@
 <p>Inverse of <code>rfft</code>. Reconstructs full spectrum via Hermitian symmetry.</p>
 <ul>
 <li><strong>input</strong>: <code>ComplexTensor</code> (positive frequencies)</li>
-<li><strong>n</strong>: Output signal length. Default: <code>2 * (input.shape[-1] - 1)</code></li>
+<li><strong>n</strong>: Output signal length. Default: <code>2 * (input.shape[-1] - 1)</code>. Uses the first <code>n // 2 + 1</code> input bins (truncated or zero-padded), as <code>torch.fft.irfft</code> does; before v0.26.0 every bin was used, which was wrong for most <code>n</code> (#105).</li>
 <li><strong>Returns</strong>: <code>torch.Tensor</code> (real-valued)</li>
 </ul>
+<h3 id="hfftinput-nnone-ihfftinput-nnone"><code>hfft(input, n=None)</code> / <code>ihfft(input, n=None)</code><a class="headerlink" href="#hfftinput-nnone-ihfftinput-nnone" title="Permanent link">&para;</a></h3>
+<p>FFT of a Hermitian-symmetric signal (real output of length <code>n</code>) and its inverse (one-sided spectrum of <code>n // 2 + 1</code> bins). Since v0.16.0.</p>
 <h2 id="n-d-transforms">N-D transforms<a class="headerlink" href="#n-d-transforms" title="Permanent link">&para;</a></h2>
 <h3 id="fft2input-snone"><code>fft2(input, s=None)</code><a class="headerlink" href="#fft2input-snone" title="Permanent link">&para;</a></h3>
 <p>2-D FFT along the last two dimensions. Delegates to <code>fftn</code>.</p>
@@ -5548,20 +5572,26 @@
 <p>N-D inverse FFT. Same signature as <code>fftn</code>.</p>
 <h2 id="time-frequency">Time-frequency<a class="headerlink" href="#time-frequency" title="Permanent link">&para;</a></h2>
 <h3 id="stftinput-n_fft-hop_lengthnone-win_lengthnone-windownone-centertrue-pad_modereflect-normalizedfalse-onesidedtrue"><code>stft(input, n_fft, hop_length=None, win_length=None, window=None, center=True, pad_mode="reflect", normalized=False, onesided=True)</code><a class="headerlink" href="#stftinput-n_fft-hop_lengthnone-win_lengthnone-windownone-centertrue-pad_modereflect-normalizedfalse-onesidedtrue" title="Permanent link">&para;</a></h3>
-<p>Short-time Fourier Transform. Matches <code>torch.stft</code> signature.</p>
+<p>Short-time Fourier Transform. Takes <code>torch.stft</code>'s arguments except <code>return_complex</code> (the result is always a <code>ComplexTensor</code>).</p>
 <ul>
-<li><strong>Returns</strong>: <code>ComplexTensor</code> with shape <code>(..., freq_bins, num_frames)</code></li>
+<li>
+<p><strong>window</strong>: Default <code>None</code> means a <strong>Hann</strong> window of <code>win_length</code>. <code>torch.stft</code> uses a rectangular window (ones) there, so pass <code>window</code> explicitly to match it.</p>
+</li>
+<li>
+<p><strong>Returns</strong>: <code>ComplexTensor</code> with shape <code>(..., freq_bins, num_frames)</code></p>
+</li>
 </ul>
 <h3 id="istftinput-n_fft-hop_lengthnone-win_lengthnone-windownone-centertrue-normalizedfalse-onesidedtrue-lengthnone"><code>istft(input, n_fft, hop_length=None, win_length=None, window=None, center=True, normalized=False, onesided=True, length=None)</code><a class="headerlink" href="#istftinput-n_fft-hop_lengthnone-win_lengthnone-windownone-centertrue-normalizedfalse-onesidedtrue-lengthnone" title="Permanent link">&para;</a></h3>
-<p>Inverse STFT via overlap-add reconstruction.</p>
+<p>Inverse STFT via overlap-add reconstruction. <code>window=None</code> is a Hann window, as in <code>stft</code>; pass the window used for the forward transform.</p>
 <ul>
 <li><strong>length</strong>: Exact output length (truncates or pads).</li>
 <li><strong>Returns</strong>: <code>torch.Tensor</code> (real-valued)</li>
 </ul>
 <h2 id="algorithms">Algorithms<a class="headerlink" href="#algorithms" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Power-of-2 sizes</strong>: Cooley-Tukey radix-2 (iterative, decimation-in-time)</li>
+<li><strong>Power-of-2 sizes</strong>: Cooley-Tukey radix-2 (iterative, decimation-in-time) on the PyTorch backend. On the NKI path (FP32): a single DFT-GEMM for N &lt; 512, the batch-fused four-step (two GEMMs, one launch per batch) up to N = 4096, and the six-step (N = N1·N2, two batched four-step passes, all on the device) for N ≥ 8192. The six-step is the default since v0.25.0; <code>TRNFFT_SIX_STEP=0</code> restores the Stockham / butterfly path and <code>TRNFFT_SIX_STEP_MIN</code> moves the threshold.</li>
 <li><strong>Arbitrary sizes</strong>: Bluestein's chirp-z transform (pads to power-of-2, 3 FFTs)</li>
+<li><strong>float64</strong>: on the NKI path, float64 input runs the FP32 kernels and returns float64; <code>precision="double"</code> computes on the host in FP64 (v0.26.0, #109).</li>
 <li><strong>Plan caching</strong>: Plans are cached by <code>(size, inverse)</code> — first call computes, subsequent calls reuse.</li>
 </ul>
 

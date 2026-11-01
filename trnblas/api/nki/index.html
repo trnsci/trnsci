@@ -5326,10 +5326,29 @@ Trainium Tensor Engine or fall back to PyTorch.</p>
 <h2 id="backend-selection">Backend selection<a class="headerlink" href="#backend-selection" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnblas</span>
 
-<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>  <span class="c1"># NKI on Trainium, PyTorch elsewhere (default)</span>
+<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>  <span class="c1"># measured routing on Trainium, PyTorch elsewhere (default)</span>
 <span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># force PyTorch fallback</span>
 <span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>  <span class="c1"># force NKI (requires nki&gt;=0.3.0)</span>
 </code></pre></div>
+<p>What <code>auto</code> does depends on the dispatch path (v0.9.0, #62, #63):</p>
+<ul>
+<li><strong>Native (TorchNeuron, Trn2/Trn3)</strong>: <code>gemm</code>, <code>batched_gemm</code>, <code>syrk</code>,
+  <code>symm</code> and left <code>trsm</code> are routed by measured time. Device-resident
+  operands run as aten on the <code>neuron</code> device; aten beat the NKI GEMM at
+  every measured shape (2.4–3.2× for plain GEMM). Host operands run on the
+  host CPU below a per-op size threshold and as one upload + aten + one
+  download above it; host <code>trsm</code> solves with LAPACK on the host. For
+  device-resident inputs, the DF-MP2 pair energy
+  (<code>nki_batched_pair_energy</code>) runs the fused <code>pair_energy_sym</code> NKI kernel
+  above 3 GFLOP per row launch (1.8× faster than aten on the energy step at
+  96/672/2304) and aten below it. <code>TRNBLAS_NATIVE_GEMM</code> overrides the
+  GEMM route.</li>
+<li><strong>XLA (Trn1)</strong>: the NKI kernels, as before.</li>
+<li><strong>No device</strong>: PyTorch.</li>
+</ul>
+<p><code>set_backend("nki")</code> always runs the NKI kernels, for device-resident operands
+too. Dtypes the kernels do not compute (float64, for example) run in torch,
+or raise <code>NotImplementedError</code> under <code>TRNBLAS_REQUIRE_NKI=1</code> (v0.9.1, #68).</p>
 <p><code>trnblas.HAS_NKI</code> is <code>True</code> when the <code>nki</code> package (NKI 0.3.0+, Neuron
 SDK 2.29+) is importable. trnblas uses the canonical <code>nki.*</code>
 namespace directly; the legacy <code>neuronxcc.nki.*</code> shim is not used.</p>
@@ -5346,8 +5365,8 @@ detected on the first kernel launch:</p>
   registered only once this path is selected.</li>
 <li><strong>XLA (Trn1)</strong>: kernels run on the <code>torch_xla</code> device, as before.</li>
 </ul>
-<p><code>set_backend</code> is unaffected: it still chooses NKI vs PyTorch. On the native
-path <code>nki_batched_pair_energy</code> takes the single full-batch kernel
+<p>On the native path, for host-resident inputs or with
+<code>TRNBLAS_PAIR_ENERGY=legacy</code>, <code>nki_batched_pair_energy</code> takes the single full-batch kernel
 (<code>batched_pair</code>) up to est_iters = nocc² × N_A² × N_K = 3072 and the chunked
 per-i kernel (<code>j_batched</code>) above it (XLA: 4096). On trn2 the full-batch kernel
 is 2–11× faster warm, but above 3072 its first-call compile reached 43–178 s,
@@ -5377,6 +5396,10 @@ See <a href="../../installation/#two-neuron-pytorch-lineages">Installation</a>.<
 <tr>
 <td><code>TRNBLAS_BATCHED_PAIR_CHUNK_THRESHOLD=&lt;n&gt;</code></td>
 <td>Overrides batched-pair routing (default 4096 on XLA, 3072 on native).</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_NATIVE_GEMM=auto\|nki\|aten\|host</code></td>
+<td>Native path. Overrides the measured GEMM-family route; see <a href="../../installation/#runtime-environment-variables">Installation</a>.</td>
 </tr>
 </tbody>
 </table>

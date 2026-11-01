@@ -5174,16 +5174,16 @@
 
 <h1 id="trnsolver">trnsolver<a class="headerlink" href="#trnsolver" title="Permanent link">&para;</a></h1>
 <p>Linear solvers and eigendecomposition for AWS Trainium via NKI.</p>
-<p>Eigenvalue problems, matrix factorizations, and iterative solvers for scientific computing on Trainium. The Jacobi eigensolver is the primary NKI acceleration target — each Givens rotation maps to a 2-row update on the Tensor Engine.</p>
+<p>Eigenvalue problems, matrix factorizations, and iterative solvers for scientific computing on Trainium. The batched Jacobi eigensolver is the primary NKI acceleration target — whole sweeps run SBUF-resident, with the Tensor Engine doing the pair permutations (and, for 33 ≤ n ≤ 128, the Gram and rotation matmuls) and the Vector Engine the rotations.</p>
 <p>Part of the trnsci scientific computing suite (<a href="https://github.com/trnsci">github.com/trnsci</a>).</p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Symmetric &amp; generalized eigensolvers</strong> — <code>eigh</code>, <code>eigh_generalized</code> (Cholesky reduction)</li>
-<li><strong>Factorizations</strong> — <code>cholesky</code>, <code>lu</code>, <code>qr</code></li>
+<li><strong>Symmetric &amp; generalized eigensolvers</strong> — <code>eigh</code> (batched Jacobi with <code>method="jacobi"</code>), <code>eigh_generalized</code> (Cholesky reduction), <code>eigh_randomized</code> (k dominant eigenpairs)</li>
+<li><strong>Factorizations</strong> — <code>cholesky</code>, <code>lu</code>, <code>qr</code>, <code>svd</code>, <code>pinv</code>, <code>schur</code></li>
 <li><strong>Direct solvers</strong> — <code>solve</code>, <code>solve_spd</code>, <code>inv_spd</code>, <code>inv_sqrt_spd</code>, <code>inv_sqrt_spd_ns</code> (Newton-Schulz)</li>
-<li><strong>Iterative solvers</strong> — <code>cg</code> (SPD systems, with preconditioner support), <code>gmres</code> (general)</li>
-<li><strong>Preconditioners</strong> — <code>jacobi_preconditioner</code> diagonal; IC0/SSOR/block-Jacobi on roadmap</li>
-<li><strong>NKI acceleration</strong> — Jacobi rotation and Newton-Schulz are the primary Tensor Engine targets (hardware validation in v0.4.0)</li>
+<li><strong>Iterative solvers</strong> — <code>cg</code> (SPD systems, with preconditioner support), <code>gmres</code> (general), <code>gmres_ir</code> (iterative refinement, FP64 outer residual)</li>
+<li><strong>Preconditioners</strong> — <code>jacobi_preconditioner</code> (diagonal), <code>block_jacobi_preconditioner</code>, <code>ssor_preconditioner</code></li>
+<li><strong>NKI acceleration</strong> — batched Jacobi <code>eigh</code> kernels for n ≤ 128, validated on Trn2 (native TorchNeuron); opt-in split across logical NeuronCores (<code>TRNSOLVER_EIGH_CORES</code>, <code>TRNSOLVER_EIGH_POOL=proc</code>)</li>
 <li><strong>SCF-ready</strong> — generalized eigenproblem <code>FC = SCε</code> is the headline use case (quantum chemistry)</li>
 </ul>
 <h2 id="quick-example">Quick example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>

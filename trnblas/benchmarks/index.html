@@ -6914,8 +6914,9 @@ vs-fused-gemm cross-check, zero-B). Total suite: 62/62.</p>
 <ul>
 <li><strong>cuBLAS head-to-head at batched-pair scale:</strong> planned once PR #44 merges
   and trn1 numbers are available.</li>
-<li><strong>trn2 benchmarks:</strong> infrastructure provisioned (<code>infra/terraform-trn2/</code>),
-  hardware investigation deferred (<a href="https://github.com/trnsci/trnblas/issues/25">#25</a>).</li>
+<li><strong>trn2 FP16-accumulate GEMM:</strong> not benchmarked; tracked in
+  <a href="https://github.com/trnsci/trnblas/issues/25">#25</a>. Trn2 (native
+  TorchNeuron) numbers for the existing paths are in the sections above.</li>
 </ul>
 
 

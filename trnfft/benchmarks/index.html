@@ -5319,6 +5319,15 @@
 
 
 <h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Historical numbers</p>
+<p>The tables on this page are from v0.8.0 on trn1.2xlarge (XLA lineage). The
+FFT paths have since been rebuilt (DFT-GEMM, batch-fused four-step, and the
+six-step that is the default for N ≥ 8192 since v0.25.0). Current Trn2
+measurements (Neuron SDK 2.33, native TorchNeuron) are in the
+<a href="https://github.com/trnsci/trnfft/blob/main/CHANGELOG.md">CHANGELOG</a>,
+v0.23.0 through v0.26.0.</p>
+</div>
 <p>trnfft NKI kernels measured against two baselines on the same Trainium instance:</p>
 <ol>
 <li><strong>NKI</strong> — trnfft with <code>set_backend("nki")</code> running on Tensor + Vector Engines</li>
@@ -5340,7 +5349,7 @@
 <ul>
 <li><strong>Small sizes are dispatch-bound.</strong> NKI kernel invocation has fixed overhead (XLA dispatch + tensor staging). Below some per-op threshold the host CPU wins.</li>
 <li><strong>Single-NeuronCore only.</strong> trn1.2xlarge has one NeuronCore. Multi-NeuronCore parallelism will change the picture for large transforms.</li>
-<li><strong>FP32 throughout.</strong> BF16 / FP16 paths are future work.</li>
+<li><strong>FP32 throughout.</strong> The BF16 precision modes (<code>"bf16"</code>, <code>"bf16_refined"</code>, <code>"ozaki"</code>, <code>"ozaki_hq"</code>, N ≤ 256) came after these measurements; FP16 is future work.</li>
 <li>Numbers can vary 5-15% run-to-run; treat the table as approximate.</li>
 </ul>
 <h2 id="findings-v080">Findings (v0.8.0)<a class="headerlink" href="#findings-v080" title="Permanent link">&para;</a></h2>

@@ -5259,13 +5259,21 @@
 is <code>O(1/N)</code> instead of pseudo-random's <code>O(1/√N)</code>, which is decisive for
 moderate-dimensional integrals.</p>
 <h2 id="soboln_points-n_dims-seednone-scrambletrue-dtypetorchfloat32"><code>sobol(n_points, n_dims, seed=None, scramble=True, dtype=torch.float32)</code><a class="headerlink" href="#soboln_points-n_dims-seednone-scrambletrue-dtypetorchfloat32" title="Permanent link">&para;</a></h2>
-<p>Sobol sequence backed by <code>torch.quasirandom.SobolEngine</code>. Owen scrambling
-is on by default for better equidistribution. Returns a <code>(n_points,
-n_dims)</code> tensor in <code>[0, 1)</code>.</p>
+<p>Sobol sequence. Returns a <code>(n_points, n_dims)</code> tensor in <code>[0, 1)</code>.</p>
+<ul>
+<li>PyTorch path: <code>torch.quasirandom.SobolEngine</code>, with Owen scrambling on by
+  default for better equidistribution.</li>
+<li>NKI path: the GpSimd Gray-code kernel, up to 10 dimensions and 2^24
+  points. A nonzero <code>seed</code> applies a per-dimension random shift (not Owen
+  scrambling); <code>seed=None</code> or <code>0</code> gives the unscrambled sequence, and
+  <code>scramble</code> is not consulted. Use <code>set_backend("pytorch")</code> for more
+  dimensions or Owen scrambling.</li>
+</ul>
 <h2 id="haltonn_points-n_dims-dtypetorchfloat32"><code>halton(n_points, n_dims, dtype=torch.float32)</code><a class="headerlink" href="#haltonn_points-n_dims-dtypetorchfloat32" title="Permanent link">&para;</a></h2>
 <p>Halton sequence using the first <code>n_dims</code> primes as bases. Simpler than
 Sobol but degrades above ~20 dimensions — use Sobol for <code>d &gt; 10</code>.
-Returns a <code>(n_points, n_dims)</code> tensor in <code>(0, 1)</code>.</p>
+Returns a <code>(n_points, n_dims)</code> tensor in <code>(0, 1)</code>. The NKI kernel covers
+up to 10 dimensions and indices below 2^22.</p>
 <h2 id="latin_hypercuben_points-n_dims-dtypetorchfloat32-generatornone"><code>latin_hypercube(n_points, n_dims, dtype=torch.float32, generator=None)</code><a class="headerlink" href="#latin_hypercuben_points-n_dims-dtypetorchfloat32-generatornone" title="Permanent link">&para;</a></h2>
 <p>Latin Hypercube Sampling. Stratified — each row and column of the
 hypercube contains exactly one sample. Better space-filling than pure

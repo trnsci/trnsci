@@ -5388,7 +5388,8 @@ Robust default for general SPD, including ill-conditioned metrics.</p>
 <p>Returns <code>(X, iters, residual)</code> where <code>X ≈ A⁻¹ᐟ²</code>, computed via the coupled
 Newton-Schulz iteration <code>T = ½(3I − ZY); Y ← YT; Z ← TZ</code> starting from a
 Frobenius-norm-scaled <code>Y₀</code>. All operations are GEMMs, which maps cleanly to
-the Trainium Tensor Engine via <code>trnblas.gemm</code> once that backend validates.</p>
+the Trainium Tensor Engine via <code>trnblas.gemm</code> (when trnblas is installed; on the
+native <code>neuron</code> device its <code>auto</code> backend routes dense GEMMs to aten, trnblas 0.9.0).</p>
 <p>Choose this over <code>inv_sqrt_spd</code> when the NKI backend is active <strong>and</strong> <code>A</code> is
 well-conditioned (condition number ≲ 10⁶). For ill-conditioned SPD, stick
 with the eigendecomposition path.</p>

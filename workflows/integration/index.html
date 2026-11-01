@@ -5225,19 +5225,24 @@
 <td><code>normal()</code></td>
 </tr>
 <tr>
+<td>AO-pair Schwarz screening (report only)</td>
+<td><code>trnsparse</code></td>
+<td><code>schwarz_bounds()</code>, <code>sparsity_stats()</code></td>
+</tr>
+<tr>
 <td>Cholesky of the DF metric $J$</td>
 <td><code>trnsolver</code></td>
 <td><code>cholesky()</code></td>
 </tr>
 <tr>
-<td>Half-transform $\mu\nu P \to ia P$ via GEMM</td>
+<td>Half-transform $\mu\nu P \to ia P$ via GEMM, metric contraction</td>
 <td><code>trnblas</code></td>
-<td><code>gemm()</code>, <code>batched_gemm()</code></td>
+<td><code>gemm()</code>, <code>batched_gemm()</code>, <code>trsm()</code></td>
 </tr>
 <tr>
-<td>Pair energy contraction $B_{iaP} B_{jbP}$</td>
+<td>Closed-shell MP2 energy $\sum T(2T - T^\top)/\Delta$, $T_{iajb} = \sum_P B_{iaP} B_{jbP}$</td>
 <td><code>trntensor</code></td>
-<td><code>einsum("ap,bp-&gt;ab", ...)</code></td>
+<td><code>mp2_energy()</code></td>
 </tr>
 <tr>
 <td>FLOPs estimate</td>
@@ -5246,11 +5251,12 @@
 </tr>
 </tbody>
 </table>
-<p>The same pattern could substitute <code>trnsparse</code> for the DF tensor when shell screening is enabled (not shown in the minimal demo — see <code>trnsparse/examples/sparse_fock.py</code>).</p>
+<p>The demo only reports the Schwarz screening; it does not drop pairs, because random inputs aren't chemistry-realistic. For screening inside a Fock build, see <code>trnsparse/examples/sparse_fock.py</code>.</p>
 <h2 id="run-it">Run it<a class="headerlink" href="#run-it" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/quantum_chemistry/df_mp2_synthetic.py<span class="w"> </span>--demo
+python<span class="w"> </span>examples/quantum_chemistry/df_mp2_synthetic.py<span class="w"> </span>--demo<span class="w"> </span>--device<span class="w"> </span>neuron<span class="w">   </span><span class="c1"># Trn2/Trn3, TorchNeuron</span>
 </code></pre></div>
-<p>Output reports per-stage wall time and a FLOPs estimate from the contraction planner.</p>
+<p>Output reports per-stage wall time, a FLOPs estimate from the contraction planner, and the energy. An integration test pins that energy to the float64 closed-shell reference (agreement is about 1e-7). <code>examples/quantum_chemistry/df_mp2_profile.py</code> runs the pipeline across a ladder of sizes and reports per-stage time, the route each library's <code>auto</code> dispatch picked, and error against float64.</p>
 <h2 id="why-this-example">Why this example<a class="headerlink" href="#why-this-example" title="Permanent link">&para;</a></h2>
 <p>DF-MP2 is the natural proving ground for the suite: it exercises dense GEMM (trnblas), small linear algebra (trnsolver), and tensor contractions with an FLOPs budget (trntensor). On Trainium, this is the path toward NKI-backed post-Hartree-Fock correlation methods.</p>
 

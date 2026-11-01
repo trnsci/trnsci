@@ -4882,10 +4882,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#size-based-dispatch-threshold" class="md-nav__link">
+  <a href="#size-based-dispatch-threshold-xla-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Size-based dispatch threshold
+        Size-based dispatch threshold (XLA path)
       
     </span>
   </a>
@@ -5255,10 +5255,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#size-based-dispatch-threshold" class="md-nav__link">
+  <a href="#size-based-dispatch-threshold-xla-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Size-based dispatch threshold
+        Size-based dispatch threshold (XLA path)
       
     </span>
   </a>
@@ -5298,6 +5298,19 @@
 
 <h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
 <p>Performance results for trntensor — einsum dispatch, contraction planning, and CP / Tucker decompositions — comparing the PyTorch fallback and the NKI Trainium path on the same machine.</p>
+<div class="admonition note">
+<p class="admonition-title">These tables are the Trn1 / PyTorch-XLA results</p>
+<p>Everything below was measured on trn1.2xlarge through the XLA path
+(neuronxcc 2.24), which is now in maintenance. On the native TorchNeuron
+path (Trn2/Trn3, Neuron SDK 2.33) dense matmul/bmm run on aten, which
+beat the NKI matmul kernels at every measured size (those kernels are
+deprecated there, 0.19.0). The Trn2 numbers for the fused kernels
+(<code>mp2_energy</code> 1.25–1.9× vs aten, AO→MO 1.3–1.6×, <code>df_exchange</code> K at
+n_ao = 970 304 → 94 ms, DF-RHF SCF at n_ao = 970 9.68 → 4.71 s) live in
+<a href="../api/quantum/">Quantum-chemistry primitives</a>; the measured native
+dispatch thresholds and host-input tables are in
+<a href="../api/nki/#native-thresholds-measured-on-trn2">NKI dispatch</a>.</p>
+</div>
 <h2 id="reproducing">Reproducing<a class="headerlink" href="#reproducing" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># Local CPU</span>
 pytest<span class="w"> </span>benchmarks/bench_einsum.py<span class="w"> </span>--benchmark-only
@@ -5424,7 +5437,7 @@ pytest<span class="w"> </span>benchmarks/bench_einsum.py<span class="w"> </span>
 </tbody>
 </table>
 <p>The fused kernel is <strong>architecturally</strong> what we want — one program, no intermediate HBM materialization of the four-index <code>T</code> tensor, PSUM/SBUF-resident across contract → elementwise → reduce. But NKI's per-call dispatch + compile overhead (~15–40 ms floor) still eats the win at current sizes. The gap closes with scale (10× → 1.6× as workload grows), consistent with the overhead being a fixed cost the compute amortizes. See <a href="https://github.com/trnsci/trntensor/issues/33">#33</a> and <a href="https://github.com/trnsci/trntensor/issues/34">#34</a>.</p>
-<h2 id="size-based-dispatch-threshold">Size-based dispatch threshold<a class="headerlink" href="#size-based-dispatch-threshold" title="Permanent link">&para;</a></h2>
+<h2 id="size-based-dispatch-threshold-xla-path">Size-based dispatch threshold (XLA path)<a class="headerlink" href="#size-based-dispatch-threshold-xla-path" title="Permanent link">&para;</a></h2>
 <p>Because per-call NKI dispatch currently carries ~1 ms of XLA launch overhead, <code>nki_matmul</code> and <code>nki_batched_matmul</code> short-circuit to the PyTorch path when the contraction is below <code>TRNTENSOR_MIN_NKI_FLOPS</code> (default <strong>2 GFLOPs</strong>, calibrated at ≈ half the smallest NKI-winning size). The <code>plan.backend</code> field reflects this: it reports <code>"nki"</code> only when the dispatch will actually invoke a kernel, and <code>"pytorch"</code> otherwise.</p>
 <p>Overrides:</p>
 <ul>
@@ -5437,8 +5450,8 @@ pytest<span class="w"> </span>benchmarks/bench_einsum.py<span class="w"> </span>
 <p>Recommendation for users:</p>
 <ul>
 <li>Call trntensor normally. The dispatch layer makes the right choice for typical sizes.</li>
-<li>For GEMM-dominant workloads with single contraction sizes ≥ 2 GFLOPs, NKI will be invoked automatically.</li>
-<li>Until #33 lands, tight loops of small contractions (DF-MP2 pair-energy style) see no NKI benefit and are served by the PyTorch path.</li>
+<li>On the XLA path, for GEMM-dominant workloads with single contraction sizes ≥ 2 GFLOPs, NKI will be invoked automatically. On the native path, matmul/bmm run on aten.</li>
+<li>Tight loops of small contractions (DF-MP2 pair-energy style) see no NKI benefit; use the fused <code>trntensor.mp2_energy</code> instead of a Python loop.</li>
 </ul>
 
 

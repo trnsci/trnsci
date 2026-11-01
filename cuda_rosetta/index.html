@@ -5448,6 +5448,7 @@
 <li>FP32-only. Trainium's Tensor Engine does not support FP64 natively. Chemistry workloads that need FP64 accuracy have to use double-double arithmetic (two FP32 values), which is documented but not yet implemented in trnblas.</li>
 <li>Level-1 and Level-2 (dot, axpy, gemv) are provided for API completeness but don't get NKI kernels. The Tensor Engine would be wasted on vector-only ops. Level-3 is where NKI acceleration lives.</li>
 <li>Tile shapes are fixed: 128 (partition) × 512 (moving). Matrix dimensions are padded implicitly.</li>
+<li>On the native <code>neuron</code> device, <code>auto</code> sends plain dense GEMMs to aten, which measured 2.4–3.2× faster than the NKI GEMM (trnblas 0.9.0). The NKI wins are the fused kernels, such as the DF-MP2 pair energy (<code>pair_energy_sym</code>, 1.8× vs aten).</li>
 </ul>
 <h3 id="curand-trnrand">cuRAND → trnrand<a class="headerlink" href="#curand-trnrand" title="Permanent link">&para;</a></h3>
 <p>cuRAND provides two families: pseudo-random (Philox, XORWOW, MRG32k3a) and quasi-random (Sobol, scrambled Sobol). <code>trnrand</code> mirrors this:</p>
@@ -5458,8 +5459,8 @@
 </code></pre></div>
 <p><strong>Semantic differences.</strong></p>
 <ul>
-<li>The Philox generator is the primary PRNG — counter-based and stateless, which makes it easy to place per-tile counters in parallel on the GpSimd engine.</li>
-<li>Box-Muller is used for the normal distribution. A future NKI Box-Muller kernel would run on the Vector Engine (cos, sin, log, sqrt).</li>
+<li>On the NKI path, <code>Generator</code> draws from Threefry4×32-20, counter-based like Philox, which makes it easy to place per-tile counters in parallel on the GpSimd engine. Streams are bit-identical across kernel widths, launch plans and cores. A Philox 4×32 kernel ships too.</li>
+<li>Box-Muller is used for the normal distribution, with an NKI Box-Muller kernel on the Vector Engine (cos, sin, log, sqrt).</li>
 <li>Halton loses quality above ~20 dimensions. Use Sobol for <code>d &gt; 10</code>.</li>
 </ul>
 <h3 id="cusolver-trnsolver">cuSOLVER → trnsolver<a class="headerlink" href="#cusolver-trnsolver" title="Permanent link">&para;</a></h3>
@@ -5471,11 +5472,11 @@
 </code></pre></div>
 <p><strong>Semantic differences.</strong></p>
 <ul>
-<li><code>eigh</code> uses Jacobi rotations, not Householder tridiagonalization + QR. Jacobi is O(n³) per sweep with O(n) sweeps — cubic overall, with a larger constant than QR — but each rotation is a fixed-size matmul on the Tensor Engine, which maps cleanly to NKI tiles. For <code>n &lt; ~500</code> Jacobi is competitive; above that, QR would win on a GPU. On Trainium, tile-friendliness matters more than asymptotic constant.</li>
-<li><code>inv_sqrt_spd</code> currently uses eigendecomposition. Newton-Schulz (<code>X_{k+1} = 0.5 X_k (3I − A X_k²)</code>) is all GEMMs and maps better to Trainium; it's on the roadmap.</li>
+<li><code>eigh</code> offers two NKI paths. The Householder tridiagonalization + QR kernel is single-tile (n ≤ 128); above that the default cuts over to aten / host LAPACK. <code>eigh(method="jacobi")</code> is a batched Jacobi kernel for FP32 n ≤ 128: each rotation is a fixed-size matmul on the Tensor Engine, which maps cleanly to NKI tiles, and it is the better fit for thousands of small problems. Against a fair (thread-split) CPU baseline the margin is small: 1.13× on one core at n = 128, B = 1024, at most 1.25× on 4 cores vs 8 CPU threads (trnsolver 0.19.0).</li>
+<li><code>inv_sqrt_spd</code> uses eigendecomposition; <code>inv_sqrt_spd_ns</code> is the Newton-Schulz iteration (<code>X_{k+1} = 0.5 X_k (3I − A X_k²)</code>), all GEMMs, which maps better to Trainium.</li>
 </ul>
 <h3 id="cusparse-trnsparse">cuSPARSE → trnsparse<a class="headerlink" href="#cusparse-trnsparse" title="Permanent link">&para;</a></h3>
-<p>cuSPARSE handles sparse formats (CSR, CSC, COO, BSR) and sparse-BLAS kernels. <code>trnsparse</code> currently offers CSR / COO + SpMV / SpMM plus domain-specific screening:</p>
+<p>cuSPARSE handles sparse formats (CSR, CSC, COO, BSR) and sparse-BLAS kernels. <code>trnsparse</code> offers BSR (128×128 blocks, the native compute format), CSR / COO + SpMV / SpMM, block-sparse attention, BSR Krylov solvers, plus domain-specific screening:</p>
 <div class="highlight"><pre><span></span><code><span class="n">A</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">CSRMatrix</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span><span class="n">dense</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">spmv</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>                          <span class="c1"># like cusparseSpMV</span>
 <span class="n">Y</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">spmm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>                          <span class="c1"># like cusparseSpMM</span>
@@ -5484,7 +5485,8 @@
 </code></pre></div>
 <p><strong>Semantic differences.</strong></p>
 <ul>
-<li>SpMM uses a gather-matmul-scatter pattern: DMA gathers non-zero columns into a dense SBUF tile, Tensor Engine multiplies against the RHS, DMA scatters back. Efficiency depends on the nnz distribution per row.</li>
+<li>BSR at 128×128 is where the Tensor Engine pays: on one Trn2 core the static-structure BSR SpMM kernel beats dense aten up to ~82–98% block density (trnsparse 0.10.0). Other block sizes run on torch.</li>
+<li>CSR SpMM uses a gather-matmul-scatter pattern: DMA gathers non-zero columns into a dense SBUF tile, Tensor Engine multiplies against the RHS, DMA scatters back. Efficiency depends on the nnz distribution per row.</li>
 <li>Row-variable sparsity patterns need bucketing. Uniform nnz maps cleanly to fixed tiles; highly variable nnz is currently penalized.</li>
 </ul>
 <h3 id="cutensor-trntensor">cuTENSOR → trntensor<a class="headerlink" href="#cutensor-trntensor" title="Permanent link">&para;</a></h3>
@@ -5497,8 +5499,8 @@
 </code></pre></div>
 <p><strong>Semantic differences.</strong></p>
 <ul>
-<li>The planner picks <code>matmul</code>, <code>bmm</code>, <code>torch.einsum</code>, or <code>nki</code> (future) based on the subscript pattern. 2D-over-single-index → <code>matmul</code>; batched → <code>bmm</code>; complex multi-index → <code>einsum</code>.</li>
-<li>Optimal contraction ordering (like <code>opt_einsum</code>) is on the roadmap. Currently the planner handles one contraction at a time.</li>
+<li>The planner picks <code>matmul</code>, <code>bmm</code>, <code>torch.einsum</code>, or a multi-step <code>path</code> based on the subscript pattern. 2D-over-single-index → <code>matmul</code>; batched → <code>bmm</code>; complex multi-index → <code>einsum</code>. On the native <code>neuron</code> device the NKI matmul / bmm kernels are deprecated and these plans run on aten (trntensor 0.19.0); the NKI kernels are the fused chemistry contractions (<code>mp2_energy</code>, <code>ao_to_mo_transform</code>, <code>df_exchange</code>, <code>df_coulomb</code>).</li>
+<li>Contraction ordering for 3+ operands uses a greedy path search (like <code>opt_einsum</code>).</li>
 <li>CP and Tucker decompositions use alternating least squares on top of <code>trnblas</code>-style GEMM primitives. They can be fed back through <code>einsum</code> at evaluation time, so a Tucker-compressed tensor can be contracted without materializing.</li>
 </ul>
 <h2 id="reverse-direction">Reverse direction<a class="headerlink" href="#reverse-direction" title="Permanent link">&para;</a></h2>

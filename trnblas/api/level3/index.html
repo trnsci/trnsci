@@ -2285,6 +2285,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#metric_inv_halfj" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metric_inv_half(J)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5290,6 +5301,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#metric_inv_halfj" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metric_inv_half(J)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5325,29 +5347,44 @@
 scientific computing workloads and the primary target for NKI acceleration.</p>
 <h2 id="gemmalpha-a-b-beta00-cnone-transafalse-transbfalse"><code>gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)</code><a class="headerlink" href="#gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" title="Permanent link">&para;</a></h2>
 <p>General matrix-matrix multiply: <code>C = α·op(A)·op(B) + β·C</code>.</p>
-<p>Dispatches to NKI GEMM kernel with stationary tile reuse on Trainium;
-falls back to <code>torch.matmul</code> on CPU/GPU.</p>
+<p>On Trn1 (XLA path) and under <code>set_backend("nki")</code>, dispatches to the NKI
+GEMM kernel with stationary tile reuse. On Trn2/Trn3 (native path), <code>auto</code>
+runs device-resident operands as aten on the <code>neuron</code> device (faster than the
+NKI GEMM at every measured shape) and host operands on the host CPU or as
+upload + aten, by measured time (v0.9.0). Falls back to <code>torch.matmul</code> on
+CPU/GPU.</p>
 <h2 id="batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse"><code>batched_gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)</code><a class="headerlink" href="#batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" title="Permanent link">&para;</a></h2>
 <p>Batched GEMM over the leading dimension — used for DF-MP2 tensor contractions
-over auxiliary basis indices.</p>
+over auxiliary basis indices. Routed like <code>gemm</code> on the native path.</p>
 <h2 id="symmalpha-a-b-beta00-cnone-sideleft-uploupper"><code>symm(alpha, A, B, beta=0.0, C=None, side="left", uplo="upper")</code><a class="headerlink" href="#symmalpha-a-b-beta00-cnone-sideleft-uploupper" title="Permanent link">&para;</a></h2>
-<p>Symmetric matrix-matrix multiply.</p>
+<p>Symmetric matrix-matrix multiply. No NKI kernel: torch on the operands'
+device; on the native path, large host problems run as upload + aten.</p>
 <h2 id="syrkalpha-a-beta00-cnone-uploupper-transfalse"><code>syrk(alpha, A, beta=0.0, C=None, uplo="upper", trans=False)</code><a class="headerlink" href="#syrkalpha-a-beta00-cnone-uploupper-transfalse" title="Permanent link">&para;</a></h2>
 <p>Symmetric rank-k update: <code>C = α·A·Aᵀ + β·C</code> (or <code>AᵀA</code> when <code>trans=True</code>).</p>
-<p>Dispatches to a dedicated NKI kernel (<code>trnblas.nki.nki_syrk</code>) on
-Trainium: loads <code>A</code> once into SBUF for both operand roles, avoiding the
+<p>On Trn1 (XLA path) and under <code>set_backend("nki")</code>, dispatches to a
+dedicated NKI kernel (<code>trnblas.nki.nki_syrk</code>): loads <code>A</code> once into SBUF for both operand roles, avoiding the
 <code>A.T.contiguous()</code> HBM write that <code>gemm(A, A.T)</code> would otherwise issue.
 Return value is the dense symmetric matrix (both triangles populated);
 a small post-kernel <code>0.5·(C + Cᵀ)</code> symmetrisation protects against fp32
-reduction-order asymmetry.</p>
+reduction-order asymmetry. On the native path, <code>auto</code> routes it like
+<code>gemm</code> (aten on the device, or host CPU for small host calls).</p>
 <h2 id="trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit"><code>trsm(alpha, A, B, side="left", uplo="upper", trans=False, diag="nonunit")</code><a class="headerlink" href="#trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit" title="Permanent link">&para;</a></h2>
 <p>Triangular solve: solves <code>op(A)·X = α·B</code> (or <code>X·op(A) = α·B</code> when <code>side="right"</code>).</p>
 <p>On Trainium + <code>side="left"</code>, dispatches to a blocked panel algorithm
 (<code>trnblas.nki.nki_trsm</code>): tiny diagonal panels solve via
 <code>torch.linalg.solve_triangular</code>; trailing off-diagonal updates run
-through <code>nki_gemm</code>. Covers all combinations of <code>uplo ∈ {"upper", "lower"}</code>,
+through <code>nki_gemm</code> (Trn1 / <code>set_backend("nki")</code>) or aten on the device
+(native <code>auto</code>). On the native path, host operands solve with LAPACK on
+the host instead (v0.9.0). Covers all combinations of <code>uplo ∈ {"upper", "lower"}</code>,
 <code>trans ∈ {True, False}</code>, <code>diag ∈ {"unit", "nonunit"}</code>. <code>side="right"</code>
 falls back to direct <code>torch.linalg.solve_triangular</code>.</p>
+<h2 id="metric_inv_halfj"><code>metric_inv_half(J)</code><a class="headerlink" href="#metric_inv_halfj" title="Permanent link">&para;</a></h2>
+<p>Cholesky inverse factor of an SPD metric: <code>X = L^-T</code> where <code>J = L·Lᵀ</code>, so
+<code>A @ X</code> is the density-fitting metric contraction. On the native path with
+<code>J</code> on the <code>neuron</code> device and naux ≤ 1024, the factor is computed in
+float64 LAPACK on the host and uploaded once; otherwise it is
+<code>torch.linalg.cholesky</code> + <code>trsm</code> (v0.8.0). <code>TRNBLAS_METRIC_SOLVE=auto|host|device</code>
+overrides the choice.</p>
 <h2 id="trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse"><code>trmm(alpha, A, B, side="left", uplo="upper", trans=False, unit=False)</code><a class="headerlink" href="#trmmalpha-a-b-sideleft-uploupper-transfalse-unitfalse" title="Permanent link">&para;</a></h2>
 <p>Triangular matrix-matrix multiply: <code>B = α·op(A)·B</code>.</p>
 

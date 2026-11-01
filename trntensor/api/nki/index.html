@@ -5460,7 +5460,10 @@ path on Trainium. Kernels live in <code>trntensor.nki._kernels</code>; the
 public-facing dispatch is in <code>trntensor.nki.dispatch</code>.</p>
 <h2 id="set_backendbackend-str"><code>set_backend(backend: str)</code><a class="headerlink" href="#set_backendbackend-str" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>"auto"</code> — use NKI if <code>nki</code> is importable, else PyTorch</li>
+<li><code>"auto"</code> — the default. When <code>nki</code> is importable, each call is routed by
+  measured thresholds (see <a href="#environment-variables">Environment variables</a>
+  and the tables below); on the native path matmul/bmm run on aten, and the
+  fused chemistry kernels run where they beat it. Otherwise PyTorch</li>
 <li><code>"pytorch"</code> — always use <code>torch.matmul</code> / <code>torch.einsum</code></li>
 <li><code>"nki"</code> — require NKI; raises <code>RuntimeError</code> on non-Neuron hosts</li>
 </ul>
@@ -5478,7 +5481,10 @@ detected on the first kernel launch (never at import):</p>
   (<code>torch_neuronx.device_count() &gt; 0</code>). Each kernel is a PyTorch custom op
   on <code>device="neuron"</code>, also callable directly and inside
   <code>torch.compile(backend="neuron")</code>: <code>torch.ops.trntensor.matmul</code>,
-  <code>batched_matmul</code>, <code>mp2_energy</code>, <code>ao_to_mo_transform</code>. The ops are
+  <code>batched_matmul</code>, <code>mp2_energy</code>, <code>ao_to_mo_transform</code>, <code>mp2_energy_row</code>,
+  <code>ao_to_mo_trn2</code>, <code>ao_to_mo_trn2_packed</code>, <code>df_half_packed</code>,
+  <code>df_exchange_syrk</code>, <code>df_coulomb_d</code>, <code>df_coulomb_j</code> (<code>matmul</code> / <code>batched_matmul</code> are
+  deprecated there, see below). The ops are
   registered only once this path is selected, and this path never imports
   <code>torch_xla</code>.</li>
 <li><strong>XLA (Trn1)</strong> — chosen when <code>torch_xla</code> is installed and the native
@@ -6000,10 +6006,10 @@ device-resident <code>auto</code> route + download. <strong>Bold</strong> is wha
   <code>J = B d</code>, each streaming packed <code>B</code> once in 128-row tiles on the Vector
   Engine.</li>
 </ul>
-<p>The DF-MP2 pair pattern <code>einsum("ap,bp-&gt;ab")</code> is served by
-<code>matmul_kernel</code> through the planner's <code>transB=True</code> route — no
-dedicated kernel needed. Fused energy-denominator kernel is tracked
-in <a href="https://github.com/trnsci/trntensor/issues/13">#13</a>.</p>
+<p>The DF-MP2 pair pattern <code>einsum("ap,bp-&gt;ab")</code> is planned as <code>matmul</code> with
+<code>transB=True</code>: aten on the native path, <code>matmul_kernel</code> on the XLA path
+above the FLOP threshold. The fused contraction + energy-denominator
+kernel (#13) is <code>trntensor.mp2_energy</code>.</p>
 
 
 

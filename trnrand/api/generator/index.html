@@ -2902,10 +2902,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#generatorseednone-devicecpu" class="md-nav__link">
+  <a href="#generatorseednone-devicecpu-partition_rank0-partition_size1-key_modenone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generator(seed=None, device="cpu")
+        Generator(seed=None, device="cpu", partition_rank=0, partition_size=1, key_mode=None)
       
     </span>
   </a>
@@ -2928,6 +2928,17 @@
     <span class="md-ellipsis">
       
         Generator.get_state() / set_state(state)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generatorposition-advancen-advance_toposition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generator.position() / advance(n) / advance_to(position)
       
     </span>
   </a>
@@ -5235,10 +5246,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#generatorseednone-devicecpu" class="md-nav__link">
+  <a href="#generatorseednone-devicecpu-partition_rank0-partition_size1-key_modenone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generator(seed=None, device="cpu")
+        Generator(seed=None, device="cpu", partition_rank=0, partition_size=1, key_mode=None)
       
     </span>
   </a>
@@ -5261,6 +5272,17 @@
     <span class="md-ellipsis">
       
         Generator.get_state() / set_state(state)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generatorposition-advancen-advance_toposition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generator.position() / advance(n) / advance_to(position)
       
     </span>
   </a>
@@ -5321,16 +5343,40 @@
 
 
 <h1 id="generator">Generator<a class="headerlink" href="#generator" title="Permanent link">&para;</a></h1>
-<p>Reproducible seeding and state management. The <code>Generator</code> wraps
-<code>torch.Generator</code> for CPU/CUDA today; on Neuron hardware it will dispatch
-to a Philox counter-based RNG running on the GpSimd engine.</p>
-<h2 id="generatorseednone-devicecpu"><code>Generator(seed=None, device="cpu")</code><a class="headerlink" href="#generatorseednone-devicecpu" title="Permanent link">&para;</a></h2>
+<p>Reproducible seeding and state management. The <code>Generator</code> wraps a
+<code>torch.Generator</code> (the PyTorch path) and a Threefry counter, which the NKI
+path draws from on the GpSimd engine.</p>
+<h2 id="generatorseednone-devicecpu-partition_rank0-partition_size1-key_modenone"><code>Generator(seed=None, device="cpu", partition_rank=0, partition_size=1, key_mode=None)</code><a class="headerlink" href="#generatorseednone-devicecpu-partition_rank0-partition_size1-key_modenone" title="Permanent link">&para;</a></h2>
 <p>Construct a seeded generator. <code>seed=None</code> leaves the underlying
 <code>torch.Generator</code> unseeded (random state).</p>
+<ul>
+<li><code>partition_rank</code> / <code>partition_size</code>: this generator is rank <code>r</code> of <code>P</code>
+  in a counter-partitioned stream; concatenating the ranks' draws in order
+  gives the single-generator stream on the NKI path. Fixed for P &gt; 1 in
+  v0.12.0 (0.7.0–0.11.0 reused counters from the second draw on).</li>
+<li><code>key_mode</code>: <code>"draw"</code> (default, or <code>TRNRAND_KEY_MODE</code>) takes a fresh
+  Threefry key from the <code>torch.Generator</code> on each NKI draw. <code>"counter"</code>
+  fixes the key by the seed and only advances the counter, which makes
+  <code>uniform</code> / <code>normal</code> traceable by <code>torch.compile(backend="neuron")</code>.
+  The two modes give different streams.</li>
+</ul>
 <h2 id="generatormanual_seedseed-generator"><code>Generator.manual_seed(seed) -&gt; Generator</code><a class="headerlink" href="#generatormanual_seedseed-generator" title="Permanent link">&para;</a></h2>
 <p>Re-seed in place. Returns <code>self</code> so you can chain.</p>
 <h2 id="generatorget_state-set_statestate"><code>Generator.get_state() / set_state(state)</code><a class="headerlink" href="#generatorget_state-set_statestate" title="Permanent link">&para;</a></h2>
-<p>Save and restore the underlying <code>torch.Generator</code> state for checkpointing.</p>
+<p>Save and restore the generator for checkpointing: the <code>torch.Generator</code>
+state followed by the 8-byte Threefry counter. Use this to checkpoint and
+resume in either key mode. Before v0.12.1 the state held only the
+<code>torch.Generator</code> state, so a restored generator drew different values on
+the NKI path (#74); a bare <code>torch.Generator</code> state is still accepted and
+leaves the counter unchanged.</p>
+<h2 id="generatorposition-advancen-advance_toposition"><code>Generator.position() / advance(n) / advance_to(position)</code><a class="headerlink" href="#generatorposition-advancen-advance_toposition" title="Permanent link">&para;</a></h2>
+<p><code>position()</code> is the number of samples drawn (in 512-sample Threefry
+batches); <code>advance</code> and <code>advance_to</code> move the Threefry counter without
+drawing. They resume a stream only with <code>key_mode="counter"</code> (for
+<code>uniform</code> / <code>normal</code>) on the NKI path. With the default <code>key_mode="draw"</code>
+the per-draw keys come from the <code>torch.Generator</code>, which they don't move,
+and on the PyTorch path they have no effect. Use <code>get_state</code> / <code>set_state</code>
+for checkpoint/resume (#76).</p>
 <h2 id="generatortorch_generator"><code>Generator.torch_generator</code><a class="headerlink" href="#generatortorch_generator" title="Permanent link">&para;</a></h2>
 <p>Access the underlying <code>torch.Generator</code> for use with raw PyTorch ops.</p>
 <h2 id="manual_seedseed-generator"><code>manual_seed(seed) -&gt; Generator</code><a class="headerlink" href="#manual_seedseed-generator" title="Permanent link">&para;</a></h2>

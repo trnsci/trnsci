@@ -5479,11 +5479,16 @@ as the primary design surface.</p>
 <h2 id="2-operand-contractions-the-generic-path">2-Operand contractions — the generic path<a class="headerlink" href="#2-operand-contractions-the-generic-path" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trntensor</span>
 
-<span class="c1"># Matrix multiply: routes to NKI matmul kernel when FLOPs ≥ 2 GFLOPs</span>
+<span class="c1"># Matrix multiply: aten on the native path (Trn2/Trn3); NKI matmul kernel on</span>
+<span class="c1"># the XLA path (Trn1) when FLOPs ≥ 2 GFLOPs</span>
 <span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 
-<span class="c1"># Batched matmul</span>
+<span class="c1"># Batched matmul (only this exact index order plans as bmm)</span>
 <span class="n">C</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"bij,bjk-&gt;bik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+
+<span class="c1"># Transposed / permuted outputs run through torch.einsum. Releases through</span>
+<span class="c1"># 0.21.0 returned the wrong layout for these on every backend (#64).</span>
+<span class="n">Ct</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ki"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 
 <span class="c1"># DF-MP2 pair contraction (ap,bp-&gt;ab  ≡  B[i] @ B[j].T)</span>
 <span class="n">T</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">)</span>
@@ -5496,17 +5501,19 @@ as the primary design surface.</p>
 <div class="highlight"><pre><span></span><code><span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">strategy</span><span class="p">)</span>  <span class="c1"># "matmul" | "bmm" | "torch" | "path"</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">backend</span><span class="p">)</span>  <span class="c1"># "nki" | "pytorch"</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">estimated_flops</span><span class="p">)</span>  <span class="c1"># multiply-add pairs</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">))</span>  <span class="c1"># multiply-add pairs</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span><span class="p">)</span>  <span class="c1"># [(i,j), ...] for 3+ operand einsums</span>
 </code></pre></div>
 <p><code>plan.backend</code> reflects what will actually run — not what the algorithm
 prefers. A 64×64 matmul is <code>strategy="matmul"</code> but <code>backend="pytorch"</code> because
-the per-dispatch XLA overhead exceeds the kernel work at that size.</p>
+the per-dispatch overhead exceeds the kernel work at that size. On the native
+path every matmul/bmm reports <code>"pytorch"</code> by default: aten beat the NKI matmul
+kernels at every measured size.</p>
 <h3 id="backend-overrides">Backend overrides<a class="headerlink" href="#backend-overrides" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Force PyTorch path regardless of size (benchmarking baseline)</span>
 <span class="nv">TRNTENSOR_FORCE_BACKEND</span><span class="o">=</span>pytorch<span class="w"> </span>python<span class="w"> </span>script.py
 
-<span class="c1"># Lower the FLOP threshold (default 2 GFLOPs)</span>
+<span class="c1"># XLA path: lower the FLOP threshold (default 2 GFLOPs)</span>
 <span class="nv">TRNTENSOR_MIN_NKI_FLOPS</span><span class="o">=</span><span class="m">500000000</span><span class="w"> </span>python<span class="w"> </span>script.py
 </code></pre></div>
 <h2 id="named-fused-primitives-the-trainium-native-path">Named fused primitives — the Trainium-native path<a class="headerlink" href="#named-fused-primitives-the-trainium-native-path" title="Permanent link">&para;</a></h2>
@@ -5519,21 +5526,24 @@ program:</p>
 <span class="c1"># no HBM intermediate visible to Python.</span>
 
 <span class="n">B</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">ao_to_mo_transform</span><span class="p">(</span><span class="n">eri</span><span class="p">,</span> <span class="n">C_occ</span><span class="p">,</span> <span class="n">C_vir</span><span class="p">)</span>
-<span class="c1"># Inside: two nc_matmul per auxiliary P, SBUF-resident C_occ and C_vir,</span>
-<span class="c1"># kernel-scratch HBM for the (i,ν) intermediate. One NKI dispatch.</span>
+<span class="c1"># Inside: two GEMM stages, kernel-scratch HBM for the intermediate.</span>
+<span class="c1"># Accepts packed (μ≥ν) integrals.</span>
 
 <span class="n">E</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">mp2_energy</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">eps_occ</span><span class="p">,</span> <span class="n">eps_vir</span><span class="p">)</span>
-<span class="c1"># Inside: two nc_matmul in PSUM, PSUM→SBUF, Vector Engine elementwise</span>
-<span class="c1"># denominator, scalar SBUF accumulator. One NKI dispatch.</span>
+<span class="c1"># Inside: T in PSUM/SBUF, Vector Engine elementwise denominator, SBUF</span>
+<span class="c1"># accumulator. One launch (XLA) or one launch per occupied row (native).</span>
 </code></pre></div>
 <p>Neither <code>T_ijab</code> nor the per-pair <code>(i,ν)</code> intermediate appear as Python
 tensors. In cuTENSOR terms, this is three plans fused into one — a pattern
 cuTENSOR's <code>Plan</code> abstraction cannot name.</p>
+<p>The same idea covers DF-SCF: <code>df_exchange(B, C_occ)</code> and <code>df_coulomb(B, D)</code>
+build K and J straight from packed integrals without forming the
+<code>(n, n, naux)</code> square.</p>
 <h3 id="current-shape-constraints">Current shape constraints<a class="headerlink" href="#current-shape-constraints" title="Permanent link">&para;</a></h3>
-<p><code>ao_to_mo_transform</code>: <code>nbasis ≤ 512</code>, <code>nocc ≤ 128</code>, <code>nvir ≤ 512</code>.</p>
-<p><code>mp2_energy</code>: <code>nvir ≤ 128</code>, <code>naux ≤ 128</code>.</p>
-<p>Sizes outside these ranges fall through to the CPU reference path. N-tiling
-and M-tiling for larger systems are tracked as follow-up issues.</p>
+<p>The <code>ao_to_mo_transform</code> kernels need
+<code>nocc ≤ 128</code>; <code>"auto"</code> also keeps aten (native) for problems too small to
+beat the launch floor. See <a href="../api/quantum/">Quantum-chemistry primitives</a> for
+the current routing and limits of each primitive.</p>
 <h2 id="multi-contraction-shared-operand-pre-pinning">Multi-contraction: shared-operand pre-pinning<a class="headerlink" href="#multi-contraction-shared-operand-pre-pinning" title="Permanent link">&para;</a></h2>
 <p>When the same tensor appears as input to multiple contractions, <code>multi_einsum</code>
 detects it and transfers it to the Trainium device once:</p>
@@ -5549,7 +5559,7 @@ detects it and transfers it to the Trainium device once:</p>
 </code></pre></div>
 <p><code>multi_einsum</code> inspects tensor object identity (<code>id()</code>). If the same tensor
 object appears in two or more contractions, it is transferred once and the
-XLA-resident copy is used for all subsequent contractions in the batch.</p>
+device-resident copy is used for all subsequent contractions in the batch.</p>
 <p>On CPU (no NKI), <code>multi_einsum</code> behaves exactly like a loop over <code>einsum()</code>.</p>
 <h2 id="device-residency-to_device-from_device">Device residency: <code>to_device</code> / <code>from_device</code><a class="headerlink" href="#device-residency-to_device-from_device" title="Permanent link">&para;</a></h2>
 <p>The NKI dispatch path always transfers operands to the Trainium device
@@ -5587,7 +5597,8 @@ search to choose the contraction order:</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">contraction_path</span><span class="p">)</span>  <span class="c1"># [(0,1),(0,1)] — contract A@B first, then ×C</span>
 </code></pre></div>
 <p>Each binary step in the path calls <code>einsum()</code> recursively and gets its own
-backend routing (NKI if large enough, PyTorch otherwise).</p>
+backend routing (on the XLA path NKI if large enough, PyTorch otherwise; on
+the native path aten).</p>
 <h2 id="decompositions">Decompositions<a class="headerlink" href="#decompositions" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># CP / PARAFAC — tensor hypercontraction (THC) of two-electron integrals.</span>
 <span class="c1"># Reduces O(N^4) storage to O(N^2 R).</span>

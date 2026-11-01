@@ -5267,10 +5267,14 @@
 <h2 id="backend-selection">Backend selection<a class="headerlink" href="#backend-selection" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">trnblas</span>
 
-<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>  <span class="c1"># NKI on Trainium, PyTorch elsewhere (default)</span>
+<span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"auto"</span><span class="p">)</span>  <span class="c1"># measured routing on Trainium, PyTorch elsewhere (default)</span>
 <span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"pytorch"</span><span class="p">)</span>  <span class="c1"># force PyTorch</span>
 <span class="n">trnblas</span><span class="o">.</span><span class="n">set_backend</span><span class="p">(</span><span class="s2">"nki"</span><span class="p">)</span>  <span class="c1"># force NKI (requires Neuron hardware)</span>
 </code></pre></div>
+<p>On Trn2/Trn3 (native TorchNeuron), <code>auto</code> sends GEMMs on device-resident
+operands to aten, which is faster than the NKI GEMM there, and picks the host
+CPU or upload + aten for host operands. See
+<a href="../api/nki/#backend-selection">NKI Backend</a>.</p>
 <h2 id="df-mp2-example">DF-MP2 example<a class="headerlink" href="#df-mp2-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/df_mp2.py<span class="w"> </span>--demo
 python<span class="w"> </span>examples/df_mp2.py<span class="w"> </span>--nbasis<span class="w"> </span><span class="m">100</span><span class="w"> </span>--nocc<span class="w"> </span><span class="m">20</span>

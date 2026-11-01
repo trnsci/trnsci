@@ -5363,16 +5363,20 @@
 </tr>
 </tbody>
 </table>
-<p>v0.3.0 shipped with the CPU path feature-complete and a stub NKI kernel. v0.4.0 is the Phase 1 ship.</p>
+<p>v0.3.0 shipped with the CPU path feature-complete and a stub NKI kernel. v0.4.0 was the Phase 1 ship (Householder-QR <code>eigh</code> validated on trn1.2xlarge; #26 and #27 are closed). Since v0.16.0 the primary hardware target is Trn2 on native TorchNeuron.</p>
 <p><strong>Phase 1 iteration is no longer hardware-gated.</strong> Neuron SDK 2.29 (April 2026) brought NKI 0.3.0 Stable with a CPU simulator (<code>nki.simulate_kernel</code>); the <code>test-simulator</code> CI job exercises kernel correctness on <code>ubuntu-latest</code> without a trn1 instance. Hardware runs via <code>scripts/run_neuron_tests.sh</code> are now reserved for final real-device validation, not inner-loop iteration.</p>
 <h2 id="package-layout">Package layout<a class="headerlink" href="#package-layout" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>trnsolver/
-├── eigen.py        # eigh, eigh_generalized
-├── factor.py       # cholesky, lu, qr, solve, solve_spd, inv_sqrt_spd
-├── iterative.py    # cg, gmres
+├── eigen.py        # eigh, eigh_generalized, eigh_randomized
+├── _jacobi.py      # torch batched Jacobi (off-device / FP64 / n &gt; 128)
+├── factor.py       # cholesky, lu, qr, svd, pinv, schur, solve, solve_spd, inv_spd, inv_sqrt_spd(_ns)
+├── iterative.py    # cg, gmres, gmres_ir, preconditioners
 └── nki/
     ├── __init__.py
-    └── dispatch.py # auto/pytorch/nki backend selection + Jacobi rotation kernel
+    ├── dispatch.py # auto/pytorch/nki backend selection, Householder/matmul kernels, launch helper
+    ├── jacobi.py   # batched Jacobi kernels (scalar n &lt;= 32, block 33 &lt;= n &lt;= 128)
+    ├── eigh_pool.py # per-core worker-process pool (TRNSOLVER_EIGH_POOL=proc)
+    └── _native.py  # TorchNeuron custom ops (nki_op)
 </code></pre></div>
 <p>Each high-level operation in <code>eigen</code> / <code>factor</code> / <code>iterative</code> checks the active backend via <code>nki.dispatch._use_nki()</code> and either calls into the NKI kernel or falls back to PyTorch.</p>
 <h2 id="scf-solver-mapping">SCF → solver mapping<a class="headerlink" href="#scf-solver-mapping" title="Permanent link">&para;</a></h2>
@@ -5421,12 +5425,13 @@
 <h2 id="nki-jacobi-strategy">NKI Jacobi strategy<a class="headerlink" href="#nki-jacobi-strategy" title="Permanent link">&para;</a></h2>
 <p>The Jacobi eigensolver maps cleanly to Trainium hardware:</p>
 <ul>
-<li><strong>Each Givens rotation</strong> is a 2-row/col update — rank-2 matmul on the Tensor Engine</li>
-<li><strong>Off-diagonal max-finding</strong> maps to a Vector Engine reduction</li>
-<li><strong>Sweep convergence check</strong> is a scalar reduction on the Scalar Engine</li>
-<li><strong>Eigenvector accumulation</strong> <code>V' = V @ G</code> is a batched column update</li>
+<li><strong>One-sided (Hestenes) Jacobi, parallel order</strong>: each step rotates n/2 disjoint column pairs, so a batch of matrices advances in lockstep with no long dependency chain</li>
+<li><strong>SBUF residency</strong>: up to 128 tiles of 128 / n matrices stay in SBUF for a whole sweep, one launch per sweep</li>
+<li><strong>Tensor Engine</strong>: the step's partner permutation (an exact matmul shared by every tile); for 33 ≤ n ≤ 128 also the Gram matrix and the block-pair rotations as one matmul</li>
+<li><strong>Vector Engine</strong>: the rotations (for the block kernel, only on the 16 × 16 pair Gram blocks)</li>
+<li><strong>Convergence check</strong> after the expected sweep count (6-8 for random matrices), at most 15 sweeps</li>
 </ul>
-<p>Jacobi is preferred over Householder tridiagonalization on Trainium because each rotation is a fixed-size operation that maps cleanly to the 128×128 tile, whereas Householder requires growing reflector chains. The trade-off is <code>O(n³)</code> per sweep with <code>O(n)</code> sweeps — cubic overall but with a large constant. For <code>n &gt; ~500</code>, classical Householder + QR iteration on CPU may still be faster.</p>
+<p>Jacobi is preferred over Householder tridiagonalization on Trainium because Householder is n − 2 dependent BLAS-2 steps that leave the Tensor Engine idle; batched on device it still lost to CPU LAPACK by about 6× at n = 128 (#48). The trade-off is <code>O(n³)</code> per sweep with <code>O(n)</code> sweeps — cubic overall but with a large constant. For <code>n &gt; ~500</code>, classical Householder + QR iteration on CPU may still be faster.</p>
 <h2 id="backend-dispatch">Backend dispatch<a class="headerlink" href="#backend-dispatch" title="Permanent link">&para;</a></h2>
 <p><code>trnsolver.nki.dispatch</code> follows the same pattern as the sister <code>trnblas</code> and <code>trnfft</code> packages:</p>
 <ul>
@@ -5437,9 +5442,10 @@
 <p>For the suite-wide picture of which NKI kernels are validated on hardware across trnsci, see the <a href="https://trnsci.dev/nki_validation_status/">NKI validation status page</a>.</p>
 <h2 id="known-gaps">Known gaps<a class="headerlink" href="#known-gaps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>NKI Jacobi kernel is a stub.</strong> Falls back to <code>torch.linalg.eigh</code> until validated on hardware.</li>
+<li><strong>NKI kernels are single-tile (n ≤ 128).</strong> Larger <code>eigh</code> inputs run <code>torch.linalg.eigh</code> (host LAPACK through aten on the <code>neuron</code> device); the default cutover sends n &lt; 512 there too (#42).</li>
+<li><strong>One matrix is not split across NeuronCores.</strong> The multi-core options split a batch (#54, #57); splitting a single matrix waits on device-side collectives (#29).</li>
 <li><strong>CG / GMRES are pure PyTorch.</strong> The inner products and matvecs would benefit from NKI Level 1/2 kernels in trnblas, but the iteration logic stays on the host.</li>
-<li><strong><code>inv_sqrt_spd</code> uses eigendecomposition,</strong> not Newton-Schulz. Newton-Schulz <code>(X_{k+1} = ½ X_k (3I − A X_k²))</code> is all GEMMs and would map better to trnblas, but needs good initial scaling.</li>
+<li><strong><code>inv_sqrt_spd</code> uses eigendecomposition.</strong> The all-GEMM Newton-Schulz variant is <code>inv_sqrt_spd_ns</code> (GEMMs through <code>trnblas.gemm</code> when trnblas is installed).</li>
 <li><strong>No FP64.</strong> Trainium's Tensor Engine maxes out at FP32. Double-double emulation is not implemented.</li>
 </ul>
 

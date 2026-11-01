@@ -5486,8 +5486,10 @@ to the boost identity (<code>Gamma(k) = Gamma(k+1) · U^(1/k)</code>) for <code>
 <code>α/(α+β)</code>, variance <code>αβ / ((α+β)²(α+β+1))</code>. Sampled via the gamma-ratio
 identity <code>X / (X + Y)</code> where <code>X ~ Gamma(α, 1)</code>, <code>Y ~ Gamma(β, 1)</code>.</p>
 <h2 id="poissonsize-lam10-dtypetorchfloat32-generatornone"><code>poisson(*size, lam=1.0, dtype=torch.float32, generator=None)</code><a class="headerlink" href="#poissonsize-lam10-dtypetorchfloat32-generatornone" title="Permanent link">&para;</a></h2>
-<p>Poisson distribution with rate <code>λ ≥ 0</code>. Mean and variance both <code>λ</code>. Wraps
-<code>torch.poisson</code> with a generator-bound rates tensor for reproducibility.</p>
+<p>Poisson distribution with rate <code>λ ≥ 0</code>. Mean and variance both <code>λ</code>. On the
+NKI path with <code>λ ≥ 20</code> it is the normal approximation <code>round(N(λ, √λ))</code>
+clamped to <code>≥ 0</code>; otherwise it wraps <code>torch.poisson</code> (exact) with a
+generator-bound rates tensor for reproducibility.</p>
 
 
 

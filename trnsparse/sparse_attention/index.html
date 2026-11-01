@@ -5514,7 +5514,8 @@ block. Remaining block-rows follow a local window:</p>
 </code></pre></div>
 <p><strong>What this materializes</strong>: the full <code>(seq_len, seq_len)</code> score matrix. At
 <code>seq_len=4096</code> that's 64 MB of float32 even before the matmul. See
-<a href="#whats-next">What's next</a> for the fused-tile path that avoids this.</p>
+<a href="#tiled-two-pass-path-v043">the tiled two-pass path</a> for the version that
+avoids this.</p>
 <p><strong>Gradients</strong>: <code>bsr_spmm</code> is differentiable (see <code>architecture.md</code>). The
 backward through <code>block_sparse_attention</code> works out-of-the-box with
 <code>torch.autograd</code>; the block-selection step (<code>from_dense</code>) is non-differentiable
@@ -5587,7 +5588,19 @@ with window=2, about 160 block pairs × 128 = 20K operations, negligible.</p>
 <code>exp(score - row_max) / row_denom</code>, and accumulate <code>weights @ V_block</code> into
 the output via a PSUM-style loop.</p>
 <div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">block_sparse_attention_tiled</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">mask_bsr</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">block_sparse_attention_tiled</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">mask_bsr</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 </code></pre></div>
+<p><code>scale</code> defaults to <code>head_dim ** -0.5</code>. A custom <code>scale</code> is honored on every
+backend since 0.12.0; in 0.6.0–0.11.0 the NKI paths silently ignored it.</p>
+<p><code>seq_len</code> must be a multiple of <code>mask_bsr.block_size</code>; otherwise the call
+raises <code>ValueError</code> on every backend (0.11.0). Through 0.10.0 the PyTorch
+path silently left the query rows of a partial last block at zero. To
+handle a ragged length, pad Q, K and V to a whole block and mask the padded
+keys out (-inf scores), not just zero-pad them. <code>ShardedAttention</code> has the
+same requirement.</p>
+<p>The NKI kernels take <code>block_size=128</code> only. Other block sizes run on the
+PyTorch path (correct, without NKI), or raise <code>NotImplementedError</code> under
+<code>TRNSPARSE_REQUIRE_NKI=1</code>.</p>
 <p>Memory: <code>n_stored_blocks × block_size × 4</code> bytes for stats (5 KB at seq_len=512,
 window=1) vs <code>seq_len² × 4</code> bytes for the naive dense score matrix (1 MB at
 seq_len=512, 64 MB at seq_len=4096).</p>
@@ -5615,7 +5628,12 @@ two-pass decomposition in <code>trnsparse/nki/kernels.py</code>:</p>
   <code>weights @ V</code> into a PSUM tile that spans all ki blocks.</li>
 </ul>
 <p><strong>Constraint:</strong> <code>head_dim ≤ 128</code> in v0.4.4 (<code>nc_matmul</code> partition limit).
-<code>head_dim=256</code> requires K-tiling and is a follow-up.</p>
+Since 0.6.0 the kernels also take any <code>head_dim</code> that is a multiple of 128
+(256, 512) by K-tiling into the same PSUM accumulator.</p>
+<p>On the native TorchNeuron path (0.8.0+) the forward is one static-structure
+launch (the static-structure attention-forward kernel) with the softmax statistics kept on
+chip, so there is no host reduction between the passes. See
+<a href="../architecture/#static-structure-on-the-native-path-trn2trn3">architecture</a>.</p>
 <p>A runnable reference for both the naive and tiled paths is in
 <a href="https://github.com/trnsci/trnsparse/blob/main/examples/block_sparse_attention.py"><code>examples/block_sparse_attention.py</code></a>.</p>
 <h2 id="autograd-v050">Autograd (v0.5.0)<a class="headerlink" href="#autograd-v050" title="Permanent link">&para;</a></h2>
@@ -5634,8 +5652,11 @@ For each stored block (m, ki):
 </code></pre></div>
 <p><code>torch.autograd.gradcheck</code> passes at <code>atol=1e-3</code> for local-window and dilated
 patterns (float64, seq_len=256, head_dim=32).</p>
-<p><strong>NKI backward kernel</strong> is a follow-up (v0.5.x). The current backward runs on
-CPU/PyTorch even when the forward used the NKI kernel pair.</p>
+<p><strong>NKI backward kernels</strong> shipped in 0.5.1 (<code>_attn_bwd_dq_kernel</code> +
+<code>_attn_bwd_dkdv_kernel</code>). On the native path the backward is one
+static-structure launch (<code>trnsparse::attn_bwd_static</code>) for dQ and dK/dV, attached to the
+<code>trnsparse::bsr_attn</code> op with <code>register_autograd</code>. The PyTorch backend keeps
+the reference backward above.</p>
 
 
 

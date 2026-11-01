@@ -5400,10 +5400,28 @@
 <td><code>TRNFFT_USE_SIMULATOR=1</code></td>
 <td>Route NKI kernels through <code>nki.simulate(kernel)(np_args)</code> on CPU instead of the NEFF + hardware path. Requires <code>nki&gt;=0.3.0</code>. Correctness iteration only; simulator explicitly skips NEFF compile and SBUF/PSUM capacity checks. See <a href="../../developing_kernels/">developing_kernels.md</a>.</td>
 </tr>
+<tr>
+<td><code>TRNFFT_SIX_STEP=0\|1</code></td>
+<td>The six-step FFT is the default for power-of-2 FP32 N ≥ 8192 (since v0.25.0, #94). <code>0</code> restores the Stockham (<code>"fast"</code>) / compensated butterfly (<code>"kahan"</code>) path; <code>1</code> forces the six-step for every N above 4096. <code>TRNFFT_SIX_STEP_MIN</code> moves the threshold.</td>
+</tr>
+<tr>
+<td><code>TRNFFT_PE_TRANSPOSE=0</code></td>
+<td>Selects the older kernels that read their input with <code>nl.load_transpose2d</code> (the XLA path keeps them by default). Since v0.25.0 the native path transposes on the Tensor engine instead, because the runtime rebuilt a <code>load_transpose2d</code> input's DMA rings at every new input address (#97, #100).</td>
+</tr>
+<tr>
+<td><code>TRNFFT_PINNED_OUTPUT=0</code></td>
+<td>Turns off pinned-memory host outputs (planes of 1 MiB and up, native path; since v0.25.0, #98).</td>
+</tr>
+<tr>
+<td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla\|cpu</code></td>
+<td>Suite-wide. Forces the device dispatch path (see below); <code>auto</code> (default) detects. Forcing an unavailable path raises.</td>
+</tr>
+<tr>
+<td><code>TRNSCI_XLA_DEPRECATION=1</code></td>
+<td>Emit one <code>DeprecationWarning</code> when the XLA path is selected. Off by default.</td>
+</tr>
 </tbody>
 </table>
-<p>| <code>TRNSCI_NKI_DISPATCH=auto\|native\|xla\|cpu</code> | Suite-wide. Forces the device dispatch path (see below); <code>auto</code> (default) detects. Forcing an unavailable path raises. |
-| <code>TRNSCI_XLA_DEPRECATION=1</code> | Emit one <code>DeprecationWarning</code> when the XLA path is selected. Off by default. |</p>
 <h2 id="dispatch-path">Dispatch path<a class="headerlink" href="#dispatch-path" title="Permanent link">&para;</a></h2>
 <p>On Neuron hardware, kernels run on one of two <code>torch-neuronx</code> lineages,
 detected on the first kernel launch:</p>

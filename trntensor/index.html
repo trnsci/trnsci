@@ -5178,7 +5178,12 @@
 <p>For DF-MP2, the natural expression <code>einsum("ap,bp-&gt;ab", B[i], B[j])</code> is clearer than <code>B[i] @ B[j].T</code> and enables the planner to fuse operations (e.g., folding the energy denominator division into the accumulation).</p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>trntensor
-pip<span class="w"> </span>install<span class="w"> </span>trntensor<span class="o">[</span>neuron<span class="o">]</span><span class="w">   </span><span class="c1"># on Neuron hardware</span>
+
+<span class="c1"># Trn2/Trn3 with TorchNeuron (native PyTorch, Neuron SDK 2.33+)</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trntensor[torchneuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
+
+<span class="c1"># Trn1 / PyTorch-XLA lineage</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"trntensor[neuron]"</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://pip.repos.neuron.amazonaws.com
 </code></pre></div>
 <h2 id="quick-example">Quick example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -5190,10 +5195,11 @@ pip<span class="w"> </span>install<span class="w"> </span>trntensor<span class="
 
 <span class="c1"># With the planner</span>
 <span class="n">plan</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">plan_contraction</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"dispatch: </span><span class="si">{</span><span class="n">plan</span><span class="o">.</span><span class="n">dispatch</span><span class="si">}</span><span class="s2">, flops: </span><span class="si">{</span><span class="n">plan</span><span class="o">.</span><span class="n">flops</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"strategy: </span><span class="si">{</span><span class="n">plan</span><span class="o">.</span><span class="n">strategy</span><span class="si">}</span><span class="s2">, backend: </span><span class="si">{</span><span class="n">plan</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">trntensor</span><span class="o">.</span><span class="n">estimate_flops</span><span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">))</span>
 </code></pre></div>
 <h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
-<p>Alpha. einsum and CP / Tucker decompositions are functional via PyTorch fallback. NKI fused-contraction kernels are scaffolded; on-hardware validation is the next milestone.</p>
+<p>Alpha (0.x). einsum, the planner and the CP / Tucker / TT decompositions run on any PyTorch host. The fused chemistry kernels (<code>mp2_energy</code>, <code>ao_to_mo_transform</code>, <code>df_exchange</code>, <code>df_coulomb</code>) are validated on Trn2 with native TorchNeuron (Neuron SDK 2.33); on the native path dense matmul/bmm run on aten, which beat the NKI matmul kernels at every measured size. The PyTorch/XLA path (Trn1) is in maintenance. See the <a href="https://github.com/trnsci/trntensor/blob/main/CHANGELOG.md">changelog</a> for current numbers.</p>
 <p>Part of the <a href="https://github.com/trnsci/trnsci">trnsci</a> scientific computing suite.</p>
 
 

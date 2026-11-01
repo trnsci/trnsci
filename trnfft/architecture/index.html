@@ -5328,9 +5328,10 @@
     └── multicore.py     # Multi-NeuronCore batch split (host batches)
 </code></pre></div>
 <h2 id="precision-modes">Precision modes<a class="headerlink" href="#precision-modes" title="Permanent link">&para;</a></h2>
-<p>Introduced in v0.11.0. Select via <code>trnfft.set_precision(mode)</code>. The mode
-mainly changes Bluestein's arbitrary-size FFT path; power-of-2 FFTs run
-through Cooley-Tukey and are less error-prone.</p>
+<p>Introduced in v0.11.0. Select via <code>trnfft.set_precision(mode)</code>. The table
+covers the FP32 / FP64 modes; the BF16 modes (<code>"bf16"</code>, <code>"bf16_refined"</code>,
+<code>"ozaki"</code>, <code>"ozaki_hq"</code>, N ≤ 256 DFT-GEMM) are documented in
+<code>trnfft/precision.py</code>.</p>
 <table>
 <thead>
 <tr>
@@ -5344,7 +5345,7 @@ through Cooley-Tukey and are less error-prone.</p>
 <tr>
 <td><code>"fast"</code> (default)</td>
 <td>FP32 throughout</td>
-<td>~2e-2 at N ∈ [500, 1000]; worse beyond</td>
+<td>~4e-7 at N = 1000 / 4097 (CPU) since the FP64 chirp fix in v0.23.0; it was 1.2e-4 at N = 1000 before</td>
 <td>Baseline</td>
 </tr>
 <tr>
@@ -5355,23 +5356,17 @@ through Cooley-Tukey and are less error-prone.</p>
 </tr>
 <tr>
 <td><code>"double"</code></td>
-<td>Promote entire Bluestein host math to FP64, cast back on exit</td>
-<td>~1e-11 at any N; 10+ orders of magnitude better than "fast"</td>
-<td>Bluestein uses PyTorch FP64 (no NKI); power-of-2 FFTs unaffected</td>
+<td>Promote Bluestein to FP64; power-of-2 N ≤ 1024 runs the DFT-GEMM on the host in FP64</td>
+<td>Near FP64</td>
+<td>No NKI: on the NKI path, FP64 work above the FP64 GEMM range computes on the host (v0.26.0, #109); power-of-2 N &gt; 1024 runs the FP32 kernels</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Recommendation:</strong> use <code>"fast"</code> for STFT, batched FFT, and any
-power-of-2 case. Use <code>"double"</code> when you need precision for Bluestein
-sizes (non-power-of-2, N ≥ 500). <code>"kahan"</code> is useful only on Trainium
-hardware where FP64 isn't available — on CPU it's equivalent to <code>"fast"</code>
-for this particular API.</p>
-<p>Source of the error: Bluestein runs three power-of-2 FFTs in series.
-Each butterfly stage accumulates rounding error in the complex multiply
-<code>prod_re = t_re*o_re - t_im*o_im</code>, and the three-FFT chain compounds
-that loss. The chirp multiplications on the host are O(N) — compensating
-them alone (as "kahan" on CPU does) doesn't reach the dominant O(N log N)
-error source in the FFT itself.</p>
+power-of-2 case. Use <code>"double"</code> when you need more than FP32 accuracy.
+Since v0.23.0 (#82) <code>"kahan"</code> takes the same GEMM paths as <code>"fast"</code> up to
+N = 4096 (they are more accurate on Trn2 than the Kahan butterfly) and is
+never less accurate than <code>"fast"</code>.</p>
 
 
 

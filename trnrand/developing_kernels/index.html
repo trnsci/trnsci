@@ -5321,8 +5321,10 @@
 
 
 <h1 id="developing-nki-kernels">Developing NKI kernels<a class="headerlink" href="#developing-nki-kernels" title="Permanent link">&para;</a></h1>
-<p>trnrand ships two NKI kernels — <code>philox4x32_kernel</code> (GpSimd) and
-<code>box_muller_kernel</code> (Vector Engine) — in <code>trnrand/nki/dispatch.py</code>.
+<p>trnrand's NKI kernels live in <code>trnrand/nki/dispatch.py</code>: the Threefry4x32-20
+kernels behind every distribution (per-tile, streaming and bulk, with
+Box-Muller fused for <code>normal()</code>), <code>philox4x32_kernel</code>, <code>box_muller_kernel</code>,
+and the Sobol and Halton kernels.
 This page is for contributors designing / debugging them.</p>
 <p>For the suite-wide pattern (shared across trnfft, trnblas, trnrand,
 trnsolver, trnsparse, trntensor), see

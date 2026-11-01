@@ -5175,7 +5175,7 @@
 <h1 id="trnrand">trnrand<a class="headerlink" href="#trnrand" title="Permanent link">&para;</a></h1>
 <p>Random number generation for AWS Trainium via NKI (Neuron Kernel Interface).</p>
 <p>Seeded pseudo-random distributions, low-discrepancy quasi-random sequences for
-quasi-Monte Carlo, and an on-device Philox RNG targeting the GpSimd engine —
+quasi-Monte Carlo, and an on-device counter-based RNG (Threefry4x32-20) on the GpSimd engine —
 on-device generation avoids host→device transfer for large random tensors.</p>
 <p>Part of the trnsci scientific computing suite (<a href="https://github.com/trnsci">github.com/trnsci</a>).</p>
 <h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
@@ -5183,9 +5183,9 @@ on-device generation avoids host→device transfer for large random tensors.</p>
 computing on Trainium: weight initialization, noise injection, stochastic
 trace estimation, and Monte Carlo integration all depend on it.
 PyTorch's host-side <code>torch.Generator</code> works but pays the host→device
-transfer cost for every sample. trnrand targets a stateless, counter-based
-RNG (Philox 4×32) that runs on the GpSimd engine so large tensors are
-generated where they're consumed.</p>
+transfer cost for every sample. trnrand uses a stateless, counter-based
+RNG (Threefry4x32-20; a Philox 4×32-10 kernel ships alongside it) that runs
+on the GpSimd engine so large tensors are generated where they're consumed.</p>
 <h2 id="primary-use-cases">Primary use cases<a class="headerlink" href="#primary-use-cases" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Noise injection for speech training (consumed by <code>trnfft</code>).</li>
@@ -5193,12 +5193,14 @@ generated where they're consumed.</p>
   <code>trnblas</code> for DF-MP2 quantum chemistry workloads).</li>
 <li>Truncated-normal weight initialization for neural-net layers.</li>
 </ul>
-<p>See <a href="architecture/">Architecture</a> for the Philox/GpSimd story.</p>
+<p>See <a href="architecture/">Architecture</a> for the counter-based RNG / GpSimd story.</p>
 <h2 id="related-projects">Related projects<a class="headerlink" href="#related-projects" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://github.com/trnsci/trnfft">trnfft</a> — FFT + complex ops for Trainium.</li>
 <li><a href="https://github.com/trnsci/trnblas">trnblas</a> — BLAS operations for Trainium.</li>
-<li><code>trnsolver</code> <em>(planned)</em> — Linear solvers and eigendecomposition.</li>
+<li><a href="https://github.com/trnsci/trnsolver">trnsolver</a> — Linear solvers and eigendecomposition.</li>
+<li><a href="https://github.com/trnsci/trnsparse">trnsparse</a> — Sparse formats and SpMM.</li>
+<li><a href="https://github.com/trnsci/trntensor">trntensor</a> — Einsum and tensor decompositions.</li>
 </ul>
 
 

@@ -5461,9 +5461,14 @@ control over scaling, accumulation precision, and mixed-precision compute.</p>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
 </code></pre></div>
 <p>The planner selects <code>matmul</code>, <code>bmm</code>, <code>path</code>, or <code>torch.einsum</code> based on
-the subscript pattern and operand shapes. When a NKI backend is active and
-the pattern maps to a 2-index matmul, the kernel in
-<code>trntensor.nki._kernels.matmul_kernel</code> is used.</p>
+the subscript pattern and operand shapes. <code>matmul</code> is planned only when the
+output lists A's free index then B's, and <code>bmm</code> only for exactly
+<code>bij,bjk-&gt;bik</code>; transposed or permuted outputs run through <code>torch.einsum</code>.
+Releases through 0.21.0 returned the wrong layout for those outputs on every
+backend (#64, fixed in 0.22.0). On the native TorchNeuron path, matmul/bmm
+run on aten on the <code>neuron</code> device (the NKI matmul kernels are deprecated
+there); on the XLA path (Trn1), <code>trntensor.nki._kernels.matmul_kernel</code> is used
+above the FLOP threshold.</p>
 <h3 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -5536,10 +5541,10 @@ the pattern maps to a 2-index matmul, the kernel in
 <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="dtype-mixed-precision-compute"><code>dtype</code> — mixed-precision compute<a class="headerlink" href="#dtype-mixed-precision-compute" title="Permanent link">&para;</a></h3>
-<p>Cast operands to a lower dtype to hit the NKI bf16 matmul path without
-changing the model's weight dtype. The result is returned in the requested
-dtype.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Route through NKI bf16 kernel even if weights are fp32</span>
+<p>Cast operands to a lower dtype to compute in bf16/fp16 (aten on the native
+device, the NKI bf16 matmul kernel on the XLA path) without changing the
+model's weight dtype. The result is returned in the requested dtype.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Compute in bf16 even if weights are fp32</span>
 <span class="n">result_bf16</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"bf16"</span><span class="p">)</span>
 
 <span class="c1"># Use torch.dtype directly</span>
@@ -5568,7 +5573,7 @@ dtype.</p>
 </tr>
 <tr>
 <td><code>"dd"</code></td>
-<td>Double-double accumulation via trnblas Phase 2 — raises <code>NotImplementedError</code> until trnblas#22 lands</td>
+<td>Double-double accumulation via trnblas Phase 2 — raises <code>NotImplementedError</code> on Trainium hosts until trnblas#22 lands; on CPU, a software Ozaki-2 emulation for <code>matmul</code> plans (<code>"kahan"</code> for <code>bmm</code> / <code>torch</code> plans)</td>
 </tr>
 </tbody>
 </table>
@@ -5661,8 +5666,9 @@ the Neuron Runtime picks one for the whole process at init from
 <p>Execute several contractions in one call. Each contraction is a tuple
 of <code>(subscripts, *operands)</code>. Results are returned in input order.</p>
 <p>When NKI dispatch is active, operand tensors that appear in more than one
-contraction (by object identity) are pre-pinned to the XLA device once
-before executing the loop, eliminating redundant host↔device transfers.</p>
+contraction (by object identity) are pre-pinned to the device (<code>neuron</code> on
+TorchNeuron, the XLA device on Trn1) once before executing the loop,
+eliminating redundant host↔device transfers.</p>
 <div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">multi_einsum</span><span class="p">(</span>
     <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_j</span><span class="p">),</span>  <span class="c1"># Coulomb term</span>
     <span class="p">(</span><span class="s2">"ap,bp-&gt;ab"</span><span class="p">,</span> <span class="n">B_i</span><span class="p">,</span> <span class="n">B_k</span><span class="p">),</span>  <span class="c1"># exchange term — B_i pinned once</span>

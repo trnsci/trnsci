@@ -3817,10 +3817,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#jacobi-rotation-kernel" class="md-nav__link">
+  <a href="#jacobi-kernels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Jacobi rotation kernel
+        Jacobi kernels
       
     </span>
   </a>
@@ -5290,10 +5290,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#jacobi-rotation-kernel" class="md-nav__link">
+  <a href="#jacobi-kernels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Jacobi rotation kernel
+        Jacobi kernels
       
     </span>
   </a>
@@ -5346,7 +5346,7 @@
 </tr>
 <tr>
 <td><code>TRNSOLVER_EIGH_NKI_MIN_N=&lt;n&gt;</code></td>
-<td>On the native <code>neuron</code> device, <code>eigh</code> uses <code>torch.linalg.eigh</code> for matrices with fewer than <code>n</code> rows and the NKI path otherwise. Default 512; <code>0</code> always uses NKI. Ignored when <code>TRNSOLVER_REQUIRE_NKI=1</code>. (#42)</td>
+<td>On the native <code>neuron</code> device (and for host tensors on a TorchNeuron host), <code>eigh</code> uses <code>torch.linalg.eigh</code> for matrices with fewer than <code>n</code> rows and the NKI path otherwise. The NKI path is single-tile (n ≤ 128) and falls back to <code>torch.linalg.eigh</code> above that. Default 512; <code>0</code> always uses NKI. Ignored when <code>TRNSOLVER_REQUIRE_NKI=1</code>. (#42)</td>
 </tr>
 <tr>
 <td><code>TRNSOLVER_EIGH_METHOD=auto\|jacobi</code></td>
@@ -5359,6 +5359,18 @@
 <tr>
 <td><code>TRNSOLVER_JACOBI_CHAINS=&lt;c&gt;</code></td>
 <td>Jacobi kernel: independent dependency chains per step. Default 8 for n ≤ 32, 2 for the block kernel.</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_EIGH_CORES=&lt;k&gt;\|auto</code></td>
+<td>Split a Jacobi <code>eigh</code> batch over logical NeuronCores, one host thread per core (#54). Default (unset or 1): one core.</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_EIGH_POOL=proc</code></td>
+<td>With <code>TRNSOLVER_EIGH_CORES</code>, solve a host batch on persistent per-core worker processes instead of threads (#57). Cores from <code>TRNSOLVER_EIGH_POOL_CORES</code>, else <code>NEURON_RT_VISIBLE_CORES</code>. <code>trnsolver.nki.eigh_pool.shutdown()</code> frees them.</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_JACOBI_SWEEPS_PER_LAUNCH=&lt;k&gt;</code></td>
+<td>Scalar Jacobi kernel (padded n ≤ 32): run the first sweeps k per launch. Default 1.</td>
 </tr>
 <tr>
 <td><code>TRNSOLVER_JACOBI_BLOCK=0</code></td>
@@ -5400,14 +5412,9 @@ detected on the first kernel launch:</p>
 </ul>
 <p><code>set_backend</code> is unaffected: it still chooses NKI vs PyTorch. See
 <a href="../../installation/#two-neuron-pytorch-lineages">Installation</a>.</p>
-<h2 id="jacobi-rotation-kernel">Jacobi rotation kernel<a class="headerlink" href="#jacobi-rotation-kernel" title="Permanent link">&para;</a></h2>
-<p><code>trnsolver.nki.dispatch.rotate_pairs_kernel</code> is the primary NKI acceleration target. Each sweep round:</p>
-<ul>
-<li>Loads the <code>n/2</code> pairs of rows (even / odd at strided positions 2i, 2i+1) and rotates them by per-row <code>(c, -s; s, c)</code></li>
-<li>The host driver calls the kernel three times per round (D rows, D cols, V cols) under a Brent-Luk permutation</li>
-<li>Compile graph is stable per <code>(half, n, dtype)</code> — NKI caches after the first invocation</li>
-</ul>
-<p>See <a href="../../architecture/#nki-jacobi-strategy">Architecture</a> and <a href="https://github.com/trnsci/trnsolver/issues/9">#9</a> for the design rationale.</p>
+<h2 id="jacobi-kernels">Jacobi kernels<a class="headerlink" href="#jacobi-kernels" title="Permanent link">&para;</a></h2>
+<p><code>trnsolver/nki/jacobi.py</code> holds the batched one-sided (Hestenes) Jacobi kernels behind <code>eigh(method="jacobi")</code> (#48): the scalar kernel (<code>trnsolver::jacobi_sweeps</code>, padded n ≤ 32) and the block kernel (<code>trnsolver::jacobi_block</code>, 33 ≤ n ≤ 128). Up to 128 tiles of 128 / n matrices stay in SBUF for a whole sweep; the Tensor Engine applies the step's partner permutation (and, in the block kernel, the Gram and block-rotation matmuls) and the Vector Engine the rotations. See <a href="../eigen/">Eigensolvers</a>.</p>
+<p>The earlier <code>rotate_pairs_kernel</code> was removed; see <a href="https://github.com/trnsci/trnsolver/issues/9">#9</a> for that post-mortem.</p>
 
 
 
