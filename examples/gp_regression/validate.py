@@ -73,8 +73,8 @@ def gpytorch_reference(
     import gpytorch
 
     class _GP(gpytorch.models.ExactGP):
-        def __init__(self, x, t, lik):
-            super().__init__(x, t, lik)
+        def __init__(self, x, t, likelihood):
+            super().__init__(x, t, likelihood)
             self.mean_module = gpytorch.means.ZeroMean()
             self.covar_module = gpytorch.kernels.ScaleKernel(
                 gpytorch.kernels.RBFKernel()
@@ -85,15 +85,15 @@ def gpytorch_reference(
                 self.mean_module(x), self.covar_module(x)
             )
 
-    lik = gpytorch.likelihoods.GaussianLikelihood(
+    likelihood = gpytorch.likelihoods.GaussianLikelihood(
         noise_constraint=gpytorch.constraints.GreaterThan(1e-8)
     ).double()
-    model = _GP(X, y, lik).double()
+    model = _GP(X, y, likelihood).double()
     model.covar_module.base_kernel.lengthscale = lengthscale
     model.covar_module.outputscale = outputscale
-    lik.noise = noise
+    likelihood.noise = noise
     model.eval()
-    lik.eval()
+    likelihood.eval()
     t0 = time.perf_counter()
     with (
         torch.no_grad(),
