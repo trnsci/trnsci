@@ -6,11 +6,11 @@ import sys
 from pathlib import Path
 
 import pytest
-import torch
 
 EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "examples" / "gp_regression"
 sys.path.insert(0, str(EXAMPLES_DIR))
 
+torch = pytest.importorskip("torch")
 trnsparse = pytest.importorskip("trnsparse")
 trnsolver = pytest.importorskip("trnsolver")
 if not hasattr(trnsparse, "KernelOperator") or not hasattr(trnsolver, "cg_block"):
