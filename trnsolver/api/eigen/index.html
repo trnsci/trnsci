@@ -3697,6 +3697,51 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="eigh_generalized(A, B)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eigh_generalizeda-b-tol1e-10-xnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        eigh_generalized(A, B, tol=1e-10, *, X=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#orthogonalizers-a-tolerance-for-near-singular-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Orthogonalizers: a tolerance for near-singular S
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Orthogonalizers: a tolerance for near-singular S">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#orthogonalizers-methodsymmetric-lindep1e-7-dtypenone-devicenone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        orthogonalizer(S, method="symmetric", lindep=1e-7, *, dtype=None, device=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3704,6 +3749,17 @@
     <span class="md-ellipsis">
       
         Backend notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#occupied_subspacef-k-guessnone-buffernone-passes4-tolauto-rtol01-degreenone-uppergershgorin-refreshnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        occupied_subspace(F, k, *, guess=None, buffer=None, passes=4, tol="auto", rtol=0.1, degree=None, upper="gershgorin", refresh=None)
       
     </span>
   </a>
@@ -5221,6 +5277,51 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="eigh_generalized(A, B)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eigh_generalizeda-b-tol1e-10-xnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        eigh_generalized(A, B, tol=1e-10, *, X=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#orthogonalizers-a-tolerance-for-near-singular-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Orthogonalizers: a tolerance for near-singular S
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Orthogonalizers: a tolerance for near-singular S">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#orthogonalizers-methodsymmetric-lindep1e-7-dtypenone-devicenone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        orthogonalizer(S, method="symmetric", lindep=1e-7, *, dtype=None, device=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5228,6 +5329,17 @@
     <span class="md-ellipsis">
       
         Backend notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#occupied_subspacef-k-guessnone-buffernone-passes4-tolauto-rtol01-degreenone-uppergershgorin-refreshnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        occupied_subspace(F, k, *, guess=None, buffer=None, passes=4, tol="auto", rtol=0.1, degree=None, upper="gershgorin", refresh=None)
       
     </span>
   </a>
@@ -5278,8 +5390,169 @@
 </ol>
 <div class="highlight"><pre><span></span><code><span class="n">eigenvalues</span><span class="p">,</span> <span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">eigh_generalized</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span>
 </code></pre></div>
+<p>The Cholesky fails (<code>LinAlgError</code>) when <code>B</code> is exactly singular and loses accuracy when it is nearly so, as the overlaps of large or diffuse basis sets are. For those, and to skip the per-call Cholesky in an SCF loop, pass an orthogonalizer:</p>
+<h3 id="eigh_generalizeda-b-tol1e-10-xnone"><code>eigh_generalized(A, B, tol=1e-10, *, X=None)</code><a class="headerlink" href="#eigh_generalizeda-b-tol1e-10-xnone" title="Permanent link">&para;</a></h3>
+<p>With <code>X</code> (n × m) from <a href="#orthogonalizers-a-tolerance-for-near-singular-s"><code>orthogonalizer</code></a>, it computes <code>A' = Xᴴ A X</code> (two GEMMs), <code>eigh(A')</code> (m × m) and <code>V = X V'</code>, and returns m eigenpairs; <code>B</code> is not used and may be <code>None</code>. <code>X</code> is cast to <code>A</code>'s dtype and device, so an FP32 <code>A</code> on the device keeps the GEMMs there (<code>trnblas.gemm</code> for real 2-D input) while <code>X</code> itself is built once, in float64 on the host.</p>
+<div class="highlight"><pre><span></span><code><span class="n">orth</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">orthogonalizer</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="s2">"canonical"</span><span class="p">,</span> <span class="n">lindep</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>  <span class="c1"># once</span>
+<span class="n">w</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">eigh_generalized</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="n">orth</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>  <span class="c1"># every iteration; orth.rank pairs</span>
+</code></pre></div>
+<h2 id="orthogonalizers-a-tolerance-for-near-singular-s">Orthogonalizers: a tolerance for near-singular S<a class="headerlink" href="#orthogonalizers-a-tolerance-for-near-singular-s" title="Permanent link">&para;</a></h2>
+<h3 id="orthogonalizers-methodsymmetric-lindep1e-7-dtypenone-devicenone"><code>orthogonalizer(S, method="symmetric", lindep=1e-7, *, dtype=None, device=None)</code><a class="headerlink" href="#orthogonalizers-methodsymmetric-lindep1e-7-dtypenone-devicenone" title="Permanent link">&para;</a></h3>
+<p>Returns <code>Orthogonalizer(X, rank, eigenvalues, pivots)</code>, with <code>Xᴴ S X = I_m</code> on the numerically independent subspace of <code>S</code>, where <code>m = rank ≤ n</code>. <code>S</code> is real symmetric or complex Hermitian, <code>(n, n)</code> or a batch <code>(..., n, n)</code>. The work is always float64 (complex128) on the host. <code>dtype</code> and <code>device</code> set only the returned <code>X</code>, which is float64 on the host by default.</p>
+<table>
+<thead>
+<tr>
+<th><code>method</code></th>
+<th>X</th>
+<th>Kept when</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"symmetric"</code> (default)</td>
+<td>Löwdin <code>S⁻¹ᐟ²</code> (n × n), when nothing is dropped; otherwise the canonical X</td>
+<td>—</td>
+<td>one eigh</td>
+</tr>
+<tr>
+<td><code>"canonical"</code></td>
+<td><code>U_keep diag(s_keep⁻¹ᐟ²)</code> (n × m)</td>
+<td><code>s_i &gt; lindep · max(s)</code></td>
+<td>one eigh</td>
+</tr>
+<tr>
+<td><code>"cholesky"</code></td>
+<td><code>X[P, :] = L⁻ᴴ</code> with <code>S_PP = L Lᴴ</code>, zero on the other rows (n × m)</td>
+<td>pivoted Cholesky continues while the largest remaining Schur-complement diagonal is <code>&gt; lindep · max(diag S)</code></td>
+<td><code>O(n m²)</code>, no eigensolve</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Threshold.</strong> <code>lindep</code> is relative. A kept problem has condition number at most <code>1 / lindep</code> for the eigenvalue methods, so <code>X</code> amplifies rounding by at most <code>1/√lindep</code>. For a normalised AO basis <code>max(s) ≥ 1</code>, so the relative threshold is at least as strict as an absolute one of the same value (Psi4's default is 1e-7, PySCF's 1e-8, both absolute). <code>lindep=0</code> keeps every positive eigenvalue (or pivot).</li>
+<li><strong>Symmetric with drops.</strong> When eigenvalues are dropped, no n × n <code>X</code> satisfies <code>Xᴴ S X = I</code>, so <code>"symmetric"</code> returns the canonical X. This is PySCF's convention. With nothing dropped it is <code>inv_sqrt_spd(S)</code>, so existing results do not change.</li>
+<li><strong>Cholesky threshold.</strong> The Cholesky test is on Schur pivots, which are never smaller than <code>λ_min(S)</code>, so at the same <code>lindep</code> it keeps more functions than <code>"canonical"</code>, and the kept block is worse conditioned. For an FP32 SCF, use about <code>lindep=1e-5</code> with it (see below). <code>pivots</code> lists the kept basis functions in pivot order. The pivots come from LAPACK <code>?pstrf</code> when SciPy is installed, and from a torch loop otherwise.</li>
+<li><strong>Batches.</strong> For a batch, <code>rank</code> is a LongTensor and <code>X</code> is <code>(..., n, max rank)</code>. For a matrix with a lower rank, the trailing columns are zero (and <code>pivots</code> is padded with −1).</li>
+<li><strong>Autograd.</strong> It is differentiable through <code>S</code>. <code>"symmetric"</code> without drops, and <code>"cholesky"</code> for a fixed pivot set, give <code>X</code> itself. Canonical <code>X</code> is defined only up to the sign (phase) of each column, so only gauge-invariant functions of it, such as <code>X Xᴴ</code>, have a well-defined gradient.</li>
+</ul>
+<p><strong>Measured (#72), DF-RHF, <code>examples/scf_df_rhf.py</code>, CPU.</strong> benzene/aug-cc-pVTZ (n = 414, smallest eigenvalue of S 3.4e-7). <code>E − E_ref</code> is against PySCF; <code>E(C)</code> is the float64 energy at the converged orbitals.</p>
+<table>
+<thead>
+<tr>
+<th>run</th>
+<th>rank</th>
+<th>FP64 E − E_ref</th>
+<th>FP32</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>symmetric</code> / <code>canonical</code>, lindep 1e-7</td>
+<td>411</td>
+<td>1.4e-6 Eh (3 functions dropped)</td>
+<td>converged, 23 iterations, E(C) − E_ref 4.7e-6</td>
+</tr>
+<tr>
+<td><code>symmetric</code>, lindep 1e-9 (no drop, plain S⁻¹ᐟ²)</td>
+<td>414</td>
+<td>−5.7e-8</td>
+<td>not converged in 80 iterations</td>
+</tr>
+<tr>
+<td><code>generalized</code> (Cholesky of S)</td>
+<td>414</td>
+<td>−5.7e-8</td>
+<td>not converged in 80 iterations</td>
+</tr>
+<tr>
+<td><code>cholesky</code>, lindep 1e-7</td>
+<td>414</td>
+<td>−5.7e-8</td>
+<td>not converged in 80 iterations</td>
+</tr>
+<tr>
+<td><code>cholesky</code>, lindep 1e-5</td>
+<td>408</td>
+<td>—</td>
+<td>converged, 14 iterations, E(C) − E_ref 8.7e-6</td>
+</tr>
+</tbody>
+</table>
+<p>In float64 nothing has to be dropped at this size. In FP32 the dropped directions decide convergence.</p>
+<p>C20H42/aug-cc-pVDZ (n = 838, smallest eigenvalue 4.1e-7) is milder. At lindep 1e-7 two functions are dropped, and every variant converges in FP32 (26–35 iterations). In float64 the two dropped functions raise the energy by 2.8e-5 Eh against the full basis (canonical −781.9162346 against −781.9162624 Eh for S⁻¹ᐟ², the Cholesky of S, and <code>cholesky</code>). The threshold trades that basis-set truncation against FP32 conditioning. Lower it, or use float64, when the truncation matters more.</p>
 <h2 id="backend-notes">Backend notes<a class="headerlink" href="#backend-notes" title="Permanent link">&para;</a></h2>
 <p>Householder tridiagonalization is n − 2 dependent BLAS-2 steps and leaves the Tensor Engine idle (#48). A parallel-ordered Jacobi step rotates n/2 disjoint pairs at once, so a batch of matrices advances in lockstep with no long dependency chain. In the kernel the Tensor Engine applies the step's partner permutation (an exact matmul shared by every tile) and the Vector Engine applies the rotations. For measurements see #48; the fair CPU baseline splits the batch across the same threads, which is 1.6–5.8× faster than one batched <code>torch.linalg.eigh</code> call (#54, v0.19.0).</p>
+<h2 id="occupied_subspacef-k-guessnone-buffernone-passes4-tolauto-rtol01-degreenone-uppergershgorin-refreshnone"><code>occupied_subspace(F, k, *, guess=None, buffer=None, passes=4, tol="auto", rtol=0.1, degree=None, upper="gershgorin", refresh=None)</code><a class="headerlink" href="#occupied_subspacef-k-guessnone-buffernone-passes4-tolauto-rtol01-degreenone-uppergershgorin-refreshnone" title="Permanent link">&para;</a></h2>
+<p>Lowest <code>k</code> eigenpairs of a symmetric <code>F</code> for SCF, where <code>F</code> changes little between calls. Returns <code>(eigenvalues (k,), eigenvectors (n, k), state)</code>; pass <code>state</code> as <code>guess</code> on the next call.</p>
+<ul>
+<li><code>guess=None</code> is a cold start: one full float64 host <code>eigh</code>, returned exactly.</li>
+<li>With a warm start, each pass runs a degree-8 scaled Chebyshev filter <code>Y = p(F) X</code> on a block of <code>kb = k + buffer</code> vectors (<code>buffer</code> defaults to about 15%, at least 8), splits off the correction <code>E = Y - X XᵀY</code>, and does a float64 Rayleigh-Ritz on <code>span[X, E]</code> on the host.</li>
+<li>The Rayleigh-Ritz keeps only the lowest <code>kb</code> of the <code>2 kb</code> Ritz pairs. When the unit-diagonal Gram of <code>[X, E]</code> is well conditioned (its smallest eigenvalue, bounded below by <code>1 / ‖L⁻¹‖²_F</code>, is above the drop threshold), one Cholesky reduces the pencil to a standard problem, which needs one <code>eigh</code> instead of two eigendecompositions. Otherwise it takes the rank-revealing path, which drops dependent correction columns.</li>
+<li>For FP32 <code>F</code> on the native <code>neuron</code> device, one pass is one NKI launch (<code>trnsolver/nki/subspace.py</code>, n·kb ≤ about 1024 × 512). <code>F</code> stays resident in SBUF, the filter is Tensor Engine GEMMs, and only the six kb × kb Gram blocks reach the host.</li>
+<li>Each launch after a call's first one starts by applying the previous pass's block update, <code>X ← [X, E] Q</code>, on chip (<code>subspace_step_kernel</code>). <code>Q</code> arrives in the same host-to-device copy as the filter's scalars.</li>
+<li>Only the last pass's update runs as device ops. <code>TRNSOLVER_SUBSPACE_FOLD=0</code> turns the folding off.</li>
+<li>Elsewhere the same arithmetic runs as PyTorch (<code>subspace.filter_reference</code>, <code>subspace.step_reference</code>).</li>
+<li>The number of passes adapts to how far <code>F</code> moved:</li>
+<li><code>rtol</code>: stop once the wanted residuals of the block entering a pass have dropped to <code>rtol</code> times those the call started with. Early SCF iterations take up to <code>passes</code> passes, and late ones take one Rayleigh-Ritz.</li>
+<li><code>tol</code>: stop once they are below <code>tol</code> relative to the spectral scale. <code>"auto"</code> is 30 units of <code>F</code>'s rounding (3.6e-6 for FP32), the residual's noise floor. A converged SCF then gets the same orbitals back, so an FP32 energy test can see two identical energies in a row.</li>
+<li><code>refresh</code> (default off): return a full <code>eigh</code> when the first residual is above <code>refresh</code>.</li>
+<li><code>upper</code>: the spectral upper bound for the filter: Gershgorin (default), <code>"cached"</code>, or a number.</li>
+</ul>
+<p>The correction form matters in FP32. The filter grows core levels far below the HOMO much faster than the HOMO itself, and a Rayleigh-Ritz on <code>YᵀY</code> loses the HOMO. Degrees above about 12 lose accuracy even in the correction form, so the default is 8.</p>
+<p><code>examples/scf_df_rhf.py --solver subspace</code> uses it on <code>XᵀFX</code>.</p>
+<p>Measured on Trn2 (one logical NeuronCore, host pinned to 2 CPUs, <code>GOMP_SPINCOUNT=10000</code>; #78, #85, #86):</p>
+<ul>
+<li><strong>Per call, fixed passes, n = 250 / 490 / 970</strong> (<code>scripts/bench_occupied_subspace.py</code>, <code>tol=None, rtol=None</code>):</li>
+<li>2 passes: 5.6 / 9.3 / 34 ms, against 3.8 / 11.4 / 67 ms for aten <code>eigh</code> on the device tensor (7.8 / 12 / 40 ms before #86);</li>
+<li>1 pass: 3.6 / 5.4 / 18 ms.</li>
+<li><strong>Where the time goes:</strong> the kernel takes 0.4–0.7 ms per pass. The host Rayleigh-Ritz takes 0.9 / 2.9 / 14 ms per pass, against 1.2 / 3.6 / 16 ms for the two-eigendecomposition path. At n = 970 it is one float64 <code>eigh</code> of the 372-wide reduced matrix. SciPy's subset driver (<code>syevr</code>) was 3.5× slower than the full MKL <code>eigh</code> on these threads, so it is not used.</li>
+<li><strong>Accuracy is unchanged:</strong> after 2 passes the projector error is 1.4e-5 / 2.5e-5 / 6.0e-5, eigenvalues are within 1.2e-7 relative, and orthogonality is within 2.5e-7.</li>
+<li><strong>Host threads:</strong> when the host threads share CPUs with the Neuron runtime, libgomp's default spin-wait after each host LAPACK call delays the next device operations by up to about 4 ms. <code>GOMP_SPINCOUNT=10000</code> removes that delay without slowing LAPACK. <code>OMP_WAIT_POLICY=PASSIVE</code> also removes it, but slows LAPACK.</li>
+<li><strong>DF-RHF time to convergence</strong> (<code>bench_scf.py</code>, <code>neuron-nosync</code>, with the defaults above):</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>system</th>
+<th>n_ao</th>
+<th>full <code>eigh</code>: iterations, ms</th>
+<th><code>occupied_subspace</code>: iterations, ms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>benzene</td>
+<td>114</td>
+<td>11, 106</td>
+<td>11, 128</td>
+</tr>
+<tr>
+<td>C10H22</td>
+<td>250</td>
+<td>14, 191</td>
+<td>14, 220</td>
+</tr>
+<tr>
+<td>C20H42</td>
+<td>490</td>
+<td>16, 573</td>
+<td>15, 520</td>
+</tr>
+<tr>
+<td>C40H82</td>
+<td>970</td>
+<td>17, 3495</td>
+<td>18, 3616</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The eigh stage at n_ao = 490 / 970 drops from 12.1 / 62.5 to 8.8 / 42.2 ms.</li>
+<li>No call after the cold start is a full <code>eigh</code>. The earlier <code>passes=2, refresh=3e-2</code> took 22 iterations and 5.6 s at n_ao = 970.</li>
+<li>Below n_ao ≈ 300 the fixed per-call cost loses to aten <code>eigh</code>.</li>
+<li>The FP32 energy test is at its noise floor at n_ao = 970: successive energies differ by 4 ulp (4.9e-4 Eh), against a threshold of 3.1e-4 Eh. Iteration counts there vary by ±3 between nearby settings.</li>
+</ul>
 
 
 

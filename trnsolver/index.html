@@ -5178,7 +5178,8 @@
 <p>Part of the trnsci scientific computing suite (<a href="https://github.com/trnsci">github.com/trnsci</a>).</p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Symmetric &amp; generalized eigensolvers</strong> — <code>eigh</code> (batched Jacobi with <code>method="jacobi"</code>), <code>eigh_generalized</code> (Cholesky reduction), <code>eigh_randomized</code> (k dominant eigenpairs)</li>
+<li><strong>Symmetric &amp; generalized eigensolvers</strong> — <code>eigh</code> (batched Jacobi with <code>method="jacobi"</code>), <code>eigh_generalized</code> (Cholesky reduction, or a precomputed orthogonalizer), <code>eigh_randomized</code> (k dominant eigenpairs)</li>
+<li><strong>Orthogonalizers</strong> — <code>orthogonalizer(S)</code>: Löwdin, canonical or pivoted-Cholesky X with XᵀSX = I, dropping near-linear dependencies of large-basis overlaps</li>
 <li><strong>Factorizations</strong> — <code>cholesky</code>, <code>lu</code>, <code>qr</code>, <code>svd</code>, <code>pinv</code>, <code>schur</code></li>
 <li><strong>Direct solvers</strong> — <code>solve</code>, <code>solve_spd</code>, <code>inv_spd</code>, <code>inv_sqrt_spd</code>, <code>inv_sqrt_spd_ns</code> (Newton-Schulz)</li>
 <li><strong>Iterative solvers</strong> — <code>cg</code> (SPD systems, with preconditioner support), <code>gmres</code> (general), <code>gmres_ir</code> (iterative refinement, FP64 outer residual)</li>

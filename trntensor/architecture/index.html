@@ -5374,8 +5374,11 @@ E           = Σ_{i,j,a,b} term                      (reduction)
   accumulation error, K·u, would dominate.</li>
 <li><strong><code>"dd"</code></strong> — double-double accumulation via trnblas Phase 2 fused GEMM kernel.
   On Trainium hosts it raises <code>NotImplementedError</code> until trnblas#22 lands. On
-  CPU it runs a software Ozaki-2 emulation for <code>matmul</code> plans and falls back
-  to <code>"kahan"</code> for <code>bmm</code> / <code>torch</code> plans.</li>
+  CPU, bf16/fp16 operands run a software Ozaki-2 emulation for <code>matmul</code> plans
+  (<code>"kahan"</code> for <code>bmm</code> / <code>torch</code> plans); fp32 operands run as <code>"kahan"</code>
+  (exact products, fp64 accumulation, inside K·u²); fp64 operands use exact
+  TwoProduct products with double-word accumulation on <code>matmul</code> / <code>bmm</code> plans
+  and <code>path</code> steps, and plain fp64 accumulation on generic <code>torch</code> plans.</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="c1"># Accumulate DF-MP2 energy with ~15-digit precision</span>
 <span class="n">E_corr</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ijab,ijab-&gt;"</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s2">"kahan"</span><span class="p">)</span>

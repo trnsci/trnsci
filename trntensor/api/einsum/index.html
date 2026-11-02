@@ -5573,7 +5573,7 @@ model's weight dtype. The result is returned in the requested dtype.</p>
 </tr>
 <tr>
 <td><code>"dd"</code></td>
-<td>Double-double accumulation via trnblas Phase 2 — raises <code>NotImplementedError</code> on Trainium hosts until trnblas#22 lands; on CPU, a software Ozaki-2 emulation for <code>matmul</code> plans (<code>"kahan"</code> for <code>bmm</code> / <code>torch</code> plans)</td>
+<td>Double-double accumulation via trnblas Phase 2 — raises <code>NotImplementedError</code> on Trainium hosts until trnblas#22 lands; on CPU, by operand dtype: bf16/fp16 run a software Ozaki-2 emulation for <code>matmul</code> plans (<code>"kahan"</code> for <code>bmm</code> / <code>torch</code> plans); fp32 runs as <code>"kahan"</code> (fp32 products are exact in fp64, so fp64 accumulation, K·2⁻⁵³, is inside K·u²); fp64 forms each product exactly (TwoProduct) and sums in double-word arithmetic for <code>matmul</code> / <code>bmm</code> plans and <code>path</code> steps, while generic <code>torch</code> plans accumulate in plain fp64 (the <code>"kahan"</code> bound)</td>
 </tr>
 </tbody>
 </table>
@@ -5603,7 +5603,7 @@ operand dtype, so <code>u_out = u</code>):</p>
 </tr>
 <tr>
 <td><code>"dd"</code></td>
-<td>K·u² + u_out</td>
+<td>K·u² + u_out (fp64 <code>torch</code> plans: the <code>"kahan"</code> bound)</td>
 </tr>
 <tr>
 <td><code>"kahan"</code></td>

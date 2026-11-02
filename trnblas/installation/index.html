@@ -5557,8 +5557,8 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <td>Overrides the batched-pair full-batch vs chunked routing threshold (default 4096 on XLA, 3072 on native). For re-benchmarking.</td>
 </tr>
 <tr>
-<td><code>TRNBLAS_NATIVE_GEMM=auto\|nki\|aten\|host</code></td>
-<td>Native path only. <code>auto</code> (default) routes <code>gemm</code> / <code>batched_gemm</code> / <code>syrk</code> / <code>symm</code> / <code>trsm</code> by measured time (#62, #63): device-resident operands run as aten on the <code>neuron</code> device; host operands run on the host CPU below a size threshold and as upload + aten + download above it; <code>trsm</code> solves with LAPACK on the host. <code>nki</code> forces the NKI kernels, <code>aten</code> forces aten on the device, <code>host</code> keeps host operands on the host. An explicit <code>set_backend("nki")</code> always runs the NKI kernels.</td>
+<td><code>TRNBLAS_NATIVE_GEMM=auto\|nki\|aten\|host\|lnc</code></td>
+<td>Native path only. <code>auto</code> (default) routes <code>gemm</code> / <code>batched_gemm</code> / <code>syrk</code> / <code>symm</code> / <code>trsm</code> by measured time (#62, #63, #79): device-resident operands run as aten on the <code>neuron</code> device, except fp32 <code>gemm</code> with a transposed small-M left operand and a wide right one (the DF-MP2 half-transform), which runs the LNC-split NKI GEMM; host operands run on the host CPU below a size threshold and as upload + aten + download above it; <code>trsm</code> solves with LAPACK on the host. <code>nki</code> forces the NKI kernels, <code>aten</code> forces aten on the device, <code>host</code> keeps host operands on the host, <code>lnc</code> forces the LNC-split GEMM for device-resident 2-D <code>gemm</code> (other ops take aten). An explicit <code>set_backend("nki")</code> always runs the NKI kernels.</td>
 </tr>
 <tr>
 <td><code>TRNBLAS_PAIR_ENERGY=auto\|sym\|aten\|legacy</code></td>
@@ -5575,6 +5575,10 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <tr>
 <td><code>TRNBLAS_PINNED_OUTPUT=1\|0</code></td>
 <td>Native path only. <code>1</code> (default): host results of 1 MiB or more from the device (<code>gemm</code>, <code>batched_gemm</code>, <code>syrk</code>, <code>trsm</code> and the other host-input wrappers) are copied into a fresh tensor from the accelerator's caching host allocator (<code>pin_memory=True</code>). That is about 3.5x faster than <code>.to("cpu")</code>, which page-faults fresh memory. Freed blocks stay cached, rounded up to a power of two, until <code>torch.accelerator.empty_host_cache()</code>. <code>0</code> returns plain <code>.to("cpu")</code> results.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_NKI_EAGER_HANDLE=1\|0</code></td>
+<td>Native path only. <code>1</code> (default): eager NKI kernel calls on plain <code>neuron</code> tensors go through a <code>torch_neuronx.wrap_nki</code> handle built once per kernel instead of the <code>trnblas::</code> custom op, which cuts host time per call from about 0.11 ms to 0.03 ms on trn2. Under <code>torch.compile</code>, and for tensors that require grad, int64 tensors and tensor subclasses, the custom op runs as before. <code>0</code> always uses the custom op.</td>
 </tr>
 <tr>
 <td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>

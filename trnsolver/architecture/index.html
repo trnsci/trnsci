@@ -5370,6 +5370,7 @@
 ├── eigen.py        # eigh, eigh_generalized, eigh_randomized
 ├── _jacobi.py      # torch batched Jacobi (off-device / FP64 / n &gt; 128)
 ├── factor.py       # cholesky, lu, qr, svd, pinv, schur, solve, solve_spd, inv_spd, inv_sqrt_spd(_ns)
+├── orthogonalize.py  # orthogonalizer: symmetric / canonical / pivoted-Cholesky X for S
 ├── iterative.py    # cg, gmres, gmres_ir, preconditioners
 └── nki/
     ├── __init__.py
@@ -5399,6 +5400,11 @@
 <td>Reduce to standard</td>
 <td><code>A' = L⁻¹ F L⁻ᵀ</code></td>
 <td><code>eigh_generalized(F, S)</code></td>
+</tr>
+<tr>
+<td>…or, near-singular S</td>
+<td><code>X = orthogonalizer(S).X</code> once, <code>A' = Xᵀ F X</code></td>
+<td><code>eigh_generalized(F, S, X=X)</code></td>
 </tr>
 <tr>
 <td>Eigensolve</td>

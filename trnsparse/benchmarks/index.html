@@ -4427,6 +4427,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#trn2-schwarz-screened-spmm-with-tile-skipping-61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trn2: Schwarz-screened SpMM with tile skipping (#61)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trn2: Schwarz-screened SpMM with tile skipping (#61)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lnc2-width-512-trace-cache-off" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LNC=2, width 512, trace cache off
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lnc2-width-128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LNC=2, width 128
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lnc1-one-physical-core-width-512" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LNC=1 (one physical core), width 512
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lnc2-width-512-trace-cache-on-nki_enable_trace_cache1-fresh-cache-dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LNC=2, width 512, trace cache on (NKI_ENABLE_TRACE_CACHE=1, fresh cache dir)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-screened-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the screened tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#trn2-across-the-logical-neuroncores-of-one-chip-30" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5775,6 +5847,78 @@
     <span class="md-ellipsis">
       
         Reading the Trn2 tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trn2-schwarz-screened-spmm-with-tile-skipping-61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trn2: Schwarz-screened SpMM with tile skipping (#61)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trn2: Schwarz-screened SpMM with tile skipping (#61)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lnc2-width-512-trace-cache-off" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LNC=2, width 512, trace cache off
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lnc2-width-128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LNC=2, width 128
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lnc1-one-physical-core-width-512" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LNC=1 (one physical core), width 512
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lnc2-width-512-trace-cache-on-nki_enable_trace_cache1-fresh-cache-dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LNC=2, width 512, trace cache on (NKI_ENABLE_TRACE_CACHE=1, fresh cache dir)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-screened-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the screened tables
       
     </span>
   </a>
@@ -7749,11 +7893,1364 @@ interpolation between measured densities):</p>
 <li><strong>Screened SpMM</strong> is 1.5–2× faster than on main but still 2–3× slower
   than dense aten <code>(A * mask) @ B</code> on the device: the fused kernel does not
   pay on Trn2 in fp32. It has no tile skipping, so it never benefits from
-  screening sparsity.</li>
+  screening sparsity.
+  (Superseded by tile skipping, #61: see the screened section below.)</li>
 <li><strong>CSR SpMM</strong> (host structure) is now 4–11× faster at ≤ 1% density
   (device scatter of nnz triplets instead of a full dense H2D copy), but
   stays far behind <code>torch.sparse</code> on CPU at low density and behind dense
   aten when A is already dense on the device. On Trainium, use BSR.</li>
+</ul>
+<h2 id="trn2-schwarz-screened-spmm-with-tile-skipping-61">Trn2: Schwarz-screened SpMM with tile skipping (#61)<a class="headerlink" href="#trn2-schwarz-screened-spmm-with-tile-skipping-61" title="Permanent link">&para;</a></h2>
+<p><strong>Setup.</strong> <code>trn2.3xlarge</code>, one logical NeuronCore (<code>NEURON_RT_VISIBLE_CORES=2</code>
+at LNC=2; physical core 4 at LNC=1), shared chip (other agents on the other
+cores). Neuron SDK 2.33 venv: <code>torch</code> 2.14.0, <code>torch-neuronx</code> 2.14, <code>nki</code>
+0.7.0. Host <code>taskset -c 4,10</code>, <code>OMP_NUM_THREADS=2</code>. Script:
+<code>benchmarks/bench_screened_tiles_trn2.py</code>. Warm medians of 10 calls (ms),
+<code>torch.neuron.synchronize()</code> after each; operands already on the device.</p>
+<p><strong>Inputs.</strong> Chemistry-shaped: bounds <code>Q</code> sorted and decaying
+(<code>Q = exp(-8 x)</code>, shells ordered by extent), symmetric <code>A</code> with
+<code>|A_ij| &lt;= Q_i Q_j</code>, <code>tau</code> set so the stated fraction of 128 x 128 tiles
+survives. <em>partial</em> = kept tiles that need the element mask.</p>
+<p><strong>Columns.</strong> <em>tiles</em>: <code>screened_spmm</code> (this change). <em>tiles sym</em>: with
+<code>symmetric=True</code> (no Tensor Engine transposes). <em>fused main</em>: the previous
+all-tiles fused kernel (<code>TRNSPARSE_SCREEN_SKIP_TILES=0</code>; fp32 only, it does
+not lower for bf16 <code>A</code> with fp32 bounds). <em>dense aten</em>: <code>A @ B</code>, no
+screening. <em>masked aten</em>: <code>(A * mask) @ B</code> with the mask already on the
+device. <em>best/dense</em>: min(tiles, tiles sym) / dense aten, below 1 is a win.
+<em>par err</em>: max relative error against the fp64 masked product
+<code>(A64 * mask) @ B64</code> (bf16: the output rounding). <em>bound ratio</em>:
+<code>||C - A64 B64||_F / (tau sqrt(#dropped) ||B||_F)</code>, the screening error over
+the Schwarz threshold-times-norm bound (below 1 means within it).</p>
+<h3 id="lnc2-width-512-trace-cache-off">LNC=2, width 512, trace cache off<a class="headerlink" href="#lnc2-width-512-trace-cache-off" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>width</th>
+<th>dtype</th>
+<th>kept tiles</th>
+<th>partial</th>
+<th>tiles (ms)</th>
+<th>tiles sym (ms)</th>
+<th>fused main (ms)</th>
+<th>dense aten (ms)</th>
+<th>masked aten (ms)</th>
+<th>best/dense</th>
+<th>par err</th>
+<th>bound ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>fp32</td>
+<td>5%</td>
+<td>6</td>
+<td><strong>0.27</strong></td>
+<td><strong>0.26</strong></td>
+<td>1.28</td>
+<td>0.23</td>
+<td>0.41</td>
+<td>1.15</td>
+<td>2.0e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>fp32</td>
+<td>20%</td>
+<td>15</td>
+<td><strong>0.27</strong></td>
+<td><strong>0.29</strong></td>
+<td>1.26</td>
+<td>0.22</td>
+<td>0.42</td>
+<td>1.23</td>
+<td>2.1e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>fp32</td>
+<td>50%</td>
+<td>29</td>
+<td><strong>0.34</strong></td>
+<td><strong>0.33</strong></td>
+<td>1.18</td>
+<td>0.22</td>
+<td>0.42</td>
+<td>1.52</td>
+<td>3.4e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>fp32</td>
+<td>80%</td>
+<td>21</td>
+<td><strong>0.37</strong></td>
+<td><strong>0.36</strong></td>
+<td>1.21</td>
+<td>0.22</td>
+<td>0.43</td>
+<td>1.61</td>
+<td>3.4e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>bf16</td>
+<td>5%</td>
+<td>6</td>
+<td><strong>0.25</strong></td>
+<td><strong>0.26</strong></td>
+<td>n/a</td>
+<td>0.13</td>
+<td>0.28</td>
+<td>1.87</td>
+<td>3.1e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>bf16</td>
+<td>20%</td>
+<td>15</td>
+<td><strong>0.27</strong></td>
+<td><strong>0.27</strong></td>
+<td>n/a</td>
+<td>0.14</td>
+<td>0.28</td>
+<td>1.94</td>
+<td>2.5e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>bf16</td>
+<td>50%</td>
+<td>29</td>
+<td><strong>0.28</strong></td>
+<td><strong>0.28</strong></td>
+<td>n/a</td>
+<td>0.13</td>
+<td>0.29</td>
+<td>2.12</td>
+<td>3.3e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>bf16</td>
+<td>80%</td>
+<td>21</td>
+<td><strong>0.29</strong></td>
+<td><strong>0.29</strong></td>
+<td>n/a</td>
+<td>0.13</td>
+<td>0.29</td>
+<td>2.18</td>
+<td>3.1e-03</td>
+<td>0.07</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>5%</td>
+<td>17</td>
+<td><strong>0.29</strong></td>
+<td><strong>0.30</strong></td>
+<td>2.44</td>
+<td>0.61</td>
+<td>1.03</td>
+<td>0.48</td>
+<td>2.5e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>20%</td>
+<td>37</td>
+<td><strong>0.40</strong></td>
+<td><strong>0.36</strong></td>
+<td>2.40</td>
+<td>0.61</td>
+<td>1.03</td>
+<td>0.59</td>
+<td>4.3e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>50%</td>
+<td>59</td>
+<td><strong>0.55</strong></td>
+<td><strong>0.52</strong></td>
+<td>2.47</td>
+<td>0.62</td>
+<td>1.04</td>
+<td>0.83</td>
+<td>4.7e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>80%</td>
+<td>41</td>
+<td><strong>0.72</strong></td>
+<td><strong>0.63</strong></td>
+<td>2.50</td>
+<td>0.62</td>
+<td>1.05</td>
+<td>1.03</td>
+<td>5.3e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>5%</td>
+<td>17</td>
+<td><strong>0.27</strong></td>
+<td><strong>0.28</strong></td>
+<td>n/a</td>
+<td>0.25</td>
+<td>0.52</td>
+<td>1.08</td>
+<td>2.5e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>20%</td>
+<td>37</td>
+<td><strong>0.30</strong></td>
+<td><strong>0.31</strong></td>
+<td>n/a</td>
+<td>0.25</td>
+<td>0.51</td>
+<td>1.22</td>
+<td>2.4e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>50%</td>
+<td>59</td>
+<td><strong>0.36</strong></td>
+<td><strong>0.36</strong></td>
+<td>n/a</td>
+<td>0.25</td>
+<td>0.51</td>
+<td>1.44</td>
+<td>2.4e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>80%</td>
+<td>41</td>
+<td><strong>0.40</strong></td>
+<td><strong>0.37</strong></td>
+<td>n/a</td>
+<td>0.25</td>
+<td>0.51</td>
+<td>1.50</td>
+<td>2.4e-03</td>
+<td>0.06</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>5%</td>
+<td>35</td>
+<td><strong>0.42</strong></td>
+<td><strong>0.38</strong></td>
+<td>9.33</td>
+<td>2.25</td>
+<td>4.40</td>
+<td>0.17</td>
+<td>2.9e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>20%</td>
+<td>77</td>
+<td><strong>0.75</strong></td>
+<td><strong>0.70</strong></td>
+<td>9.31</td>
+<td>2.27</td>
+<td>4.41</td>
+<td>0.31</td>
+<td>5.8e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>50%</td>
+<td>119</td>
+<td><strong>1.42</strong></td>
+<td><strong>1.27</strong></td>
+<td>9.30</td>
+<td>2.27</td>
+<td>4.35</td>
+<td>0.56</td>
+<td>7.1e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>80%</td>
+<td>81</td>
+<td><strong>2.05</strong></td>
+<td><strong>1.80</strong></td>
+<td>9.08</td>
+<td>2.25</td>
+<td>4.38</td>
+<td>0.80</td>
+<td>7.7e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>5%</td>
+<td>35</td>
+<td><strong>0.33</strong></td>
+<td><strong>0.50</strong></td>
+<td>n/a</td>
+<td>0.68</td>
+<td>1.50</td>
+<td>0.48</td>
+<td>3.1e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>20%</td>
+<td>77</td>
+<td><strong>0.45</strong></td>
+<td><strong>0.40</strong></td>
+<td>n/a</td>
+<td>0.68</td>
+<td>1.51</td>
+<td>0.58</td>
+<td>3.2e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>50%</td>
+<td>119</td>
+<td><strong>0.64</strong></td>
+<td><strong>0.57</strong></td>
+<td>n/a</td>
+<td>0.68</td>
+<td>1.52</td>
+<td>0.84</td>
+<td>3.0e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>80%</td>
+<td>81</td>
+<td><strong>0.80</strong></td>
+<td><strong>0.78</strong></td>
+<td>n/a</td>
+<td>0.68</td>
+<td>1.51</td>
+<td>1.15</td>
+<td>3.0e-03</td>
+<td>0.05</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lnc2-width-128">LNC=2, width 128<a class="headerlink" href="#lnc2-width-128" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>width</th>
+<th>dtype</th>
+<th>kept tiles</th>
+<th>partial</th>
+<th>tiles (ms)</th>
+<th>tiles sym (ms)</th>
+<th>fused main (ms)</th>
+<th>dense aten (ms)</th>
+<th>masked aten (ms)</th>
+<th>best/dense</th>
+<th>par err</th>
+<th>bound ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4096</td>
+<td>128</td>
+<td>fp32</td>
+<td>5%</td>
+<td>17</td>
+<td><strong>0.29</strong></td>
+<td><strong>0.30</strong></td>
+<td>2.00</td>
+<td>0.28</td>
+<td>0.70</td>
+<td>1.04</td>
+<td>2.3e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>128</td>
+<td>fp32</td>
+<td>20%</td>
+<td>37</td>
+<td><strong>0.34</strong></td>
+<td><strong>0.33</strong></td>
+<td>1.87</td>
+<td>0.27</td>
+<td>0.70</td>
+<td>1.22</td>
+<td>3.8e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>128</td>
+<td>fp32</td>
+<td>50%</td>
+<td>59</td>
+<td><strong>0.41</strong></td>
+<td><strong>0.37</strong></td>
+<td>1.85</td>
+<td>0.27</td>
+<td>0.70</td>
+<td>1.36</td>
+<td>4.7e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>128</td>
+<td>fp32</td>
+<td>80%</td>
+<td>41</td>
+<td><strong>0.44</strong></td>
+<td><strong>0.41</strong></td>
+<td>1.95</td>
+<td>0.28</td>
+<td>0.71</td>
+<td>1.45</td>
+<td>5.4e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>128</td>
+<td>bf16</td>
+<td>5%</td>
+<td>17</td>
+<td><strong>0.29</strong></td>
+<td><strong>0.28</strong></td>
+<td>n/a</td>
+<td>0.17</td>
+<td>0.44</td>
+<td>1.68</td>
+<td>2.5e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>128</td>
+<td>bf16</td>
+<td>20%</td>
+<td>37</td>
+<td><strong>0.32</strong></td>
+<td><strong>0.33</strong></td>
+<td>n/a</td>
+<td>0.17</td>
+<td>0.43</td>
+<td>1.89</td>
+<td>2.4e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>128</td>
+<td>bf16</td>
+<td>50%</td>
+<td>59</td>
+<td><strong>0.36</strong></td>
+<td><strong>0.35</strong></td>
+<td>n/a</td>
+<td>0.16</td>
+<td>0.44</td>
+<td>2.12</td>
+<td>2.5e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>128</td>
+<td>bf16</td>
+<td>80%</td>
+<td>41</td>
+<td><strong>0.35</strong></td>
+<td><strong>0.37</strong></td>
+<td>n/a</td>
+<td>0.17</td>
+<td>0.43</td>
+<td>2.05</td>
+<td>2.5e-03</td>
+<td>0.06</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>fp32</td>
+<td>5%</td>
+<td>35</td>
+<td><strong>0.34</strong></td>
+<td><strong>0.34</strong></td>
+<td>5.27</td>
+<td>0.82</td>
+<td>2.86</td>
+<td>0.41</td>
+<td>3.7e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>fp32</td>
+<td>20%</td>
+<td>77</td>
+<td><strong>0.49</strong></td>
+<td><strong>0.45</strong></td>
+<td>5.30</td>
+<td>0.83</td>
+<td>2.96</td>
+<td>0.54</td>
+<td>7.4e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>fp32</td>
+<td>50%</td>
+<td>119</td>
+<td><strong>0.79</strong></td>
+<td><strong>0.68</strong></td>
+<td>5.22</td>
+<td>0.82</td>
+<td>2.90</td>
+<td>0.83</td>
+<td>8.8e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>fp32</td>
+<td>80%</td>
+<td>81</td>
+<td><strong>0.97</strong></td>
+<td><strong>0.94</strong></td>
+<td>5.24</td>
+<td>0.83</td>
+<td>2.95</td>
+<td>1.14</td>
+<td>9.1e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>bf16</td>
+<td>5%</td>
+<td>35</td>
+<td><strong>0.34</strong></td>
+<td><strong>0.33</strong></td>
+<td>n/a</td>
+<td>0.41</td>
+<td>1.26</td>
+<td>0.82</td>
+<td>2.9e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>bf16</td>
+<td>20%</td>
+<td>77</td>
+<td><strong>0.40</strong></td>
+<td><strong>0.39</strong></td>
+<td>n/a</td>
+<td>0.41</td>
+<td>1.22</td>
+<td>0.96</td>
+<td>2.7e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>bf16</td>
+<td>50%</td>
+<td>119</td>
+<td><strong>0.57</strong></td>
+<td><strong>0.54</strong></td>
+<td>n/a</td>
+<td>0.40</td>
+<td>1.24</td>
+<td>1.35</td>
+<td>3.1e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>128</td>
+<td>bf16</td>
+<td>80%</td>
+<td>81</td>
+<td><strong>0.63</strong></td>
+<td><strong>0.65</strong></td>
+<td>n/a</td>
+<td>0.41</td>
+<td>1.24</td>
+<td>1.55</td>
+<td>3.1e-03</td>
+<td>0.05</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lnc1-one-physical-core-width-512">LNC=1 (one physical core), width 512<a class="headerlink" href="#lnc1-one-physical-core-width-512" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>width</th>
+<th>dtype</th>
+<th>kept tiles</th>
+<th>partial</th>
+<th>tiles (ms)</th>
+<th>tiles sym (ms)</th>
+<th>fused main (ms)</th>
+<th>dense aten (ms)</th>
+<th>masked aten (ms)</th>
+<th>best/dense</th>
+<th>par err</th>
+<th>bound ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>fp32</td>
+<td>5%</td>
+<td>6</td>
+<td><strong>0.28</strong></td>
+<td><strong>0.26</strong></td>
+<td>1.39</td>
+<td>0.34</td>
+<td>0.57</td>
+<td>0.75</td>
+<td>2.0e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>fp32</td>
+<td>20%</td>
+<td>15</td>
+<td><strong>0.34</strong></td>
+<td><strong>0.32</strong></td>
+<td>1.14</td>
+<td>0.36</td>
+<td>0.58</td>
+<td>0.88</td>
+<td>2.1e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>fp32</td>
+<td>50%</td>
+<td>29</td>
+<td><strong>0.43</strong></td>
+<td><strong>0.37</strong></td>
+<td>1.36</td>
+<td>0.34</td>
+<td>0.57</td>
+<td>1.10</td>
+<td>3.4e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>fp32</td>
+<td>80%</td>
+<td>21</td>
+<td><strong>0.49</strong></td>
+<td><strong>0.43</strong></td>
+<td>1.31</td>
+<td>0.34</td>
+<td>0.57</td>
+<td>1.26</td>
+<td>3.4e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>bf16</td>
+<td>5%</td>
+<td>6</td>
+<td><strong>0.25</strong></td>
+<td><strong>0.26</strong></td>
+<td>n/a</td>
+<td>0.16</td>
+<td>0.32</td>
+<td>1.51</td>
+<td>3.1e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>bf16</td>
+<td>20%</td>
+<td>15</td>
+<td><strong>0.28</strong></td>
+<td><strong>0.27</strong></td>
+<td>n/a</td>
+<td>0.16</td>
+<td>0.31</td>
+<td>1.74</td>
+<td>2.5e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>bf16</td>
+<td>50%</td>
+<td>29</td>
+<td><strong>0.31</strong></td>
+<td><strong>0.30</strong></td>
+<td>n/a</td>
+<td>0.15</td>
+<td>0.31</td>
+<td>1.97</td>
+<td>3.3e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>512</td>
+<td>bf16</td>
+<td>80%</td>
+<td>21</td>
+<td><strong>0.32</strong></td>
+<td><strong>0.30</strong></td>
+<td>n/a</td>
+<td>0.16</td>
+<td>0.31</td>
+<td>1.87</td>
+<td>3.1e-03</td>
+<td>0.07</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>5%</td>
+<td>17</td>
+<td><strong>0.35</strong></td>
+<td><strong>0.31</strong></td>
+<td>2.57</td>
+<td>1.10</td>
+<td>1.72</td>
+<td>0.29</td>
+<td>2.5e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>20%</td>
+<td>37</td>
+<td><strong>0.51</strong></td>
+<td><strong>0.45</strong></td>
+<td>2.45</td>
+<td>1.10</td>
+<td>1.72</td>
+<td>0.42</td>
+<td>4.3e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>50%</td>
+<td>59</td>
+<td><strong>0.80</strong></td>
+<td><strong>0.72</strong></td>
+<td>2.54</td>
+<td>1.10</td>
+<td>1.72</td>
+<td>0.65</td>
+<td>4.7e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>80%</td>
+<td>41</td>
+<td><strong>1.11</strong></td>
+<td><strong>0.99</strong></td>
+<td>2.54</td>
+<td>1.10</td>
+<td>1.71</td>
+<td>0.90</td>
+<td>5.3e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>5%</td>
+<td>17</td>
+<td><strong>0.29</strong></td>
+<td><strong>0.29</strong></td>
+<td>n/a</td>
+<td>0.40</td>
+<td>0.74</td>
+<td>0.73</td>
+<td>2.5e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>20%</td>
+<td>37</td>
+<td><strong>0.36</strong></td>
+<td><strong>0.34</strong></td>
+<td>n/a</td>
+<td>0.38</td>
+<td>0.73</td>
+<td>0.88</td>
+<td>2.4e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>50%</td>
+<td>59</td>
+<td><strong>0.48</strong></td>
+<td><strong>0.42</strong></td>
+<td>n/a</td>
+<td>0.38</td>
+<td>0.73</td>
+<td>1.10</td>
+<td>2.4e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>80%</td>
+<td>41</td>
+<td><strong>0.52</strong></td>
+<td><strong>0.47</strong></td>
+<td>n/a</td>
+<td>0.38</td>
+<td>0.73</td>
+<td>1.23</td>
+<td>2.4e-03</td>
+<td>0.06</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>5%</td>
+<td>35</td>
+<td><strong>0.55</strong></td>
+<td><strong>0.50</strong></td>
+<td>7.55</td>
+<td>4.44</td>
+<td>7.88</td>
+<td>0.11</td>
+<td>2.9e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>20%</td>
+<td>77</td>
+<td><strong>1.18</strong></td>
+<td><strong>1.04</strong></td>
+<td>7.42</td>
+<td>4.42</td>
+<td>7.93</td>
+<td>0.24</td>
+<td>5.8e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>50%</td>
+<td>119</td>
+<td><strong>2.49</strong></td>
+<td><strong>2.14</strong></td>
+<td>7.48</td>
+<td>4.43</td>
+<td>7.90</td>
+<td>0.48</td>
+<td>7.1e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>80%</td>
+<td>81</td>
+<td><strong>3.74</strong></td>
+<td><strong>3.31</strong></td>
+<td>7.43</td>
+<td>4.43</td>
+<td>7.91</td>
+<td>0.75</td>
+<td>7.7e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>5%</td>
+<td>35</td>
+<td><strong>0.40</strong></td>
+<td><strong>0.38</strong></td>
+<td>n/a</td>
+<td>1.22</td>
+<td>2.49</td>
+<td>0.31</td>
+<td>3.1e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>20%</td>
+<td>77</td>
+<td><strong>0.59</strong></td>
+<td><strong>0.51</strong></td>
+<td>n/a</td>
+<td>1.22</td>
+<td>2.46</td>
+<td>0.42</td>
+<td>3.2e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>50%</td>
+<td>119</td>
+<td><strong>0.98</strong></td>
+<td><strong>0.80</strong></td>
+<td>n/a</td>
+<td>1.22</td>
+<td>2.46</td>
+<td>0.66</td>
+<td>3.0e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>80%</td>
+<td>81</td>
+<td><strong>1.26</strong></td>
+<td><strong>1.28</strong></td>
+<td>n/a</td>
+<td>1.22</td>
+<td>2.47</td>
+<td>1.03</td>
+<td>3.0e-03</td>
+<td>0.05</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lnc2-width-512-trace-cache-on-nki_enable_trace_cache1-fresh-cache-dir">LNC=2, width 512, trace cache on (<code>NKI_ENABLE_TRACE_CACHE=1</code>, fresh cache dir)<a class="headerlink" href="#lnc2-width-512-trace-cache-on-nki_enable_trace_cache1-fresh-cache-dir" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>width</th>
+<th>dtype</th>
+<th>kept tiles</th>
+<th>partial</th>
+<th>tiles (ms)</th>
+<th>tiles sym (ms)</th>
+<th>fused main (ms)</th>
+<th>dense aten (ms)</th>
+<th>masked aten (ms)</th>
+<th>best/dense</th>
+<th>par err</th>
+<th>bound ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>5%</td>
+<td>17</td>
+<td><strong>0.31</strong></td>
+<td><strong>0.35</strong></td>
+<td>2.76</td>
+<td>0.62</td>
+<td>1.04</td>
+<td>0.50</td>
+<td>2.5e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>20%</td>
+<td>37</td>
+<td><strong>0.41</strong></td>
+<td><strong>0.38</strong></td>
+<td>2.51</td>
+<td>0.62</td>
+<td>1.04</td>
+<td>0.61</td>
+<td>4.3e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>50%</td>
+<td>59</td>
+<td><strong>0.56</strong></td>
+<td><strong>0.53</strong></td>
+<td>2.45</td>
+<td>0.62</td>
+<td>1.04</td>
+<td>0.86</td>
+<td>4.7e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>fp32</td>
+<td>80%</td>
+<td>41</td>
+<td><strong>0.71</strong></td>
+<td><strong>0.66</strong></td>
+<td>2.49</td>
+<td>0.62</td>
+<td>1.05</td>
+<td>1.07</td>
+<td>5.3e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>5%</td>
+<td>17</td>
+<td><strong>0.28</strong></td>
+<td><strong>0.28</strong></td>
+<td>n/a</td>
+<td>0.25</td>
+<td>0.52</td>
+<td>1.11</td>
+<td>2.5e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>20%</td>
+<td>37</td>
+<td><strong>0.32</strong></td>
+<td><strong>0.30</strong></td>
+<td>n/a</td>
+<td>0.25</td>
+<td>0.53</td>
+<td>1.22</td>
+<td>2.4e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>50%</td>
+<td>59</td>
+<td><strong>0.37</strong></td>
+<td><strong>0.35</strong></td>
+<td>n/a</td>
+<td>0.24</td>
+<td>0.53</td>
+<td>1.43</td>
+<td>2.4e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>512</td>
+<td>bf16</td>
+<td>80%</td>
+<td>41</td>
+<td><strong>0.40</strong></td>
+<td><strong>0.38</strong></td>
+<td>n/a</td>
+<td>0.24</td>
+<td>0.52</td>
+<td>1.58</td>
+<td>2.4e-03</td>
+<td>0.06</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>5%</td>
+<td>35</td>
+<td><strong>0.43</strong></td>
+<td><strong>0.40</strong></td>
+<td>9.30</td>
+<td>2.27</td>
+<td>4.42</td>
+<td>0.17</td>
+<td>2.9e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>20%</td>
+<td>77</td>
+<td><strong>0.75</strong></td>
+<td><strong>0.70</strong></td>
+<td>9.47</td>
+<td>2.26</td>
+<td>4.37</td>
+<td>0.31</td>
+<td>5.8e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>50%</td>
+<td>119</td>
+<td><strong>1.43</strong></td>
+<td><strong>1.24</strong></td>
+<td>9.48</td>
+<td>2.27</td>
+<td>4.35</td>
+<td>0.55</td>
+<td>7.1e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>fp32</td>
+<td>80%</td>
+<td>81</td>
+<td><strong>2.08</strong></td>
+<td><strong>1.82</strong></td>
+<td>9.49</td>
+<td>2.25</td>
+<td>4.28</td>
+<td>0.81</td>
+<td>7.7e-07</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>5%</td>
+<td>35</td>
+<td><strong>0.36</strong></td>
+<td><strong>0.32</strong></td>
+<td>n/a</td>
+<td>0.68</td>
+<td>1.51</td>
+<td>0.47</td>
+<td>3.1e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>20%</td>
+<td>77</td>
+<td><strong>0.44</strong></td>
+<td><strong>0.42</strong></td>
+<td>n/a</td>
+<td>0.69</td>
+<td>1.52</td>
+<td>0.61</td>
+<td>3.2e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>50%</td>
+<td>119</td>
+<td><strong>0.65</strong></td>
+<td><strong>0.58</strong></td>
+<td>n/a</td>
+<td>0.68</td>
+<td>1.52</td>
+<td>0.85</td>
+<td>3.0e-03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>512</td>
+<td>bf16</td>
+<td>80%</td>
+<td>81</td>
+<td><strong>0.80</strong></td>
+<td><strong>0.80</strong></td>
+<td>n/a</td>
+<td>0.69</td>
+<td>1.52</td>
+<td>1.16</td>
+<td>3.0e-03</td>
+<td>0.05</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reading-the-screened-tables">Reading the screened tables<a class="headerlink" href="#reading-the-screened-tables" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Where it wins.</strong> At LNC=2, n = 8192, N = 512 the tile path beats dense
+  aten <code>A @ B</code> up to 80% of tiles kept in fp32 (5.9x at 5%, 1.8x at 50%)
+  and up to about 65% in bf16 (2.1x at 5%). At n = 4096 it wins in fp32
+  up to about 75% and loses in bf16. Against what callers ran before
+  (<code>(A * mask) @ B</code>, or main's fused kernel) it wins everywhere at
+  n &gt;= 4096. With width 128 at n = 8192 it wins up to about 65% (fp32)
+  and 20% (bf16). At LNC=1 dense aten runs on one physical core and the
+  crossover moves out: fp32 wins at every density at n &gt;= 4096 (and up to
+  about 35% at 2048), bf16 up to about 35% at 4096 and 75% at 8192.</li>
+<li><strong>Where it loses, and why (profile).</strong> At LNC=2, n &lt;= 2048 and narrow B
+  (width 128 at 4096) lose at every density. The floor is the launch: a
+  <code>trnsparse::</code> NKI op with a trivial 128 x 128 kernel costs 0.21 ms on this
+  box, the screened op alone 0.26 ms at 4096 / 5%, against 0.13-0.23 ms
+  for the whole dense aten product. The host side is ~0.03 ms with the plan
+  cached (tile classification 0.09 ms, structure hash 0.02 ms and three
+  small H2D copies 0.13 ms on the first call per bound tensor). Above the
+  floor the cost is per kept tile: at 8192 / 512 / 50% about 0.69 us
+  (fp32) and 0.31 us (bf16) per tile across both cores, against 0.55 us and
+  0.17 us per tile for dense aten. A kept tile costs more than an aten tile
+  because it is transposed on the Tensor Engine (the matmul's stationary
+  operand needs k on partitions) and leaves PSUM through a copy; in bf16 the
+  extra DMA and copy instructions matter more than the 128-column transpose.</li>
+<li><strong>What was tried.</strong> One DMA per kept tile: fp32 1.94 ms, bf16 1.23 ms at
+  8192 / 50%. One DMA per run of adjacent kept tiles (sorted bounds keep a
+  contiguous prefix per row) plus four transposes per PSUM bank and one
+  copy out: 1.42 / 0.63 ms. <code>symmetric=True</code> (strided DMA of the mirrored
+  tiles, no transposes): 1.24-1.27 / 0.57 ms. Row groups of 4, 6 and 7
+  block rows (B-tile reuse) and an SBUF-resident B panel changed nothing
+  measurable.</li>
+<li><strong>Accuracy.</strong> fp32 parity with the fp64 masked product is 2e-7 to 9e-7
+  (dense-aten level); bf16 is the bf16 output rounding. The screening
+  error is within the Schwarz bound in every case (ratio &lt;= 0.10).
+  The tile classification is exact (<code>screened_tile_structure</code>: a skipped
+  tile has every element screened out, a full tile none), so the result is
+  the masked product, not an approximation of it.</li>
+<li><strong>Compile.</strong> One compile per distinct tile pattern (1-6 s at these sizes,
+  then NEFF-cached). Fock builds and iterative methods reuse one pattern.</li>
+<li><strong>Trace cache.</strong> On and off give the same times and errors: the bounds and
+  tau are kernel arguments and the pattern is a content-hash key
+  (aws-neuron-sdk#1454).</li>
 </ul>
 <h2 id="trn2-across-the-logical-neuroncores-of-one-chip-30">Trn2: across the logical NeuronCores of one chip (#30)<a class="headerlink" href="#trn2-across-the-logical-neuroncores-of-one-chip-30" title="Permanent link">&para;</a></h2>
 <p><strong>Setup.</strong>

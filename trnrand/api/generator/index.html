@@ -5364,19 +5364,17 @@ path draws from on the GpSimd engine.</p>
 <p>Re-seed in place. Returns <code>self</code> so you can chain.</p>
 <h2 id="generatorget_state-set_statestate"><code>Generator.get_state() / set_state(state)</code><a class="headerlink" href="#generatorget_state-set_statestate" title="Permanent link">&para;</a></h2>
 <p>Save and restore the generator for checkpointing: the <code>torch.Generator</code>
-state followed by the 8-byte Threefry counter. Use this to checkpoint and
-resume in either key mode. Before v0.12.1 the state held only the
-<code>torch.Generator</code> state, so a restored generator drew different values on
-the NKI path (#74); a bare <code>torch.Generator</code> state is still accepted and
-leaves the counter unchanged.</p>
+state plus the NKI stream counter. This is the checkpoint / resume recipe;
+it works in both key modes and on both the NKI and PyTorch paths.</p>
 <h2 id="generatorposition-advancen-advance_toposition"><code>Generator.position() / advance(n) / advance_to(position)</code><a class="headerlink" href="#generatorposition-advancen-advance_toposition" title="Permanent link">&para;</a></h2>
-<p><code>position()</code> is the number of samples drawn (in 512-sample Threefry
-batches); <code>advance</code> and <code>advance_to</code> move the Threefry counter without
-drawing. They resume a stream only with <code>key_mode="counter"</code> (for
-<code>uniform</code> / <code>normal</code>) on the NKI path. With the default <code>key_mode="draw"</code>
-the per-draw keys come from the <code>torch.Generator</code>, which they don't move,
-and on the PyTorch path they have no effect. Use <code>get_state</code> / <code>set_state</code>
-for checkpoint/resume (#76).</p>
+<p>The stream counter in samples, and counter skip-ahead. With
+<code>key_mode="counter"</code>, <code>advance_to(gen.position())</code> on a fresh generator
+with the same seed resumes the NKI <code>uniform</code> / <code>normal</code> /
+<code>standard_normal</code> stream, for any partition layout. With the default
+<code>key_mode="draw"</code> each NKI draw takes a fresh key from the host
+<code>torch.Generator</code>, which the position does not capture, so <code>advance</code> /
+<code>advance_to</code> cannot resume the stream and emit <code>trnrand.AdvanceWarning</code>
+when they move the counter (#76). On the PyTorch path they have no effect.</p>
 <h2 id="generatortorch_generator"><code>Generator.torch_generator</code><a class="headerlink" href="#generatortorch_generator" title="Permanent link">&para;</a></h2>
 <p>Access the underlying <code>torch.Generator</code> for use with raw PyTorch ops.</p>
 <h2 id="manual_seedseed-generator"><code>manual_seed(seed) -&gt; Generator</code><a class="headerlink" href="#manual_seedseed-generator" title="Permanent link">&para;</a></h2>

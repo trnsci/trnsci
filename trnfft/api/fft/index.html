@@ -1692,22 +1692,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1d-transforms" class="md-nav__link">
+  <a href="#common-arguments" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1D transforms
+        Common arguments
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1D transforms">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-d-transforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1-D transforms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1-D transforms">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fftinput-nnone" class="md-nav__link">
+  <a href="#fftinput-nnone-dim-1-normnone-ifftinput-nnone-dim-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fft(input, n=None)
+        fft(input, n=None, dim=-1, norm=None) / ifft(input, n=None, dim=-1, norm=None)
       
     </span>
   </a>
@@ -1715,10 +1726,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ifftinput-nnone" class="md-nav__link">
+  <a href="#rfftinput-nnone-dim-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ifft(input, n=None)
+        rfft(input, n=None, dim=-1, norm=None)
       
     </span>
   </a>
@@ -1726,10 +1737,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#rfftinput-nnone" class="md-nav__link">
+  <a href="#irfftinput-nnone-dim-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        rfft(input, n=None)
+        irfft(input, n=None, dim=-1, norm=None)
       
     </span>
   </a>
@@ -1737,21 +1748,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#irfftinput-nnone" class="md-nav__link">
+  <a href="#hfftinput-nnone-dim-1-normnone-ihfftinput-nnone-dim-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        irfft(input, n=None)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hfftinput-nnone-ihfftinput-nnone" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        hfft(input, n=None) / ihfft(input, n=None)
+        hfft(input, n=None, dim=-1, norm=None) / ihfft(input, n=None, dim=-1, norm=None)
       
     </span>
   </a>
@@ -1764,22 +1764,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#n-d-transforms" class="md-nav__link">
+  <a href="#2-d-and-n-d-transforms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        N-D transforms
+        2-D and N-D transforms
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="N-D transforms">
+    <nav class="md-nav" aria-label="2-D and N-D transforms">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fft2input-snone" class="md-nav__link">
+  <a href="#fft2-ifft2-rfft2-irfft2-hfft2-ihfft2-input-snone-dim-2-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fft2(input, s=None)
+        fft2 / ifft2 / rfft2 / irfft2 / hfft2 / ihfft2 (input, s=None, dim=(-2, -1), norm=None)
       
     </span>
   </a>
@@ -1787,10 +1787,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fftninput-snone-dimnone" class="md-nav__link">
+  <a href="#fftn-ifftn-input-snone-dimnone-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fftn(input, s=None, dim=None)
+        fftn / ifftn (input, s=None, dim=None, norm=None)
       
     </span>
   </a>
@@ -1798,10 +1798,60 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ifftninput-snone-dimnone" class="md-nav__link">
+  <a href="#rfftn-irfftn-input-snone-dimnone-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ifftn(input, s=None, dim=None)
+        rfftn / irfftn (input, s=None, dim=None, norm=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hfftn-ihfftn-input-snone-dimnone-normnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hfftn / ihfftn (input, s=None, dim=None, norm=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#helper-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helper functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Helper functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fftshiftinput-dimnone-ifftshiftinput-dimnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fftshift(input, dim=None) / ifftshift(input, dim=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fftfreqn-d10-dtypenone-devicenone-requires_gradfalse-rfftfreq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fftfreq(n, d=1.0, *, dtype=None, device=None, requires_grad=False) / rfftfreq(...)
       
     </span>
   </a>
@@ -5341,22 +5391,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1d-transforms" class="md-nav__link">
+  <a href="#common-arguments" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1D transforms
+        Common arguments
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1D transforms">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-d-transforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1-D transforms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1-D transforms">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fftinput-nnone" class="md-nav__link">
+  <a href="#fftinput-nnone-dim-1-normnone-ifftinput-nnone-dim-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fft(input, n=None)
+        fft(input, n=None, dim=-1, norm=None) / ifft(input, n=None, dim=-1, norm=None)
       
     </span>
   </a>
@@ -5364,10 +5425,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ifftinput-nnone" class="md-nav__link">
+  <a href="#rfftinput-nnone-dim-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ifft(input, n=None)
+        rfft(input, n=None, dim=-1, norm=None)
       
     </span>
   </a>
@@ -5375,10 +5436,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#rfftinput-nnone" class="md-nav__link">
+  <a href="#irfftinput-nnone-dim-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        rfft(input, n=None)
+        irfft(input, n=None, dim=-1, norm=None)
       
     </span>
   </a>
@@ -5386,21 +5447,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#irfftinput-nnone" class="md-nav__link">
+  <a href="#hfftinput-nnone-dim-1-normnone-ihfftinput-nnone-dim-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        irfft(input, n=None)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hfftinput-nnone-ihfftinput-nnone" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        hfft(input, n=None) / ihfft(input, n=None)
+        hfft(input, n=None, dim=-1, norm=None) / ihfft(input, n=None, dim=-1, norm=None)
       
     </span>
   </a>
@@ -5413,22 +5463,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#n-d-transforms" class="md-nav__link">
+  <a href="#2-d-and-n-d-transforms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        N-D transforms
+        2-D and N-D transforms
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="N-D transforms">
+    <nav class="md-nav" aria-label="2-D and N-D transforms">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fft2input-snone" class="md-nav__link">
+  <a href="#fft2-ifft2-rfft2-irfft2-hfft2-ihfft2-input-snone-dim-2-1-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fft2(input, s=None)
+        fft2 / ifft2 / rfft2 / irfft2 / hfft2 / ihfft2 (input, s=None, dim=(-2, -1), norm=None)
       
     </span>
   </a>
@@ -5436,10 +5486,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fftninput-snone-dimnone" class="md-nav__link">
+  <a href="#fftn-ifftn-input-snone-dimnone-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fftn(input, s=None, dim=None)
+        fftn / ifftn (input, s=None, dim=None, norm=None)
       
     </span>
   </a>
@@ -5447,10 +5497,60 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ifftninput-snone-dimnone" class="md-nav__link">
+  <a href="#rfftn-irfftn-input-snone-dimnone-normnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ifftn(input, s=None, dim=None)
+        rfftn / irfftn (input, s=None, dim=None, norm=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hfftn-ihfftn-input-snone-dimnone-normnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hfftn / ihfftn (input, s=None, dim=None, norm=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#helper-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helper functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Helper functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fftshiftinput-dimnone-ifftshiftinput-dimnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fftshift(input, dim=None) / ifftshift(input, dim=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fftfreqn-d10-dtypenone-devicenone-requires_gradfalse-rfftfreq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fftfreq(n, d=1.0, *, dtype=None, device=None, requires_grad=False) / rfftfreq(...)
       
     </span>
   </a>
@@ -5534,42 +5634,66 @@
 
 <h1 id="fft-operations">FFT Operations<a class="headerlink" href="#fft-operations" title="Permanent link">&para;</a></h1>
 <p>All functions are available at the top level: <code>trnfft.fft()</code>, <code>trnfft.ifft()</code>, etc.</p>
-<h2 id="1d-transforms">1D transforms<a class="headerlink" href="#1d-transforms" title="Permanent link">&para;</a></h2>
-<h3 id="fftinput-nnone"><code>fft(input, n=None)</code><a class="headerlink" href="#fftinput-nnone" title="Permanent link">&para;</a></h3>
-<p>1-D discrete Fourier Transform along the last dimension.</p>
+<h2 id="common-arguments">Common arguments<a class="headerlink" href="#common-arguments" title="Permanent link">&para;</a></h2>
+<p>Every transform takes <code>torch.fft</code>'s size, <code>dim</code> and <code>norm</code> arguments with the same meaning (#123):</p>
 <ul>
-<li><strong>input</strong>: <code>torch.Tensor</code> or <code>ComplexTensor</code></li>
-<li><strong>n</strong>: Output size (zero-pads or truncates input). Default: input size.</li>
-<li><strong>Returns</strong>: <code>ComplexTensor</code></li>
+<li><strong>n</strong> (1-D) / <strong>s</strong> (2-D, N-D): signal size along each transformed dim. The input is zero-padded or truncated to it. For the c2r transforms (<code>irfft*</code>, <code>hfft*</code>) this is the <em>output</em> size along the last transformed dim (default <code>2 * (L - 1)</code> for <code>L</code> input bins), and the first <code>n // 2 + 1</code> input bins are used. <code>s[i] == -1</code> keeps the default size for that dim. Sizes below 1 raise <code>RuntimeError</code>.</li>
+<li><strong>dim</strong>: the dim to transform (1-D, default <code>-1</code>) or the dims (2-D default <code>(-2, -1)</code>; N-D default: the last <code>len(s)</code> dims if <code>s</code> is given, else all dims). Negative dims count from the end. For <code>rfft*</code> / <code>irfft*</code> / <code>hfft*</code> / <code>ihfft*</code> the one-sided (Hermitian) dim is the <em>last</em> entry of <code>dim</code>.</li>
+<li><strong>norm</strong>: <code>None</code> / <code>"backward"</code> (default), <code>"ortho"</code> or <code>"forward"</code>. For a size-<code>n</code> transform (<code>n</code> = product of the transformed sizes):</li>
 </ul>
-<h3 id="ifftinput-nnone"><code>ifft(input, n=None)</code><a class="headerlink" href="#ifftinput-nnone" title="Permanent link">&para;</a></h3>
-<p>1-D inverse DFT. Same signature as <code>fft</code>.</p>
-<h3 id="rfftinput-nnone"><code>rfft(input, n=None)</code><a class="headerlink" href="#rfftinput-nnone" title="Permanent link">&para;</a></h3>
-<p>1-D FFT of a real signal, returning only positive frequencies (N//2 + 1 bins).</p>
-<ul>
-<li><strong>input</strong>: <code>torch.Tensor</code> (real-valued)</li>
-<li><strong>Returns</strong>: <code>ComplexTensor</code> with shape <code>(..., N//2 + 1)</code></li>
-</ul>
-<h3 id="irfftinput-nnone"><code>irfft(input, n=None)</code><a class="headerlink" href="#irfftinput-nnone" title="Permanent link">&para;</a></h3>
-<p>Inverse of <code>rfft</code>. Reconstructs full spectrum via Hermitian symmetry.</p>
-<ul>
-<li><strong>input</strong>: <code>ComplexTensor</code> (positive frequencies)</li>
-<li><strong>n</strong>: Output signal length. Default: <code>2 * (input.shape[-1] - 1)</code>. Uses the first <code>n // 2 + 1</code> input bins (truncated or zero-padded), as <code>torch.fft.irfft</code> does; before v0.26.0 every bin was used, which was wrong for most <code>n</code> (#105).</li>
-<li><strong>Returns</strong>: <code>torch.Tensor</code> (real-valued)</li>
-</ul>
-<h3 id="hfftinput-nnone-ihfftinput-nnone"><code>hfft(input, n=None)</code> / <code>ihfft(input, n=None)</code><a class="headerlink" href="#hfftinput-nnone-ihfftinput-nnone" title="Permanent link">&para;</a></h3>
-<p>FFT of a Hermitian-symmetric signal (real output of length <code>n</code>) and its inverse (one-sided spectrum of <code>n // 2 + 1</code> bins). Since v0.16.0.</p>
-<h2 id="n-d-transforms">N-D transforms<a class="headerlink" href="#n-d-transforms" title="Permanent link">&para;</a></h2>
-<h3 id="fft2input-snone"><code>fft2(input, s=None)</code><a class="headerlink" href="#fft2input-snone" title="Permanent link">&para;</a></h3>
-<p>2-D FFT along the last two dimensions. Delegates to <code>fftn</code>.</p>
-<h3 id="fftninput-snone-dimnone"><code>fftn(input, s=None, dim=None)</code><a class="headerlink" href="#fftninput-snone-dimnone" title="Permanent link">&para;</a></h3>
-<p>N-D FFT along specified dimensions.</p>
-<ul>
-<li><strong>s</strong>: Output sizes per dimension (tuple)</li>
-<li><strong>dim</strong>: Dimensions to transform (tuple). Default: all dimensions.</li>
-</ul>
-<h3 id="ifftninput-snone-dimnone"><code>ifftn(input, s=None, dim=None)</code><a class="headerlink" href="#ifftninput-snone-dimnone" title="Permanent link">&para;</a></h3>
-<p>N-D inverse FFT. Same signature as <code>fftn</code>.</p>
+<table>
+<thead>
+<tr>
+<th>norm</th>
+<th>forward (<code>fft</code>, <code>rfft</code>, <code>hfft</code>, ...)</th>
+<th>inverse (<code>ifft</code>, <code>irfft</code>, <code>ihfft</code>, ...)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"backward"</code></td>
+<td>no scaling</td>
+<td><code>1/n</code></td>
+</tr>
+<tr>
+<td><code>"ortho"</code></td>
+<td><code>1/sqrt(n)</code></td>
+<td><code>1/sqrt(n)</code></td>
+</tr>
+<tr>
+<td><code>"forward"</code></td>
+<td><code>1/n</code></td>
+<td>no scaling</td>
+</tr>
+</tbody>
+</table>
+<p>The default is unchanged from earlier releases. An unknown mode raises <code>RuntimeError</code>.</p>
+<p>Inputs: complex transforms take a <code>torch.Tensor</code> (real or complex) or a <code>ComplexTensor</code>; <code>rfft*</code> / <code>ihfft*</code> take a real <code>torch.Tensor</code> (complex input raises <code>TypeError</code>). Integer and bool inputs are promoted to the default float dtype. Complex outputs are <code>ComplexTensor</code>; real outputs are <code>torch.Tensor</code>.</p>
+<p><strong>Non-last dims and the NKI path.</strong> A transformed dim other than the last is swapped to the last axis (a contiguous copy) before the transform and swapped back after, so the NKI kernels see the same <code>(..., n)</code> row layout as a last-axis transform. Strided loads that avoid the copy are future work (#123).</p>
+<p><strong>Differences from <code>torch.fft</code>:</strong> no <code>out=</code> argument. A repeated entry in <code>dim</code> transforms that dim twice, where <code>torch.fft</code> raises (#127). <code>fftshift(x, dim=())</code> returns a copy, where <code>torch.fft.fftshift</code> raises.</p>
+<h2 id="1-d-transforms">1-D transforms<a class="headerlink" href="#1-d-transforms" title="Permanent link">&para;</a></h2>
+<h3 id="fftinput-nnone-dim-1-normnone-ifftinput-nnone-dim-1-normnone"><code>fft(input, n=None, dim=-1, norm=None)</code> / <code>ifft(input, n=None, dim=-1, norm=None)</code><a class="headerlink" href="#fftinput-nnone-dim-1-normnone-ifftinput-nnone-dim-1-normnone" title="Permanent link">&para;</a></h3>
+<p>1-D DFT and inverse DFT along <code>dim</code>. Returns a <code>ComplexTensor</code>.</p>
+<h3 id="rfftinput-nnone-dim-1-normnone"><code>rfft(input, n=None, dim=-1, norm=None)</code><a class="headerlink" href="#rfftinput-nnone-dim-1-normnone" title="Permanent link">&para;</a></h3>
+<p>1-D FFT of a real signal, returning only the <code>n // 2 + 1</code> non-negative frequencies along <code>dim</code>.</p>
+<h3 id="irfftinput-nnone-dim-1-normnone"><code>irfft(input, n=None, dim=-1, norm=None)</code><a class="headerlink" href="#irfftinput-nnone-dim-1-normnone" title="Permanent link">&para;</a></h3>
+<p>Inverse of <code>rfft</code>. Reconstructs the full spectrum via Hermitian symmetry and returns a real <code>torch.Tensor</code> of length <code>n</code> along <code>dim</code> (default <code>2 * (L - 1)</code>). Uses the first <code>n // 2 + 1</code> input bins (truncated or zero-padded), as <code>torch.fft.irfft</code> does; before v0.26.0 every bin was used, which was wrong for most <code>n</code> (#105).</p>
+<h3 id="hfftinput-nnone-dim-1-normnone-ihfftinput-nnone-dim-1-normnone"><code>hfft(input, n=None, dim=-1, norm=None)</code> / <code>ihfft(input, n=None, dim=-1, norm=None)</code><a class="headerlink" href="#hfftinput-nnone-dim-1-normnone-ihfftinput-nnone-dim-1-normnone" title="Permanent link">&para;</a></h3>
+<p>FFT of a Hermitian-symmetric signal (real output of length <code>n</code>) and its inverse (one-sided spectrum of <code>n // 2 + 1</code> bins). <code>hfft</code> is a forward transform, so its default <code>norm</code> leaves it unscaled and <code>ihfft</code> scales by <code>1/n</code>. Since v0.16.0; <code>hfft</code> accepts a real input since #123.</p>
+<h2 id="2-d-and-n-d-transforms">2-D and N-D transforms<a class="headerlink" href="#2-d-and-n-d-transforms" title="Permanent link">&para;</a></h2>
+<h3 id="fft2-ifft2-rfft2-irfft2-hfft2-ihfft2-input-snone-dim-2-1-normnone"><code>fft2</code> / <code>ifft2</code> / <code>rfft2</code> / <code>irfft2</code> / <code>hfft2</code> / <code>ihfft2</code> <code>(input, s=None, dim=(-2, -1), norm=None)</code><a class="headerlink" href="#fft2-ifft2-rfft2-irfft2-hfft2-ihfft2-input-snone-dim-2-1-normnone" title="Permanent link">&para;</a></h3>
+<p>2-D transforms; each delegates to its N-D version. <code>ifft2</code>, <code>hfft2</code> and <code>ihfft2</code> are new in #123.</p>
+<h3 id="fftn-ifftn-input-snone-dimnone-normnone"><code>fftn</code> / <code>ifftn</code> <code>(input, s=None, dim=None, norm=None)</code><a class="headerlink" href="#fftn-ifftn-input-snone-dimnone-normnone" title="Permanent link">&para;</a></h3>
+<p>N-D DFT and inverse along <code>dim</code>. <code>dim=()</code> returns a copy of the input.</p>
+<h3 id="rfftn-irfftn-input-snone-dimnone-normnone"><code>rfftn</code> / <code>irfftn</code> <code>(input, s=None, dim=None, norm=None)</code><a class="headerlink" href="#rfftn-irfftn-input-snone-dimnone-normnone" title="Permanent link">&para;</a></h3>
+<p>N-D real-to-complex FFT and its inverse. Only the last dim in <code>dim</code> is one-sided (<code>s[-1] // 2 + 1</code> bins); <code>irfftn</code> returns a real tensor.</p>
+<h3 id="hfftn-ihfftn-input-snone-dimnone-normnone"><code>hfftn</code> / <code>ihfftn</code> <code>(input, s=None, dim=None, norm=None)</code><a class="headerlink" href="#hfftn-ihfftn-input-snone-dimnone-normnone" title="Permanent link">&para;</a></h3>
+<p>N-D FFT of a signal that is Hermitian-symmetric along the last of <code>dim</code> (real output), and its inverse (one-sided along the last of <code>dim</code>). New in #123.</p>
+<h2 id="helper-functions">Helper functions<a class="headerlink" href="#helper-functions" title="Permanent link">&para;</a></h2>
+<h3 id="fftshiftinput-dimnone-ifftshiftinput-dimnone"><code>fftshift(input, dim=None)</code> / <code>ifftshift(input, dim=None)</code><a class="headerlink" href="#fftshiftinput-dimnone-ifftshiftinput-dimnone" title="Permanent link">&para;</a></h3>
+<p>Roll each dim in <code>dim</code> (default: all) by <code>size // 2</code> (<code>fftshift</code>) or <code>-(size // 2)</code> (<code>ifftshift</code>), moving the zero-frequency bin to the centre and back. Takes and returns a <code>torch.Tensor</code> or a <code>ComplexTensor</code>.</p>
+<h3 id="fftfreqn-d10-dtypenone-devicenone-requires_gradfalse-rfftfreq"><code>fftfreq(n, d=1.0, *, dtype=None, device=None, requires_grad=False)</code> / <code>rfftfreq(...)</code><a class="headerlink" href="#fftfreqn-d10-dtypenone-devicenone-requires_gradfalse-rfftfreq" title="Permanent link">&para;</a></h3>
+<p>Sample frequencies of an <code>n</code>-point <code>fft</code> (<code>[0, 1, ..., (n-1)//2, -(n//2), ..., -1] / (d*n)</code>) and <code>rfft</code> (<code>[0, ..., n//2] / (d*n)</code>), as <code>torch.fft.fftfreq</code> / <code>rfftfreq</code>. <code>out=</code> and <code>layout=</code> are not supported.</p>
 <h2 id="time-frequency">Time-frequency<a class="headerlink" href="#time-frequency" title="Permanent link">&para;</a></h2>
 <h3 id="stftinput-n_fft-hop_lengthnone-win_lengthnone-windownone-centertrue-pad_modereflect-normalizedfalse-onesidedtrue"><code>stft(input, n_fft, hop_length=None, win_length=None, window=None, center=True, pad_mode="reflect", normalized=False, onesided=True)</code><a class="headerlink" href="#stftinput-n_fft-hop_lengthnone-win_lengthnone-windownone-centertrue-pad_modereflect-normalizedfalse-onesidedtrue" title="Permanent link">&para;</a></h3>
 <p>Short-time Fourier Transform. Takes <code>torch.stft</code>'s arguments except <code>return_complex</code> (the result is always a <code>ComplexTensor</code>).</p>

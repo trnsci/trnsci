@@ -5662,7 +5662,8 @@ partitioning).</p>
 <p>Defaults (<code>rank=0, size=1</code>) preserve the single-chip behavior
 identically. Users who never use multi-chip pay nothing.</p>
 <h3 id="generatoradvancen-checkpoint-primitive"><code>Generator.advance(n)</code> — checkpoint primitive<a class="headerlink" href="#generatoradvancen-checkpoint-primitive" title="Permanent link">&para;</a></h3>
-<p>A cheap way to skip forward in the logical stream:</p>
+<p>A cheap way to skip forward in the logical stream (a true skip-ahead
+with <code>key_mode="counter"</code>; see "Checkpoint resumption" below):</p>
 <div class="highlight"><pre><span></span><code><span class="n">gen</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>  <span class="c1"># skip 1M samples; counter jumps, no work done</span>
 <span class="n">gen</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1_000</span><span class="p">)</span>  <span class="c1"># emits samples (1M+1) through (1M+1000)</span>
 </code></pre></div>
@@ -5727,6 +5728,14 @@ experiment gives the user a consistent stream, not a different one.</p>
 </code></pre></div>
 <p>Position is a single integer (the global counter index), portable
 across cluster topologies.</p>
+<p>This holds with <code>key_mode="counter"</code>, where the Threefry key is fixed by
+the seed and the counter is the whole stream state. With the default
+<code>key_mode="draw"</code> each NKI draw also takes a fresh key from the host
+<code>torch.Generator</code>; that key sequence depends on the number of draws, which
+the position does not record, so <code>advance_to(position)</code> does not resume
+the stream and warns (<code>trnrand.AdvanceWarning</code>, #76). Checkpoint with
+<code>gen.get_state()</code> / <code>new_gen.set_state(state)</code> in that mode; it carries
+the host generator state and the counter.</p>
 <h2 id="what-gpu-libraries-typically-cant-do">What GPU libraries typically can't do<a class="headerlink" href="#what-gpu-libraries-typically-cant-do" title="Permanent link">&para;</a></h2>
 <p>Honest contrast:</p>
 <table>

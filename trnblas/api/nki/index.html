@@ -5334,8 +5334,10 @@ Trainium Tensor Engine or fall back to PyTorch.</p>
 <ul>
 <li><strong>Native (TorchNeuron, Trn2/Trn3)</strong>: <code>gemm</code>, <code>batched_gemm</code>, <code>syrk</code>,
   <code>symm</code> and left <code>trsm</code> are routed by measured time. Device-resident
-  operands run as aten on the <code>neuron</code> device; aten beat the NKI GEMM at
-  every measured shape (2.4–3.2× for plain GEMM). Host operands run on the
+  operands run as aten on the <code>neuron</code> device, except one region where the
+  LNC-split GEMM kernel (#79) is faster: fp32 <code>gemm</code> with A a transposed
+  view, 16 ≤ M ≤ 64, 128 ≤ K ≤ 512, N ≥ 256·K and K·N ≥ 2^24 (the DF-MP2
+  half-transform <code>C_occ.T @ eri</code>). Host operands run on the
   host CPU below a per-op size threshold and as one upload + aten + one
   download above it; host <code>trsm</code> solves with LAPACK on the host. For
   device-resident inputs, the DF-MP2 pair energy
@@ -5398,7 +5400,7 @@ See <a href="../../installation/#two-neuron-pytorch-lineages">Installation</a>.<
 <td>Overrides batched-pair routing (default 4096 on XLA, 3072 on native).</td>
 </tr>
 <tr>
-<td><code>TRNBLAS_NATIVE_GEMM=auto\|nki\|aten\|host</code></td>
+<td><code>TRNBLAS_NATIVE_GEMM=auto\|nki\|aten\|host\|lnc</code></td>
 <td>Native path. Overrides the measured GEMM-family route; see <a href="../../installation/#runtime-environment-variables">Installation</a>.</td>
 </tr>
 </tbody>

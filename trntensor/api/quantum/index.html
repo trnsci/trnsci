@@ -5896,13 +5896,22 @@ Packing pays only when the integrals already arrive packed.</p>
   no DMA transposes.</li>
 <li>Stage 1: <code>X[i, ν, P] = Σ_μ C_occ[μ, i] eri[μ, ν, P]</code>.</li>
 <li>Stage 2: <code>B[i, a, P] = Σ_ν C_vir[ν, a] X[i, ν, P]</code>.</li>
-<li>The auxiliary index is split across both physical cores at LNC=2.</li>
-<li><code>"auto"</code> uses the kernel for device-resident <code>eri</code> with <code>nocc ≤ 128</code> when
-    its SBUF working set fits and the stage-1 work <code>nocc·nbasis²·naux</code> is at
-    least 5e8 multiply-adds (about nbasis ≥ 256). Smaller problems lose to
-    the launch floor and the padding copies; otherwise it runs the two aten
-    steps.
-    <code>TRNTENSOR_AO_TO_MO=auto|trn2|aten|legacy</code> overrides the choice.</li>
+<li>The auxiliary index is split across both physical cores at LNC=2. With
+    an odd aux-chunk count and <code>nocc &gt; 128</code>, the occupied index is split
+    instead.</li>
+<li>Any <code>nocc</code> (#80): stage 1 runs occupied blocks of ≤ 128 over each eri
+    block, so <code>eri</code> is read once per program.</li>
+<li><code>"auto"</code> uses the kernel for device-resident <code>eri</code> when its SBUF
+    working set fits and the stage-1 work <code>nocc·nbasis²·naux</code> is at least
+    5e8 multiply-adds (about nbasis ≥ 256). Smaller problems lose to the
+    launch floor. Two exceptions (#80):<ul>
+<li>A full <code>eri</code> whose nbasis or naux is not a 128 multiple runs aten. The
+  kernel would pad a copy of the whole square, which costs more than
+  aten. Pass the packed form to keep the kernel there.</li>
+<li>A packed <code>eri</code> with nbasis not a 128 multiple needs 2e9 multiply-adds.
+<code>TRNTENSOR_AO_TO_MO=auto|trn2|aten|legacy</code> overrides the choice.</li>
+</ul>
+</li>
 </ul>
 <p>Measured on Trn2 (fp32, one LNC=2 core, device-resident, warm, #51):</p>
 <table>
@@ -5957,6 +5966,98 @@ Packing pays only when the integrals already arrive packed.</p>
   column includes the padding of <code>nvir</code> to 128 and is the shipped route. At
   nbasis 64 and 128 it measured 0.79 and 0.57 ms with the kernel forced,
   which is why <code>"auto"</code> keeps aten there.</p>
+<p>Above <code>nocc = 128</code> (#80; Trn2, one logical core, fp32, warm medians in ms,
+  <code>nvir = nbasis − nocc</code>). "Per-128 launches" is the <code>nocc ≤ 128</code> kernel run
+  once per 128 orbitals, which re-reads <code>eri</code> each time:</p>
+<table>
+<thead>
+<tr>
+<th>nbasis, naux</th>
+<th>LNC</th>
+<th>nocc</th>
+<th>aten, full / packed</th>
+<th>per-128 launches, full / packed</th>
+<th>Trn2 kernel, full / packed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>512, 1536</td>
+<td>2</td>
+<td>160</td>
+<td>17.2 / 25.1</td>
+<td>14.1 / 13.5</td>
+<td><strong>9.4 / 9.2</strong></td>
+</tr>
+<tr>
+<td>512, 1536</td>
+<td>2</td>
+<td>256</td>
+<td>24.8 / 34.8</td>
+<td>15.3 / 14.6</td>
+<td><strong>10.4 / 9.9</strong></td>
+</tr>
+<tr>
+<td>512, 1536</td>
+<td>2</td>
+<td>384</td>
+<td>29.5 / 37.0</td>
+<td>21.5 / 19.7</td>
+<td><strong>12.6 / 12.7</strong></td>
+</tr>
+<tr>
+<td>512, 1536</td>
+<td>1</td>
+<td>160</td>
+<td>24.8 / 43.1</td>
+<td>26.7 / 27.6</td>
+<td><strong>18.7 / 18.7</strong></td>
+</tr>
+<tr>
+<td>512, 1536</td>
+<td>1</td>
+<td>256</td>
+<td>33.1 / 52.1</td>
+<td>28.2 / 29.6</td>
+<td><strong>20.3 / 20.4</strong></td>
+</tr>
+<tr>
+<td>512, 1536</td>
+<td>1</td>
+<td>384</td>
+<td>41.0 / 60.2</td>
+<td>38.7 / 40.3</td>
+<td><strong>24.3 / 24.7</strong></td>
+</tr>
+<tr>
+<td>768, 2304</td>
+<td>2</td>
+<td>160</td>
+<td>37.5* / 65.0*</td>
+<td>41.7 / 47.6</td>
+<td><strong>30.2 / 30.6</strong></td>
+</tr>
+<tr>
+<td>768, 2304</td>
+<td>2</td>
+<td>256</td>
+<td>84.9* / 112.9*</td>
+<td>44.3 / 51.8</td>
+<td><strong>33.7 / 33.6</strong></td>
+</tr>
+<tr>
+<td>768, 2304</td>
+<td>2</td>
+<td>384</td>
+<td>112.9* / 140.6*</td>
+<td>59.2 / 70.7</td>
+<td><strong>45.3 / 45.4</strong></td>
+</tr>
+</tbody>
+</table>
+<p>* At nbasis 768 / naux 2304 the aten result was wrong on the device
+  (max error ~1 against float64), while the kernel matched float64 to 2e-7;
+  aten was correct at nbasis 736. Its timings there are for reference only.</p>
 <ul>
 <li><strong>Host inputs on native TorchNeuron (#56).</strong> Under <code>"auto"</code>, with <code>eri</code>,
   <code>C_occ</code> and <code>C_vir</code> all on the host, the inputs are uploaded (<code>eri</code> in the
@@ -5974,7 +6075,9 @@ Packing pays only when the integrals already arrive packed.</p>
 </ul>
 <h3 id="current-limitations">Current limitations<a class="headerlink" href="#current-limitations" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Both NKI kernels need <code>nocc ≤ 128</code>; larger <code>nocc</code> runs the aten steps (native) or raises <code>NotImplementedError</code> (XLA).</li>
+<li>The original (XLA-path) kernel needs <code>nocc ≤ 128</code> and raises <code>NotImplementedError</code> above it. The Trn2 kernels take any <code>nocc</code>.</li>
+<li>At <code>nocc</code> just above a multiple of 128 the Trn2 kernel pays for a whole extra block in stage 1 (the occupied block is the stationary operand, and a pass costs the same at any width). For example, nocc 160 at nbasis 768 costs 30 ms against 21 ms at 128.</li>
+<li>The first call per shape compiles for minutes at large sizes (traced loops unroll): 4–11 min at nbasis 768 / naux 2304 for a full <code>eri</code>, 1–4.5 min packed. The NEFF cache keeps that to one compile per shape.</li>
 <li>The <code>(nocc, nbasis, naux)</code> intermediate goes through kernel-scratch HBM between the two stages, as it does between the two aten einsums. Stage 1 leaves <code>i</code> on the partition axis, and stage 2 needs <code>ν</code> there.</li>
 </ul>
 <h2 id="trntensordf_exchangeb-c_occ-alpha10-tensor"><code>trntensor.df_exchange(B, C_occ, alpha=1.0) -&gt; Tensor</code><a class="headerlink" href="#trntensordf_exchangeb-c_occ-alpha10-tensor" title="Permanent link">&para;</a></h2>

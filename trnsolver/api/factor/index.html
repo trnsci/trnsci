@@ -5370,7 +5370,8 @@
 <div class="highlight"><pre><span></span><code><span class="n">L</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">A_spd</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="lua"><code>lu(A)</code><a class="headerlink" href="#lua" title="Permanent link">&para;</a></h2>
-<p>Pivoted LU decomposition. Returns <code>(P, L, U)</code> with <code>P A = L U</code>.</p>
+<p>Pivoted LU decomposition. Returns <code>(P, L, U)</code> with <code>A = P L U</code>, the
+<code>torch.linalg.lu</code> convention (equivalently <code>Pᵀ A = L U</code>).</p>
 <h2 id="qra"><code>qr(A)</code><a class="headerlink" href="#qra" title="Permanent link">&para;</a></h2>
 <p><code>A = Q R</code> with <code>Q</code> orthogonal and <code>R</code> upper-triangular.</p>
 <h2 id="solvea-b"><code>solve(A, B)</code><a class="headerlink" href="#solvea-b" title="Permanent link">&para;</a></h2>

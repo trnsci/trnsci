@@ -5588,7 +5588,7 @@ supported in maintenance mode."</p>
 </tr>
 <tr>
 <td><code>NKI_ENABLE_TRACE_CACHE=0</code></td>
-<td>TorchNeuron setting (not trntensor's). Turns off the cross-process NKI kernel cache, which cannot version editable installs and may serve a stale kernel after a source edit. Set it with <code>pip install -e</code>; the test suite sets it by default.</td>
+<td>TorchNeuron setting (not trntensor's). Turns off the cross-process NKI kernel cache, which cannot version editable installs and may serve a stale kernel after a source edit. Set it with <code>pip install -e</code>, or if you write your own NKI kernel factories (<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1454">aws-neuron/aws-neuron-sdk#1454</a>). The test suite keeps the cache on, with a fresh cache directory per session.</td>
 </tr>
 <tr>
 <td><code>TRNTENSOR_MP2_ENERGY=auto\|rows\|aten\|legacy</code></td>
@@ -5980,7 +5980,9 @@ device-resident <code>auto</code> route + download. <strong>Bold</strong> is wha
 <li><strong>AO→MO: kept, rewritten for Trn2</strong> (<code>ao_to_mo_trn2_kernel</code>). It is
   1.3–1.6× faster than the two aten einsums at nbasis 256–768, and native
   <code>"auto"</code> uses it there for device-resident <code>eri</code>. Below nbasis ≈ 256
-  <code>"auto"</code> keeps aten.</li>
+  <code>"auto"</code> keeps aten. Since #80 it takes any <code>nocc</code> (occupied blocks of
+  ≤ 128 in stage 1); at nocc 160–384 it is 1.8–2.4× faster than aten (full
+  <code>eri</code>) and 2.7–3.5× (packed), at nbasis 512.</li>
 <li><strong>MP2 energy: kept, rewritten for Trn2</strong> (<code>mp2_energy_row_kernel</code>). It is
   1.25–1.9× faster than aten once each row launch carries at least 3 GFLOP,
   and native <code>"auto"</code> uses it there.</li>
