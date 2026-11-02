@@ -10,6 +10,7 @@ Outputs:
   --out-cvo FILE        CallVariantsOutput TFRecord (GZIP if it ends in .gz)
                         that DeepVariant's postprocess_variants consumes
   --report FILE.json    timings and examples/s
+  --cache FILE.npy      save decoded/generated inputs (``--prepare-only`` to stop there)
 
 Device paths:
   --device cpu
@@ -166,6 +167,11 @@ def main() -> None:
     ap.add_argument("--max-examples", type=int, default=0)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--cache", help="write decoded/generated inputs to this .npy")
+    ap.add_argument(
+        "--prepare-only",
+        action="store_true",
+        help="decode/generate (+ --cache), then exit",
+    )
     ap.add_argument("--out-probs")
     ap.add_argument("--out-cvo")
     ap.add_argument("--report")
@@ -174,6 +180,9 @@ def main() -> None:
         ap.error("--cache must end in .npy")
 
     imgs, keys, variants, alts = load_inputs(args)
+    if args.prepare_only:
+        print(f"prepared {len(imgs)} examples")
+        return
     device = setup_device(args)
 
     import torch
