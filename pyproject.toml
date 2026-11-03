@@ -22,15 +22,15 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-fft = ["trnfft>=0.28"]
-blas = ["trnblas>=0.11"]
+fft = ["trnfft>=0.28.1"]
+blas = ["trnblas>=0.11.1"]
 rand = ["trnrand>=0.14"]
 solver = ["trnsolver>=0.22"]
 sparse = ["trnsparse>=0.14"]
 tensor = ["trntensor>=0.24"]
 all = [
-    "trnfft>=0.28",
-    "trnblas>=0.11",
+    "trnfft>=0.28.1",
+    "trnblas>=0.11.1",
     "trnrand>=0.14",
     "trnsolver>=0.22",
     "trnsparse>=0.14",
