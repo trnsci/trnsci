@@ -1576,6 +1576,8 @@
       
         
       
+        
+      
     
     
     
@@ -1720,6 +1722,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnfft/api/sht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonic Transforms
   
 
     
@@ -4338,6 +4368,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Precision and dtypes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#float64-on-the-neuron-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        float64 on the neuron device
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#known-limits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5452,6 +5510,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Precision and dtypes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#float64-on-the-neuron-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        float64 on the neuron device
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#known-limits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5618,6 +5704,79 @@ the mask is treated as a discrete gate; <code>grad_A *= mask</code> and
 <p>Restricted to square A (<code>M == K</code>) with 1-D <code>diag_integrals</code> in v0.4.0
 — the common Fock-build case. Rectangular / asymmetric-bounds
 extension is a follow-up if asked for.</p>
+<h2 id="precision-and-dtypes">Precision and dtypes<a class="headerlink" href="#precision-and-dtypes" title="Permanent link">&para;</a></h2>
+<p>Every NKI kernel computes in fp32 or bf16 with fp32 PSUM accumulation.
+Trainium computes float64 at fp32 precision, so no kernel can return a
+float64-accurate result. float64 operands (and complex128 in <code>bsr_spmm</code>,
+whose complex path runs as real kernel launches) follow one rule across
+the trnsci suite (#84):</p>
+<table>
+<thead>
+<tr>
+<th>configuration</th>
+<th>float64 / complex128 operands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>set_backend("auto")</code> (default)</td>
+<td>the PyTorch path, at float64 accuracy, the same code as <code>set_backend("pytorch")</code>; on the host, also for operands that live on the <code>neuron</code> device (see below)</td>
+</tr>
+<tr>
+<td><code>set_backend("nki")</code></td>
+<td>cast to fp32 (complex64) for the kernel; one <code>UserWarning</code> per op per process says precision is reduced to fp32</td>
+</tr>
+<tr>
+<td><code>TRNSPARSE_REQUIRE_NKI=1</code></td>
+<td><code>NotImplementedError</code> (takes precedence over the explicit-nki cast)</td>
+</tr>
+</tbody>
+</table>
+<p>This covers <code>spmm</code>, <code>bsr_spmm</code>, <code>screened_spmm</code>,
+<code>block_sparse_attention_tiled</code> (forward and backward), <code>cg_bsr</code> (through
+<code>bsr_spmm</code>) and the fused solvers <code>cg_bsr_fused</code> /
+<code>power_iteration_bsr_fused</code>, whose host path then runs in float64. A
+call with any float64 value operand counts (for example fp32 CSR values
+with a float64 <code>B</code>). <code>screened_spmm</code> decides on <code>A</code> and <code>B</code>; the Schwarz
+bound vector <code>diag_integrals</code> only builds the mask.</p>
+<p>The result dtype is always what <code>set_backend("pytorch")</code> returns for the
+same inputs, including bf16 / fp16 operands and mixed-dtype promotion
+(<code>torch.promote_types</code> of the operands); a kernel that computes in fp32
+has its result cast to that dtype. fp32, bf16 and fp16 operands take the
+kernels unchanged. Integer, bool and complex operands (outside
+<code>bsr_spmm</code>) have no kernel and take the PyTorch path, or raise
+<code>NotImplementedError</code> under <code>TRNSPARSE_REQUIRE_NKI</code>.</p>
+<p>Before 0.14.0 (0.2.0 through 0.13.0), float64 under <code>auto</code> was cast to
+fp32 on the NKI path without a warning.</p>
+<h3 id="float64-on-the-neuron-device">float64 on the <code>neuron</code> device<a class="headerlink" href="#float64-on-the-neuron-device" title="Permanent link">&para;</a></h3>
+<p>On the <code>neuron</code> device the PyTorch path would be device aten, and device
+aten computes float64 at fp32 precision too (measured on Trn2). So under
+<code>auto</code>, when any float64 or complex128 operand of a public op lives on a
+<code>neuron</code> device (a dense tensor, or the values / blocks of a CSR, COO or
+BSR matrix), the op runs on the host instead: the device-resident operands
+are copied to the CPU (indices included), host torch computes at float64,
+and the result is copied back to the dense operand's device in float64
+(complex128). The copies are differentiable, so autograd flows through
+them. The first such call of each op emits one <code>UserWarning</code>: "float64 on
+the neuron device is computed on the host for float64 accuracy (device
+arithmetic is fp32); pass float32 to stay on device".</p>
+<p>This covers <code>spmv</code>, <code>spmm</code>, <code>spmv_symmetric</code>, <code>bsr_spmm</code>, <code>screened_spmm</code>,
+<code>block_sparse_attention_tiled</code> (forward and backward), <code>cg_bsr</code>,
+<code>chebyshev_bsr</code>, <code>richardson_bsr</code>, <code>power_iteration_bsr</code> and the
+preconditioner returned by <code>jacobi_preconditioner_bsr</code>; a solver moves its
+operands once, not once per iteration. The fused solvers <code>cg_bsr_fused</code> /
+<code>power_iteration_bsr_fused</code> already run float64 on their host path.</p>
+<p>To keep float64 on the device anyway (faster, fp32 precision), set
+<code>TRNSPARSE_FP64_ON_DEVICE=1</code>: device-resident float64 then runs in device
+aten, without copies or the warning. The explicit <code>set_backend("nki")</code>
+cast, the pytorch backend and host-resident float64 are not affected.
+float32, bf16 and fp16 operands on the device stay on the device.</p>
+<p>Under <code>TRNSPARSE_REQUIRE_NKI=1</code> (backends <code>auto</code> and <code>nki</code>), a float64 /
+complex128 operand on the <code>neuron</code> device raises <code>NotImplementedError</code> at
+every public op, before any host copy or kernel, also with
+<code>TRNSPARSE_FP64_ON_DEVICE=1</code>: no kernel computes float64 at float64
+accuracy, and the routes without a kernel (CSR <code>spmv</code> / <code>spmv_symmetric</code> /
+<code>spmm</code>) would otherwise run device aten at fp32 precision with no error.</p>
 <h2 id="known-limits">Known limits<a class="headerlink" href="#known-limits" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>BSR block size.</strong> The NKI kernels take <code>block_size=128</code> only. Other block

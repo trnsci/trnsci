@@ -1576,6 +1576,8 @@
       
         
       
+        
+      
     
     
     
@@ -1720,6 +1722,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trnfft/api/sht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonic Transforms
   
 
     
@@ -4850,6 +4880,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dispatch-path" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5365,6 +5406,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dispatch-path" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5502,6 +5554,79 @@ public-facing dispatch is in <code>trntensor.nki.dispatch</code>.</p>
 <h2 id="has_nki-bool"><code>HAS_NKI: bool</code><a class="headerlink" href="#has_nki-bool" title="Permanent link">&para;</a></h2>
 <p>Module-level flag set at import time. <code>True</code> when <code>nki</code> (0.3.0+) is
 importable, otherwise <code>False</code>.</p>
+<h2 id="precision-and-dtypes">Precision and dtypes<a class="headerlink" href="#precision-and-dtypes" title="Permanent link">&para;</a></h2>
+<p>Trainium has no fp64 datapath: the NKI kernels compute in fp32 (bf16 / fp16
+where a kernel takes them). The trntensor kernels are the matmul and
+batched-matmul kernels behind <code>einsum</code> / <code>multi_einsum</code>, and the chemistry
+kernels behind <code>mp2_energy</code>, <code>ao_to_mo_transform</code>, <code>df_exchange</code> and
+<code>df_coulomb</code>. float64 operands that would reach one of them follow the
+trnsci suite's float64 policy (#92):</p>
+<table>
+<thead>
+<tr>
+<th>setting</th>
+<th>float64 on a kernel route</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>set_backend("auto")</code> (default)</td>
+<td>runs torch on the operands' own device, the pytorch backend's computation, at float64 accuracy on the host. No kernel is launched</td>
+</tr>
+<tr>
+<td><code>set_backend("nki")</code> / <code>TRNTENSOR_FORCE_BACKEND=nki</code></td>
+<td>cast to fp32, the kernel runs, and the result is returned as float64 with fp32 accuracy. A <code>UserWarning</code> is emitted once per op per process</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_REQUIRE_NKI=1</code> (takes precedence over both)</td>
+<td>raises <code>NotImplementedError</code>, so a downcast never happens silently</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Result dtype.</strong> The result dtype always matches what the pytorch backend
+  returns for the same inputs, including bf16 / fp16 and mixed-dtype
+  promotion (<code>torch.promote_types</code> of the operands). Where a kernel computes
+  in fp32, the result is cast back.</li>
+<li><strong>Other dtypes.</strong> Integer, bool and complex operands run torch on every
+  backend (trntensor has no complex kernels), and raise <code>NotImplementedError</code>
+  under <code>TRNTENSOR_REQUIRE_NKI=1</code> when the call would otherwise have run a
+  kernel. float16 chemistry operands, and bf16 on the fp32-only <code>df_*</code>
+  kernels, are upcast to fp32 without loss.</li>
+<li><strong>On the device.</strong> Device aten computes float64 at fp32 precision
+  (measured on Trn2), so under <code>"auto"</code> float64 / complex128 operands that
+  already live on the <code>neuron</code> device are copied to the host, computed in host
+  torch at float64 accuracy, and the result is returned on the operands'
+  device in float64 / complex128. This covers every public compute entry
+  point: <code>einsum</code>, <code>multi_einsum</code>, <code>mp2_energy</code>, <code>ao_to_mo_transform</code>,
+  <code>df_exchange</code>, <code>df_coulomb</code>, the CP / Tucker / TT decompositions and
+  reconstructions, <code>gather</code> (device <code>torch.cat</code> also rounds float64 to
+  fp32), and the gathers <code>pack_tril</code> / <code>unpack_tril</code> / <code>pack_density</code> /
+  <code>unpack_packed</code> (device <code>index_select</code> and fancy indexing round float64 to
+  fp32 too; plain copies such as <code>.to</code>, <code>clone</code> and <code>.contiguous</code> are exact). <code>einsum(dtype=float64)</code> (or <code>"f64"</code>) on fp32 / bf16 device operands
+  asks for a float64 computation and takes the same host path. One <code>UserWarning</code> per op per process says: "float64 on the
+  neuron device is computed on the host for float64 accuracy (device
+  arithmetic is fp32); pass float32 to stay on device". <code>multi_einsum</code>
+  returns host tensors, as it always has. An <code>einsum(out=)</code> tensor on the
+  device is written in place. <code>einsum(dtype=...)</code> with a non-float64 compute
+  dtype stays on the device.</li>
+<li><code>TRNTENSOR_FP64_ON_DEVICE=1</code> keeps device aten (fp32 precision, no
+    transfer, no warning), for callers who prefer speed to float64 accuracy.</li>
+<li>Host-resident float64 is unchanged: it stays in host torch (and
+    <code>multi_einsum</code> no longer pins host float64 operands to the device).</li>
+<li>Explicit <code>set_backend("nki")</code> / <code>"pytorch"</code> are unaffected: their rows
+    in the table above apply.</li>
+<li><code>TRNTENSOR_REQUIRE_NKI=1</code> (backends <code>"auto"</code> and <code>"nki"</code>): a float64 /
+    complex128 computation on the <code>neuron</code> device raises
+    <code>NotImplementedError</code> at every guarded entry point (and in
+    <code>trntensor.stream</code> with a <code>neuron</code> device), with no host copy, ahead of
+    <code>TRNTENSOR_FP64_ON_DEVICE=1</code>. Before, only kernel routes raised; the
+    routes without a kernel (an <code>einsum</code> below the kernel size thresholds or
+    not a matmul, the decompositions, <code>precision="kahan"</code>) ran device aten
+    at fp32 precision, or the host, with no error.</li>
+<li><code>precision="kahan"</code> always contracts in fp64 on the host. <code>precision="dd"</code>
+    still raises <code>NotImplementedError</code> with NKI installed (trnblas#22).</li>
+</ul>
 <h2 id="dispatch-path">Dispatch path<a class="headerlink" href="#dispatch-path" title="Permanent link">&para;</a></h2>
 <p>On Neuron hardware, kernels run on one of two <code>torch-neuronx</code> lineages,
 detected on the first kernel launch (never at import):</p>
@@ -5590,7 +5715,11 @@ supported in maintenance mode."</p>
 <tbody>
 <tr>
 <td><code>TRNTENSOR_REQUIRE_NKI=1</code></td>
-<td>Re-raise kernel exceptions instead of falling back to PyTorch. Useful in the validation loop to surface silent kernel breakage.</td>
+<td>Re-raise kernel exceptions instead of falling back to PyTorch. Useful in the validation loop to surface silent kernel breakage. A dtype the kernel does not take (float64 included) raises <code>NotImplementedError</code> instead of running torch or downcasting; see <a href="#precision-and-dtypes">Precision and dtypes</a>.</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_FP64_ON_DEVICE=1</code></td>
+<td>Under <code>"auto"</code>, compute float64 / complex128 operands that are already on the <code>neuron</code> device in device aten at fp32 precision, instead of on the host at float64 accuracy (the default); see <a href="#precision-and-dtypes">Precision and dtypes</a>.</td>
 </tr>
 <tr>
 <td><code>TRNTENSOR_MIN_NKI_FLOPS=&lt;int&gt;</code></td>

@@ -1576,6 +1576,8 @@
       
         
       
+        
+      
     
     
     
@@ -1720,6 +1722,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trnfft/api/sht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonic Transforms
   
 
     
@@ -2990,6 +3020,17 @@
     <span class="md-ellipsis">
       
         Backend selection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
       
     </span>
   </a>
@@ -5265,6 +5306,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5340,6 +5392,68 @@ Trainium GpSimd engine (Threefry4x32-20) or fall back to <code>torch.Generator</
 </code></pre></div>
 <p><code>trnrand.HAS_NKI</code> is <code>True</code> when <code>nki&gt;=0.3.0</code> is importable.
 <code>trnrand.get_backend()</code> returns the active backend name.</p>
+<h2 id="precision-and-dtypes">Precision and dtypes<a class="headerlink" href="#precision-and-dtypes" title="Permanent link">&para;</a></h2>
+<p>The NKI kernels draw float32 values (24-bit uniforms; every kernel operand is
+an int32 word, or float32 for Box-Muller). A float64 request
+(<code>dtype=torch.float64</code>, or a float64 buffer for <code>*_into</code> /
+<code>GeneratorProgram.stream_into</code>) follows the trnsci suite policy (trnrand#105,
+from 0.14.0):</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>float64 request</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>set_backend("auto")</code></td>
+<td>Drawn in torch at float64 precision: the same values as <code>set_backend("pytorch")</code>, no kernel launch.</td>
+</tr>
+<tr>
+<td><code>set_backend("nki")</code></td>
+<td>The float32 kernels run and the result is cast to float64; one <code>UserWarning</code> per op per process says the precision is float32.</td>
+</tr>
+<tr>
+<td><code>TRNRAND_REQUIRE_NKI=1</code></td>
+<td><code>NotImplementedError</code> (either backend).</td>
+</tr>
+</tbody>
+</table>
+<p>The result dtype always matches the PyTorch backend: the requested dtype (or
+the buffer's) for float32, float64, float16 and bfloat16. float16 / bfloat16
+requests run on the kernels and are rounded from float32, staying inside the
+documented support. Integer, bool and complex requests take the PyTorch path
+(the same values or the same error as <code>set_backend("pytorch")</code>), or raise
+<code>NotImplementedError</code> under <code>TRNRAND_REQUIRE_NKI=1</code>.</p>
+<p><strong>Float64 buffers on the neuron device.</strong> trnrand's allocating calls
+(<code>uniform</code>, <code>normal</code>, <code>halton</code>, ...) return host tensors, so the only
+device-resident float64 is a <code>*_into</code> / <code>GeneratorProgram.stream_into</code> buffer
+on the <code>neuron</code> device. Device arithmetic on Trainium is float32 (measured on
+Trn2: device aten computes float64 at float32 precision), so under
+<code>set_backend("auto")</code> such a buffer is filled on the host with the host
+<code>torch.Generator</code> at float64 precision and the values are copied into the
+device buffer, which keeps its float64 dtype. The values are the same as for
+a host buffer with the same generator state (and, for <code>*_into</code>, the same as
+<code>set_backend("pytorch")</code>). Each op emits one <code>UserWarning</code> per process:
+"float64 on the neuron device is computed on the host for float64 accuracy
+(device arithmetic is fp32); pass float32 to stay on device". A float32 buffer
+stays on the device kernels, and host float64 buffers are filled in place as
+before, without a warning.</p>
+<p><code>TRNRAND_FP64_ON_DEVICE=1</code> opts out for callers who prefer speed: a float64
+buffer on the neuron device keeps the on-device float32 kernels under
+<code>"auto"</code> (float32 precision, cast to float64; no host round trip, no warning).
+Without the NKI kernels there is no on-device route (the generator is a host
+<code>torch.Generator</code>), so the buffer is filled on the host either way.
+<code>TRNRAND_REQUIRE_NKI=1</code> still raises for float64.</p>
+<p>Owen-scrambled <code>sobol</code> (the default, <code>scramble=True</code>) follows this policy:
+the PyTorch path holds its 32-bit points in float64, the <code>sobol_owen</code> kernel
+the top 24 bits in float32. Unscrambled and <code>scramble="shift"</code> <code>sobol</code> are
+the exception: the PyTorch backend's float64 Sobol there is a float32
+<code>SobolEngine</code> draw cast to float64, so such a float64 request keeps the NKI
+kernel on every backend, without a warning or a <code>TRNRAND_REQUIRE_NKI</code> error.</p>
+<p>Before 0.14.0, float64 on the NKI path (including <code>"auto"</code> on a Neuron host)
+was always the cast float32 kernel output, with no warning.</p>
 <h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -5355,7 +5469,11 @@ Trainium GpSimd engine (Threefry4x32-20) or fall back to <code>torch.Generator</
 </tr>
 <tr>
 <td><code>TRNRAND_REQUIRE_NKI=1</code></td>
-<td>Kernel-path failures re-raise instead of silently falling back to PyTorch. Used by the validation suite to catch silent kernel breakage.</td>
+<td>Kernel-path failures re-raise instead of silently falling back to PyTorch, and requests the kernels cannot serve at full precision (float64, integer, bool, complex) raise <code>NotImplementedError</code> (see <a href="#precision-and-dtypes">Precision and dtypes</a>). Used by the validation suite to catch silent kernel breakage.</td>
+</tr>
+<tr>
+<td><code>TRNRAND_FP64_ON_DEVICE=1</code></td>
+<td>Under <code>set_backend("auto")</code>, a float64 <code>*_into</code> / <code>GeneratorProgram</code> buffer on the neuron device keeps the on-device float32 kernels (float32 precision) instead of being filled on the host at float64 precision (see <a href="#precision-and-dtypes">Precision and dtypes</a>).</td>
 </tr>
 <tr>
 <td><code>TRNRAND_CORES=&lt;n&gt;\|auto</code></td>
@@ -5388,7 +5506,7 @@ detected on the first kernel launch:</p>
   on <code>device="neuron"</code>, also callable directly and inside
   <code>torch.compile(backend="neuron")</code>:
   <code>torch.ops.trnrand.philox4x32</code>, <code>box_muller</code>, <code>threefry4x32</code>,
-  <code>threefry_normal</code>, <code>sobol_gray_code</code>, <code>halton</code>,
+  <code>threefry_normal</code>, <code>sobol_gray_code</code>, <code>sobol_owen</code>, <code>halton</code>,
   <code>threefry_streaming_normal</code>, <code>threefry_streaming_uniform</code>, and the bulk
   kernels <code>threefry_bulk_normal</code> / <code>threefry_bulk_uniform</code> and their
   full-word <code>threefry_bulk32_*</code> variants. The ops are registered only once

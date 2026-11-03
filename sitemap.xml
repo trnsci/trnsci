@@ -333,6 +333,10 @@
          <lastmod>2026-11-03</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/trnfft/api/sht/</loc>
+         <lastmod>2026-11-03</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnfft/design-notes/fft-is-a-gemm/</loc>
          <lastmod>2026-11-03</lastmod>
     </url>

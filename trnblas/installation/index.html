@@ -1576,6 +1576,8 @@
       
         
       
+        
+      
     
     
     
@@ -1720,6 +1722,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnfft/api/sht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonic Transforms
   
 
     
@@ -5568,7 +5598,11 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <tbody>
 <tr>
 <td><code>TRNBLAS_REQUIRE_NKI=1</code></td>
-<td>Re-raise on NKI kernel errors instead of silently falling back to <code>torch.matmul</code>. Useful in the validation suite to surface kernel breakage. Under <code>set_backend("nki")</code>, dtypes the kernels do not compute (float64, for example) raise <code>NotImplementedError</code> instead of running in torch (v0.9.1). Unset (default): kernel exceptions fall back to PyTorch.</td>
+<td>Re-raise on NKI kernel errors instead of silently falling back to <code>torch.matmul</code>. Useful in the validation suite to surface kernel breakage. Dtypes the kernels do not compute (float64, for example) raise <code>NotImplementedError</code> instead of running in torch or, for float64 under <code>set_backend("nki")</code>, being cast to float32 (v0.9.1; see <a href="../api/nki/#precision-and-dtypes">Precision and dtypes</a>). Unset (default): kernel exceptions fall back to PyTorch.</td>
+</tr>
+<tr>
+<td><code>TRNBLAS_FP64_ON_DEVICE=1</code></td>
+<td>Under <code>set_backend("auto")</code>, float64 / complex128 operands on the <code>neuron</code> device run as device aten at fp32 precision. Unset (default): they are copied to the host and computed in host torch at float64 accuracy, with one <code>UserWarning</code> per op (see <a href="../api/nki/#precision-and-dtypes">Precision and dtypes</a>). Also lets a forced <code>TRNBLAS_NATIVE_GEMM=aten\|lnc</code> upload host float64.</td>
 </tr>
 <tr>
 <td><code>TRNBLAS_USE_SIMULATOR=1</code></td>

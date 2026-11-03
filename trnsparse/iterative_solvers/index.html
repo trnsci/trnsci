@@ -1576,6 +1576,8 @@
       
         
       
+        
+      
     
     
     
@@ -1720,6 +1722,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trnfft/api/sht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonic Transforms
   
 
     
@@ -5607,7 +5637,11 @@ solve breaks down. <code>"bf16x2"</code> costs about the same as fp32 and lands 
 replaces fp32; bf16 is at best an inner solver or a preconditioner. See <code>benchmarks.md</code>.</p>
 <p>The kernel is fp32 (PSUM accumulates in fp32). The host path (no
 <code>neuron</code> device, or <code>set_backend("pytorch")</code>) runs the same masked
-algorithm in PyTorch in b's dtype, so fp64 stays fp64.</p>
+algorithm in PyTorch in b's dtype, so fp64 stays fp64. A float64 A, b
+or x0 takes that host path under the default <code>auto</code> backend too; an
+explicit <code>set_backend("nki")</code> runs the fp32 kernel with a one-time
+<code>UserWarning</code>, and <code>TRNSPARSE_REQUIRE_NKI=1</code> raises <code>NotImplementedError</code>
+(see Architecture, "Precision and dtypes").</p>
 <h3 id="chronopoulosgear-recurrence-recurrence-opt-in">Chronopoulos–Gear recurrence (<code>recurrence=</code>, opt-in)<a class="headerlink" href="#chronopoulosgear-recurrence-recurrence-opt-in" title="Permanent link">&para;</a></h3>
 <p><code>recurrence="chronopoulos_gear"</code> (plain CG only) runs the
 Chronopoulos–Gear form of CG: the matvec is applied to r, s = A p is

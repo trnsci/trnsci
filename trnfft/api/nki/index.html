@@ -16,7 +16,7 @@
         <link rel="prev" href="../nn/">
       
       
-        <link rel="next" href="../../architecture/">
+        <link rel="next" href="../sht/">
       
       
         
@@ -1580,6 +1580,8 @@
       
         
       
+        
+      
     
     
     
@@ -1798,6 +1800,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dispatch-path" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1873,6 +1886,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonic Transforms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -5315,6 +5356,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dispatch-path" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5443,6 +5495,14 @@
 <td>Turns off pinned-memory host outputs (planes of 1 MiB and up, native path; since v0.25.0, #98).</td>
 </tr>
 <tr>
+<td><code>TRNFFT_REQUIRE_NKI=1</code></td>
+<td>Refuse operand dtypes the kernels do not take (<code>dispatch.KERNEL_DTYPES</code>: float32/bfloat16/float16, float32 only for the fused four-step and the six-step GEMM). These raise <code>NotImplementedError</code> instead of computing float64 in torch (<code>auto</code>) or in float32 on the kernel (<code>nki</code>), or computing integer, bool and complex operands in torch. <code>precision="double"</code> keeps its host FP64 route. Read per call. See <a href="#precision-and-dtypes">Precision and dtypes</a>.</td>
+</tr>
+<tr>
+<td><code>TRNFFT_FP64_ON_DEVICE=1</code></td>
+<td>Under <code>auto</code>, keep float64 / complex128 operands that are already on the neuron device on device aten (FP32 precision, no host copy, no warning) instead of computing them on the host at float64 accuracy. Read per call. See <a href="#precision-and-dtypes">Precision and dtypes</a>.</td>
+</tr>
+<tr>
 <td><code>TRNFFT_NKI_EAGER_HANDLE=1\|0</code></td>
 <td>Native path only. <code>1</code> (default): eager NKI kernel calls on plain <code>neuron</code> tensors go through a <code>torch_neuronx.wrap_nki</code> handle built once per kernel instead of the <code>trnfft::</code> custom op, which cuts host time per call from about 0.1 ms to 0.02-0.03 ms on trn2 (trnblas#92). The butterfly <code>n</code> / <code>stage</code> ints pass through unchanged. <code>trnfft::fft</code> (a whole driver) keeps the op; its kernel launches take the handle. Under <code>torch.compile</code>, and for tensors that require grad, int64 tensors and tensor subclasses, the custom op runs as before; so do ops whose body is more than one kernel call. <code>0</code> always uses the custom op.</td>
 </tr>
@@ -5456,6 +5516,68 @@
 </tr>
 </tbody>
 </table>
+<h2 id="precision-and-dtypes">Precision and dtypes<a class="headerlink" href="#precision-and-dtypes" title="Permanent link">&para;</a></h2>
+<p>Trainium computes float64 at FP32 precision, so no NKI kernel takes float64
+(or complex128, whose parts are float64). trnfft follows the trnsci suite
+policy (#136) for float64 operands on the NKI path, in every transform,
+<code>stft</code>/<code>istft</code>, <code>complex_gemm</code>, <code>complex_linear</code> / <code>ComplexLinear</code>,
+<code>complex_mask_apply</code> and <code>complex_gemm_bf16</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>float64 behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>set_backend("auto")</code> (default)</td>
+<td>Computes in host torch at float64 accuracy. No kernel runs. Host-resident operands compute where they are, as <code>set_backend("pytorch")</code> does. Operands already on the neuron device are copied to the host, computed there, and the result is returned on their device in float64 / complex128 (see below).</td>
+</tr>
+<tr>
+<td><code>set_backend("nki")</code></td>
+<td>The kernel runs on float32 copies; each op warns once (<code>UserWarning</code>) that precision is reduced to float32.</td>
+</tr>
+<tr>
+<td><code>TRNFFT_REQUIRE_NKI=1</code></td>
+<td>Raises <code>NotImplementedError</code>, on either backend.</td>
+</tr>
+<tr>
+<td><code>precision="double"</code></td>
+<td>Keeps its host FP64 route on either backend (no warning, no raise).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>float64 already on the neuron device.</strong> Device aten on Trainium also
+computes float64 at FP32 precision (measured on Trn2), so under <code>auto</code> the
+torch route for a float64 or complex128 operand that is already on the neuron
+device runs on the host: every transform (<code>fft</code> … <code>ihfftn</code>, <code>stft</code>, <code>istft</code>),
+<code>complex_gemm</code>, <code>complex_linear</code>, <code>complex_mask_apply</code>, <code>ComplexLinear</code> and
+<code>ComplexConv1d</code> copy their neuron-resident operands to the host, compute in float64 and return
+the result on the original device in float64 / complex128. The copies are
+differentiable. Each op emits one <code>UserWarning</code>: "float64 on the neuron device
+is computed on the host for float64 accuracy (device arithmetic is fp32); pass
+float32 to stay on device". Set <code>TRNFFT_FP64_ON_DEVICE=1</code> to keep these on
+device aten instead (faster, FP32 precision, no warning). <code>set_backend("nki")</code>,
+<code>set_backend("pytorch")</code> and <code>TRNFFT_REQUIRE_NKI=1</code> are unaffected.
+<code>complex_gemm_bf16</code> (FP32 by design), <code>complex_matmul</code>, <code>ComplexBatchNorm1d</code>
+and <code>ComplexModReLU</code> are plain torch on the operands' device.</p>
+<p><code>ComplexConv1d</code> has no kernel, and a float64 <code>aten::convolution</code> does not
+compile on the neuron device (#134). So float64 that stays on the device
+(<code>set_backend("nki")</code>, or <code>TRNFFT_FP64_ON_DEVICE=1</code>) is convolved in float32
+there and returned as float64; <code>"nki"</code> warns once. <code>TRNFFT_REQUIRE_NKI=1</code>
+raises <code>NotImplementedError</code> for it, and <code>set_backend("pytorch")</code> runs plain
+torch (the compile error).</p>
+<p>The result dtype is always what the pytorch backend returns for the same
+inputs: float64 in gives float64 out; bfloat16/float16 in gives the input
+dtype, also in the low-precision modes (<code>bf16</code>, <code>bf16_refined</code>, <code>ozaki</code>,
+<code>ozaki_hq</code>), whose BF16 GEMM accumulates in an FP32 PSUM. Mixed operands that
+include float64 give <code>torch.promote_types</code> of the operands. bfloat16 and
+float16 operands are passed to the kernels as they are (#137 tracks whether to
+upcast them). <code>complex_gemm_bf16</code> returns float32 on every backend. Integer,
+bool and complex <code>torch.Tensor</code> operands of the dispatch-level ops compute in
+torch; the transforms promote integer and bool input first, as <code>torch.fft</code>
+does.</p>
 <h2 id="dispatch-path">Dispatch path<a class="headerlink" href="#dispatch-path" title="Permanent link">&para;</a></h2>
 <p>On Neuron hardware, kernels run on one of two <code>torch-neuronx</code> lineages,
 detected on the first kernel launch:</p>

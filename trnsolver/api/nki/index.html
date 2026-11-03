@@ -1576,6 +1576,8 @@
       
         
       
+        
+      
     
     
     
@@ -1720,6 +1722,34 @@
     
   
     NKI Backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trnfft/api/sht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonic Transforms
   
 
     
@@ -3795,6 +3825,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5298,6 +5339,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#precision-and-dtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision and dtypes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5361,6 +5413,76 @@
 <p>Returns the current backend string.</p>
 <h2 id="has_nki"><code>HAS_NKI</code><a class="headerlink" href="#has_nki" title="Permanent link">&para;</a></h2>
 <p>Module-level boolean — <code>True</code> iff the <code>nki</code> package (NKI 0.3.0 Stable, Neuron SDK 2.29+) imported successfully.</p>
+<h2 id="precision-and-dtypes">Precision and dtypes<a class="headerlink" href="#precision-and-dtypes" title="Permanent link">&para;</a></h2>
+<p>Every trnsolver kernel computes in FP32 (<code>matmul_fp32out</code>: BF16 in, FP32
+out), and Trainium computes float64 at FP32 precision on device. float64
+input follows one rule wherever an FP32 input would run a kernel (<code>eigh</code> on
+the Householder path and <code>eigh_generalized</code> through it, <code>eigh_randomized</code>,
+<code>eigh(method="jacobi")</code>, the auto Jacobi region, <code>occupied_subspace</code>):</p>
+<table>
+<thead>
+<tr>
+<th>mode</th>
+<th>float64 input</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>backend <code>"auto"</code></td>
+<td>computes in torch at float64 accuracy; no kernel runs. Host input runs host torch (LAPACK); input on the <code>neuron</code> device is computed on the host (see below)</td>
+</tr>
+<tr>
+<td>backend <code>"nki"</code></td>
+<td>cast to FP32 for the kernels, result returned as float64; one <code>UserWarning</code> per op (on its first call) says precision is reduced to fp32</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_REQUIRE_NKI=1</code></td>
+<td>raises <code>NotImplementedError</code> (either backend; takes precedence over the cast). float64 / complex128 on the <code>neuron</code> device raise at every public op, including the routes with no kernel (see below)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>float64 on the <code>neuron</code> device.</strong> Device aten computes float64 at fp32
+  precision (measured on Trn2), so under backend <code>"auto"</code> every public op
+  (<code>eigh</code>, <code>eigh_generalized</code>, <code>eigh_randomized</code>, <code>occupied_subspace</code>, the
+  factorizations, solves, inverses and <code>cg</code> / <code>gmres</code> / <code>gmres_ir</code>) copies a
+  float64 or complex128 operand that is on the <code>neuron</code> device to the host,
+  computes there at float64, and returns the result on the original device,
+  still float64 / complex128 (the warm-start <code>SubspaceState.theta</code> and
+  <code>residual</code> stay on the host, as always). One <code>UserWarning</code> per op, on its
+  first such call: "float64 on the neuron device is computed on the host for
+  float64 accuracy (device arithmetic is fp32); pass float32 to stay on
+  device". A matvec or preconditioner callable passed to <code>cg</code> / <code>gmres</code>
+  still receives device tensors. The <code>jacobi_preconditioner</code>,
+  <code>block_jacobi_preconditioner</code> and <code>ssor_preconditioner</code> constructors take
+  the same host path: built from device-resident float64 <code>A</code>, they return a
+  closure that computes on the host and returns <code>z</code> on <code>r</code>'s device. Block
+  CG follows the same rule: <code>cg_block</code> is guarded, <code>pivoted_cholesky</code> builds
+  in float64 on the host for every input (L returns to the diagonal's
+  device), and <code>PivotedLowRankPreconditioner(apply="auto"</code> or
+  <code>"projected")</code> applies a float64 L that is on the device as <code>"host64"</code>. To keep device aten (fp32 precision, no
+  host round trip), pass float32, or set <code>TRNSOLVER_FP64_ON_DEVICE=1</code>.
+  Backends <code>"nki"</code> and <code>"pytorch"</code> are not affected. Under
+  <code>TRNSOLVER_REQUIRE_NKI=1</code> (backends <code>"auto"</code> and <code>"nki"</code>), a float64 /
+  complex128 operand on the <code>neuron</code> device raises <code>NotImplementedError</code> at
+  every public op (and in <code>pivoted_cholesky</code> / <code>PivotedLowRankPreconditioner</code>),
+  with no host copy, ahead of <code>TRNSOLVER_FP64_ON_DEVICE</code>; before, the routes
+  with no kernel (<code>solve_spd</code>, <code>inv_spd</code>, <code>pinv</code>, <code>cg</code>, ...) ran device aten
+  at fp32 precision with no error.</li>
+<li><strong>Result dtype</strong> always matches what the pytorch backend returns for the
+  same inputs: float32, float64, bfloat16 and float16 (computed in FP32 and
+  cast back), and mixed-dtype operands (<code>torch.promote_types</code> rules, e.g.
+  <code>eigh_generalized</code> takes A's dtype).</li>
+<li>Integer and bool input takes torch, which raises as the pytorch backend
+  does (<code>NotImplementedError</code> under <code>TRNSOLVER_REQUIRE_NKI=1</code>).</li>
+<li>trnsolver has no complex kernels: complex64 / complex128 input takes aten
+  or torch on every backend (complex128 on the <code>neuron</code> device under <code>"auto"</code>
+  is computed on the host, as above).</li>
+<li>Paths where FP32 input does not run a kernel either (the <code>eigh</code> aten
+  cutover below <code>TRNSOLVER_EIGH_NKI_MIN_N</code>, Jacobi on the XLA lineage) run
+  torch for float64 too.</li>
+</ul>
+<p>The same rule holds across the trnsci suite (trnsci/trnsolver#89).</p>
 <h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -5372,7 +5494,11 @@
 <tbody>
 <tr>
 <td><code>TRNSOLVER_REQUIRE_NKI=1</code></td>
-<td>Kernel-path failures re-raise instead of silently falling back to PyTorch. Used by the validation suite to catch silent kernel breakage.</td>
+<td>Kernel-path failures re-raise instead of silently falling back to PyTorch, and inputs no kernel takes (float64, integer, bool) raise <code>NotImplementedError</code> (see <a href="#precision-and-dtypes">Precision and dtypes</a>). Used by the validation suite to catch silent kernel breakage.</td>
+</tr>
+<tr>
+<td><code>TRNSOLVER_FP64_ON_DEVICE=1</code></td>
+<td>Under backend <code>"auto"</code>, float64 / complex128 operands on the <code>neuron</code> device stay there and compute with device aten at fp32 precision, instead of on the host at float64 (see <a href="#precision-and-dtypes">Precision and dtypes</a>). For callers who prefer speed. Read at import.</td>
 </tr>
 <tr>
 <td><code>TRNSOLVER_EIGH_NKI_MIN_N=&lt;n&gt;</code></td>
@@ -5440,7 +5566,7 @@ detected on the first kernel launch:</p>
   on <code>device="neuron"</code>, also callable directly and inside
   <code>torch.compile(backend="neuron")</code>: <code>torch.ops.trnsolver.matvec</code>,
   <code>rank2_update</code>, <code>matmul</code>, <code>matmul_fp32out</code>, <code>apply_reflectors</code>,
-  <code>jacobi_sweeps</code>, <code>jacobi_block</code>. The ops
+  <code>jacobi_sweeps</code>, <code>jacobi_block</code>, <code>subspace_filter</code>, <code>subspace_step</code>. The ops
   are registered only once this path is selected.</li>
 <li><strong>XLA (Trn1)</strong>: kernels run on the <code>torch_xla</code> device, as before.</li>
 </ul>
