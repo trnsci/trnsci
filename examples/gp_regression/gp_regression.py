@@ -116,9 +116,9 @@ def posterior_mean(
     outputscale: float = 1.0,
     noise: float = 1e-2,
     probes: int = 32,
-    precond_rank: int = 512,
+    precond_rank: int = 1024,
     tol: float = 1e-6,
-    maxiter: int = 5000,
+    maxiter: int = 1000,
     check_every: int = 10,
     refine: bool = False,
     device="cpu",
@@ -149,9 +149,12 @@ def posterior_mean(
     if precond_rank:
         t0 = time.perf_counter()
         L = trnsolver.pivoted_cholesky(op.diag, op.rows, min(precond_rank, n))
-        M = trnsolver.PivotedLowRankPreconditioner(
-            L.to(device=device, dtype=op.dtype), noise
-        )
+        # Applied in float64 on the host for an fp32 solve: the fp32 Woodbury
+        # form cancels and breaks CG at GP noise levels (see
+        # trnsolver.PivotedLowRankPreconditioner). One (n, R) round trip per
+        # iteration; a stable on-device form is milestone-2 work.
+        mode = "native" if op.dtype == torch.float64 and device == "cpu" else "host64"
+        M = trnsolver.PivotedLowRankPreconditioner(L, noise, apply=mode)
         t["precond_s"] = time.perf_counter() - t0
         t["precond_rank"] = L.shape[1]
 
@@ -228,10 +231,10 @@ def main():
     ap.add_argument("--noise", type=float, default=1e-2)
     ap.add_argument("--probes", type=int, default=32)
     ap.add_argument(
-        "--rank", type=int, default=512, help="pivoted-Cholesky rank (0: none)"
+        "--rank", type=int, default=1024, help="pivoted-Cholesky rank (0: none)"
     )
     ap.add_argument("--tol", type=float, default=1e-6)
-    ap.add_argument("--maxiter", type=int, default=5000)
+    ap.add_argument("--maxiter", type=int, default=1000)
     ap.add_argument("--check-every", type=int, default=10)
     ap.add_argument(
         "--refine", action="store_true", help="fp64 host iterative refinement"

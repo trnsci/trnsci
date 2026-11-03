@@ -53,7 +53,7 @@ def main():
     ap.add_argument("--sizes", default="20000,100000,1000000")
     ap.add_argument("--modes", default="device,cpu2,cpuall,gpytorch")
     ap.add_argument("--probes", type=int, default=32)
-    ap.add_argument("--rank", type=int, default=512)
+    ap.add_argument("--rank", type=int, default=1024)
     ap.add_argument("--lengthscale", type=float, default=0.15)
     ap.add_argument("--noise", type=float, default=1e-2)
     ap.add_argument("--tol", type=float, default=1e-6)

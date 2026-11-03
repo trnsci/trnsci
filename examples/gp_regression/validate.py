@@ -4,17 +4,20 @@
    `GaussianProcessRegressor` with the kernel fixed (`optimizer=None`) and
    `scipy.linalg.cho_factor` / `cho_solve`. Requirement: posterior-mean
    relative error <= 1e-4.
-2. Same algorithm, independent code (default n = 10^5): gpytorch's CG-based
-   exact GP on the CPU (`max_cholesky_size(0)`, kernel evaluated in row
-   chunks with `checkpoint_kernel`), at fixed hyperparameters. Agreement is
-   to CG tolerance.
+2. Same algorithm, independent code (default n = 2x10^4): gpytorch's
+   CG-based exact GP on the CPU (`max_cholesky_size(0)`), at fixed
+   hyperparameters. Agreement is to CG tolerance. Without pykeops gpytorch
+   evaluates the full n x n kernel inside CG (8 n^2 bytes: 80 GB at n = 10^5),
+   and `checkpoint_kernel` ran out of memory on a 48 GB host even at
+   n = 5000 (gpytorch 1.15), so n = 10^5 needs pykeops or a large-memory
+   host: `--n-gpytorch 100000`.
 
 The trnsci side runs on the PyTorch backend on the CPU, or on the device
 with --device. Relative error is ||m - m_ref||_2 / ||m_ref||_2 over the test
 points (max-abs relative is printed too).
 
 Usage:
-    python validate.py                       # exact at 2e4, gpytorch at 1e5
+    python validate.py                       # exact and gpytorch at 2e4
     python validate.py --n-gpytorch 0        # exact only
     python validate.py --device              # trnsci on Trn2
 """
@@ -67,7 +70,7 @@ def exact_references(X, y, Xt, lengthscale, outputscale, noise, sklearn_too=True
 
 
 def gpytorch_reference(
-    X, y, Xt, lengthscale, outputscale, noise, *, tol=1e-6, precond=512, chunk=4096
+    X, y, Xt, lengthscale, outputscale, noise, *, tol=1e-6, precond=512
 ):
     """Posterior mean from gpytorch's CG-based exact GP (CPU, float64)."""
     import gpytorch
@@ -103,7 +106,6 @@ def gpytorch_reference(
         gpytorch.settings.max_cg_iterations(10000),
         gpytorch.settings.max_preconditioner_size(precond),
         gpytorch.settings.skip_posterior_variances(True),
-        gpytorch.beta_features.checkpoint_kernel(chunk),
     ):
         mean = model(Xt).mean
     return mean, time.perf_counter() - t0
@@ -112,11 +114,11 @@ def gpytorch_reference(
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n-exact", type=int, default=20000)
-    ap.add_argument("--n-gpytorch", type=int, default=100000)
+    ap.add_argument("--n-gpytorch", type=int, default=20000)
     ap.add_argument("--n-test", type=int, default=1000)
     ap.add_argument("--lengthscale", type=float, default=0.15)
     ap.add_argument("--noise", type=float, default=1e-2)
-    ap.add_argument("--rank", type=int, default=512)
+    ap.add_argument("--rank", type=int, default=1024)
     ap.add_argument("--tol", type=float, default=1e-6)
     ap.add_argument(
         "--refine", action="store_true", help="fp64 refinement in the exact case"
