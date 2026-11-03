@@ -11,7 +11,7 @@ Across three Trn2 hardware windows, correctness audits found about 60 silent wro
 <!-- more -->
 
 !!! note "Code status"
-    The fixes shipped across the 2026-10-31 to 2026-11-04 releases. Each README's "Known issues in earlier releases" table lists the ones up to 11-02 with affected versions: [trnblas](https://github.com/trnsci/trnblas#known-issues-in-earlier-releases), [trnfft](https://github.com/trnsci/trnfft#known-issues-in-earlier-releases), [trnrand](https://github.com/trnsci/trnrand#known-issues-in-earlier-releases), [trnsolver](https://github.com/trnsci/trnsolver#known-issues-in-earlier-releases), [trnsparse](https://github.com/trnsci/trnsparse#known-issues-in-earlier-releases), [trntensor](https://github.com/trnsci/trntensor#known-issues-in-earlier-releases). The float64 policy is released in [trnblas 0.11.0](https://github.com/trnsci/trnblas/releases/tag/v0.11.0), [trnsolver 0.22.0](https://github.com/trnsci/trnsolver/releases/tag/v0.22.0), [trnsparse 0.14.0](https://github.com/trnsci/trnsparse/releases/tag/v0.14.0) and [trntensor 0.24.0](https://github.com/trnsci/trntensor/releases/tag/v0.24.0). In trnfft ([#139](https://github.com/trnsci/trnfft/pull/139)) and trnrand ([#106](https://github.com/trnsci/trnrand/pull/106)) it is merged on `main` and lands in 0.28.0 and 0.14.0, which are not released yet. All device numbers are from a trn2.3xlarge on public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0), LNC=2 unless stated.
+    The fixes shipped across the 2026-10-31 to 2026-11-04 releases. Each README's "Known issues in earlier releases" table lists the ones up to 11-02 with affected versions: [trnblas](https://github.com/trnsci/trnblas#known-issues-in-earlier-releases), [trnfft](https://github.com/trnsci/trnfft#known-issues-in-earlier-releases), [trnrand](https://github.com/trnsci/trnrand#known-issues-in-earlier-releases), [trnsolver](https://github.com/trnsci/trnsolver#known-issues-in-earlier-releases), [trnsparse](https://github.com/trnsci/trnsparse#known-issues-in-earlier-releases), [trntensor](https://github.com/trnsci/trntensor#known-issues-in-earlier-releases). The float64 policy is released in [trnblas 0.11.0](https://github.com/trnsci/trnblas/releases/tag/v0.11.0), [trnsolver 0.22.0](https://github.com/trnsci/trnsolver/releases/tag/v0.22.0), [trnsparse 0.14.0](https://github.com/trnsci/trnsparse/releases/tag/v0.14.0), [trntensor 0.24.0](https://github.com/trnsci/trntensor/releases/tag/v0.24.0), [trnfft 0.28.0](https://github.com/trnsci/trnfft/releases/tag/v0.28.0) and [trnrand 0.14.0](https://github.com/trnsci/trnrand/releases/tag/v0.14.0). All device numbers are from a trn2.3xlarge on public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0), LNC=2 unless stated.
 
 ## The problem
 
@@ -133,7 +133,7 @@ def test_generated_subscripts(sub, sizes, dtype, precision):
 
 **The test suites never ran in the users' configuration.** `import torch_neuronx` turns on the NKI trace cache, which NKI documents as experimental and off by default. Its key ignores constants a kernel captures from its enclosing scope, so factory-made kernels reuse the first one's trace (max error 4.07, 8.13, 12.2 for kernels two to four, [aws-neuron-sdk#1454](https://github.com/aws-neuron/aws-neuron-sdk/issues/1454)). Every trnsci conftest set `NKI_ENABLE_TRACE_CACHE=0`. A rerun with the cache on [passed in all six libraries](https://github.com/trnsci/trnsci/issues/35#issuecomment-6552474180), which was luck, not design. Device runs now cover cache on and off.
 
-**Code that never ran.** trnfft's half-precision kernels called `nl.cast`, which NKI 0.7 doesn't have. On the NKI path every float16 or bfloat16 transform failed to lower with `AttributeError: module 'nki.language' has no attribute 'cast'`, in 0.13.0–0.27.0 on NKI 0.7 ([trnfft#133](https://github.com/trnsci/trnfft/issues/133)). This one was loud, but no device test sent half input until conformance did (26 cases). The fix ([#153](https://github.com/trnsci/trnfft/pull/153)) runs half input on fp32 copies, which measured more accurate at every N and faster from N = 2048. It is merged and unreleased.
+**Code that never ran.** trnfft's half-precision kernels called `nl.cast`, which NKI 0.7 doesn't have. On the NKI path every float16 or bfloat16 transform failed to lower with `AttributeError: module 'nki.language' has no attribute 'cast'`, in 0.13.0–0.27.0 on NKI 0.7 ([trnfft#133](https://github.com/trnsci/trnfft/issues/133)). This one was loud, but no device test sent half input until conformance did (26 cases). The fix ([#153](https://github.com/trnsci/trnfft/pull/153)) runs half input on fp32 copies, which measured more accurate at every N and faster from N = 2048. It is released in trnfft 0.28.0.
 
 **What CPU CI cannot see.** On a Neuron host, `trnblas.trsm` under `auto` detaches host operands before its LAPACK call, so gradients silently stop, and `trnsolver.eigh_generalized` inherits it ([trnblas#101](https://github.com/trnsci/trnblas/issues/101)). It has been there since 0.9.0, including 0.11.0. The native route only exists when `torch_neuronx` is loaded, and the trnsolver release validation found it. It is open.
 
@@ -155,8 +155,8 @@ Silent wrong-result bugs fixed in released code, by library. "Known issues" coun
 | library | Known issues | 11-04 | worst example |
 |---|---|---|---|
 | trnblas | 5 | 3 | BLAS letter flags ran the opposite branch, every backend, 0.2.0–0.9.1 ([#73](https://github.com/trnsci/trnblas/issues/73)) |
-| trnfft | 9 | — (0.28.0 unreleased) | `irfft` used every bin, 78% error at n = 33 ([#104](https://github.com/trnsci/trnfft/issues/104)) |
-| trnrand | 11 | — (0.14.0 unreleased) | partitioned generators returned duplicate values across ranks, 0.7.0–0.11.0 |
+| trnfft | 9 | 0.28.0 | `irfft` used every bin, 78% error at n = 33 ([#104](https://github.com/trnsci/trnfft/issues/104)) |
+| trnrand | 11 | 0.14.0 | partitioned generators returned duplicate values across ranks, 0.7.0–0.11.0 |
 | trnsolver | 2 | 2 | complex Hermitian input used `.T` for `.mH`, every release through 0.20.0 ([#64](https://github.com/trnsci/trnsolver/issues/64)) |
 | trnsparse | 12 | 5 | `spmv_symmetric` ignored `uplo`, rel. err 0.85–1.9 ([#52](https://github.com/trnsci/trnsparse/issues/52)) |
 | trntensor | 8 | 4 | `einsum` output order, 228/364 cases ([#64](https://github.com/trnsci/trntensor/issues/64)) |
@@ -179,7 +179,7 @@ None of the remaining device conformance failures in the four released libraries
 
 - [trnsci#105](https://github.com/trnsci/trnsci/issues/105): the umbrella `TRNSCI_REQUIRE_NKI` switch is still open.
 - [trnblas#101](https://github.com/trnsci/trnblas/issues/101): `trsm` autograd on Neuron hosts.
-- trnfft 0.28.0 and trnrand 0.14.0, which carry the policy for the last two libraries.
+- [trnfft#159](https://github.com/trnsci/trnfft/issues/159): multicore host paths returned garbage when more cores were requested than visible, found during the 11-04 release validation.
 - [Phase 2 — precision and numerical validation](https://github.com/trnsci/trnsci/milestone/2), including double-double GEMM ([trnblas#22](https://github.com/trnsci/trnblas/issues/22)), the route to float64 accuracy on the device without the host.
 - The [suite tracker](https://github.com/trnsci/trnsci/issues/35) for window results, the [roadmap](https://trnsci.dev/roadmap/) and the [suite-wide tracker](https://github.com/trnsci/trnsci/issues/1). More at [trnsci.dev](https://trnsci.dev).
 
