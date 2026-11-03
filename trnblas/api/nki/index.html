@@ -5452,7 +5452,7 @@ accuracy. trnblas follows the trnsci suite-wide policy (#89):</p>
 </tr>
 <tr>
 <td><code>set_backend("nki")</code></td>
-<td>Cast to float32, run on the NKI kernel, result cast back. One <code>UserWarning</code> per op says precision is reduced to float32.</td>
+<td>Cast to float32, run on the NKI kernel, result cast back. One <code>UserWarning</code> per op says precision is reduced to float32. Ops with no kernel (Level 1/2, <code>symm</code>, <code>trmm</code>) run in torch on the operands' device: host float64 keeps float64 accuracy with no warning, and float64 / complex128 on the <code>neuron</code> device runs on device aten at fp32 precision with the same once-per-op warning.</td>
 </tr>
 <tr>
 <td><code>TRNBLAS_REQUIRE_NKI=1</code></td>
