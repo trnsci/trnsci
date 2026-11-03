@@ -15,6 +15,9 @@ matrix and without a low-rank or inducing-point approximation of the model.
 The 32 random-sign probe solves ride along in the same launches; they are
 what the log-marginal-likelihood estimate of milestone 3 needs.
 
+Requires trnsparse ≥ 0.14 and trnsolver ≥ 0.22, the first releases with
+`KernelOperator` and `cg_block` (`pip install "trnsci[sparse,solver]"`).
+
 ## Files
 
 - `gp_regression.py`: synthetic field with known hyperparameters (random

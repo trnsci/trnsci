@@ -15,8 +15,8 @@ trnsparse = pytest.importorskip("trnsparse")
 trnsolver = pytest.importorskip("trnsolver")
 if not hasattr(trnsparse, "KernelOperator") or not hasattr(trnsolver, "cg_block"):
     pytest.skip(
-        "needs trnsparse.KernelOperator (trnsci/trnsparse#93) and trnsolver.cg_block "
-        "(trnsci/trnsolver#97)",
+        "needs trnsparse>=0.14 (KernelOperator, trnsci/trnsparse#93) and "
+        "trnsolver>=0.22 (cg_block, trnsci/trnsolver#97)",
         allow_module_level=True,
     )
 
