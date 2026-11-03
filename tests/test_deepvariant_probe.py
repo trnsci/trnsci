@@ -38,6 +38,35 @@ def test_tfrecord_cvo_roundtrip(tmp_path):
     assert abs(got.sum() - 1) < 1e-6
 
 
+def _pb(fno: int, payload) -> bytes:
+    from dv_io import _enc_varint
+
+    if isinstance(payload, int):
+        return _enc_varint(fno << 3) + _enc_varint(payload)
+    return _enc_varint(fno << 3 | 2) + _enc_varint(len(payload)) + payload
+
+
+def test_record_key_ignores_call_map_order():
+    """CallVariantsOutput and make_examples serialize the same Variant with its
+    call info map in different orders (#114): the key must still match, and it
+    must still tell sites apart."""
+    from dv_io import decode_cvo, encode_cvo, record_key
+
+    site = _pb(14, b"chr20") + _pb(16, 10009500) + _pb(13, 10009501) + _pb(6, b"T")
+    site += _pb(7, b"TTAA")
+    call_a = _pb(11, _pb(2, b"DP-entry") + _pb(2, b"AD-entry"))
+    call_b = _pb(11, _pb(2, b"AD-entry") + _pb(2, b"DP-entry"))
+    alt = _pb(1, 0)
+    assert call_a != call_b
+    k = record_key(site + call_a, alt)
+    assert k == record_key(site + call_b, alt)
+    key_cvo, _ = decode_cvo(encode_cvo(site + call_b, alt, [0.1, 0.2, 0.7]))
+    assert key_cvo == k
+    moved = site.replace(_pb(16, 10009500), _pb(16, 10009501))
+    assert record_key(moved + call_a, alt) != k
+    assert record_key(site + call_a, _pb(1, 1)) != k
+
+
 def test_model_shapes_and_mapping_order():
     from dv_inception import INPUT_SHAPE, build_model
     from dv_io import synthetic_pileups

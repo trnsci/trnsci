@@ -214,6 +214,31 @@ def parse_tf_example(buf: bytes) -> dict[str, list]:
     return out
 
 
+# nucleus Variant fields that identify a site: reference_name (14), start (16),
+# end (13), reference_bases (6), alternate_bases (7). The calls (11) carry an
+# info map, and protobuf map entries serialize in no fixed order: DeepVariant's
+# CallVariantsOutput and the make_examples example hold the same Variant with
+# DP/AD/VAF in different orders, so hashing the raw bytes matched only 4,555
+# of 25,729 records on HG002 chr20:10-20 Mb (trnsci/trnsci#114).
+_VARIANT_KEY_FIELDS = (14, 16, 13, 6, 7)
+
+
+def record_key(variant: bytes, alt_allele_indices: bytes) -> str:
+    """Stable id of a (Variant, alt-allele indices) record: a hash of the site
+    fields of the Variant (not its calls) and the alt indices."""
+    parts: dict[int, list[bytes]] = {f: [] for f in _VARIANT_KEY_FIELDS}
+    for fno, _wt, v in _fields(variant):
+        if fno in parts:
+            parts[fno].append(bytes(v) if not isinstance(v, int) else str(v).encode())
+    h = hashlib.sha1()
+    for f in _VARIANT_KEY_FIELDS:
+        for v in parts[f]:
+            h.update(b"%d:%d:" % (f, len(v)) + v)
+        h.update(b";")
+    h.update(b"|" + alt_allele_indices)
+    return h.hexdigest()[:16]
+
+
 @dataclass
 class Example:
     image: np.ndarray  # (H, W, C) uint8
@@ -222,10 +247,8 @@ class Example:
 
     @property
     def key(self) -> str:
-        """Stable id for matching records across runs."""
-        return hashlib.sha1(self.variant + b"|" + self.alt_allele_indices).hexdigest()[
-            :16
-        ]
+        """Stable id for matching records across runs (see :func:`record_key`)."""
+        return record_key(self.variant, self.alt_allele_indices)
 
 
 def decode_example(buf: bytes, shape: tuple[int, int, int] | None = None) -> Example:
@@ -301,8 +324,7 @@ def decode_cvo(buf: bytes) -> tuple[str, np.ndarray]:
                 probs.extend(struct.unpack(f"<{len(v) // 8}d", v))
             else:
                 probs.append(struct.unpack("<d", v)[0])
-    key = hashlib.sha1(variant + b"|" + alt).hexdigest()[:16]
-    return key, np.asarray(probs, np.float64)
+    return record_key(variant, alt), np.asarray(probs, np.float64)
 
 
 # --------------------------------------------------------------------------
