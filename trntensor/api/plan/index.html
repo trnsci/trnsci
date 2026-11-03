@@ -4554,6 +4554,8 @@
       
         
       
+        
+      
     
     
     
@@ -4860,6 +4862,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5503,7 +5533,7 @@ the planner returns.</p>
 <tr>
 <td><code>estimated_flops</code></td>
 <td><code>int</code></td>
-<td>Multiply-add estimate</td>
+<td>Multiply-adds of the plan: <code>estimate_flops(...)</code> for <code>"matmul"</code> / <code>"bmm"</code> / <code>"torch"</code>, the sum over binary steps for <code>"path"</code> (always 0 through 0.23.0, #83)</td>
 </tr>
 <tr>
 <td><code>contraction_path</code></td>

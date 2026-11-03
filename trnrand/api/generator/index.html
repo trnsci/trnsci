@@ -4678,6 +4678,8 @@
       
         
       
+        
+      
     
     
     
@@ -4831,6 +4833,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trntensor/api/stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5347,13 +5377,21 @@
 <code>torch.Generator</code> (the PyTorch path) and a Threefry counter, which the NKI
 path draws from on the GpSimd engine.</p>
 <h2 id="generatorseednone-devicecpu-partition_rank0-partition_size1-key_modenone"><code>Generator(seed=None, device="cpu", partition_rank=0, partition_size=1, key_mode=None)</code><a class="headerlink" href="#generatorseednone-devicecpu-partition_rank0-partition_size1-key_modenone" title="Permanent link">&para;</a></h2>
-<p>Construct a seeded generator. <code>seed=None</code> leaves the underlying
-<code>torch.Generator</code> unseeded (random state).</p>
+<p>Construct a seeded generator. <code>seed=None</code> seeds the underlying
+<code>torch.Generator</code> from OS entropy, so every unseeded generator (and the
+module default generator used when no <code>generator=</code> is passed) draws an
+independent stream; <code>gen.torch_generator.initial_seed()</code> reports the seed
+chosen. Through 0.13.0, <code>seed=None</code> used torch's fixed default seed and
+every unseeded generator drew the same stream (#98).</p>
 <ul>
 <li><code>partition_rank</code> / <code>partition_size</code>: this generator is rank <code>r</code> of <code>P</code>
   in a counter-partitioned stream; concatenating the ranks' draws in order
   gives the single-generator stream on the NKI path. Fixed for P &gt; 1 in
-  v0.12.0 (0.7.0–0.11.0 reused counters from the second draw on).</li>
+  v0.12.0 (0.7.0–0.11.0 reused counters from the second draw on). On the
+  PyTorch path each rank draws the whole <code>P × n</code> sample and keeps its slice
+  (P× the work, same concatenation contract; <code>randperm</code> gives the r-th of P
+  consecutive permutations). Through 0.13.0 the PyTorch path ignored the
+  partition, so every rank drew identical samples (#99).</li>
 <li><code>key_mode</code>: <code>"draw"</code> (default, or <code>TRNRAND_KEY_MODE</code>) takes a fresh
   Threefry key from the <code>torch.Generator</code> on each NKI draw. <code>"counter"</code>
   fixes the key by the seed and only advances the counter, which makes

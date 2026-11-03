@@ -4554,6 +4554,8 @@
       
         
       
+        
+      
     
     
     
@@ -4882,6 +4884,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5534,12 +5564,18 @@ above the FLOP threshold.</p>
 <h3 id="alpha-beta-scaling"><code>alpha</code> / <code>beta</code> scaling<a class="headerlink" href="#alpha-beta-scaling" title="Permanent link">&para;</a></h3>
 <p>Matches cuTENSOR's GEMM-style interface:
 <code>alpha·contract(A, B) + beta·C</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Scaled GEMM: 2·A@B + 0.5·C</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Scaled GEMM, written into C: C = 2·A@B + 0.5·C</span>
+<span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
 
-<span class="c1"># In-place accumulation (beta=1, alpha=1): result += A@B</span>
+<span class="c1"># In-place accumulation (beta=1, alpha=1): acc += A@B</span>
 <span class="n">trntensor</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"ij,jk-&gt;ik"</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
 </code></pre></div>
+<p>As in <code>torch.einsum</code> and cuTENSOR, <code>out=</code> is the output operand: the result
+is written into it and <code>out</code> is returned. <code>out</code> must have the result's shape,
+and the result dtype must be castable to <code>out.dtype</code>. With <code>beta=0</code> the old
+contents of <code>out</code> are not read. <code>out=</code> raises <code>RuntimeError</code> when grad mode is
+on and an operand or <code>out</code> requires grad, as <code>torch.einsum(out=)</code> does.
+Releases 0.3.0–0.23.0 returned the result without writing <code>out</code> (#77).</p>
 <h3 id="dtype-mixed-precision-compute"><code>dtype</code> — mixed-precision compute<a class="headerlink" href="#dtype-mixed-precision-compute" title="Permanent link">&para;</a></h3>
 <p>Cast operands to a lower dtype to compute in bf16/fp16 (aten on the native
 device, the NKI bf16 matmul kernel on the XLA path) without changing the

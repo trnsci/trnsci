@@ -4643,6 +4643,8 @@
       
         
       
+        
+      
     
     
     
@@ -4796,6 +4798,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5299,8 +5329,9 @@
 
 <span class="c1"># STFT / ISTFT</span>
 <span class="n">waveform</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">16000</span><span class="p">)</span>
-<span class="n">S</span> <span class="o">=</span> <span class="n">trnfft</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">waveform</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
-<span class="n">recovered</span> <span class="o">=</span> <span class="n">trnfft</span><span class="o">.</span><span class="n">istft</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16000</span><span class="p">)</span>
+<span class="n">window</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">hann_window</span><span class="p">(</span><span class="mi">512</span><span class="p">)</span>
+<span class="n">S</span> <span class="o">=</span> <span class="n">trnfft</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">waveform</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+<span class="n">recovered</span> <span class="o">=</span> <span class="n">trnfft</span><span class="o">.</span><span class="n">istft</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16000</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="complex-tensors">Complex tensors<a class="headerlink" href="#complex-tensors" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">trnfft</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComplexTensor</span>

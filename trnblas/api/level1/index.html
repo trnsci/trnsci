@@ -4667,6 +4667,8 @@
       
         
       
+        
+      
     
     
     
@@ -4820,6 +4822,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trntensor/api/stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5332,9 +5362,13 @@ via XLA); the Tensor Engine is wasted on vector work so no NKI kernels.</p>
 <h2 id="scalalpha-x"><code>scal(alpha, x)</code><a class="headerlink" href="#scalalpha-x" title="Permanent link">&para;</a></h2>
 <p>In-place scaling <code>x = α·x</code>.</p>
 <h2 id="asumx"><code>asum(x)</code><a class="headerlink" href="#asumx" title="Permanent link">&para;</a></h2>
-<p>Sum of absolute values <code>Σ|xᵢ|</code>.</p>
+<p>Sum of absolute values <code>Σ|xᵢ|</code>, as BLAS <code>?asum</code>. For complex <code>x</code> this is
+<code>Σ(|Re xᵢ| + |Im xᵢ|)</code>, as <code>scasum</code> / <code>dzasum</code> / <code>cublasScasum</code>, not the
+modulus (since 0.11.0, #75). The result is real.</p>
 <h2 id="iamaxx"><code>iamax(x)</code><a class="headerlink" href="#iamaxx" title="Permanent link">&para;</a></h2>
-<p>Index of element with largest absolute value.</p>
+<p>0-based index of the first element of largest absolute value, as BLAS
+<code>i?amax</code> (cuBLAS is 1-based). For complex <code>x</code> the magnitude is
+<code>|Re xᵢ| + |Im xᵢ|</code>, as <code>icamax</code> / <code>izamax</code> (since 0.11.0, #75).</p>
 
 
 

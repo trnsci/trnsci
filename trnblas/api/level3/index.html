@@ -4689,6 +4689,8 @@
       
         
       
+        
+      
     
     
     
@@ -4842,6 +4844,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trntensor/api/stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5390,6 +5420,12 @@ Return value is the dense symmetric matrix (both triangles populated);
 a small post-kernel <code>0.5·(C + Cᵀ)</code> symmetrisation protects against fp32
 reduction-order asymmetry. On the native path, <code>auto</code> routes it like
 <code>gemm</code> (aten on the device, or host CPU for small host calls).</p>
+<p>As in BLAS (<code>dsyrk</code>, <code>cublasSsyrk</code>), only the <code>uplo</code> triangle of an <code>n×n</code>
+<code>C</code> is referenced; the other triangle is ignored (since 0.11.0, #74). A <code>C</code>
+whose off-diagonal entries all lie in the opposite triangle still uses that
+triangle and emits a <code>DeprecationWarning</code>: pass the matching <code>uplo</code>. A <code>C</code>
+that broadcasts against the result (scalar, row, column) is added and the
+sum symmetrised.</p>
 <h2 id="trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit"><code>trsm(alpha, A, B, side="left", uplo="upper", trans=False, diag="nonunit")</code><a class="headerlink" href="#trsmalpha-a-b-sideleft-uploupper-transfalse-diagnonunit" title="Permanent link">&para;</a></h2>
 <p>Triangular solve: solves <code>op(A)·X = α·B</code> (or <code>X·op(A) = α·B</code> when <code>side="right"</code>).</p>
 <p>On Trainium + <code>side="left"</code>, dispatches to a blocked panel algorithm

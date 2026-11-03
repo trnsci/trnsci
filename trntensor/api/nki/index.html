@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://trnsci.dev/trntensor/api/nki/">
       
       
-        <link rel="prev" href="../quantum/">
+        <link rel="prev" href="../stream/">
       
       
         <link rel="next" href="../../architecture/">
@@ -4554,6 +4554,8 @@
       
         
       
+        
+      
     
     
     
@@ -4707,6 +4709,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5577,6 +5607,10 @@ supported in maintenance mode."</p>
 <tr>
 <td><code>TRNTENSOR_MIN_NKI_FLOPS_NATIVE_PINNED=&lt;int&gt;\|never</code></td>
 <td>Native path: M·K·N at which the NKI kernel replaces aten on the device. Below it, device-resident operands run <code>torch.matmul</code> / <code>torch.bmm</code> (aten) on <code>neuron</code>. Default: <code>never</code>, because on Trn2 aten beat the NKI kernels at every measured size.</td>
+</tr>
+<tr>
+<td><code>TRNTENSOR_NKI_EAGER_HANDLE=1\|0</code></td>
+<td>Native path only. <code>1</code> (default): eager NKI kernel calls on plain <code>neuron</code> tensors go through a <code>torch_neuronx.wrap_nki</code> handle built once per kernel instead of the <code>trntensor::</code> custom op, which cuts host time per call from about 0.1 ms to 0.02-0.03 ms on trn2 (trnblas#92). Compile-time keyword arguments (<code>use_sr</code>, <code>nub</code>, <code>tp</code>, <code>tail</code>, <code>banks</code>) pass through unchanged. Under <code>torch.compile</code>, and for tensors that require grad, int64 tensors and tensor subclasses, the custom op runs as before; so do ops whose body is more than one kernel call. <code>0</code> always uses the custom op.</td>
 </tr>
 <tr>
 <td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla</code></td>

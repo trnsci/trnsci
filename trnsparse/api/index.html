@@ -4221,6 +4221,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#kernel-matrix-products-kernel_matmul-93" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kernel-matrix products (kernel_matmul, #93)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#screening" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4665,6 +4676,8 @@
       
         
       
+        
+      
     
     
     
@@ -4818,6 +4831,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5266,6 +5307,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#kernel-matrix-products-kernel_matmul-93" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kernel-matrix products (kernel_matmul, #93)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#screening" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5363,6 +5415,62 @@
 <code>power_iteration_bsr</code>, <code>power_iteration_bsr_fused</code>,
 <code>jacobi_preconditioner_bsr</code>, <code>bsr_diagonal</code>. See
 <a href="../iterative_solvers/">Iterative solvers</a>.</p>
+<h2 id="kernel-matrix-products-kernel_matmul-93">Kernel-matrix products (<code>kernel_matmul</code>, #93)<a class="headerlink" href="#kernel-matrix-products-kernel_matmul-93" title="Permanent link">&para;</a></h2>
+<p><code>K(X, Y) @ V</code> without forming <code>K</code>, for stationary kernels of the distance:
+<code>"rbf"</code>, <code>"matern12"</code>, <code>"matern32"</code>, <code>"matern52"</code> (<code>trnsparse.KERNELS</code>).
+The operator of matrix-free Gaussian-process regression and kernel ridge
+regression.</p>
+<ul>
+<li><code>kernel_matmul(X, Y, V, kernel="rbf", lengthscale=1.0, outputscale=1.0, noise=0.0)</code>
+  — <code>Y=None</code> gives <code>(K(X, X) + noise I) @ V</code>. <code>lengthscale</code> is a float or a
+  <code>(d,)</code> tensor (per-dimension lengthscales). <code>V</code> is <code>(m,)</code> or <code>(m, R)</code>.</li>
+<li><code>KernelOperator(X, kernel, lengthscale, outputscale, noise, device=None)</code> —
+  prepares <code>X</code> once (centred, rescaled, fp32 on the device) for repeated
+  applications: <code>op(V)</code>, <code>op.cross(Y, W)</code> = <code>K(Y, X) @ W</code>, <code>op.diag()</code>,
+  <code>op.rows(idx)</code> (rows of <code>K</code> for pivoted-Cholesky preconditioners).</li>
+<li><code>kernel_matmul_reference(...)</code> — dense float64 <code>torch.cdist</code> reference.</li>
+</ul>
+<p>NKI path: one launch per application, or one per row block of <code>X</code> when the
+product exceeds 6e10 kernel entries <code>n * m</code> (#100): the Neuron runtime
+stops a launch after 30 s, and a single launch at n = 2^20 takes 40-80 s on
+Trn2. The rate is flat in R, so the budget counts entries only: about 2.2 s
+per launch at LNC=2, 4.5 s at LNC=1. The product runs in the fewest
+launches the budget allows, as equal blocks of a multiple of 1024 rows (19
+blocks of 55296 rows at n = m = 2^20), the last one zero-padded to the same
+shape, so every block reuses one compile and one cached handle. Rows are
+independent, so the blocked result is bit-identical to a single
+launch.</p>
+<p>Multi-core (#102): with several visible logical cores
+(<code>NEURON_RT_VISIBLE_CORES=0-3</code> on trn2.3xlarge at LNC=2) a row-blocked
+product spreads its blocks round-robin over the cores. The block count is
+rounded up to a multiple of the core count (20 blocks of 53248 rows on 4
+cores at n = m = 2^20), so every core gets the same number. Each core gets
+its own copy of <code>Y</code>, <code>V</code> and the parameters, staged through the host once
+per product, before any kernel is queued. All launches are issued from the
+calling thread and run asynchronously, and the blocks are gathered in row
+order on the operands' device. The result is bit-identical to one core.
+<code>TRNSPARSE_KMV_CORES</code> is <code>auto</code> (the default: every visible core when
+<code>n * m</code> exceeds the block budget, one core below it), <code>all</code>, or a number
+of cores (<code>1</code> turns it off). <code>TRNSPARSE_KMV_THREADS=1</code> issues each core's
+blocks from its own worker thread instead, after the first block of every
+core has been launched (and the handle traced) on the calling thread.</p>
+<p>Per 128 x 512 tile the squared
+distances are one TensorEngine matmul on augmented coordinates
+<code>[x, |x|^2, 1] . [-2y, 1, |y|^2]</code> into PSUM, the kernel function runs on
+ScalarE reading PSUM (<code>exp(a D + log s)</code> for RBF), and the product with <code>V</code>
+accumulates on the TensorEngine. Lengthscale, outputscale and noise are a
+tensor argument, so new hyperparameters do not recompile. Output rows are
+split over both physical cores (LNC=2); results are bit-identical at LNC=1
+and LNC=2 by construction (same Y-tile order). <code>d &lt;= 126</code>.</p>
+<p>Precision: fp32, with inputs centred on the host. The distance expansion
+cancels for near-coincident points (relative error about
+<code>u (|x|^2 + |y|^2) / |x - y|^2</code>); the smooth kernels see that at first order,
+Matern-1/2 (a cusp at 0) as <code>sqrt(u |x|^2) / l</code>. float64 follows the suite
+policy: <code>auto</code> computes in torch float64, explicit <code>nki</code> casts with a
+warning, <code>TRNSPARSE_REQUIRE_NKI</code> raises. Env: <code>TRNSPARSE_KMV_GROUP</code> (Y tiles
+per loop body, default 4), <code>TRNSPARSE_KMV_BLOCK_WORK</code> (kernel entries
+per launch, default <code>6e10</code>), <code>TRNSPARSE_NKI_EAGER_HANDLE=0</code> (custom op instead
+of the cached <code>wrap_nki</code> handle).</p>
 <h2 id="screening">Screening<a class="headerlink" href="#screening" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>schwarz_bounds(shell_pair_integrals)</code> — Cauchy-Schwarz bounds $Q_{pq} = \sqrt{(pq|pq)}$</li>

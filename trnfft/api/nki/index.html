@@ -4695,6 +4695,8 @@
       
         
       
+        
+      
     
     
     
@@ -4848,6 +4850,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trntensor/api/stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5411,6 +5441,10 @@
 <tr>
 <td><code>TRNFFT_PINNED_OUTPUT=0</code></td>
 <td>Turns off pinned-memory host outputs (planes of 1 MiB and up, native path; since v0.25.0, #98).</td>
+</tr>
+<tr>
+<td><code>TRNFFT_NKI_EAGER_HANDLE=1\|0</code></td>
+<td>Native path only. <code>1</code> (default): eager NKI kernel calls on plain <code>neuron</code> tensors go through a <code>torch_neuronx.wrap_nki</code> handle built once per kernel instead of the <code>trnfft::</code> custom op, which cuts host time per call from about 0.1 ms to 0.02-0.03 ms on trn2 (trnblas#92). The butterfly <code>n</code> / <code>stage</code> ints pass through unchanged. <code>trnfft::fft</code> (a whole driver) keeps the op; its kernel launches take the handle. Under <code>torch.compile</code>, and for tensors that require grad, int64 tensors and tensor subclasses, the custom op runs as before; so do ops whose body is more than one kernel call. <code>0</code> always uses the custom op.</td>
 </tr>
 <tr>
 <td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla\|cpu</code></td>

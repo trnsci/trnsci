@@ -4654,6 +4654,8 @@
       
         
       
+        
+      
     
     
     
@@ -4807,6 +4809,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5329,7 +5359,7 @@ when you port code across.</p>
 <tr>
 <td><code>csr_matrix(scipy_matrix)</code> (passthrough)</td>
 <td><code>from_scipy(sp_matrix)</code></td>
-<td>Ingests an existing <code>scipy.sparse</code> matrix directly — zero-copy where possible.</td>
+<td>Ingests an existing <code>scipy.sparse</code> matrix and keeps its value dtype. The values are zero-copy for CSR input; other formats are converted (copied).</td>
 </tr>
 <tr>
 <td><code>eye(n, format='csr')</code></td>
@@ -5407,8 +5437,8 @@ have a direct <code>scipy.sparse</code> equivalent:</p>
 <li><strong>CSR layout bit-for-bit.</strong> The <code>indptr</code>, <code>indices</code>, <code>data</code> arrays
   match <code>scipy.sparse.csr_matrix</code> exactly — same dtype conventions
   (<code>int32</code>/<code>int64</code> for indices, user-specified for data) and the same
-  zero-indexed, sorted-column-within-row invariants. You can round-trip
-  via <code>from_scipy</code> / <code>.to_scipy()</code> without layout surprises.</li>
+  zero-indexed, sorted-column-within-row invariants. <code>from_scipy</code> keeps
+  the scipy value dtype (float64 stays float64, int64 stays int64).</li>
 <li><strong>Matrix-vector semantics.</strong> <code>spmv(A, x)</code> produces the same output as
   <code>A @ x</code> in scipy (modulo floating-point summation order). Symmetric
   and triangular variants use the same conventions.</li>
@@ -5455,7 +5485,7 @@ backend dispatch easier to reason about.</p>
 </tr>
 <tr>
 <td>Slicing (<code>A[i:j, :]</code>)</td>
-<td>Extract on the CPU side via <code>from_scipy(A.to_scipy()[i:j])</code>.</td>
+<td>Slice the scipy matrix on the CPU side, then <code>from_scipy(M[i:j])</code>.</td>
 </tr>
 <tr>
 <td>Elementwise division</td>
@@ -5484,8 +5514,8 @@ before construction:</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">trnsparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">trnsolver</span>
 
-<span class="n">A</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">from_scipy</span><span class="p">(</span><span class="n">scipy_matrix</span><span class="p">)</span>  <span class="c1"># zero-copy ingestion</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">b_numpy</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">trnsparse</span><span class="o">.</span><span class="n">from_scipy</span><span class="p">(</span><span class="n">scipy_matrix</span><span class="p">)</span>  <span class="c1"># keeps float64; values zero-copy for CSR</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">b_numpy</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">cg</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>  <span class="c1"># uses trnsparse.spmv</span>
 </code></pre></div>
 <p>The hot path (<code>spmv</code> inside CG) dispatches to NKI when

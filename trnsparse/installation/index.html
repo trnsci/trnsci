@@ -4665,6 +4665,8 @@
       
         
       
+        
+      
     
     
     
@@ -4818,6 +4820,34 @@
     
   
     Quantum primitives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/stream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming DF integrals
   
 
     
@@ -5402,6 +5432,16 @@ variable is shared by every trnsci library:</p>
 </table>
 <p><code>TRNSCI_XLA_DEPRECATION=1</code> makes the XLA path emit a one-time
 <code>DeprecationWarning</code>. It is off by default.</p>
+<p><code>TRNSPARSE_NKI_EAGER_HANDLE=0</code> turns off the eager kernel handle. By default
+(<code>1</code>), eager NKI kernel calls on plain <code>neuron</code> tensors go through a
+<code>torch_neuronx.wrap_nki</code> handle built once per kernel instead of the
+<code>trnsparse::</code> custom op, which cuts host time per call from about 0.1 ms to
+0.02-0.03 ms on trn2 (trnblas#92). Static arguments (keyed-structure ids,
+fused-solver settings, structure lists, the attention scale) get the same
+<code>int()</code> / <code>tuple()</code> / <code>float()</code> conversions as in the op body. Under
+<code>torch.compile</code>, and for tensors that require grad, int64 tensors and tensor
+subclasses, the custom op runs as before. <code>bsr_attn</code> / <code>bsr_attn_bwd</code> (whole
+drivers) keep the op; their kernel launches take the handle.</p>
 <h2 id="placement-sparse-structure-on-the-host">Placement: sparse structure on the host<a class="headerlink" href="#placement-sparse-structure-on-the-host" title="Permanent link">&para;</a></h2>
 <p>The TorchNeuron <code>neuron</code> device has no sparse CSR tensors
 (<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1442">aws-neuron-sdk#1442</a>):
