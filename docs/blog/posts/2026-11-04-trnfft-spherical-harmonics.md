@@ -11,7 +11,7 @@ trnfft's new spherical harmonic transform, `trnfft.sht`, runs its forward [8.5â€
 <!-- more -->
 
 !!! note "Status"
-    The SHT is [trnfft#152](https://github.com/trnsci/trnfft/pull/152), merged to `main` (5cf7da5) and in the next release. The latest trnfft release, [v0.27.0](https://github.com/trnsci/trnfft/releases/tag/v0.27.0), on GitHub and PyPI, does not include it; the `main` CHANGELOG lists the next one as 0.28.0. Measurements: trn2.3xlarge, public Neuron SDK 2.33 (TorchNeuron, torch 2.14, NKI 0.7.0), one logical core, at the device-validated head 18905ae ([results](https://github.com/trnsci/trnfft/pull/152#issuecomment-6613524387)). This is milestone 1 of the [spectral-transform exemplar](https://github.com/trnsci/trnsci/issues/111), rank 3 on the [flagship-exemplar list](https://github.com/trnsci/trnsci/issues/112).
+    The SHT is [trnfft#152](https://github.com/trnsci/trnfft/pull/152), released in [trnfft v0.28.0](https://github.com/trnsci/trnfft/releases/tag/v0.28.0). Measurements: trn2.3xlarge, public Neuron SDK 2.33 (TorchNeuron, torch 2.14, NKI 0.7.0), one logical core, at the device-validated head 18905ae ([results](https://github.com/trnsci/trnfft/pull/152#issuecomment-6613524387)). This is milestone 1 of the [spectral-transform exemplar](https://github.com/trnsci/trnsci/issues/111), rank 3 on the [flagship-exemplar list](https://github.com/trnsci/trnsci/issues/112).
 
 ## The problem
 
