@@ -753,6 +753,8 @@
       
         
       
+        
+      
     
     
     
@@ -878,6 +880,36 @@
     
   
     Ecosystem
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="category/suite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    suite
   
 
     
@@ -5227,6 +5259,48 @@
             in
             
               <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="category/suite/" class="md-meta__link">suite</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              10 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsci-the-suites-silent-wrong-answers-and-the-float64-rule-that-came-out-of-them"><a class="toclink" href="trnsci-the-suites-silent-wrong-answers-and-the-float64-rule-that-came-out-of-them/">trnsci: the suite's silent wrong answers, and the float64 rule that came out of them</a></h2>
+<p>Across three Trn2 hardware windows, correctness audits found about 60 silent wrong-result bugs in released versions of all six trnsci libraries. Most were wrong on every backend, so the suite's own pytorch-vs-NKI tests had passed them for months. The fixes taught the suite two things about Trainium: what float64 actually means on a device whose arithmetic is fp32, and that a test is only as independent as its reference. This post is for anyone who has shipped numerical code on Trainium, and for anyone deciding whether to trust ours.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="trnsci-the-suites-silent-wrong-answers-and-the-float64-rule-that-came-out-of-them/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-11-04 00:00:00+00:00">November 4, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
               <a href="category/trnfft/" class="md-meta__link">trnfft</a></li>
         
         
@@ -5543,48 +5617,6 @@
     
       <nav class="md-post__action">
         <a href="trnblas-the-odd-shape-cliff-that-wasnt/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              12 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-on-native-pytorch-the-launch-is-the-unit-of-cost"><a class="toclink" href="trnfft-on-native-pytorch-the-launch-is-the-unit-of-cost/">trnfft: on native PyTorch, the launch is the unit of cost</a></h2>
-<p>On the native TorchNeuron device in Neuron SDK 2.33.0, trnfft's N=1024 FFT dropped from 7.56 ms to 0.33 ms. No kernel got faster; there were just fewer launches. When every launch costs a fixed ~0.25 ms, arithmetic barely registers, and the best-fitting shape is one Tensor Engine GEMM accumulating in PSUM, not a sequence of radix stages. The concession comes first: a multithreaded host CPU still beats trnfft at every size and batch measured. For anyone deciding whether a standalone FFT belongs on Trainium: mostly it doesn't, for specific reasons.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trnfft-on-native-pytorch-the-launch-is-the-unit-of-cost/">
           Continue reading
         </a>
       </nav>

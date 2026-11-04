@@ -237,6 +237,10 @@
          <lastmod>2026-11-04</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnsci-the-suites-silent-wrong-answers-and-the-float64-rule-that-came-out-of-them/</loc>
+         <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/trnfft-spherical-harmonic-transforms-and-how-close-plain-pytorch-gets-on-trainium/</loc>
          <lastmod>2026-11-04</lastmod>
     </url>
@@ -598,6 +602,10 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
+         <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/suite/</loc>
          <lastmod>2026-11-04</lastmod>
     </url>
     <url>
