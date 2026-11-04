@@ -100,7 +100,7 @@ python -P -O -m pytest -p cw_counters_plugin -m neuron tests/...   # see blocker
 
 **Configuration is part of the key.** LNC=1 and LNC=2 give different keys, and so do `NEURON_CC_FLAGS`, the opt level and the int64 policy. `torch.compile` uses `-O2` and different flags from eager. NKI kernel keys include the module-qualified name, so warm from installed packages, not a renamed script.
 
-**This window's cache mostly didn't survive.** The window built about 12 GB of compile caches across its lanes, and about 1.1 GB was kept. The copy back from the box's region was too slow, and the box powered off mid-transfer. Every NEFF lost is a compile the next window pays for again on two pinned CPUs. The fix is boring: archive to storage in the same region, or start the copy well before the end of the window.
+**This window's cache mostly didn't survive.** The window built about 12 GB of compile caches across its lanes, and [about 1.1 GB was kept](https://github.com/trnsci/trnsci/issues/118#issuecomment-6636279685). The copy back from the box's region was too slow, and the box powered off mid-transfer. Every NEFF lost is a compile the next window pays for again on two pinned CPUs. The fix is boring: archive to storage in the same region, or start the copy well before the end of the window.
 
 **Fit.** This is a place where Trainium's design works for the user once it's understood. Static whole-program compilation makes first calls expensive, and a CUDA programmer won't expect that. It also makes the result a cacheable, content-addressed artifact, which a JIT-at-launch model would not. The awkward part is the workloads whose shapes come from data, which are the scientific ones.
 
