@@ -1,0 +1,51 @@
+{
+  "_comment": "Test fixture. Toolchain strings are the window-4 Trn2 box's (trnsci/trnsci#118); the probe module is a hand-written StableHLO stand-in, so its key is computed with the documented formula, not observed on the box.",
+  "config": {
+    "compiler_args": "--model-type transformer --auto-cast=none --internal-disable-fma-on-ios",
+    "instance_type": "trn2.48xlarge",
+    "lnc": "2",
+    "opt": "-O1",
+    "source": "probe",
+    "target": "trn2"
+  },
+  "created": "2026-11-03T00:00:00Z",
+  "env": {},
+  "format": "trnsci-neuron-toolchain-manifest",
+  "probe": {
+    "key_formula_verified": true,
+    "keys": [
+      "6b782329afe89c5921caa74e82985609"
+    ],
+    "modules": [
+      {
+        "compiler_txt": "neuronx-cc compile module.mlir --framework XLA --target trn2 --lnc 2 -O1 --model-type transformer --auto-cast=none --internal-disable-fma-on-ios --output module.neff\n",
+        "computed_key": "6b782329afe89c5921caa74e82985609",
+        "metadata": "op: aten::mm\n",
+        "mlir": "module @jit_mm attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {\n  func.func @main(%arg0: tensor<37x211xf32>, %arg1: tensor<211x53xf32>) -> tensor<37x53xf32> {\n    %0 = stablehlo.dot_general %arg0, %arg1, contracting_dims = [1] x [0] : (tensor<37x211xf32>, tensor<211x53xf32>) -> tensor<37x53xf32>\n    return %0 : tensor<37x53xf32>\n  }\n}\n",
+        "mlir_sha256": "341b3eec5b172f318573cc05ae7057176ccf773d822bf46a7a48af2d4a5b65dd",
+        "parsed": {
+          "compiler_args": "--model-type transformer --auto-cast=none --internal-disable-fma-on-ios",
+          "framework": "XLA",
+          "lnc": "2",
+          "opt": "-O1",
+          "target": "trn2"
+        }
+      }
+    ],
+    "shape": [
+      37,
+      211,
+      53
+    ]
+  },
+  "toolchain": {
+    "neuronxcc": "2.28.7631.0+8f7b0cf5",
+    "neuronxcc_key_version": "2.28.7631.0+8f7b0cf5",
+    "nki": "0.7.0",
+    "platform": "x86_64-Linux",
+    "python": "3.12.3",
+    "torch": "2.14.0",
+    "torch_neuronx": "2.14.3.0.1+b1b6c66"
+  },
+  "version": 1
+}
