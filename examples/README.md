@@ -1,6 +1,6 @@
 # trnsci examples
 
-Three kinds of examples live here:
+Four kinds of examples live here:
 
 ## [`nvidia_samples/`](nvidia_samples/)
 
@@ -11,6 +11,10 @@ See [`nvidia_samples/README.md`](nvidia_samples/README.md) for the mapping table
 ## [`quantum_chemistry/`](quantum_chemistry/)
 
 Density-fitted MP2 plumbing demo composing `trnrand` + `trnsparse` + `trnsolver` + `trnblas` + `trntensor` end-to-end, plus `df_mp2_profile.py`, a per-stage profile of the same pipeline across a ladder of sizes. This is the cross-library integration test — the single workload that touches the most libraries in the suite.
+
+## [`gp_regression/`](gp_regression/)
+
+Exact Gaussian-process regression, matrix-free (trnsci/trnsci#109): the posterior mean at n up to 10⁶ with the fused kernel operator from `trnsparse` (`KernelOperator`, K never formed) and block CG from `trnsolver` (`cg_block`, one operator launch per iteration for all right-hand sides, pivoted-Cholesky preconditioner). Validated against exact fp64 scikit-learn / scipy and against gpytorch; `bench.py --device` gives the time-to-solution table against three CPU baselines.
 
 ## [`speech_enhancement/`](speech_enhancement/)
 
