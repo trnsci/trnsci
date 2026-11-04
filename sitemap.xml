@@ -245,6 +245,10 @@
          <lastmod>2026-11-04</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnsci-compile-on-a-cpu-host-run-on-trainium-neuron-compile-caches-carry-over/</loc>
+         <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-11-04</lastmod>
     </url>
@@ -593,6 +597,14 @@
          <lastmod>2026-11-04</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/category/practical/</loc>
+         <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/suite/</loc>
+         <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/category/deep-dive/</loc>
          <lastmod>2026-11-04</lastmod>
     </url>
@@ -602,10 +614,6 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
-         <lastmod>2026-11-04</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/suite/</loc>
          <lastmod>2026-11-04</lastmod>
     </url>
     <url>

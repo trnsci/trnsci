@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://trnsci.dev/blog/category/suite/">
       
       
-        <link rel="prev" href="../ecosystem/">
+        <link rel="prev" href="../practical/">
       
       
         <link rel="next" href="../trnblas/">
@@ -755,6 +755,8 @@
       
         
       
+        
+      
     
     
     
@@ -880,6 +882,36 @@
     
   
     Ecosystem
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../practical/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Practical
   
 
     
@@ -5212,6 +5244,48 @@
       <header class="md-typeset">
         <h1 id="suite">suite<a class="headerlink" href="#suite" title="Permanent link">&para;</a></h1>
       </header>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-11-05 00:00:00+00:00">November 5, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../practical/" class="md-meta__link">Practical</a>, 
+              <a href="./" class="md-meta__link">suite</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              8 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsci-compile-on-a-cpu-host-run-on-trainium-neuron-compile-caches-carry-over"><a class="toclink" href="../../trnsci-compile-on-a-cpu-host-run-on-trainium-neuron-compile-caches-carry-over/">trnsci: compile on a CPU host, run on Trainium. Neuron compile caches carry over</a></h2>
+<p>A feasibility test in <a href="https://github.com/trnsci/trnsci/issues/118">trnsci#118</a> found that NEFFs compiled on a machine with no Neuron device are reused by a Trn2 box's persistent compile cache, with no <code>neuronx-cc</code> run, a fast first call and the same results. That works because the cache key is a pure function of the program and the compiler configuration, so compiling can move to cheaper CPUs ahead of a hardware window. The window that proved it also failed to keep most of its own cache, which is the practical half of this post. It is for anyone who pays for Trainium time and watches the first call compile.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnsci-compile-on-a-cpu-host-run-on-trainium-neuron-compile-caches-carry-over/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
       
         <article class="md-post md-post--excerpt">
   <header class="md-post__header">
