@@ -5272,6 +5272,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#warming-the-neuron-compile-cache-off-box" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warming the Neuron compile cache off-box
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dispatch-pattern-boilerplate" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5515,6 +5526,78 @@ between them.</p>
 </ul>
 <p><strong>Use the simulator for correctness + constraint iteration. Use
 hardware for perf numbers and final sign-off.</strong></p>
+<h2 id="warming-the-neuron-compile-cache-off-box">Warming the Neuron compile cache off-box<a class="headerlink" href="#warming-the-neuron-compile-cache-off-box" title="Permanent link">&para;</a></h2>
+<p>On SDK 2.33 (native TorchNeuron), a NEFF is keyed only by its StableHLO
+program and the compiler configuration. It can therefore be compiled on
+a CPU host and copied into the box's persistent cache
+(<a href="https://github.com/trnsci/trnsci/issues/118">#118</a>).
+<code>scripts/warm_neuron_cache.py</code> does that:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># box, during a window: record the toolchain (runs one ~2 s probe compile)</span>
+python<span class="w"> </span>scripts/warm_neuron_cache.py<span class="w"> </span>manifest<span class="w"> </span>-o<span class="w"> </span>trn2-lnc2.json
+
+<span class="c1"># CPU host booted from the same DLAMI, before the next window</span>
+python<span class="w"> </span>scripts/warm_neuron_cache.py<span class="w"> </span>check<span class="w"> </span>--manifest<span class="w"> </span>trn2-lnc2.json
+python<span class="w"> </span>scripts/warm_neuron_cache.py<span class="w"> </span>capture<span class="w"> </span>--manifest<span class="w"> </span>trn2-lnc2.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span>~/warm<span class="w"> </span>--projects<span class="w"> </span>trnblas,trnsolver<span class="w"> </span>--workers<span class="w"> </span><span class="m">16</span>
+python<span class="w"> </span>scripts/warm_neuron_cache.py<span class="w"> </span>pack<span class="w"> </span>~/warm<span class="w">   </span><span class="c1"># -&gt; neff-&lt;tag&gt;.tar.zst + .index.json</span>
+
+<span class="c1"># box</span>
+python<span class="w"> </span>scripts/warm_neuron_cache.py<span class="w"> </span>unpack<span class="w"> </span>neff-&lt;tag&gt;.tar.zst<span class="w"> </span>--check<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--into<span class="w"> </span><span class="s2">"</span><span class="nv">$TORCH_NEURONX_NEFF_CACHE_DIR</span><span class="s2">"</span>
+python<span class="w"> </span>scripts/warm_neuron_cache.py<span class="w"> </span>verify<span class="w"> </span>--projects<span class="w"> </span>trnblas,trnsolver<span class="w"> </span>--record-mlir<span class="w"> </span>~/misses
+</code></pre></div>
+<p><code>capture</code> runs each project's <code>pytest -m neuron</code> with these settings:</p>
+<ul>
+<li><code>TORCH_NEURONX_COMPILE_ONLY=1</code>;</li>
+<li>the manifest's target, LNC and flags;</li>
+<li><code>NKI_ENABLE_TRACE_CACHE=0</code>;</li>
+<li><code>python -O --assert=plain</code>;</li>
+<li>a plugin, <code>scripts/neuron_cache_plugin.py</code>, that turns numpy and torch
+  result checks into no-ops.</li>
+</ul>
+<p>The last two are needed because device reads return placeholder data.
+Each test file runs in its own process with its own cache. The NEFFs are
+then merged, and every key is mapped to the test that produced it.</p>
+<p><code>verify</code> reports the hit rate from <code>CompilationCache.PersistentHits</code> and
+<code>TotalCompilations</code>, and lists the tests that still compiled. With
+<code>--record-mlir</code>, those misses leave their <code>module.mlir</code> files behind.
+<code>recompile &lt;dir&gt; --manifest ...</code> then compiles them off-box next time,
+which covers the shapes compile-only can't reach.</p>
+<p><strong>The toolchain has to match exactly.</strong> The warming host and the box
+need the same:</p>
+<ul>
+<li>neuronx-cc version (it is in the key);</li>
+<li>torch-neuronx build (it decides the HLO bytes) and NKI version;</li>
+<li>target, LNC, opt level, <code>NEURON_CC_FLAGS</code> and <code>TORCH_NEURONX_INT64_*</code>
+  policy. LNC=1 and LNC=2 give different keys, and <code>torch.compile</code>
+  (<code>-O2</code>) keys differently from eager (<code>-O1</code>).</li>
+</ul>
+<p><code>check</code> compares versions and environment. It then compiles the same
+probe matmul in compile-only mode and requires the same key the box got.
+A mismatch can't produce a wrong answer. It only misses, and the box
+silently compiles as before. That is why <code>capture</code> and <code>recompile</code>
+refuse to run until <code>check</code> passes.</p>
+<p>The simplest way to match is to boot the box's DLAMI on a CPU instance.
+The public <code>torch-neuronx</code> wheel is not the DLAMI build, and it needs
+glibc 2.43.</p>
+<p><strong>Known limits:</strong></p>
+<ul>
+<li>Compile-only reads return placeholders, so value-dependent code takes
+  the wrong path: <code>.item()</code>, convergence loops, <code>nonzero</code>, sparse nnz,
+  pivoting. Iterative solvers (SCF, eigh, CG) need the
+  <code>verify --record-mlir</code> → <code>recompile</code> loop.</li>
+<li>NKI kernel keys include the module-qualified kernel name and the
+  default <code>/var/tmp/nki-intermediate-cache</code> path. Warm from the same
+  package layout as the box: installed trnsci packages, not renamed
+  scripts.</li>
+<li>The NKI trace cache is not portable. Ship NEFFs only.</li>
+<li>WLO compiles (<code>*.wrapped_neff_hlo</code>) are packed and unpacked, but
+  <code>recompile</code> doesn't produce them.</li>
+<li>The cache layout and key are what SDK 2.33 does, not a documented
+  contract. Re-run <code>manifest</code> and <code>check</code> after any SDK change.</li>
+<li>Moving archives between hosts is out of scope, and <code>pack</code> writes a
+  local file. #118 tracks in-region S3 archiving.</li>
+</ul>
 <h2 id="dispatch-pattern-boilerplate">Dispatch pattern (boilerplate)<a class="headerlink" href="#dispatch-pattern-boilerplate" title="Permanent link">&para;</a></h2>
 <p>The pattern each <code>_nki_*_impl</code> in any sub-project should follow:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_nki_foo_impl</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
