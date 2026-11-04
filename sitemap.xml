@@ -233,6 +233,10 @@
          <lastmod>2026-11-04</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnsparse-and-trnsolver-a-million-point-gaussian-process-on-one-trn2-chip-and-what-the-hardware-actually-limits/</loc>
+         <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/trnfft-spherical-harmonic-transforms-and-how-close-plain-pytorch-gets-on-trainium/</loc>
          <lastmod>2026-11-04</lastmod>
     </url>
@@ -589,6 +593,14 @@
          <lastmod>2026-11-04</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/category/trnsparse/</loc>
+         <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
+         <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
+         <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/category/trnfft/</loc>
          <lastmod>2026-11-04</lastmod>
     </url>
@@ -598,14 +610,6 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnrand/</loc>
-         <lastmod>2026-11-04</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/trnsolver/</loc>
-         <lastmod>2026-11-04</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/trnsparse/</loc>
          <lastmod>2026-11-04</lastmod>
     </url>
     <url>

@@ -5187,6 +5187,49 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-11-04 00:00:00+00:00">November 4, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="../trnsparse/" class="md-meta__link">trnsparse</a>, 
+              <a href="./" class="md-meta__link">trnsolver</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              11 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsparse-and-trnsolver-a-million-point-gaussian-process-on-one-trn2-chip-and-what-the-hardware-actually-limits"><a class="toclink" href="../../trnsparse-and-trnsolver-a-million-point-gaussian-process-on-one-trn2-chip-and-what-the-hardware-actually-limits/">trnsparse and trnsolver: a million-point Gaussian process on one Trn2 chip, and what the hardware actually limits</a></h2>
+<p>An exact Gaussian-process posterior mean at n = 10⁶ now converges on one trn2.3xlarge chip in <a href="https://github.com/trnsci/trnsolver/pull/117#issuecomment-6608478916">813 s</a>. It rests on trnsparse's fused <code>K(X, Y) @ V</code> kernel, which never writes the kernel matrix anywhere: squared distances as one Tensor Engine matmul into PSUM, the exponential on the Scalar Engine reading PSUM directly, then the product with V. The profile then showed that the planning number, 10¹² kernel entries per second per chip, was about <a href="https://github.com/trnsci/trnsparse/issues/93#issuecomment-6598554499">4× too optimistic for fp32</a> even with perfect engine overlap. This post is for anyone running kernel methods or attention-shaped workloads who wants to know which Trainium engine is the real limit.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnsparse-and-trnsolver-a-million-point-gaussian-process-on-one-trn2-chip-and-what-the-hardware-actually-limits/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
         
           <li class="md-meta__item">
