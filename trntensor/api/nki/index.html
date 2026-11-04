@@ -5794,6 +5794,10 @@ supported in maintenance mode."</p>
 <td>Native path: force the <code>ao_to_mo_transform</code> executor (<code>trn2</code> = the Trn2 kernel, or <code>ao_to_mo_trn2_packed_kernel</code> for a packed 2-D <code>eri</code>; <code>legacy</code> = the original kernel, deprecated there; <code>aten</code> and <code>legacy</code> unpack a packed <code>eri</code> first).</td>
 </tr>
 <tr>
+<td><code>TRNTENSOR_AO_TO_MO_PACKED=auto\|resident\|blocked</code></td>
+<td>Native path, packed <code>eri</code> on the Trn2 route: pick the kernel (<code>resident</code> = <code>ao_to_mo_trn2_packed_kernel</code>; <code>blocked</code> = <code>ao_to_mo_trn2_packed_blocked_kernel</code>, fp32 only, with an SBUF footprint independent of n_ao). <code>auto</code> keeps the resident kernel wherever its SBUF working set fits and takes the blocked one beyond it (#112).</td>
+</tr>
+<tr>
 <td><code>TRNTENSOR_DF_EXCHANGE=auto\|trn2\|aten</code></td>
 <td>Native path: force the <code>df_exchange</code> executor (<code>trn2</code> = <code>df_half_packed_kernel</code> + <code>df_exchange_syrk_kernel</code> on packed integrals; <code>aten</code> = row gather + einsum + one GEMM). <code>auto</code> uses the kernels for device-resident packed <code>B</code> from <code>nocc·nbasis²·naux</code> = 1e7 (#60).</td>
 </tr>

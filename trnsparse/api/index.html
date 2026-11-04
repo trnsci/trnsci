@@ -5531,7 +5531,7 @@ Matern-1/2 (a cusp at 0) as <code>sqrt(u |x|^2) / l</code>. float64 follows the 
 policy: <code>auto</code> computes in torch float64, explicit <code>nki</code> casts with a
 warning, <code>TRNSPARSE_REQUIRE_NKI</code> raises. Env: <code>TRNSPARSE_KMV_GROUP</code> (Y tiles
 per loop body, 1 to 32; default <code>kmv_group(m)</code>: about <code>sqrt(m / 128)</code>, from 4
-to 16, which also minimises the fp32 summation error), <code>TRNSPARSE_KMV_BLOCK_WORK</code> (kernel entries
+to 32 (32 from m = 131072), which also minimises the fp32 summation error), <code>TRNSPARSE_KMV_BLOCK_WORK</code> (kernel entries
 per launch, default <code>6e10</code>), <code>TRNSPARSE_NKI_EAGER_HANDLE=0</code> (custom op instead
 of the cached <code>wrap_nki</code> handle).</p>
 <h2 id="screening">Screening<a class="headerlink" href="#screening" title="Permanent link">&para;</a></h2>
