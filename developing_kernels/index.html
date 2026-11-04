@@ -13,6 +13,10 @@
         <link rel="canonical" href="https://trnsci.dev/developing_kernels/">
       
       
+        <link rel="prev" href="../deployment/">
+      
+      
+        <link rel="next" href="../workflows/integration/">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>Developing NKI kernels (suite convention) - trnsci</title>
+        <title>Developing kernels - trnsci</title>
       
     
     
@@ -108,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Developing NKI kernels (suite convention)
+              Developing kernels
             
           </span>
         </div>
@@ -327,10 +331,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../installation/" class="md-tabs__link">
           
   
@@ -1138,8 +1144,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1147,23 +1155,28 @@
       
         
       
+        
+      
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
         
           
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
             
   
   
@@ -1181,7 +1194,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1243,6 +1256,225 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developing kernels
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developing kernels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#three-dispatch-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three dispatch modes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulator-workflow-the-big-unlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator workflow (the big unlock)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simulator workflow (the big unlock)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-each-sub-project-enables-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How each sub-project enables it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-ci-gate-catches-and-misses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the CI gate catches (and misses)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulator-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#warming-the-neuron-compile-cache-off-box" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warming the Neuron compile cache off-box
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dispatch-pattern-boilerplate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch pattern (boilerplate)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dispatch pattern (boilerplate)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#helpers-already-defined-in-every-dispatch-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helpers already defined in every dispatch module
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#namespace-nki-is-canonical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Namespace: nki.* is canonical
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nki-030-migration-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NKI 0.3.0 migration reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-discipline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design discipline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suite-coordination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suite coordination
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 

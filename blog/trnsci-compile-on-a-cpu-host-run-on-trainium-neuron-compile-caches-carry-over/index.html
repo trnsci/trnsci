@@ -1163,6 +1163,8 @@
       
         
       
+        
+      
     
     
     
@@ -1251,6 +1253,34 @@
     
   
     Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developing_kernels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developing kernels
   
 
     
@@ -5480,7 +5510,7 @@
 <span class="w">       </span><span class="nv">NKI_ENABLE_TRACE_CACHE</span><span class="o">=</span><span class="m">0</span><span class="w"> </span><span class="nv">TORCH_NEURONX_NEFF_CACHE_DIR</span><span class="o">=</span><span class="nv">$OUT</span>/neff
 python<span class="w"> </span>-P<span class="w"> </span>-O<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-p<span class="w"> </span>cw_counters_plugin<span class="w"> </span>-m<span class="w"> </span>neuron<span class="w"> </span>tests/...<span class="w">   </span><span class="c1"># see blockers re: asserts</span>
 </code></pre></div>
-<p><code>nrt_init</code> fails with "Neuron driver not loaded", and that is non-fatal. Verification on the box uses the <code>CompilationCache.PersistentHits</code> and <code>TotalCompilations</code> counters from <code>torch_neuronx.metrics</code>. The experiment scripts, including the counters plugin, are not in a repo yet. <code>scripts/warm_neuron_cache.py</code> below is a design, not code.</p>
+<p><code>nrt_init</code> fails with "Neuron driver not loaded", and that is non-fatal. Verification on the box uses the <code>CompilationCache.PersistentHits</code> and <code>TotalCompilations</code> counters from <code>torch_neuronx.metrics</code>. The experiment scripts became <a href="https://github.com/trnsci/trnsci/blob/main/scripts/warm_neuron_cache.py"><code>scripts/warm_neuron_cache.py</code></a> (<a href="https://github.com/trnsci/trnsci/pull/130">#130</a>) after this post was written; its end-to-end run waits for the next hardware window.</p>
 <h2 id="what-didnt-work">What didn't work<a class="headerlink" href="#what-didnt-work" title="Permanent link">&para;</a></h2>
 <p><strong>The toolchain has to match exactly.</strong> The key includes the neuronx-cc version, and the HLO bytes depend on the torch-neuronx build. The public <code>torch-neuronx==2.14.3.0.281+dc70ffa</code> wheel needs glibc 2.43, won't import on Ubuntu 24.04, and isn't the build the DLAMI runs. #118 had to rebuild the box's environment by hand in a container. The simplest route is to boot the same DLAMI on a CPU instance. A mismatch is safe, though. It can't produce a wrong result. It only misses, and the box compiles as before, silently.</p>
 <p><strong>Placeholder reads end tests early.</strong> In compile-only mode <code>.item()</code>, convergence loops and assert-heavy tests take whatever path the placeholder data sends them down. The first trnblas pass captured only 6 of 14 NEFFs because tests stopped at their first failed assert. Stripping asserts with <code>python -O</code> and turning <code>torch.testing.assert_close</code> and <code>numpy.testing.assert_allclose</code> into no-ops captured all 14.</p>
