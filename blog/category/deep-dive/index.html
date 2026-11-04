@@ -5251,6 +5251,49 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-11-05 00:00:00+00:00">November 5, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trnsolver/" class="md-meta__link">trnsolver</a>, 
+              <a href="../trntensor/" class="md-meta__link">trntensor</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              13 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsolver-and-trntensor-df-rhf-and-df-mp2-from-500-to-3508-aos-on-one-trn2-chip-and-what-bounds-each-rung"><a class="toclink" href="../../trnsolver-and-trntensor-df-rhf-and-df-mp2-from-500-to-3508-aos-on-one-trn2-chip-and-what-bounds-each-rung/">trnsolver and trntensor: DF-RHF and DF-MP2 from 500 to 3508 AOs on one Trn2 chip, and what bounds each rung</a></h2>
+<p>Density-fitted RHF plus MP2 now runs end to end on one trn2.3xlarge from about 500 to 3508 basis functions, including three systems whose integrals exceed the chip's 96 GiB of HBM, two of them the host's 124 GB of RAM as well. The largest rung is the least flattering: at 3508 AOs an SCF iteration took about 8 minutes, bound by the NVMe, and its AO→MO transform and eigensolve ran on the host through driver patches. The finding is that each step up the ladder moved the bound to a different resource: Tensor Engine compute, the host link, the page cache, the disk, SBUF, and twice the compiler. It's for chemists sizing a Trainium run, and anyone streaming more data than fits on the device.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnsolver-and-trntensor-df-rhf-and-df-mp2-from-500-to-3508-aos-on-one-trn2-chip-and-what-bounds-each-rung/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-11-04 00:00:00+00:00">November 4, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5616,48 +5659,6 @@
     
       <nav class="md-post__action">
         <a href="../../trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trnblas/" class="md-meta__link">trnblas</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              10 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnblas-the-odd-shape-cliff-that-wasnt"><a class="toclink" href="../../trnblas-the-odd-shape-cliff-that-wasnt/">trnblas: the odd-shape cliff that wasn't</a></h2>
-<p>An 8191³ GEMM took 1605 s on its first call on Trn2 while 8192³ took 4.4 s, and trnblas blamed three things in turn before finding the cliff in its own benchmark: a lazy <code>torch.randn(device="neuron")</code> inside the timed call. Two fixes from the wrong turns are real and shipped in <a href="https://github.com/trnsci/trnblas/releases/tag/v0.6.0">trnblas v0.6.0</a> via <a href="https://github.com/trnsci/trnblas/pull/51">trnblas#51</a> — the autotune sweep is opt-in, and unaligned shapes now take their ragged edges inside the kernel, which PSUM accumulation and partition-0 tiles make nearly free. The post is for anyone timing first calls on the native TorchNeuron device, and for CUDA programmers who expect "pad to the tile" to cost nothing.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trnblas-the-odd-shape-cliff-that-wasnt/">
           Continue reading
         </a>
       </nav>

@@ -5247,6 +5247,49 @@
           <li class="md-meta__item">
             in
             
+              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="category/trnsolver/" class="md-meta__link">trnsolver</a>, 
+              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              13 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsolver-and-trntensor-df-rhf-and-df-mp2-from-500-to-3508-aos-on-one-trn2-chip-and-what-bounds-each-rung"><a class="toclink" href="trnsolver-and-trntensor-df-rhf-and-df-mp2-from-500-to-3508-aos-on-one-trn2-chip-and-what-bounds-each-rung/">trnsolver and trntensor: DF-RHF and DF-MP2 from 500 to 3508 AOs on one Trn2 chip, and what bounds each rung</a></h2>
+<p>Density-fitted RHF plus MP2 now runs end to end on one trn2.3xlarge from about 500 to 3508 basis functions, including three systems whose integrals exceed the chip's 96 GiB of HBM, two of them the host's 124 GB of RAM as well. The largest rung is the least flattering: at 3508 AOs an SCF iteration took about 8 minutes, bound by the NVMe, and its AO→MO transform and eigensolve ran on the host through driver patches. The finding is that each step up the ladder moved the bound to a different resource: Tensor Engine compute, the host link, the page cache, the disk, SBUF, and twice the compiler. It's for chemists sizing a Trainium run, and anyone streaming more data than fits on the device.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="trnsolver-and-trntensor-df-rhf-and-df-mp2-from-500-to-3508-aos-on-one-trn2-chip-and-what-bounds-each-rung/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
+          <time datetime="2026-11-05 00:00:00+00:00">November 5, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
               <a href="category/practical/" class="md-meta__link">Practical</a>, 
               <a href="category/suite/" class="md-meta__link">suite</a></li>
         
@@ -5607,48 +5650,6 @@
     
       <nav class="md-post__action">
         <a href="trnsparse-the-crossover-density-with-the-sparsity-pattern-compiled-in/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trntensor/" class="md-meta__link">trntensor</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              11 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont"><a class="toclink" href="trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont/">trntensor: on Trn2 the planner earns its keep, the kernels don't</a></h2>
-<p>On the native TorchNeuron path, trntensor's hand-written NKI kernels did not beat aten on the device at any size measured, so <a href="https://github.com/trnsci/trntensor/releases/tag/v0.18.0">trntensor v0.18.0</a> now routes plain and fused contractions to aten by default. What the library does add on Trn2 sits one level up, in the host-side planner: contraction order, batching and precision modes. That planner had a bug that built a 4-index outer product, which cost 70 ms on a contraction that should take about 1 ms. Anyone writing contraction code for Trainium, or deciding whether a hand-written kernel is worth it, may find the measured split between "plan" and "kernel" more useful than any single speedup.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont/">
           Continue reading
         </a>
       </nav>
