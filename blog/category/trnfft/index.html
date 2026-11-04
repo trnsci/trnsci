@@ -5187,6 +5187,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-11-04 00:00:00+00:00">November 4, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="./" class="md-meta__link">trnfft</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              11 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnfft-spherical-harmonic-transforms-and-how-close-plain-pytorch-gets-on-trainium"><a class="toclink" href="../../trnfft-spherical-harmonic-transforms-and-how-close-plain-pytorch-gets-on-trainium/">trnfft: spherical harmonic transforms, and how close plain PyTorch gets on Trainium</a></h2>
+<p>trnfft's new spherical harmonic transform, <code>trnfft.sht</code>, runs its forward <a href="https://github.com/trnsci/trnfft/pull/152#issuecomment-6613524387">8.5–28× faster</a> than fp64 ducc0 on the same Trn2 box, while its inverse is <a href="https://github.com/trnsci/trnfft/issues/156">26× slower</a> than its own forward at L = 511, F = 1024, nearly all of the gap spent in two <code>torch.flip</code> calls. The Legendre stage is a ragged batch of matmuls against fixed tables, and the hand-written NKI kernel that holds those tables stationary in SBUF beats a carefully padded plain-PyTorch version by only <a href="https://github.com/trnsci/trnfft/pull/157#issuecomment-6617354400">1.2–2.2× at large batch, and loses to it by 1.5–1.6× at one field</a>: what plain PyTorch can't do on the device is the FFT, and the naive per-m loop never gets past compile. This is for anyone weighing Trainium for spectral-transform models in weather and climate, and for anyone deciding how much of that work needs a library at all.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnfft-spherical-harmonic-transforms-and-how-close-plain-pytorch-gets-on-trainium/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5586,48 +5628,6 @@ most of the engineering work actually lived.</p>
   </div>
 </article>
       
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-14 00:00:00+00:00">April 14, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="./" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              8 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine"><a class="toclink" href="../../trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">trnfft: FFT on hardware that doesn't want to be an FFT engine</a></h2>
-<p>Between v0.7 and v0.12, <a href="https://trnsci.dev/trnfft/">trnfft</a>'s NKI story moved from one per-row butterfly dispatch into a batched butterfly plus a fused DFT-as-GEMM fast path, with opt-in Kahan-compensated precision. All of it is hardware-validated on trn1.2xlarge. What landed on silicon looks very little like cuFFT: no complex dtype, no thread-per-butterfly, no bit-reversal in the fast path. What Trainium's architecture — four programmable engines, a fixed 128-partition × 512-moving tile, explicit SBUF/PSUM memory — suggested was a different decomposition, and this post is the retrospective on what that turned out to be.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trnfft-fft-on-hardware-that-doesnt-want-to-be-an-fft-engine/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
       
         
           
@@ -5635,7 +5635,7 @@ most of the engineering work actually lived.</p>
 
 
 <nav class="md-pagination">
-  
+  <span class="md-pagination__current">1</span> <a class="md-pagination__link" href="page/2/">2</a>
 </nav>
         
       
