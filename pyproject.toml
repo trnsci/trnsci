@@ -47,6 +47,8 @@ dev = [
     "pytest>=7.0",
     "pytest-benchmark>=4.0",
     "pytest-cov>=4.1",
+    # NEFF cache keys in scripts/warm_neuron_cache.py (xxh3-128)
+    "xxhash>=3.0",
     "pre-commit>=3.6",
     "mkdocs>=1.5",
     "mkdocs-material>=9.0",

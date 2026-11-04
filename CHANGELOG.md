@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `scripts/warm_neuron_cache.py`: compiles Neuron NEFF caches off-box
+  ([#118](https://github.com/trnsci/trnsci/issues/118)). `manifest` records
+  the box toolchain, and `check` refuses on any mismatch. `capture` runs
+  `pytest -m neuron` in compile-only mode on a CPU host, with parallel
+  workers. `recompile` replays recorded `module.mlir` files. `pack` /
+  `unpack` produce a tarball plus a JSON index, and `verify` reports the
+  persistent-hit rate on the box. The pytest plugin is
+  `scripts/neuron_cache_plugin.py`, and the usage notes and limits are in
+  `docs/developing_kernels.md`. The `[dev]` extra now includes `xxhash`.
 - `--device neuron` for the DF-MP2 example. Inputs are built on the host and
   copied to the device once.
 - `examples/quantum_chemistry/df_mp2_profile.py`: an end-to-end profile across

@@ -101,6 +101,86 @@ From [`nki.simulate` API docs](https://awsdocs-neuron.readthedocs-hosted.com/en/
 **Use the simulator for correctness + constraint iteration. Use
 hardware for perf numbers and final sign-off.**
 
+## Warming the Neuron compile cache off-box
+
+On SDK 2.33 (native TorchNeuron), a NEFF is keyed only by its StableHLO
+program and the compiler configuration. It can therefore be compiled on
+a CPU host and copied into the box's persistent cache
+([#118](https://github.com/trnsci/trnsci/issues/118)).
+`scripts/warm_neuron_cache.py` does that:
+
+```bash
+# box, during a window: record the toolchain (runs one ~2 s probe compile)
+python scripts/warm_neuron_cache.py manifest -o trn2-lnc2.json
+
+# CPU host booted from the same DLAMI, before the next window
+python scripts/warm_neuron_cache.py check --manifest trn2-lnc2.json
+python scripts/warm_neuron_cache.py capture --manifest trn2-lnc2.json \
+    --out ~/warm --projects trnblas,trnsolver --workers 16
+python scripts/warm_neuron_cache.py pack ~/warm   # -> neff-<tag>.tar.zst + .index.json
+
+# box
+python scripts/warm_neuron_cache.py unpack neff-<tag>.tar.zst --check \
+    --into "$TORCH_NEURONX_NEFF_CACHE_DIR"
+python scripts/warm_neuron_cache.py verify --projects trnblas,trnsolver --record-mlir ~/misses
+```
+
+`capture` runs each project's `pytest -m neuron` with these settings:
+
+- `TORCH_NEURONX_COMPILE_ONLY=1`;
+- the manifest's target, LNC and flags;
+- `NKI_ENABLE_TRACE_CACHE=0`;
+- `python -O --assert=plain`;
+- a plugin, `scripts/neuron_cache_plugin.py`, that turns numpy and torch
+  result checks into no-ops.
+
+The last two are needed because device reads return placeholder data.
+Each test file runs in its own process with its own cache. The NEFFs are
+then merged, and every key is mapped to the test that produced it.
+
+`verify` reports the hit rate from `CompilationCache.PersistentHits` and
+`TotalCompilations`, and lists the tests that still compiled. With
+`--record-mlir`, those misses leave their `module.mlir` files behind.
+`recompile <dir> --manifest ...` then compiles them off-box next time,
+which covers the shapes compile-only can't reach.
+
+**The toolchain has to match exactly.** The warming host and the box
+need the same:
+
+- neuronx-cc version (it is in the key);
+- torch-neuronx build (it decides the HLO bytes) and NKI version;
+- target, LNC, opt level, `NEURON_CC_FLAGS` and `TORCH_NEURONX_INT64_*`
+  policy. LNC=1 and LNC=2 give different keys, and `torch.compile`
+  (`-O2`) keys differently from eager (`-O1`).
+
+`check` compares versions and environment. It then compiles the same
+probe matmul in compile-only mode and requires the same key the box got.
+A mismatch can't produce a wrong answer. It only misses, and the box
+silently compiles as before. That is why `capture` and `recompile`
+refuse to run until `check` passes.
+
+The simplest way to match is to boot the box's DLAMI on a CPU instance.
+The public `torch-neuronx` wheel is not the DLAMI build, and it needs
+glibc 2.43.
+
+**Known limits:**
+
+- Compile-only reads return placeholders, so value-dependent code takes
+  the wrong path: `.item()`, convergence loops, `nonzero`, sparse nnz,
+  pivoting. Iterative solvers (SCF, eigh, CG) need the
+  `verify --record-mlir` → `recompile` loop.
+- NKI kernel keys include the module-qualified kernel name and the
+  default `/var/tmp/nki-intermediate-cache` path. Warm from the same
+  package layout as the box: installed trnsci packages, not renamed
+  scripts.
+- The NKI trace cache is not portable. Ship NEFFs only.
+- WLO compiles (`*.wrapped_neff_hlo`) are packed and unpacked, but
+  `recompile` doesn't produce them.
+- The cache layout and key are what SDK 2.33 does, not a documented
+  contract. Re-run `manifest` and `check` after any SDK change.
+- Moving archives between hosts is out of scope, and `pack` writes a
+  local file. #118 tracks in-region S3 archiving.
+
 ## Dispatch pattern (boilerplate)
 
 The pattern each `_nki_*_impl` in any sub-project should follow:
