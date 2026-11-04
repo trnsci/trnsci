@@ -88,7 +88,7 @@ export TORCH_NEURONX_COMPILE_ONLY=1 NEURON_PLATFORM_TARGET_OVERRIDE=trn2 \
 python -P -O -m pytest -p cw_counters_plugin -m neuron tests/...   # see blockers re: asserts
 ```
 
-`nrt_init` fails with "Neuron driver not loaded", and that is non-fatal. Verification on the box uses the `CompilationCache.PersistentHits` and `TotalCompilations` counters from `torch_neuronx.metrics`. The experiment scripts, including the counters plugin, are not in a repo yet. `scripts/warm_neuron_cache.py` below is a design, not code.
+`nrt_init` fails with "Neuron driver not loaded", and that is non-fatal. Verification on the box uses the `CompilationCache.PersistentHits` and `TotalCompilations` counters from `torch_neuronx.metrics`. The experiment scripts became [`scripts/warm_neuron_cache.py`](https://github.com/trnsci/trnsci/blob/main/scripts/warm_neuron_cache.py) ([#130](https://github.com/trnsci/trnsci/pull/130)) after this post was written; its end-to-end run waits for the next hardware window.
 
 ## What didn't work
 

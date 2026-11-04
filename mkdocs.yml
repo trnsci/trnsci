@@ -52,6 +52,7 @@ nav:
   - Getting started:
       - Installation: installation.md
       - Deployment: deployment.md
+      - Developing kernels: developing_kernels.md
   - Workflows:
       - Integration (DF-MP2): workflows/integration.md
       - Speech enhancement: workflows/speech_enhancement.md
