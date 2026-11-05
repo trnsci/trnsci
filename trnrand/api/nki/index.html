@@ -5585,6 +5585,14 @@ was always the cast float32 kernel output, with no warning.</p>
 <td><code>TRNRAND_KEY_MODE=draw\|counter</code></td>
 <td>Default <code>Generator</code> key mode.</td>
 </tr>
+<tr>
+<td><code>TRNSCI_NKI_DISPATCH=auto\|native\|xla</code></td>
+<td>Suite-wide. Forces the native or XLA dispatch path; <code>auto</code> (default) detects. Forcing an unavailable path raises.</td>
+</tr>
+<tr>
+<td><code>TRNSCI_XLA_DEPRECATION=1</code></td>
+<td>Suite-wide, off by default. The XLA path emits one <code>DeprecationWarning</code>.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="multi-core-bulk-draws">Multi-core bulk draws<a class="headerlink" href="#multi-core-bulk-draws" title="Permanent link">&para;</a></h2>
