@@ -68,7 +68,7 @@ import tempfile
 import threading
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPTS_DIR.parent
@@ -1078,9 +1078,14 @@ _NEURON_MARK = re.compile(r"mark\.neuron\b")
 
 
 def discover_units(
-    src_root, projects, *, by: str = "file", prefilter: bool = True
+    src_root, projects, *, by: str = "file", prefilter: bool = True, tests=None
 ) -> list[Unit]:
-    """One pytest invocation per test file (``by="file"``) or per project."""
+    """One pytest invocation per test file (``by="file"``) or per project.
+
+    ``tests`` (paths relative to each project, files or directories, as for
+    ``verify --tests``) restricts the selection to those paths.
+    """
+    sel = [PurePosixPath(t.rstrip("/")) for t in tests] if tests else None
     units = []
     for proj in projects:
         pdir = Path(src_root) / PROJECTS[proj]
@@ -1090,12 +1095,17 @@ def discover_units(
                 f"{proj}: no tests/ under {pdir} (set --src to the umbrella checkout)"
             )
         if by == "project":
-            units.append(Unit(proj, pdir, ["tests"], proj))
+            targets = [t.as_posix() for t in sel] if sel else ["tests"]
+            units.append(Unit(proj, pdir, targets, proj))
             continue
         for f in sorted(tdir.rglob("test_*.py")):
+            rel = f.relative_to(pdir).as_posix()
+            if sel and not any(
+                PurePosixPath(rel) == t or t in PurePosixPath(rel).parents for t in sel
+            ):
+                continue
             if prefilter and not _NEURON_MARK.search(f.read_text(errors="replace")):
                 continue
-            rel = f.relative_to(pdir).as_posix()
             units.append(Unit(proj, pdir, [rel], f"{proj}/{rel}"))
     return units
 
@@ -1298,7 +1308,11 @@ def cmd_capture(args) -> int:
     )
     projects = parse_projects(args.projects)
     units = discover_units(
-        args.src, projects, by=args.by, prefilter=not args.no_prefilter
+        args.src,
+        projects,
+        by=args.by,
+        prefilter=not args.no_prefilter,
+        tests=args.tests,
     )
     if not units:
         raise WarmError("no test files with neuron tests found")
@@ -1696,6 +1710,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("file", "project"),
         default="file",
         help="pytest invocation granularity",
+    )
+    s.add_argument(
+        "--tests",
+        nargs="+",
+        help="test paths relative to each project (default: all of tests/)",
     )
     s.add_argument("--marker", default="neuron")
     s.add_argument(

@@ -546,6 +546,23 @@ def test_discover_units(tmp_path):
         w.discover_units(tmp_path, ["trnblas"])
 
 
+def test_discover_units_tests_selection(tmp_path):
+    t = tmp_path / "trnblas" / "tests"
+    (t / "sub").mkdir(parents=True)
+    body = "import pytest\n@pytest.mark.neuron\ndef test_a(): pass\n"
+    for name in ("test_nki_syrk.py", "test_nki_trsm.py", "test_nki_gemm.py"):
+        (t / name).write_text(body)
+    (t / "sub" / "test_deep.py").write_text(body)
+    pick = ["tests/test_nki_syrk.py", "tests/test_nki_trsm.py"]
+    units = w.discover_units(tmp_path, ["trnblas"], tests=pick)
+    assert [u.targets for u in units] == [[p] for p in pick]
+    units = w.discover_units(tmp_path, ["trnblas"], tests=["tests/sub/"])
+    assert [u.targets for u in units] == [["tests/sub/test_deep.py"]]
+    assert w.discover_units(tmp_path, ["trnblas"], tests=["tests/nope.py"]) == []
+    units = w.discover_units(tmp_path, ["trnblas"], by="project", tests=pick)
+    assert [u.targets for u in units] == [pick]
+
+
 def test_plan_recompile(tmp_path, manifest):
     pytest.importorskip("xxhash")
     d = tmp_path / "rec" / "0001"
