@@ -23,18 +23,18 @@ dependencies = []
 
 [project.optional-dependencies]
 fft = ["trnfft>=0.29"]
-blas = ["trnblas>=0.12"]
+blas = ["trnblas>=0.12.1"]
 rand = ["trnrand>=0.14"]
 solver = ["trnsolver>=0.22.1"]
 sparse = ["trnsparse>=0.15"]
-tensor = ["trntensor>=0.25"]
+tensor = ["trntensor>=0.25.1"]
 all = [
     "trnfft>=0.29",
-    "trnblas>=0.12",
+    "trnblas>=0.12.1",
     "trnrand>=0.14",
     "trnsolver>=0.22.1",
     "trnsparse>=0.15",
-    "trntensor>=0.25",
+    "trntensor>=0.25.1",
 ]
 neuron = [
     # neuronxcc is not on public PyPI; ships with the Deep Learning AMI Neuron.
