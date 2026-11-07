@@ -137,6 +137,9 @@ python scripts/warm_neuron_cache.py verify --projects trnblas,trnsolver --record
 The last two are needed because device reads return placeholder data.
 Each test file runs in its own process with its own cache. The NEFFs are
 then merged, and every key is mapped to the test that produced it.
+`--tests tests/test_nki_syrk.py tests/test_nki_trsm.py` (paths relative to
+each project, as for `verify --tests`) restricts the capture to those files
+or directories.
 
 `verify` reports the hit rate from `CompilationCache.PersistentHits` and
 `TotalCompilations`, and lists the tests that still compiled. With
