@@ -5789,7 +5789,10 @@ python<span class="w"> </span>scripts/warm_neuron_cache.py<span class="w"> </spa
 </ul>
 <p>The last two are needed because device reads return placeholder data.
 Each test file runs in its own process with its own cache. The NEFFs are
-then merged, and every key is mapped to the test that produced it.</p>
+then merged, and every key is mapped to the test that produced it.
+<code>--tests tests/test_nki_syrk.py tests/test_nki_trsm.py</code> (paths relative to
+each project, as for <code>verify --tests</code>) restricts the capture to those files
+or directories.</p>
 <p><code>verify</code> reports the hit rate from <code>CompilationCache.PersistentHits</code> and
 <code>TotalCompilations</code>, and lists the tests that still compiled. With
 <code>--record-mlir</code>, those misses leave their <code>module.mlir</code> files behind.
