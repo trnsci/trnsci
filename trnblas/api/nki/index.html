@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -5546,7 +5546,7 @@ accuracy. trnblas follows the trnsci suite-wide policy (#89):</p>
 </tr>
 <tr>
 <td><code>set_backend("nki")</code></td>
-<td>Cast to float32, run on the NKI kernel, result cast back. One <code>UserWarning</code> per op says precision is reduced to float32. Ops with no kernel (Level 1/2, <code>symm</code>, <code>trmm</code>) run in torch on the operands' device: host float64 keeps float64 accuracy with no warning, and float64 / complex128 on the <code>neuron</code> device runs on device aten at fp32 precision with the same once-per-op warning.</td>
+<td>Cast to float32, run on the NKI kernel, result cast back. One <code>UserWarning</code> per op says precision is reduced to float32. Ops with no kernel (Level 1/2, <code>symm</code>, <code>trmm</code>) run in torch on the operands' device: host float64 keeps float64 accuracy with no warning, and float64 / complex128 on the <code>neuron</code> device runs on device aten at fp32 precision with the same once-per-op warning. Ops with a kernel give the same warning when device float64 / complex128 does not take the float32 cast (see below).</td>
 </tr>
 <tr>
 <td><code>TRNBLAS_REQUIRE_NKI=1</code></td>
@@ -5579,7 +5579,26 @@ accuracy. trnblas follows the trnsci suite-wide policy (#89):</p>
   <code>TRNBLAS_FP64_ON_DEVICE</code>; before, the routes with no kernel (<code>auto</code>
   GEMM-family device aten, <code>symm</code>, Level 1/2) computed it at fp32 precision
   with no error. The <code>trnblas.parallel</code>
-  (multi-process) helpers are float32 pipelines and are not covered.</li>
+  (multi-process) helpers are float32 pipelines and are not covered, except
+  <code>parallel.pair_energy</code> (below).</li>
+<li><strong>Explicit <code>nki</code>, device float64 off the cast (#103).</strong> On an op with a
+  kernel, float64 / complex128 on the <code>neuron</code> device takes the float32
+  kernel cast only when every operand is float64 and the call has a kernel
+  route. The other calls run on device aten at fp32 precision, and the op
+  emits one <code>UserWarning</code> ("... run on device aten; precision is reduced to
+  float32"), sharing the dedup set of the cast warning (<code>nki_gemm</code> and
+  <code>gemm</code> count as one op). That covers complex128 operands (<code>gemm</code>,
+  <code>batched_gemm</code>, <code>syrk</code>, the energy APIs), float64 mixed with another
+  dtype (a float64 <code>C</code> on a float32 <code>gemm</code> / <code>syrk</code>, mixed <code>trsm</code>
+  operands, float64 amplitudes with integer or complex <code>eps</code>), shapes or
+  sides with no kernel route (batched or 1-D <code>gemm</code> operands, a 1-D operand
+  to <code>nki_batched_gemm</code>, <code>side="right"</code> <code>trsm</code>), the <code>metric_inv_half</code>
+  device route (its Cholesky runs on device aten), and the
+  <code>nki_batched_pair_energy</code> / <code>parallel.pair_energy</code> aten route.
+  <code>TRNBLAS_REQUIRE_NKI=1</code> raises for all of them, <code>parallel.pair_energy</code>
+  included. No warning where the work stays on the host at full precision:
+  left <code>trsm</code> on complex128 and the <code>metric_inv_half</code> host route. A mixed
+  call that torch refuses (float64 @ float32) still raises, with no warning.</li>
 <li>The GEMM / SYRK kernels take float32, bfloat16 and float16 (FP32 PSUM
   accumulation, output in the input dtype). The DF-MP2 energy kernels take
   float32; bfloat16 / float16 operands are upcast exactly.</li>
@@ -5785,7 +5804,7 @@ remains the torch path until a future milestone hits the 3× bar.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "navigation.sections", "navigation.tabs", "navigation.indexes"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
