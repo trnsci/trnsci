@@ -4,14 +4,14 @@ Scientific computing libraries for AWS Trainium — the reference implementation
 
 NVIDIA CUDA programmers reach for **cuFFT**, **cuBLAS**, **cuRAND**, **cuSOLVER**, **cuSPARSE**, and **cuTENSOR** when they need fast numerical primitives. The AWS Neuron SDK ships none of these. `trnsci` is six libraries that fill the gap:
 
-| trnsci | NVIDIA analog | Scope |
-|---|---|---|
-| [trnfft](trnfft/) | cuFFT | FFT, complex tensors, STFT, complex NN layers |
-| [trnblas](trnblas/) | cuBLAS | BLAS Levels 1–3, batched GEMM, DF-MP2 energy |
-| [trnrand](trnrand/) | cuRAND | Philox/Threefry PRNG, Sobol/Halton QMC |
-| [trnsolver](trnsolve/) | cuSOLVER | Cholesky/LU/QR/SVD, Jacobi eigh, CG/GMRES with iterative refinement |
-| [trnsparse](trnsparse/) | cuSPARSE | BSR-128 SpMM, Schwarz screening, block-sparse attention |
-| [trntensor](trntensor/) | cuTENSOR | Einstein summation with path planning, CP/Tucker/TT, multi-chip sharding |
+| trnsci | NVIDIA analog | Scope | Latest |
+|---|---|---|---|
+| [trnfft](trnfft/) | cuFFT | FFT, complex tensors, STFT, spherical harmonic transforms, complex NN layers | [[pypi:trnfft]] |
+| [trnblas](trnblas/) | cuBLAS | BLAS Levels 1–3, batched GEMM, DF-MP2 energy | [[pypi:trnblas]] |
+| [trnrand](trnrand/) | cuRAND | Threefry/Philox PRNG, Sobol/Halton QMC | [[pypi:trnrand]] |
+| [trnsolver](trnsolver/) | cuSOLVER | Cholesky/LU/QR/SVD, Jacobi eigh, CG/GMRES and block CG, SCF eigensolvers | [[pypi:trnsolver]] |
+| [trnsparse](trnsparse/) | cuSPARSE | BSR-128 SpMM, Schwarz screening, block-sparse attention, fused kernel-matrix operator | [[pypi:trnsparse]] |
+| [trntensor](trntensor/) | cuTENSOR | Einstein summation with path planning, CP/Tucker/TT, streamed DF integrals, multi-chip sharding | [[pypi:trntensor]] |
 
 ## What is this for
 
@@ -28,8 +28,8 @@ See [why trnsci exists](why.md) for the full argument.
 The post-FP64 argument applies to every accelerator vendor. What makes Trainium the right target for a library built on that argument is that every feature the mixed-precision numerical-analysis community has spent a decade asking for is already present — and exposed to the programmer:
 
 - **PSUM is a named, addressable FP32 accumulator.** The 128×128 systolic array always writes its K-reduction result into PSUM in FP32, and every other engine (Vector, Scalar, GpSimd) can read and write PSUM. On NVIDIA tensor cores, the FP32 accumulator is hidden inside the WMMA abstraction. On Trainium it is named, sized, and programmable. This is what makes error-free transformations at systolic scale practical rather than theoretical.
-- **Stochastic rounding is in the ISA.** Per-instruction, controllable via `nisa.activation(..., round_mode="stochastic")`. Connolly–Higham–Mary (2021) proved SR replaces the worst-case K·u Krylov error bound with a mean-zero √K·u probabilistic bound — which is what makes BF16 iterative solvers converge rather than stagnate. On NVIDIA, SR requires a third-party library or a CUDA kernel. On Trainium it is one argument.
-- **Determinism is structural.** The compiler statically schedules all instructions and DMAs. Every kernel produces bitwise-identical output given a fixed seed — not as a ReproBLAS-style overlay, but as a default.
+- **Stochastic rounding is in the hardware.** Every NeuronCore from v2 on can round stochastically. Connolly–Higham–Mary (2021) proved SR replaces the worst-case K·u Krylov error bound with a mean-zero √K·u probabilistic bound — which is what makes BF16 iterative solvers converge rather than stagnate. On NVIDIA, SR requires a third-party library or a CUDA kernel. On NKI 0.7 (Neuron SDK 2.33) it is a process-wide runtime setting rather than a per-instruction one, and results with it on are not bitwise reproducible, so it is for narrow (BF16) accumulations, not a default ([precision and platform limits](precision_and_platform_limits.md#where-accuracy-targets-come-from)).
+- **Determinism is structural.** The compiler statically schedules all instructions and DMAs. The suite's kernels give bitwise-identical output run to run given a fixed seed, and trnrand and trnsparse stay bitwise identical across core counts — not as a ReproBLAS-style overlay, but as a default. The known exception is device aten reductions, which can differ between LNC=1 and LNC=2 ([trnsolver#128](https://github.com/trnsci/trnsolver/issues/128)).
 - **The compiler is open-source.** NKI's MLIR backend (Apache 2.0) is public. Formal error bounds require inspecting the reduction order; on Trainium it is documented and stable.
 - **Trainium3 adds per-block microscaling (MXFP8/MXFP4).** These are the hardware realization of the per-block precision assumptions that mixed-precision HODLR, BLR-LU, and progressive-precision multigrid have been writing theorems about for years.
 
@@ -44,8 +44,10 @@ No other shipping accelerator — H100, B200, MI300X, TPU Trillium, Gaudi 3 — 
 ## Get started
 
 ```bash
-pip install trnsci[all]
+pip install "trnsci[all]"
 ```
+
+On Trainium, see [installation](installation.md) for the Neuron extras.
 
 Try the cross-library integration demo (composes trnrand, trnsparse, trnsolver, trnblas and trntensor into an end-to-end closed-shell DF-MP2 energy evaluation on synthetic inputs, checked against a float64 reference; trnblas's own PySCF examples carry the real-molecule validation):
 
@@ -58,15 +60,19 @@ python examples/quantum_chemistry/df_mp2_synthetic.py --demo
 
 ## Status
 
-Phase 1 has landed across all six libraries, and every Phase 1 tracker is closed. NKI paths are exercised in CI via the NKI CPU simulator on every PR. All six libraries ship native TorchNeuron dispatch on Trn2/Trn3 (Neuron SDK 2.33); their current releases are validated on Trn2 ([#35](https://github.com/trnsci/trnsci/issues/35)), and the PyTorch/XLA path on Trn1 is in maintenance. On the native device, `auto` dispatch uses an NKI kernel only where it measured faster than aten: the fused kernels (DF-MP2 pair energy, AO→MO, BSR SpMM, block-sparse attention) win, dense GEMM goes to aten, and trnfft is the only FFT on the device.
+Phase 1 has landed across all six libraries, and every Phase 1 tracker is closed. NKI paths are exercised in CI via the NKI CPU simulator on every PR, and every library runs a conformance suite against independent references. All six libraries ship native TorchNeuron dispatch on Trn2/Trn3 (Neuron SDK 2.33); their current releases are validated on Trn2 ([validation status](nki_validation_status.md#current-releases)), and the PyTorch/XLA path on Trn1 is in maintenance. On the native device, `auto` dispatch uses an NKI kernel only where it measured faster than aten: the fused kernels (DF-MP2 pair energy, AO→MO, DF J/K, BSR SpMM, the GP kernel operator, block-sparse attention, the SHT Legendre stage) win, most dense GEMM goes to aten, and trnfft is the only FFT on the device. float64 follows one [suite policy](precision_and_platform_limits.md#fp64-policy): the device has no float64 arithmetic, so `auto` computes it on the host.
 
-PyTorch fallback works end-to-end on any machine, with or without Neuron hardware. The [NKI validation status page](nki_validation_status.md) carries the per-library detail.
+The workload-level results — a 10⁶-point Gaussian process, spherical harmonic transforms, DF-RHF/MP2 to 3508 basis functions and DeepVariant `call_variants`, each on one Trn2 chip — are on [exemplars](exemplars.md).
+
+PyTorch fallback works end-to-end on any machine, with or without Neuron hardware.
 
 Read more:
 
 - [Why this exists](why.md) — the post-FP64 thesis
 - [Trainium as a numerical-computing substrate](trainium_positioning.md) — PSUM, SR, determinism, competitive context
 - [CUDA → trnsci library mapping](cuda_rosetta.md)
+- [Exemplars](exemplars.md) — whole workloads on one Trn2 chip
+- [Precision and platform limits](precision_and_platform_limits.md) — the float64 policy and what Trn2 can't do
 - [Roadmap](roadmap.md)
 - [Cross-library integration example](workflows/integration.md)
 

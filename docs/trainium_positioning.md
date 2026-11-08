@@ -56,13 +56,22 @@ The four engines run independently and overlap. This lets trnsci amortize adapti
 - **GMRES-IR inner orthogonalization.** The Arnoldi Gram–Schmidt sweep runs on VectorE while TensorEngine runs the next Krylov matvec. trnsolver's cg/gmres paths have the scaffolding; exploitable once Phase 2's compensated-dot primitives land.
 - **Randomized sketching.** For Hutch++ trace estimation, the m/3 Hutchinson queries run on VectorE while TensorEngine builds the low-rank projector Q.
 
+!!! warning "Correction (2026-11-08)"
+    Engine overlap is not unconditional. On Trn2 the Vector and GpSimd engines were measured not to overlap, against the architecture guide ([aws-neuron-sdk#1449](https://github.com/aws-neuron/aws-neuron-sdk/issues/1449)), and the GP exemplar's fused kernel reached 89% of a fp32 ceiling computed assuming perfect Tensor/Scalar overlap ([the GP post](blog/posts/2026-11-04-gp-million-points.md)). The Tensor → PSUM → Scalar chain does overlap; measure before counting on any other pair.
+
 ### 3. Stochastic rounding is in the ISA
 
 Per the Neuron rounding-modes documentation: from NeuronCore-v2 onward, stochastic rounding is programmable per-instruction in NKI/NISA and globally via `NEURON_RT_STOCHASTIC_ROUNDING_EN=1`. Connolly, Higham, and Mary (SIAM J. Sci. Comput., 2021) proved SR rounding errors are mean-zero — which replaces Wilkinson's worst-case n·u inner-product error bound with a √n·u probabilistic bound. This is not a nice-to-have; it is a correctness requirement for BF16 Krylov on long sequences. For BF16 (u ≈ 2⁻⁸), any dot product of length n ≥ ~300 should use SR. Trainium makes this free; most other hardware requires CPU fallback or significant overhead to achieve it.
 
+!!! warning "Correction (2026-11-08)"
+    Stochastic rounding is no longer per-instruction in NKI. NKI 0.7 (Neuron SDK 2.33) removed `round_mode` from `nisa.activation`, and the mode is set for the whole process by `NEURON_RT_STOCHASTIC_ROUNDING_EN` when the runtime initializes ([trntensor#41](https://github.com/trnsci/trntensor/issues/41)). With it on, every downcast in the process, in every library, rounds stochastically. SR still removes bias from long BF16 accumulations. It does nothing for an fp32 pipeline whose errors are already random, which is the suite's main case ([the fp32-floor post](blog/posts/2026-11-08-dfmp2-fp32-floor.md)).
+
 ### 4. Determinism is structural
 
 The TensorEngine has a fixed reduction order; the compiler statically schedules all instructions and DMAs. Bitwise reproducibility is a structural property of trnsci kernels given a fixed seed — not a ReproBLAS-style overlay with 4–10× overhead. The only non-determinism is seeded SR, which is reproducible across runs.
+
+!!! warning "Correction (2026-11-08)"
+    Two qualifications. SR with `NEURON_RT_STOCHASTIC_ROUNDING_EN=1` is not seeded or reproducible run to run, so it is the exception to this principle, not part of it. And the guarantee holds for the suite's own kernels (trnrand and trnsparse are bitwise identical across 1–4 cores, and DeepVariant `call_variants` gives byte-identical VCFs run to run), but device aten reductions can differ between LNC=1 and LNC=2: the GP posterior mean moved by 4.5e-4 ([trnsolver#128](https://github.com/trnsci/trnsolver/issues/128)).
 
 ---
 
@@ -113,6 +122,9 @@ Same workload expressed in each model:
 | Long MD trajectories | ❌ Doesn't fit | 10⁸–10¹² steps accumulate roundoff; FP32 is marginal |
 | Classical CCSD(T) | ❌ Partial | Near-cancellation in correlated sums needs compensated summation everywhere; gated on trnblas#22 |
 | Unstructured CSR SpMV | ❌ Doesn't fit | Irregular access hostile to systolic arrays; use CPU fallback |
+
+!!! warning "Correction (2026-11-08)"
+    Two rows are overtaken by Trn2 measurements. "DF-MP2 validated PySCF to nanohartree" does not hold for the fp32 device route: E_MP2 agrees with PySCF to about 1e-7–1e-5 Eh at about 500 basis functions, and the suite's gate is 1e-6 Eh against an fp64 reference, since 1e-7 Eh is below the fp32 floor at these energies ([the fp32-floor post](blog/posts/2026-11-08-dfmp2-fp32-floor.md)). Nanohartree needs device fp64 ([trnsci#129](https://github.com/trnsci/trnsci/issues/129)). "DFT-as-GEMM up to 14× at N ≤ 256" predates the native Trn2 path, and no current measurement backs it. On the native Trn2 device per-launch cost dominates small transforms, and a multithreaded CPU beat standalone small FFTs ([launch-cost post](blog/posts/2026-10-27-trnfft-launch-cost.md)). Large N did better than this table says: the six-step FFT beat a 2-thread CPU by 1.5–11× from 2²⁰ to 2²⁴ on device-resident input. Current status: [exemplars](exemplars.md) and [precision and platform limits](precision_and_platform_limits.md).
 
 ---
 

@@ -25,6 +25,11 @@ theme:
     - navigation.tabs
     - navigation.indexes
 
+hooks:
+  # Fills [[pypi:...]], [[min:...]] and [[described:...=X]] version tokens at
+  # build time from PyPI and pyproject.toml, so version tables can't go stale.
+  - hooks/versions.py
+
 plugins:
   - search
   # monorepo composes each sub-project's mkdocs.yml into this site under its
@@ -46,7 +51,9 @@ nav:
   - CUDA → trnsci: cuda_rosetta.md
   - Trainium positioning: trainium_positioning.md
   - Roadmap: roadmap.md
+  - Exemplars: exemplars.md
   - NKI validation status: nki_validation_status.md
+  - Precision and platform limits: precision_and_platform_limits.md
   - Blog:
       - blog/index.md
   - Getting started:
