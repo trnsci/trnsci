@@ -1,6 +1,6 @@
 {% set name = "trnsolver" %}
 {% set python_min = "3.10" %}
-{% set version = "0.3.0" %}
+{% set version = "0.22.1" %}
 
 package:
   name: {{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: c641c3e6458d0175f179f9a1a63da8f5a03d49772f6444f786a89cec08b9ba1c
+  sha256: b5a54593401adfd3f8fb3d21158f97586656724f7348062561b46e9220674364
 
 build:
   noarch: python
@@ -19,7 +19,7 @@ requirements:
   host:
     - python {{ python_min }}
     - pip
-    - setuptools >=68.0
+    - setuptools >=77
     - setuptools-scm >=8.0
   run:
     - python >={{ python_min }}

@@ -13,6 +13,9 @@ but it can't rewrite prose. This script finds the places that need a person:
    the repo's ``pyproject.toml`` (the repo was bumped but not released).
 4. The umbrella ``[torchneuron]`` extra differs from a library's own
    ``[torchneuron]`` extra in its latest release.
+5. A ``conda-recipes/<name>/meta.yaml`` (trnsci/trnsci#159) pins an older
+   release than PyPI's latest, a ``sha256`` that is not that release's sdist,
+   or ``run`` requirements / ``python_min`` that differ from its metadata.
 
 Output is a Markdown report on stdout (or ``--output FILE``).
 
@@ -47,6 +50,10 @@ EXTRA = {
 DESCRIBED = re.compile(r"\[\[described:([a-z]+)=([0-9][0-9A-Za-z.]*)\]\]")
 REQ = re.compile(r"^\s*([A-Za-z0-9_.-]+)\s*(?:\[[^\]]*\])?\s*([^;]*?)\s*(?:;\s*(.*))?$")
 MIN = re.compile(r">=\s*([0-9][0-9A-Za-z.]*)")
+RECIPE_SET = re.compile(r'\{%\s*set\s+(\w+)\s*=\s*"([^"]*)"\s*%\}')
+RECIPE_SHA = re.compile(r"^\s*sha256:\s*([0-9a-f]{64})\s*$", re.M)
+# conda-forge names for PyPI requirements whose names differ.
+CONDA_NAME = {"torch": "pytorch"}
 
 
 class PyPIError(RuntimeError):
@@ -105,6 +112,68 @@ def described_tokens() -> list[tuple[str, int, str, str]]:
             for m in DESCRIBED.finditer(line):
                 found.append((str(rel), lineno, m.group(1), m.group(2)))
     return found
+
+
+def recipe_fields(text: str) -> tuple[dict[str, str], str | None, set[str]]:
+    """Jinja ``set`` variables, the source ``sha256`` and the ``run`` requirements."""
+    sets = dict(RECIPE_SET.findall(text))
+    sha = RECIPE_SHA.search(text)
+    run: set[str] = set()
+    in_run = False
+    for line in text.splitlines():
+        if re.match(r"^\s{2}run:\s*$", line):
+            in_run = True
+            continue
+        if in_run:
+            m = re.match(r"^\s{4}-\s*(.+?)\s*$", line)
+            if not m:
+                break
+            run.add(m.group(1).replace(" ", ""))
+    return sets, sha.group(1) if sha else None, run
+
+
+def check_recipes(infos: dict[str, dict]) -> list[str]:
+    """Drift between ``conda-recipes/*/meta.yaml`` and PyPI (#159)."""
+    drift = []
+    for name, info in infos.items():
+        rel = f"conda-recipes/{name}/meta.yaml"
+        path = ROOT / rel
+        if not path.is_file():
+            drift.append(f"`{rel}`: missing")
+            continue
+        sets, sha, run = recipe_fields(path.read_text())
+        latest = info["info"]["version"]
+        pinned = sets.get("version")
+        if pinned != latest:
+            drift.append(
+                f"`{rel}`: recipe pins {name} {pinned}; PyPI has "
+                f"[{latest}](https://pypi.org/project/{name}/{latest}/). "
+                "Update `version` and `sha256`."
+            )
+            continue
+        sdist = [
+            u["digests"]["sha256"] for u in info["urls"] if u["packagetype"] == "sdist"
+        ]
+        if sha not in sdist:
+            drift.append(f"`{rel}`: `sha256` is not the {name} {latest} sdist's")
+        pymin = MIN.search(info["info"].get("requires_python") or "")
+        if pymin and sets.get("python_min") != pymin.group(1):
+            drift.append(
+                f"`{rel}`: `python_min` is {sets.get('python_min')}; {name} {latest} "
+                f"requires Python >={pymin.group(1)}"
+            )
+        want = set()
+        for req in info["info"].get("requires_dist") or []:
+            dep, spec, marker = parse_req(req)
+            if not marker:
+                want.add(f"{CONDA_NAME.get(dep, dep)}{spec}")
+        have = {r for r in run if not r.startswith("python")}
+        if have != want:
+            drift.append(
+                f"`{rel}`: `run` is `{', '.join(sorted(have)) or '(none)'}`; {name} "
+                f"{latest} requires `{', '.join(sorted(want)) or '(none)'}`"
+            )
+    return drift
 
 
 def check() -> list[str]:
@@ -172,15 +241,21 @@ def check() -> list[str]:
                 f"the umbrella has `{', '.join(sorted(repo_tn)) or '(none)'}`"
             )
 
+    # 5. The conda recipes trail PyPI.
+    drift += check_recipes({"trnsci": umbrella, **lib_info})
+
     return drift
 
 
 def report(drift: list[str]) -> str:
     if not drift:
-        return "No drift: the site's described releases and the extras match PyPI.\n"
+        return (
+            "No drift: the site's described releases, the extras and the conda "
+            "recipes match PyPI.\n"
+        )
     lines = [
-        "`scripts/check_docs_drift.py` found places where the umbrella site or "
-        "packaging trails PyPI:",
+        "`scripts/check_docs_drift.py` found places where the umbrella site, "
+        "packaging or conda recipes trail PyPI:",
         "",
         *[f"- [ ] {d}" for d in drift],
         "",

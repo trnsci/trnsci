@@ -1,6 +1,6 @@
 {% set name = "trntensor" %}
 {% set python_min = "3.10" %}
-{% set version = "0.1.1" %}
+{% set version = "0.25.1" %}
 
 package:
   name: {{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: f5ed259d81ea5bdd47daa30ec54abda4410ede5db83017653227c5ec2bbd0314
+  sha256: 458e4368b13754ea2a17f4edf2466af250873f4f22812df3a8787474b31949ef
 
 build:
   noarch: python
@@ -19,7 +19,7 @@ requirements:
   host:
     - python {{ python_min }}
     - pip
-    - setuptools >=68.0
+    - setuptools >=77
     - setuptools-scm >=8.0
   run:
     - python >={{ python_min }}

@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `[torchneuron]` extras that differ from the libraries'. On drift the
   workflow opens or updates one `docs-stale` issue; it doesn't touch the docs
   build.
+- The drift check also compares each `conda-recipes/*/meta.yaml` with PyPI:
+  version, sdist `sha256`, `run` requirements and `python_min`
+  ([#159](https://github.com/trnsci/trnsci/issues/159)).
+
+### Fixed
+
+- `conda-recipes/` pinned trnsci 0.1.0, trnblas 0.4.0 and similarly old
+  releases of the other five. They now pin trnsci 0.2.0, trnblas 0.12.1,
+  trnfft 0.29.0, trnrand 0.14.0, trnsolver 0.22.1, trnsparse 0.15.0 and
+  trntensor 0.25.1, with `setuptools >=77` in `host` (the SPDX `license`
+  string needs it) and no `import trnsci` test, since the meta-package has
+  no module ([#159](https://github.com/trnsci/trnsci/issues/159)). The
+  recipes are not published to conda-forge.
 
 ## [0.2.0] — 2026-11-08
 

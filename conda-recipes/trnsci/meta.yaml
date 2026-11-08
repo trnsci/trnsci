@@ -1,6 +1,6 @@
 {% set name = "trnsci" %}
 {% set python_min = "3.10" %}
-{% set version = "0.1.0" %}
+{% set version = "0.2.0" %}
 
 package:
   name: {{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 1c05eb4c8addd4fe230886ec76326a0811ea7597c75cbbdcb8b378be19114722
+  sha256: d2774e8fec93df1cb2a94051c61d39bb09474f95a111a579b41e74736ed7278d
 
 build:
   noarch: python
@@ -19,16 +19,17 @@ requirements:
   host:
     - python {{ python_min }}
     - pip
-    - setuptools >=68.0
+    - setuptools >=77
     - setuptools-scm >=8.0
   run:
     - python >={{ python_min }}
 
 test:
-  imports:
-    - trnsci
+  # The meta-package installs no module (py-modules = []), so there is
+  # nothing to import; check the distribution metadata instead.
   commands:
     - pip check
+    - python -c "import importlib.metadata as m; assert m.version('trnsci') == '{{ version }}'"
   requires:
     - python {{ python_min }}
     - pip

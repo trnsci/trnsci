@@ -1,6 +1,6 @@
 {% set name = "trnfft" %}
 {% set python_min = "3.10" %}
-{% set version = "0.7.0" %}
+{% set version = "0.29.0" %}
 
 package:
   name: {{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: ac4c5732b747d807848e85e82433a1e7df047355a75d87b996a6e612af41f696
+  sha256: f89de14545db4dbf03dc7348f88b3b93b46e47f6afcd7d49df69025a900b14b0
 
 build:
   noarch: python
@@ -19,7 +19,7 @@ requirements:
   host:
     - python {{ python_min }}
     - pip
-    - setuptools >=68.0
+    - setuptools >=77
     - setuptools-scm >=8.0
   run:
     - python >={{ python_min }}

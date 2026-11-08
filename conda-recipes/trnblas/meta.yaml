@@ -1,6 +1,6 @@
 {% set name = "trnblas" %}
 {% set python_min = "3.10" %}
-{% set version = "0.4.0" %}
+{% set version = "0.12.1" %}
 
 package:
   name: {{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 173424ac24d5807dfc9fcf0744d04a822e0e61a2e9aec5129d370e33a8578a10
+  sha256: 1ffa3fd7c07da52d2fa965c5d0279024a9c4be44bf9dacc43176082be358e464
 
 build:
   noarch: python
@@ -19,7 +19,7 @@ requirements:
   host:
     - python {{ python_min }}
     - pip
-    - setuptools >=68.0
+    - setuptools >=77
     - setuptools-scm >=8.0
   run:
     - python >={{ python_min }}
