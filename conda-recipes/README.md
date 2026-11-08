@@ -8,13 +8,13 @@ This directory stages the `conda-forge/staged-recipes` submission for all seven 
 conda-recipes/
 ├── README.md              (this file — workspace notes)
 ├── PR_DESCRIPTION.md      (paste into the conda-forge staged-recipes PR body)
-├── trnsci/meta.yaml
-├── trnfft/meta.yaml
-├── trnblas/meta.yaml
-├── trnrand/meta.yaml
-├── trnsolver/meta.yaml
-├── trnsparse/meta.yaml
-└── trntensor/meta.yaml
+├── trnsci/recipe.yaml
+├── trnfft/recipe.yaml
+├── trnblas/recipe.yaml
+├── trnrand/recipe.yaml
+├── trnsolver/recipe.yaml
+├── trnsparse/recipe.yaml
+└── trntensor/recipe.yaml
 ```
 
 ## Submission workflow
@@ -67,11 +67,25 @@ its recipes are copies of these, so update it from here before review.
 
 ## Keeping the recipes current
 
-Each `meta.yaml` pins one PyPI release: `version`, the sdist `sha256`, the
-`run` requirements (the library's `dependencies`, with `torch` as
-`pytorch`) and `python_min` (its `requires-python`). The weekly drift check,
-`scripts/check_docs_drift.py`, compares all four with PyPI and opens a
-`docs-stale` issue when a recipe falls behind. To update one:
+The recipes use the v1 `recipe.yaml` format, which staged-recipes requires
+for new recipes (v0 `meta.yaml` is deprecated there). Build one locally with
+`rattler-build build --recipe <name>/recipe.yaml -m <conda-forge-pinning>/conda_build_config.yaml`;
+build the six libraries before `trnsci`.
+
+Each `recipe.yaml` pins one PyPI release: `version`, the sdist `sha256` and
+the `run` requirements (the library's `dependencies`, with `torch` as
+`pytorch`). None sets `python_min`: they use conda-forge's global minimum
+(CFEP-25), and a recipe should set its own only if the package's
+`requires-python` is newer than that. The weekly drift check,
+`scripts/check_docs_drift.py`, compares all of this with PyPI and the
+conda-forge pinning and opens a `docs-stale` issue when a recipe falls
+behind.
+
+The `trnsci` recipe is the exception for `run`: conda has no extras, so it
+depends on all six libraries, the PyPI `trnsci[all]`, and
+`conda install trnsci` installs the full suite. The drift check compares its
+`run` minimums with `[all]` in `pyproject.toml`; bump both together. To
+update a recipe:
 
 ```bash
 curl -s https://pypi.org/pypi/<name>/json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["info"]["version"], [u["digests"]["sha256"] for u in d["urls"] if u["packagetype"] == "sdist"])'
