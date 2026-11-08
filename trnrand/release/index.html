@@ -5553,6 +5553,16 @@ gh<span class="w"> </span>release<span class="w"> </span>create<span class="w"> 
    TestPyPI.</li>
 <li><strong>Verify</strong> the workflow run on the Actions tab. PyPI/TestPyPI shows the
    new version within a minute or two.</li>
+<li><strong>Update umbrella docs/extras</strong> in one
+   <a href="https://github.com/trnsci/trnsci">trnsci/trnsci</a> PR (stable releases only):</li>
+<li>[ ] if users should require this release (always for a fix to silent
+     wrong results), bump <code>trnrand</code> in the umbrella <code>pyproject.toml</code> <code>[rand]</code>
+     and <code>[all]</code> extras, and cut a <code>trnsci</code> meta-package release;</li>
+<li>[ ] update the <code>[[described:trnrand=X.Y.Z]]</code> rows in <code>docs/roadmap.md</code>
+     and <code>docs/nki_validation_status.md</code>, with the
+     <a href="https://github.com/trnsci/trnsci/issues/35">#35</a> Trn2 validation link;</li>
+<li>[ ] check that <code>python scripts/check_docs_drift.py</code> exits 0. The weekly
+     docs-drift workflow opens a <code>docs-stale</code> issue for anything missed.</li>
 </ol>
 <h2 id="pre-release-smoke-test">Pre-release smoke test<a class="headerlink" href="#pre-release-smoke-test" title="Permanent link">&para;</a></h2>
 <p>Before cutting a stable release, do a TestPyPI dry-run:</p>

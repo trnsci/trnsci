@@ -5694,7 +5694,7 @@ full launch cost. Techniques like persistent threads help but don't
 generalize across distributions.</p>
 <p>Trainium has a structurally different escape route:</p>
 <ol>
-<li><strong>SBUF</strong> is 24 MB of directly-addressable on-chip memory that
+<li><strong>SBUF</strong> is 24 MiB (Trn1) or 28 MiB (Trn2) of directly-addressable on-chip memory that
    persists for the lifetime of a kernel invocation. Per-lane state
    (Philox counter/key, rejection accumulators) can live there
    indefinitely at near-register latency.</li>

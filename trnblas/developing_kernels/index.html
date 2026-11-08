@@ -5777,9 +5777,10 @@ which of these features it uses:</p>
 <li><strong>Multi-engine pipelining</strong> — Tensor + Vector + Scalar + GPSIMD
   engines run concurrently. Express dataflow so the compiler can
   schedule them in parallel.</li>
-<li><strong>Explicit SBUF hierarchy</strong> — 24 MB on-chip, 128 partitions ×
-  192 KB free. Keep operands resident across many ops; avoid HBM
-  round-trips explicitly.</li>
+<li><strong>Explicit SBUF hierarchy</strong> — 128 partitions on-chip: 24 MiB
+  (192 KiB per partition) on Trn1, 28 MiB (224 KiB per partition,
+  about 207 KiB of it allocatable by NKI) on Trn2. Keep operands
+  resident across many ops; avoid HBM round-trips explicitly.</li>
 <li><strong>Persistent operands</strong> — load once, reuse across many ops.</li>
 <li><strong>PSUM accumulator</strong> — 32-bit accumulator tile independent of
   SBUF, sized for systolic-array output. Use the <code>accumulate=True</code>

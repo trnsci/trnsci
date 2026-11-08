@@ -5693,10 +5693,11 @@ kernel launch</strong>:</p>
 <ul>
 <li><strong>A's stored blocks are DMA'd into SBUF once</strong> and every iteration
   reads them from there. The budget is <code>TRNSPARSE_CG_SBUF_KIB</code> (default
-  160 of the 192 KiB per partition on Trn2, i.e. 20 MiB of the 24 MiB
-  SBUF), so about 320 fp32 128x128 blocks per physical core. Blocks
-  beyond the budget stream from HBM in 16-block DMAs on every iteration,
-  still inside the launch.</li>
+  160 KiB per partition, i.e. 20 MiB of SBUF), so about 320 fp32 128x128
+  blocks per physical core. Trn2 SBUF is 224 KiB per partition (28 MiB),
+  of which NKI's allocator gets about 207 KiB; 192 KiB (24 MiB) is the
+  Trn1 figure. Blocks beyond the budget stream from HBM in 16-block DMAs
+  on every iteration, still inside the launch.</li>
 <li>x, r, p (and z) stay in SBUF in a column layout (element <code>t*128 + p</code>
   at <code>[p, t]</code>). The matvec is one <code>nc_matmul</code> per stored block; see
   "Matvec orientation" below.</li>
