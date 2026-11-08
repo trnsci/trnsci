@@ -253,6 +253,10 @@
          <lastmod>2026-11-08</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trntensor-and-trnsolver-3508-ao-df-mp2-on-one-trn2-core-and-what-accurate-means-at-the-fp32-floor/</loc>
+         <lastmod>2026-11-08</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/trnsci-rows-of-32-mib-partitions-64127-and-the-4-gib-point-that-was-right-by-luck/</loc>
          <lastmod>2026-11-08</lastmod>
     </url>
@@ -609,7 +613,7 @@
          <lastmod>2026-11-08</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/suite/</loc>
+         <loc>https://trnsci.dev/blog/category/trntensor/</loc>
          <lastmod>2026-11-08</lastmod>
     </url>
     <url>
@@ -617,7 +621,7 @@
          <lastmod>2026-11-08</lastmod>
     </url>
     <url>
-         <loc>https://trnsci.dev/blog/category/trntensor/</loc>
+         <loc>https://trnsci.dev/blog/category/suite/</loc>
          <lastmod>2026-11-08</lastmod>
     </url>
     <url>
