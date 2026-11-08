@@ -1403,6 +1403,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#keeping-versions-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keeping versions current
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#default-url" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5485,6 +5496,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#keeping-versions-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keeping versions current
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#default-url" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5583,6 +5605,12 @@
 <li><code>main</code> branch push triggers <code>.github/workflows/docs.yml</code>.</li>
 <li>That workflow installs <code>mkdocs-material</code> + <code>mkdocs-monorepo-plugin</code> and runs <code>mkdocs gh-deploy --force</code>, which publishes the built site to the <code>gh-pages</code> branch.</li>
 <li>GitHub Pages serves the <code>gh-pages</code> branch at the Pages URL.</li>
+</ul>
+<h2 id="keeping-versions-current">Keeping versions current<a class="headerlink" href="#keeping-versions-current" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>hooks/versions.py</code> fills the <code>[[pypi:]]</code>, <code>[[min:]]</code> and <code>[[described:]]</code> tokens from PyPI at build time, and the daily docs.yml cron rebuild keeps those cells current.</li>
+<li><code>.github/workflows/docs-drift.yml</code> (weekly, or run it by hand from the Actions tab) runs <code>scripts/check_docs_drift.py</code>. The script reports hand-written <code>[[described:]]</code> rows older than PyPI, <code>pyproject.toml</code> minimums below a library's latest minor, a published <code>trnsci</code> meta-package whose <code>[all]</code> trails the repo, and <code>[torchneuron]</code> extras that differ from the libraries'. On drift it opens or updates one issue labelled <code>docs-stale</code>, and closes that issue once the drift is gone. It never fails the docs build.</li>
+<li>Run it locally with <code>python scripts/check_docs_drift.py</code>: exit 0 means clean, 1 means drift, and 2 means PyPI was unreachable.</li>
 </ul>
 <h2 id="default-url">Default URL<a class="headerlink" href="#default-url" title="Permanent link">&para;</a></h2>
 <p>Until DNS is pointed at GitHub Pages, the site is live at:</p>
