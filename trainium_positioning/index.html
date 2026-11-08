@@ -5671,13 +5671,13 @@
 <tr>
 <td>Trn2 (per chip)</td>
 <td style="text-align: right;">none</td>
-<td style="text-align: right;">79 TFLOPS BF16</td>
+<td style="text-align: right;">667 TFLOPS</td>
 <td style="text-align: right;">—</td>
 </tr>
 <tr>
 <td>Trn3 (per chip)</td>
 <td style="text-align: right;">none</td>
-<td style="text-align: right;">2,520 TFLOPS FP8</td>
+<td style="text-align: right;">671 TFLOPS (2,517 MXFP8)</td>
 <td style="text-align: right;">—</td>
 </tr>
 </tbody>
@@ -5688,11 +5688,15 @@
 <hr />
 <h2 id="what-trainium-actually-is">What Trainium actually is<a class="headerlink" href="#what-trainium-actually-is" title="Permanent link">&para;</a></h2>
 <p>A Trainium2 chip contains 8 NeuronCore-v3 cores. Each NeuronCore is a heterogeneous compute engine, not a GPU SM:</p>
-<p><strong>TensorEngine</strong> — a 128×128 systolic array consuming a stationary matrix and a moving matrix from SBUF, always accumulating into PSUM. Delivers 158 TFLOPS FP8 / 79 TFLOPS BF16 / 20 TFLOPS FP32 per core. Supported dtypes: FP8 (E4M3/E5M2), BF16, FP16, TF32, FP32, INT8.</p>
+<p><strong>TensorEngine</strong> — a 128×128 systolic array consuming a stationary matrix and a moving matrix from SBUF, always accumulating into PSUM. Delivers 158 TFLOPS FP8 / 79 TFLOPS BF16 / 20 TFLOPS FP32 dense per core; AWS lists the 8-core chip at 1,299 FP8 / 667 BF16 / 181 FP32 TFLOPS. Supported dtypes: FP8 (E4M3/E5M2), BF16, FP16, TF32, FP32, INT8.</p>
 <p><strong>VectorEngine</strong> — elementwise/SIMD for axpy, LayerNorm, pooling, reductions, transcendentals with broadcast/scan semantics. On NC-v3, a new performance mode shares a memory bus with GpSimdE for 2–4× uplift on selected BF16/FP16 ops; NC-v3 also allows VectorE and ScalarE to access PSUM in parallel (a restriction lifted from NC-v2).</p>
 <p><strong>ScalarEngine</strong> — pointwise non-linear ops (GELU, SIGMOID, EXP, bias+scale).</p>
-<p><strong>GpSimdEngine</strong> — 8 fully-programmable 512-bit general-purpose vector cores running straight-line C/C++ via Neuron Custom C++ Operators. Each has its own integrated DMA engine on NC-v3. This is the most under-appreciated Trainium feature: it lets the suite offload control flow, rank-revealing logic, adaptive-precision decisions, sparse index computation, and RNG to a Turing-complete engine without leaving the chip or blocking the TensorEngine. trnrand's Philox kernel targets GpSimdE directly.</p>
-<p><strong>PSUM</strong> — 2 MiB dedicated FP32 accumulation buffer, the exclusive write target of the systolic array, addressable by VectorE/ScalarE/GpSimdE for post-processing. SBUF is 24 MiB on NC-v2, 28 MiB on NC-v3, organized as 128 partitions × (192 or 224) KiB.</p>
+<p><strong>GpSimdEngine</strong> — 8 fully-programmable 512-bit general-purpose vector cores running straight-line C/C++ via Neuron Custom C++ Operators. Each has its own integrated DMA engine on NC-v3. This is the most under-appreciated Trainium feature: it lets the suite offload control flow, rank-revealing logic, adaptive-precision decisions, sparse index computation, and RNG to a Turing-complete engine without leaving the chip or blocking the TensorEngine. trnrand's NKI generator is Threefry4×32-20, with a Philox 4×32-10 kernel alongside it. Neither runs only on GpSimdE: the 32-bit integer adds are pinned to GpSimdE, which on NKI 0.7 does native integer arithmetic on all-int32/uint32 operands, while the xor and rotate steps are bitwise ops on VectorE.</p>
+<p><strong>PSUM</strong> — 2 MiB dedicated FP32 accumulation buffer, the exclusive write target of the systolic array, addressable by VectorE/ScalarE/GpSimdE for post-processing. SBUF is 128 partitions on both generations: 24 MiB (192 KiB per partition) on NC-v2 (Trn1), and 28 MiB (224 KiB per partition) on NC-v3 (Trn2). The compiler keeps part of each partition for itself, so NKI's allocator on Trn2 reports 212,472 bytes (about 207 KiB) per partition.</p>
+<div class="admonition note">
+<p class="admonition-title">Sources (checked 2026-11-08, Neuron SDK 2.33)</p>
+<p>Per-core figures, SBUF and PSUM are from AWS's <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html">Trainium2 architecture guide for NKI</a> and the <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/neuron-core-v3.html">NeuronCore-v3</a> page. The NC-v2 SBUF figure is from the <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium_inferentia2_arch.html">Trainium/Inferentia2 guide</a>. The per-chip figures are from the <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trainium2.html">Trainium2</a> and <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trainium3.html">Trainium3</a> pages. GpSimd integer arithmetic is described at <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.tensor_tensor.html"><code>nki.isa.tensor_tensor</code></a>. The allocator capacity was measured on Trn2 in <a href="https://github.com/trnsci/trnsparse/pull/111">trnsparse#111</a>. Earlier versions of this page gave 79 TFLOPS BF16 per chip (it is per core), SBUF as "192 or 224 KiB" per partition without the generation, and said trnrand's Philox kernel targeted GpSimdE directly.</p>
+</div>
 <p><strong>Trainium3</strong> (re:Invent 2025, 3nm process): 2.52 PFLOPs FP8 per chip, 144 GB HBM3e at 4.9 TB/s, MXFP8 and MXFP4 microscaled formats per OCP specification, NeuronSwitch-v1 all-to-all fabric for 144-chip UltraServers at 20.7 TB shared HBM3e and 362 MXFP8 PFLOPs. The MXFP formats are the hardware realization of the per-block precision assumptions that mixed-precision HODLR, BLR-LU, and progressive-precision multigrid have been assuming in theory.</p>
 <hr />
 <h2 id="four-architectural-principles-for-scientific-computing">Four architectural principles for scientific computing<a class="headerlink" href="#four-architectural-principles-for-scientific-computing" title="Permanent link">&para;</a></h2>
@@ -5828,7 +5832,7 @@
 <td>Integer bit logic (RNG)</td>
 <td>CUDA thread, shared mem</td>
 <td>N/A (JAX)</td>
-<td>GpSimdE straight-line C</td>
+<td>NKI integer ops: adds on GpSimdE, bitwise on VectorE</td>
 </tr>
 </tbody>
 </table>
@@ -5865,8 +5869,8 @@
 </tr>
 <tr>
 <td>FFT at small N</td>
-<td>✅ Clean</td>
-<td>DFT-as-GEMM up to 14× at N ≤ 256</td>
+<td>Partial</td>
+<td>DFT-as-GEMM maps onto the Tensor Engine, but on Trn2 per-launch cost dominates standalone small transforms (see the correction below)</td>
 </tr>
 <tr>
 <td>FFT at large N</td>
@@ -5927,7 +5931,7 @@
 </table>
 <div class="admonition warning">
 <p class="admonition-title">Correction (2026-11-08)</p>
-<p>Two rows are overtaken by Trn2 measurements. "DF-MP2 validated PySCF to nanohartree" does not hold for the fp32 device route: E_MP2 agrees with PySCF to about 1e-7–1e-5 Eh at about 500 basis functions, and the suite's gate is 1e-6 Eh against an fp64 reference, since 1e-7 Eh is below the fp32 floor at these energies (<a href="../blog/trntensor-and-trnsolver-3508-ao-df-mp2-on-one-trn2-core-and-what-accurate-means-at-the-fp32-floor/">the fp32-floor post</a>). Nanohartree needs device fp64 (<a href="https://github.com/trnsci/trnsci/issues/129">trnsci#129</a>). "DFT-as-GEMM up to 14× at N ≤ 256" predates the native Trn2 path, and no current measurement backs it. On the native Trn2 device per-launch cost dominates small transforms, and a multithreaded CPU beat standalone small FFTs (<a href="../blog/trnfft-on-native-pytorch-the-launch-is-the-unit-of-cost/">launch-cost post</a>). Large N did better than this table says: the six-step FFT beat a 2-thread CPU by 1.5–11× from 2²⁰ to 2²⁴ on device-resident input. Current status: <a href="../exemplars/">exemplars</a> and <a href="../precision_and_platform_limits/">precision and platform limits</a>.</p>
+<p>Two rows are overtaken by Trn2 measurements. "DF-MP2 validated PySCF to nanohartree" does not hold for the fp32 device route: E_MP2 agrees with PySCF to about 1e-7–1e-5 Eh at about 500 basis functions, and the suite's gate is 1e-6 Eh against an fp64 reference, since 1e-7 Eh is below the fp32 floor at these energies (<a href="../blog/trntensor-and-trnsolver-3508-ao-df-mp2-on-one-trn2-core-and-what-accurate-means-at-the-fp32-floor/">the fp32-floor post</a>). Nanohartree needs device fp64 (<a href="https://github.com/trnsci/trnsci/issues/129">trnsci#129</a>). The small-N FFT row read "✅ Clean, DFT-as-GEMM up to 14× at N ≤ 256". The 14× had no recorded source and predates the native Trn2 path, so it was removed on 2026-11-08. On the native Trn2 device per-launch cost dominates small transforms, and a multithreaded CPU beat standalone small FFTs (<a href="../blog/trnfft-on-native-pytorch-the-launch-is-the-unit-of-cost/">launch-cost post</a>). Large N did better than this table says: the six-step FFT beat a 2-thread CPU by 1.5–11× from 2²⁰ to 2²⁴ on device-resident input. Current status: <a href="../exemplars/">exemplars</a> and <a href="../precision_and_platform_limits/">precision and platform limits</a>.</p>
 </div>
 <hr />
 <h2 id="scale-out">Scale-out<a class="headerlink" href="#scale-out" title="Permanent link">&para;</a></h2>

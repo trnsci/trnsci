@@ -5465,7 +5465,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              12 min read
+                              13 min read
                             
                           </span>
                         </div>
@@ -5496,6 +5496,10 @@
 <p>trnblas published a 92× speedup for its fused pair-energy kernel on Trn2, and it was wrong: the aten baseline had slowed because device memory was filling up, and against a fair baseline the kernel is 1.8× faster. What survives is narrower and more useful. GEMM routes to aten, a fused kernel keeps the energy step where it avoids work aten can't, and the metric Cholesky moves to the host, which makes density-fitted MP2 1.1–1.8× faster than aten on the molecules where the device beats the CPU at all. The post is for anyone benchmarking TorchNeuron eager code, and for chemists deciding which DF-MP2 stages belong on Trainium.</p>
 <!-- more -->
 
+<div class="admonition warning">
+<p class="admonition-title">Correction (2026-11-08)</p>
+<p>"Trn2's 192 KiB per partition" below is the NeuronCore-v2 (Trn1) SBUF figure. Trn2's NeuronCore-v3 has 224 KiB per partition (<a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html">AWS Trainium2 architecture guide for NKI</a>), about 207 KiB of it available to NKI allocation (<a href="https://github.com/trnsci/trnsparse/pull/111">trnsparse#111</a>). The kernel's 144 KiB budget is unchanged and fits either way.</p>
+</div>
 <h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
 <p>DF-MP2 is trnblas's flagship workload. On CUDA it is a cuBLAS story: three-index transforms, a metric contraction and a pair-energy reduction, all GEMMs with elementwise work bolted on. The <a href="https://trnsci.dev/blog/trnblas-the-odd-shape-cliff-that-wasnt/">odd-shape cliff post</a> ended with a warning sign: on the native TorchNeuron <code>neuron</code> device, aten's own <code>matmul</code> beat the trnblas NKI GEMM at every size measured.</p>
 <p><a href="https://github.com/trnsci/trnblas/pull/55">trnblas#55</a> measured that properly. All runs were on a trn2.3xlarge with the public Neuron SDK 2.33.0 (torch-neuronx 2.14.3, NKI 0.7.0, neuronx-cc 2.28.7631), restricted to one LNC=2 logical core (<code>NEURON_RT_VISIBLE_CORES=1</code>), in fp32. aten was 2.4–3.2× faster than the NKI GEMM at every shape, including the DF-MP2 energy chunk (12928×1536×28672: 32.2 ms against 77.5 ms). The older fused energy kernels did worse. <code>batched_pair</code>, the subject of the <a href="https://trnsci.dev/blog/trnblas-phase-3-from-215-slower-to-36-faster-in-one-kernel-boundary-move/">batched pair energy post</a>, took 7.8 s against aten's 207 ms at nocc/nvir/naux = 64/448/1536. That post's 3.6× was a win over the XLA path's roughly 100 ms dispatch floor. On the native device the floor is about 0.2 ms, and two GEMMs per pair through <code>load_transpose2d</code> have nowhere to hide.</p>
