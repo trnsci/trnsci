@@ -22,6 +22,8 @@ python examples/quantum_chemistry/df_mp2_synthetic.py --demo --device neuron   #
 
 Output reports per-stage wall time, a FLOPs estimate from the contraction planner, and the energy. An integration test pins that energy to the float64 closed-shell reference (agreement is about 1e-7). `examples/quantum_chemistry/df_mp2_profile.py` runs the pipeline across a ladder of sizes and reports per-stage time, the route each library's `auto` dispatch picked, and error against float64.
 
+Install with `pip install "trnsci[all]"` (current minimums on [installation](../installation.md)), or from a source checkout.
+
 ## Why this example
 
-DF-MP2 is the natural proving ground for the suite: it exercises dense GEMM (trnblas), small linear algebra (trnsolver), and tensor contractions with an FLOPs budget (trntensor). On Trainium, this is the path toward NKI-backed post-Hartree-Fock correlation methods.
+DF-MP2 is the natural proving ground for the suite: it exercises dense GEMM (trnblas), small linear algebra (trnsolver), and tensor contractions with an FLOPs budget (trntensor). On Trainium, this is the path toward NKI-backed post-Hartree-Fock correlation methods. For the same pipeline on real molecules up to 3508 basis functions on one Trn2 chip, see the [large-basis exemplar](../exemplars.md#large-basis).
