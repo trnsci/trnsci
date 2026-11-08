@@ -25,13 +25,15 @@ Python ≥ 3.10, torch ≥ 2.1 and numpy ≥ 1.24. Without Neuron hardware every
 | trnsparse | [[min:trnsparse]] | [[pypi:trnsparse]] |
 | trntensor | [[min:trntensor]] | [[pypi:trntensor]] |
 
-The minimums are the umbrella repo's [`pyproject.toml`](https://github.com/trnsci/trnsci/blob/main/pyproject.toml), and the site fills both columns in when it is built. The `trnsci` meta-package on PyPI is still 0.1.0, and its extras carry older minimums. A fresh `pip install "trnsci[all]"` still picks the newest release of each library, but it won't upgrade an existing environment past them. To upgrade, use `pip install -U --upgrade-strategy eager "trnsci[all]"`, or install from source.
+The minimums are the umbrella repo's [`pyproject.toml`](https://github.com/trnsci/trnsci/blob/main/pyproject.toml), and the site fills both columns in when it is built. They are published from meta-package 0.2.0 on (0.1.0 carried much older ones), so `pip install -U "trnsci[all]"` brings an existing environment up to at least these releases. To move every library to its newest release instead, use `pip install -U --upgrade-strategy eager "trnsci[all]"`.
 
 ## On Neuron hardware
 
-**Trn2 / Trn3 (TorchNeuron, the native path).** Start from the Neuron Deep Learning AMI for SDK 2.33 and its PyTorch 2.14 environment, which already has `torch-neuronx` 2.14 and NKI 0.7. Then `pip install "trnsci[all]"`. To install the Neuron packages yourself, each library has a `[torchneuron]` extra. They come from the AWS pip index, and `torch-neuronx` 2.14 needs Python ≥ 3.12:
+**Trn2 / Trn3 (TorchNeuron, the native path).** Start from the Neuron Deep Learning AMI for SDK 2.33 and its PyTorch 2.14 environment, which already has `torch-neuronx` 2.14 and NKI 0.7. Then `pip install "trnsci[all]"`. To install the Neuron packages yourself, add the `[torchneuron]` extra (`torch>=2.14`, `torch-neuronx>=2.14`, `nki>=0.6`, the same as each library's own `[torchneuron]` extra). They come from the AWS pip index, and `torch-neuronx` 2.14 needs Python ≥ 3.12:
 
 ```bash
+pip install "trnsci[all,torchneuron]" --extra-index-url https://pip.repos.neuron.amazonaws.com
+# or one library
 pip install "trnblas[torchneuron]" --extra-index-url https://pip.repos.neuron.amazonaws.com
 ```
 

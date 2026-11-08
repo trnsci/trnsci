@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trnsci"
-version = "0.1.0"
+version = "0.2.0"
 description = "Scientific computing suite for AWS Trainium via NKI (FFT, BLAS, RAND, SOLVER, SPARSE, TENSOR)"
 readme = "README.md"
 license = "Apache-2.0"
@@ -42,6 +42,14 @@ neuron = [
     # nc_matmul calling convention.
     "neuronxcc>=2.24",
     "torch-neuronx>=2.9",
+]
+torchneuron = [
+    # Trn2/Trn3 native PyTorch backend (Neuron SDK 2.33+). Matches each
+    # library's own [torchneuron] extra. torch-neuronx and nki come from the
+    # AWS pip index; torch-neuronx 2.14 needs Python >=3.12.
+    "torch>=2.14",
+    "torch-neuronx>=2.14",
+    "nki>=0.6",
 ]
 dev = [
     "pytest>=7.0",
