@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/check_docs_drift.py` and the weekly `docs-drift.yml` workflow
+  ([#151](https://github.com/trnsci/trnsci/issues/151)). The script reports
+  `[[described:]]` site rows older than PyPI, extras minimums below a
+  library's latest minor, a published meta-package that trails the repo, and
+  `[torchneuron]` extras that differ from the libraries'. On drift the
+  workflow opens or updates one `docs-stale` issue; it doesn't touch the docs
+  build.
+
 ## [0.2.0] — 2026-11-08
 
 First meta-package release since 0.1.0. `pip install "trnsci[all]==0.2.0"`
