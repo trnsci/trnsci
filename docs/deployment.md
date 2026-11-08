@@ -8,6 +8,12 @@ This document describes how the documentation site is built and served, and how 
 - That workflow installs `mkdocs-material` + `mkdocs-monorepo-plugin` and runs `mkdocs gh-deploy --force`, which publishes the built site to the `gh-pages` branch.
 - GitHub Pages serves the `gh-pages` branch at the Pages URL.
 
+## Keeping versions current
+
+- `hooks/versions.py` fills the `[[pypi:]]`, `[[min:]]` and `[[described:]]` tokens from PyPI at build time, and the daily docs.yml cron rebuild keeps those cells current.
+- `.github/workflows/docs-drift.yml` (weekly, or run it by hand from the Actions tab) runs `scripts/check_docs_drift.py`. The script reports hand-written `[[described:]]` rows older than PyPI, `pyproject.toml` minimums below a library's latest minor, a published `trnsci` meta-package whose `[all]` trails the repo, and `[torchneuron]` extras that differ from the libraries'. On drift it opens or updates one issue labelled `docs-stale`, and closes that issue once the drift is gone. It never fails the docs build.
+- Run it locally with `python scripts/check_docs_drift.py`: exit 0 means clean, 1 means drift, and 2 means PyPI was unreachable.
+
 ## Default URL
 
 Until DNS is pointed at GitHub Pages, the site is live at:
