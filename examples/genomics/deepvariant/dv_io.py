@@ -265,6 +265,54 @@ def decode_example(buf: bytes, shape: tuple[int, int, int] | None = None) -> Exa
     )
 
 
+_CV_FEATURES = frozenset(
+    (b"image/encoded", b"variant/encoded", b"alt_allele_indices/encoded")
+)
+
+
+def example_fields(buf) -> tuple[memoryview, bytes, bytes]:
+    """Hot-path decode of one make_examples ``tf.train.Example``.
+
+    Returns ``(image, variant, alt_allele_indices)``: the image as a zero-copy
+    ``memoryview`` into ``buf`` (raw uint8 HWC bytes), the other two as
+    ``bytes``. Only the three features ``call_variants`` reads are kept
+    (DeepVariant's ``get_dataset`` parses exactly these); ``locus``,
+    ``image/shape``, ``variant_type`` and ``sequencing_type`` are skipped
+    without copying. Same result as :func:`decode_example`, without the
+    per-level copies of the 155 kB image.
+    """
+    mv = memoryview(buf)
+    got: dict[bytes, memoryview] = {}
+    for fno, _, features in _fields(mv):
+        if fno != 1:
+            continue
+        for fno2, _, entry in _fields(features):
+            if fno2 != 1:
+                continue
+            key = feat = None
+            for f3, _, v in _fields(entry):
+                if f3 == 1:
+                    key = bytes(v)
+                elif f3 == 2:
+                    feat = v
+            if key not in _CV_FEATURES or feat is None:
+                continue
+            for kind, _, lst in _fields(feat):
+                if kind == 1:  # BytesList; these features hold exactly one value
+                    for f, _, v in _fields(lst):
+                        if f == 1:
+                            got[key] = v
+                            break
+    try:
+        return (
+            got[b"image/encoded"],
+            bytes(got[b"variant/encoded"]),
+            bytes(got[b"alt_allele_indices/encoded"]),
+        )
+    except KeyError as e:
+        raise ValueError(f"tf.Example lacks feature {e.args[0].decode()}") from None
+
+
 def iter_examples(pattern: str, shape=None) -> Iterator[Example]:
     for path in expand_sharded(pattern):
         for rec in read_tfrecords(path):
