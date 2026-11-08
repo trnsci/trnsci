@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-11-08
+
+First meta-package release since 0.1.0. `pip install "trnsci[all]==0.2.0"`
+now requires the releases validated on Trn2 (#35, #152).
+
+### Changed
+
+- Extras minimums raised to the current releases: `trnfft>=0.29`,
+  `trnblas>=0.12.1`, `trnrand>=0.14`, `trnsolver>=0.22.1`, `trnsparse>=0.15`,
+  `trntensor>=0.25.1` (0.1.0 required `trnfft>=0.7`, `trnblas>=0.3` and
+  `>=0.1` for the rest). An existing environment upgrading to 0.2.0 now moves
+  past the releases with known silent wrong results.
+- Installation page and README: dropped the "PyPI meta-package is still
+  0.1.0" caveat; document `trnsci[all,torchneuron]` for Trn2/Trn3.
+
 ### Fixed
 
 - `examples/quantum_chemistry/df_mp2_synthetic.py`: the pair-energy stage
@@ -18,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `[torchneuron]` extra for the Trn2/Trn3 native PyTorch backend
+  (`torch>=2.14`, `torch-neuronx>=2.14`, `nki>=0.6`), matching each library's
+  own `[torchneuron]` extra. `[neuron]` stays the Trn1/Inf2 PyTorch/XLA
+  lineage.
 - `scripts/warm_neuron_cache.py`: compiles Neuron NEFF caches off-box
   ([#118](https://github.com/trnsci/trnsci/issues/118)). `manifest` records
   the box toolchain, and `check` refuses on any mismatch. `capture` runs
@@ -82,4 +101,5 @@ Initial umbrella release.
   NKI kernels are scaffolded; on-hardware validation on trn1 / trn2 is
   the next milestone across the suite.
 
+[0.2.0]: https://github.com/trnsci/trnsci/releases/tag/v0.2.0
 [0.1.0]: https://github.com/trnsci/trnsci/releases/tag/v0.1.0

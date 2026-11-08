@@ -34,7 +34,7 @@ pip install "trnsci[blas]"    # just trnblas
 # ... etc
 ```
 
-On Trn2/Trn3, start from the Neuron SDK 2.33 Deep Learning AMI (PyTorch 2.14 environment), which already has `torch-neuronx` and NKI. On Trn1/Inf2, `pip install "trnsci[all,neuron]" --extra-index-url https://pip.repos.neuron.amazonaws.com` adds the PyTorch/XLA-lineage packages. Details and the current `trnsci[all]` minimums: [installation](https://trnsci.dev/installation/).
+On Trn2/Trn3, start from the Neuron SDK 2.33 Deep Learning AMI (PyTorch 2.14 environment), which already has `torch-neuronx` and NKI, or add them with `pip install "trnsci[all,torchneuron]" --extra-index-url https://pip.repos.neuron.amazonaws.com` (Python ≥ 3.12). On Trn1/Inf2, `pip install "trnsci[all,neuron]" --extra-index-url https://pip.repos.neuron.amazonaws.com` adds the PyTorch/XLA-lineage packages. Details and the current `trnsci[all]` minimums: [installation](https://trnsci.dev/installation/).
 
 ## Development install
 
