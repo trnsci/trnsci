@@ -13,11 +13,18 @@ but it can't rewrite prose. This script finds the places that need a person:
    the repo's ``pyproject.toml`` (the repo was bumped but not released).
 4. The umbrella ``[torchneuron]`` extra differs from a library's own
    ``[torchneuron]`` extra in its latest release.
+5. A ``conda-recipes/<name>/recipe.yaml`` (trnsci/trnsci#159) pins an older
+   release than PyPI's latest, a ``sha256`` that is not that release's sdist,
+   or ``run`` requirements that differ from its metadata, or its
+   ``python_min`` is wrong: a recipe sets ``python_min`` only when the
+   package needs a newer Python than conda-forge's global minimum (CFEP-25).
+   The ``trnsci`` recipe is the conda ``[all]`` (conda has no extras), so its
+   ``run`` minimums are compared with ``[all]`` in ``pyproject.toml`` instead.
 
 Output is a Markdown report on stdout (or ``--output FILE``).
 
-Exit status: 0 no drift, 1 drift found, 2 PyPI could not be read. Standard
-library only, Python >= 3.11.
+Exit status: 0 no drift, 1 drift found, 2 PyPI (or the conda-forge pinning)
+could not be read. Standard library only, Python >= 3.11.
 
     python scripts/check_docs_drift.py
     python scripts/check_docs_drift.py --output drift.md
@@ -47,6 +54,16 @@ EXTRA = {
 DESCRIBED = re.compile(r"\[\[described:([a-z]+)=([0-9][0-9A-Za-z.]*)\]\]")
 REQ = re.compile(r"^\s*([A-Za-z0-9_.-]+)\s*(?:\[[^\]]*\])?\s*([^;]*?)\s*(?:;\s*(.*))?$")
 MIN = re.compile(r">=\s*([0-9][0-9A-Za-z.]*)")
+# Scalar entries of a v1 recipe's ``context:`` block.
+RECIPE_CONTEXT = re.compile(r'^  (\w+):\s*"?([^"\n]*?)"?\s*$', re.M)
+RECIPE_SHA = re.compile(r"^\s*sha256:\s*([0-9a-f]{64})\s*$", re.M)
+# conda-forge names for PyPI requirements whose names differ.
+CONDA_NAME = {"torch": "pytorch"}
+# conda-forge's global python_min, which noarch recipes use unless they set one.
+CF_PINNING = (
+    "https://raw.githubusercontent.com/conda-forge/conda-forge-pinning-feedstock/"
+    "main/recipe/conda_build_config.yaml"
+)
 
 
 class PyPIError(RuntimeError):
@@ -56,6 +73,19 @@ class PyPIError(RuntimeError):
 def vkey(v: str) -> tuple[int, ...]:
     parts = [int(p) for p in re.findall(r"\d+", v)[:3]]
     return tuple(parts + [0] * (3 - len(parts)))
+
+
+def cf_python_min() -> str:
+    """conda-forge's global ``python_min`` (first entry in the pinning)."""
+    try:
+        with urllib.request.urlopen(CF_PINNING, timeout=20) as r:
+            text = r.read().decode()
+    except Exception as e:
+        raise PyPIError(f"{CF_PINNING}: {e}") from e
+    m = re.search(r"^python_min:\s*\n(?:\s*#.*\n)*\s*-\s*'?([0-9.]+)'?", text, re.M)
+    if not m:
+        raise PyPIError(f"{CF_PINNING}: no python_min")
+    return m.group(1)
 
 
 def pypi(name: str) -> dict:
@@ -105,6 +135,98 @@ def described_tokens() -> list[tuple[str, int, str, str]]:
             for m in DESCRIBED.finditer(line):
                 found.append((str(rel), lineno, m.group(1), m.group(2)))
     return found
+
+
+def recipe_fields(text: str) -> tuple[dict[str, str], str | None, set[str]]:
+    """``context`` variables, the source ``sha256`` and the ``run`` requirements."""
+    ctx = re.search(r"^context:\n((?:  .*\n)*)", text, re.M)
+    sets = dict(RECIPE_CONTEXT.findall(ctx.group(1))) if ctx else {}
+    sha = RECIPE_SHA.search(text)
+    run: set[str] = set()
+    in_run = False
+    for line in text.splitlines():
+        if re.match(r"^\s{2}run:\s*$", line):
+            in_run = True
+            continue
+        if in_run:
+            m = re.match(r"^\s{4}-\s*(.+?)\s*$", line)
+            if not m:
+                break
+            run.add(m.group(1).replace(" ", ""))
+    return sets, sha.group(1) if sha else None, run
+
+
+def req_minimums(reqs) -> dict[str, tuple[int, ...] | None]:
+    """``{name: vkey(minimum)}`` so ``trnfft>=0.29`` equals ``trnfft >=0.29.0``."""
+    out = {}
+    for req in reqs:
+        name, spec, _ = parse_req(req)
+        m = MIN.search(spec)
+        out[name] = vkey(m.group(1)) if m else None
+    return out
+
+
+def check_recipes(
+    infos: dict[str, dict], all_reqs: list[str], cf_min: str
+) -> list[str]:
+    """Drift between ``conda-recipes/*/recipe.yaml`` and PyPI (#159).
+
+    ``all_reqs`` is the umbrella ``[all]`` extra; the ``trnsci`` recipe's
+    ``run`` must carry the same libraries and minimums. ``cf_min`` is
+    conda-forge's global ``python_min``.
+    """
+    drift = []
+    for name, info in infos.items():
+        rel = f"conda-recipes/{name}/recipe.yaml"
+        path = ROOT / rel
+        if not path.is_file():
+            drift.append(f"`{rel}`: missing")
+            continue
+        sets, sha, run = recipe_fields(path.read_text())
+        latest = info["info"]["version"]
+        pinned = sets.get("version")
+        if pinned != latest:
+            drift.append(
+                f"`{rel}`: recipe pins {name} {pinned}; PyPI has "
+                f"[{latest}](https://pypi.org/project/{name}/{latest}/). "
+                "Update `version` and `sha256`."
+            )
+            continue
+        sdist = [
+            u["digests"]["sha256"] for u in info["urls"] if u["packagetype"] == "sdist"
+        ]
+        if sha not in sdist:
+            drift.append(f"`{rel}`: `sha256` is not the {name} {latest} sdist's")
+        pymin = MIN.search(info["info"].get("requires_python") or "")
+        need = pymin.group(1) if pymin else None
+        # Override conda-forge's python_min only to raise it.
+        expect = need if need and vkey(need) > vkey(cf_min) else None
+        if sets.get("python_min") != expect:
+            drift.append(
+                f"`{rel}`: `python_min` is {sets.get('python_min') or 'unset'}; "
+                f"{name} {latest} requires Python >={need}, conda-forge's minimum "
+                f"is {cf_min}, so it should be {expect or 'unset'}"
+            )
+        have = {r for r in run if not r.startswith("python")}
+        if name == "trnsci":
+            if req_minimums(have) != req_minimums(all_reqs):
+                drift.append(
+                    f"`{rel}`: `run` is `{', '.join(sorted(have)) or '(none)'}`; "
+                    f"`[all]` in `pyproject.toml` is `{', '.join(sorted(all_reqs))}`. "
+                    "The conda meta-package must install the same libraries and minimums."
+                )
+            continue
+        want = set()
+        for req in info["info"].get("requires_dist") or []:
+            dep, spec, marker = parse_req(req)
+            if not marker:
+                want.add(f"{CONDA_NAME.get(dep, dep)}{spec}")
+        if have != want:
+            drift.append(
+                f"`{rel}`: `run` is `{', '.join(sorted(have)) or '(none)'}`; {name} "
+                f"{latest} requires `{', '.join(sorted(want)) or '(none)'}`"
+            )
+    return drift
 
 
 def check() -> list[str]:
@@ -172,15 +294,21 @@ def check() -> list[str]:
                 f"the umbrella has `{', '.join(sorted(repo_tn)) or '(none)'}`"
             )
 
+    # 5. The conda recipes trail PyPI.
+    drift += check_recipes({"trnsci": umbrella, **lib_info}, all_reqs, cf_python_min())
+
     return drift
 
 
 def report(drift: list[str]) -> str:
     if not drift:
-        return "No drift: the site's described releases and the extras match PyPI.\n"
+        return (
+            "No drift: the site's described releases, the extras and the conda "
+            "recipes match PyPI.\n"
+        )
     lines = [
-        "`scripts/check_docs_drift.py` found places where the umbrella site or "
-        "packaging trails PyPI:",
+        "`scripts/check_docs_drift.py` found places where the umbrella site, "
+        "packaging or conda recipes trail PyPI:",
         "",
         *[f"- [ ] {d}" for d in drift],
         "",

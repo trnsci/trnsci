@@ -16,6 +16,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `[torchneuron]` extras that differ from the libraries'. On drift the
   workflow opens or updates one `docs-stale` issue; it doesn't touch the docs
   build.
+- The drift check also compares each `conda-recipes/*/recipe.yaml` with
+  PyPI: version, sdist `sha256` and `run` requirements, the `trnsci`
+  recipe's `run` minimums with `[all]` in `pyproject.toml`, and any
+  `python_min` override with conda-forge's global minimum
+  ([#159](https://github.com/trnsci/trnsci/issues/159)).
+
+### Changed
+
+- The `trnsci` conda recipe depends on all six libraries (trnblas >=0.12.1,
+  trnfft >=0.29.0, trnrand >=0.14.0, trnsolver >=0.22.1, trnsparse >=0.15.0,
+  trntensor >=0.25.1). Conda has no extras, so `conda install trnsci` now
+  installs the full suite, like `pip install trnsci[all]`
+  ([#159](https://github.com/trnsci/trnsci/issues/159)).
+- The conda recipes use the v1 `recipe.yaml` format, which
+  conda-forge/staged-recipes requires for new recipes, and conda-forge's
+  global `python_min` instead of a 3.10 override
+  ([#159](https://github.com/trnsci/trnsci/issues/159)).
+
+### Fixed
+
+- `conda-recipes/` pinned trnsci 0.1.0, trnblas 0.4.0 and similarly old
+  releases of the other five. They now pin trnsci 0.2.0, trnblas 0.12.1,
+  trnfft 0.29.0, trnrand 0.14.0, trnsolver 0.22.1, trnsparse 0.15.0 and
+  trntensor 0.25.1, with `setuptools >=77` in `host` (the SPDX `license`
+  string needs it) and no `import trnsci` test, since the meta-package has
+  no module ([#159](https://github.com/trnsci/trnsci/issues/159)).
 
 ## [0.2.0] — 2026-11-08
 

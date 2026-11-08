@@ -8,13 +8,13 @@ This directory stages the `conda-forge/staged-recipes` submission for all seven 
 conda-recipes/
 ├── README.md              (this file — workspace notes)
 ├── PR_DESCRIPTION.md      (paste into the conda-forge staged-recipes PR body)
-├── trnsci/meta.yaml
-├── trnfft/meta.yaml
-├── trnblas/meta.yaml
-├── trnrand/meta.yaml
-├── trnsolver/meta.yaml
-├── trnsparse/meta.yaml
-└── trntensor/meta.yaml
+├── trnsci/recipe.yaml
+├── trnfft/recipe.yaml
+├── trnblas/recipe.yaml
+├── trnrand/recipe.yaml
+├── trnsolver/recipe.yaml
+├── trnsparse/recipe.yaml
+└── trntensor/recipe.yaml
 ```
 
 ## Submission workflow
@@ -58,24 +58,39 @@ conda-forge auto-creates one **feedstock repository per package** under `conda-f
 
 Future releases are handled by `regro-cf-autotick-bot`: it watches PyPI, detects new versions, and opens a PR to each feedstock bumping the version + sha256. You merge, the new build ships to the conda-forge channel within hours. Zero ongoing manual work per release.
 
-## Updating these recipes when PyPI versions change
+## Status
 
-Before submitting, if any sub-project has released a new PyPI version since these recipes were drafted:
+Not published: there is no `conda-forge/<name>-feedstock` and nothing in this
+repo builds these recipes. The submission is
+[conda-forge/staged-recipes#32941](https://github.com/conda-forge/staged-recipes/pull/32941);
+its recipes are copies of these, so update it from here before review.
+
+## Keeping the recipes current
+
+The recipes use the v1 `recipe.yaml` format, which staged-recipes requires
+for new recipes (v0 `meta.yaml` is deprecated there). Build one locally with
+`rattler-build build --recipe <name>/recipe.yaml -m <conda-forge-pinning>/conda_build_config.yaml`;
+build the six libraries before `trnsci`.
+
+Each `recipe.yaml` pins one PyPI release: `version`, the sdist `sha256` and
+the `run` requirements (the library's `dependencies`, with `torch` as
+`pytorch`). None sets `python_min`: they use conda-forge's global minimum
+(CFEP-25), and a recipe should set its own only if the package's
+`requires-python` is newer than that. The weekly drift check,
+`scripts/check_docs_drift.py`, compares all of this with PyPI and the
+conda-forge pinning and opens a `docs-stale` issue when a recipe falls
+behind.
+
+The `trnsci` recipe is the exception for `run`: conda has no extras, so it
+depends on all six libraries, the PyPI `trnsci[all]`, and
+`conda install trnsci` installs the full suite. The drift check compares its
+`run` minimums with `[all]` in `pyproject.toml`; bump both together. To
+update a recipe:
 
 ```bash
-python3 /tmp/fetch_sdists.py   # reprints current PyPI versions + sha256
+curl -s https://pypi.org/pypi/<name>/json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["info"]["version"], [u["digests"]["sha256"] for u in d["urls"] if u["packagetype"] == "sdist"])'
 ```
 
-Then update the affected `meta.yaml` files and re-submit.
-
-## Current pinned versions
-
-| Package | Version | sha256 |
-|---|---|---|
-| trnsci | 0.1.0 | `1c05eb4c8addd4fe230886ec76326a0811ea7597c75cbbdcb8b378be19114722` |
-| trnfft | 0.7.0 | `ac4c5732b747d807848e85e82433a1e7df047355a75d87b996a6e612af41f696` |
-| trnblas | 0.4.0 | `173424ac24d5807dfc9fcf0744d04a822e0e61a2e9aec5129d370e33a8578a10` |
-| trnrand | 0.1.0 | `1b4ec3c37520b514d67cec59c493b93372ede6958d6bc049f4f65ee477936c8d` |
-| trnsolver | 0.3.0 | `c641c3e6458d0175f179f9a1a63da8f5a03d49772f6444f786a89cec08b9ba1c` |
-| trnsparse | 0.1.1 | `26d58a161efc67a10bbf3f9357aa0c4befd9d22824149e3381003f606a3bd9d5` |
-| trntensor | 0.1.1 | `f5ed259d81ea5bdd47daa30ec54abda4410ede5db83017653227c5ec2bbd0314` |
+`setuptools >=77` in `host` is deliberate: the libraries' `pyproject.toml`
+uses an SPDX `license = "Apache-2.0"` string, which setuptools 68-76 rejects,
+even though their `[build-system]` still says `setuptools>=68.0`.
