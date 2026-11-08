@@ -5281,6 +5281,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-11-08 00:00:00+00:00">November 8, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="./" class="md-meta__link">suite</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              11 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsci-rows-of-32-mib-partitions-64127-and-the-4-gib-point-that-was-right-by-luck"><a class="toclink" href="../../trnsci-rows-of-32-mib-partitions-64127-and-the-4-gib-point-that-was-right-by-luck/">trnsci: rows of 32 MiB, partitions 64–127, and the 4 GiB point that was right by luck</a></h2>
+<p>On Trn2, a device matmul or copy whose operand has rows of 32 MiB or more can return wrong numbers with no error, and trnblas 0.12.1 and trntensor 0.25.1 now block every such product into pieces the hardware gets right. Getting there meant retracting a data point the suite had published: "a right operand of exactly 2³² bytes is correct" was true only because the wrong addresses happened to hold an identical copy of the right data. AWS maintainers traced the fault to how a DMA spreads rows over the 128 SBUF partitions, and that model, not the suite's first guess, is what the guards now encode. This post continues <a href="../../trnsci-the-suites-silent-wrong-answers-and-the-float64-rule-that-came-out-of-them/">the suite's silent wrong answers</a>, and it is for anyone moving tensors of more than 4 GiB through a NeuronCore.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnsci-rows-of-32-mib-partitions-64127-and-the-4-gib-point-that-was-right-by-luck/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-11-05 00:00:00+00:00">November 5, 2026</time></li>
         
           <li class="md-meta__item">

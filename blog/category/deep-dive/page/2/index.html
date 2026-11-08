@@ -5279,6 +5279,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../../" class="md-meta__link">Deep dive</a>, 
+              <a href="../../../trntensor/" class="md-meta__link">trntensor</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              11 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont"><a class="toclink" href="../../../../trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont/">trntensor: on Trn2 the planner earns its keep, the kernels don't</a></h2>
+<p>On the native TorchNeuron path, trntensor's hand-written NKI kernels did not beat aten on the device at any size measured, so <a href="https://github.com/trnsci/trntensor/releases/tag/v0.18.0">trntensor v0.18.0</a> now routes plain and fused contractions to aten by default. What the library does add on Trn2 sits one level up, in the host-side planner: contraction order, batching and precision modes. That planner had a bug that built a 4-index outer product, which cost 70 ms on a contraction that should take about 1 ms. Anyone writing contraction code for Trainium, or deciding whether a hand-written kernel is worth it, may find the measured split between "plan" and "kernel" more useful than any single speedup.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../../../trntensor-on-trn2-the-planner-earns-its-keep-the-kernels-dont/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-10-27 00:00:00+00:00">October 27, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5659,52 +5701,6 @@ but the generational gap theory needs revision.</p>
     
       <nav class="md-post__action">
         <a href="../../../../trntensor-v0160-extending-the-precision-contract-to-multi_einsum/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-04-28 00:00:00+00:00">April 28, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="../../" class="md-meta__link">Deep dive</a>, 
-              <a href="../../../trnfft/" class="md-meta__link">trnfft</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              6 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnfft-the-residual-must-stay-fp32"><a class="toclink" href="../../../../trnfft-the-residual-must-stay-fp32/">trnfft: the residual must stay FP32</a></h2>
-<p>v0.19 ships <code>precision="ozaki_hq"</code> — six BF16 matmuls that together reach O(sqrt(N)·u_bf16⁴)
-≈ 2e-9 relative error, near-FP64 accuracy on the Tensor Engine. The implementation is a
-40-line extension of the v0.18 Ozaki scheme. There is one non-obvious constraint that the
-algorithm turns entirely on. Getting it wrong gives you 1-level accuracy out of a 2-level
-design, silently, with no error.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../../../trnfft-the-residual-must-stay-fp32/">
           Continue reading
         </a>
       </nav>
