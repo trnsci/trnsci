@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `conda-recipes/trnsci` pins trnsci 0.2.2 (sdist sha256 from PyPI), as
+  the 0.2.1 recipe followed its release.
+
 ## [0.2.2] — 2026-11-10
 
 `pip install "trnsci[all]==0.2.2"` requires the two silent-correctness patch
