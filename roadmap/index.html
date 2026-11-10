@@ -5675,15 +5675,15 @@
 </tr>
 <tr>
 <td><strong>trnsparse</strong></td>
-<td>0.16.0 · <a href="https://github.com/trnsci/trnsparse/blob/main/CHANGELOG.md">changes</a></td>
+<td>0.16.1 · <a href="https://github.com/trnsci/trnsparse/blob/main/CHANGELOG.md">changes</a></td>
 <td>Phase 1 ✓ / Phase 3–4 active</td>
-<td><code>KernelOperator</code> / <code>kernel_matmul</code>, a fused K(X, Y)·V that never forms K (7.3 s per apply at n = 2²⁰, 33 right-hand sides, 4 cores); BSR-128 SpMM; <code>screened_spmm</code> skips screened-out tiles; fused CG / PCG; 0.16.0 adds LNC-invariant <code>cg_bsr</code> reductions (opt-in).</td>
+<td><code>KernelOperator</code> / <code>kernel_matmul</code>, a fused K(X, Y)·V that never forms K (7.3 s per apply at n = 2²⁰, 33 right-hand sides, 4 cores); BSR-128 SpMM; <code>screened_spmm</code> skips screened-out tiles; fused CG / PCG; 0.16.0 adds LNC-invariant <code>cg_bsr</code> reductions (opt-in); 0.16.1 fixes device <code>from_dense</code> above 2^24 elements.</td>
 </tr>
 <tr>
 <td><strong>trntensor</strong></td>
-<td>0.25.1 · <a href="https://github.com/trnsci/trntensor/blob/main/CHANGELOG.md">changes</a></td>
+<td>0.25.2 · <a href="https://github.com/trnsci/trntensor/blob/main/CHANGELOG.md">changes</a></td>
 <td>Phase 1 ✓ / Phase 3–4 active</td>
-<td><code>AuxStream</code> streams DF integrals over the aux index; the blocked packed AO→MO kernel runs at any n_ao (about 100× a 2-thread host per chunk at 3508 AOs); fused MP2, DF J/K. 0.25.1 row-blocks device matmuls with rows ≥ 32 MiB.</td>
+<td><code>AuxStream</code> streams DF integrals over the aux index; the blocked packed AO→MO kernel runs at any n_ao (about 100× a 2-thread host per chunk at 3508 AOs); fused MP2, DF J/K. 0.25.1 row-blocks device matmuls with rows ≥ 32 MiB; 0.25.2 makes integer einsum on the device exact.</td>
 </tr>
 </tbody>
 </table>
