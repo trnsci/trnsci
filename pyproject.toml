@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trnsci"
-version = "0.2.1"
+version = "0.2.2"
 description = "Scientific computing suite for AWS Trainium via NKI (FFT, BLAS, RAND, SOLVER, SPARSE, TENSOR)"
 readme = "README.md"
 license = "Apache-2.0"
@@ -26,15 +26,15 @@ fft = ["trnfft>=0.29"]
 blas = ["trnblas>=0.13"]
 rand = ["trnrand>=0.14"]
 solver = ["trnsolver>=0.23"]
-sparse = ["trnsparse>=0.16"]
-tensor = ["trntensor>=0.25.1"]
+sparse = ["trnsparse>=0.16.1"]
+tensor = ["trntensor>=0.25.2"]
 all = [
     "trnfft>=0.29",
     "trnblas>=0.13",
     "trnrand>=0.14",
     "trnsolver>=0.23",
-    "trnsparse>=0.16",
-    "trntensor>=0.25.1",
+    "trnsparse>=0.16.1",
+    "trntensor>=0.25.2",
 ]
 neuron = [
     # neuronxcc is not on public PyPI; ships with the Deep Learning AMI Neuron.

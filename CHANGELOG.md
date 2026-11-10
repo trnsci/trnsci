@@ -7,8 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-11-10
+
+`pip install "trnsci[all]==0.2.2"` requires the two silent-correctness patch
+releases validated on Trn2
+([#35](https://github.com/trnsci/trnsci/issues/35#issuecomment-6761384230)):
+trnsparse 0.16.1 and trntensor 0.25.2, both from the int32/int64 device audit
+([#135](https://github.com/trnsci/trnsci/issues/135)).
+
 ### Changed
 
+- Extras minimums: `trnsparse>=0.16.1` (device `from_dense` returned wrong
+  indices and values above 2^24 elements) and `trntensor>=0.25.2` (integer
+  einsum on the device rounded above 2^24, and int32/int64 `out=` copies of
+  transposed results were rounded). The others are unchanged. The trnsci
+  conda recipe's `run` minimums follow, and the trnsparse and trntensor
+  recipes pin the new releases (sdist sha256 from PyPI). The trnsci recipe
+  itself moves to 0.2.2 after the sdist is published.
+- docs: validation-status and roadmap rows for trnsparse 0.16.1 and trntensor
+  0.25.2.
 - `conda-recipes/trnsci` pins trnsci 0.2.1 (sdist sha256 from PyPI), as
   the 0.2.0 recipe followed its release.
 

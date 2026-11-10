@@ -1,6 +1,6 @@
 context:
   name: trnsparse
-  version: "0.16.0"
+  version: "0.16.1"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  sha256: 92c7c1a4668af2d266b0a2f1fb8c5b42889ac8402dfad5651b4ccc06f1b519ba
+  sha256: 4fd6d67523c26a251fb560ec9f2c662f6ef06a1f341b6f7b43cebcc12fb26b65
 
 build:
   number: 0
