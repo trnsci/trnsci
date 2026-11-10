@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trnsci"
-version = "0.2.0"
+version = "0.2.1"
 description = "Scientific computing suite for AWS Trainium via NKI (FFT, BLAS, RAND, SOLVER, SPARSE, TENSOR)"
 readme = "README.md"
 license = "Apache-2.0"
@@ -23,17 +23,17 @@ dependencies = []
 
 [project.optional-dependencies]
 fft = ["trnfft>=0.29"]
-blas = ["trnblas>=0.12.1"]
+blas = ["trnblas>=0.13"]
 rand = ["trnrand>=0.14"]
 solver = ["trnsolver>=0.22.1"]
-sparse = ["trnsparse>=0.15"]
+sparse = ["trnsparse>=0.16"]
 tensor = ["trntensor>=0.25.1"]
 all = [
     "trnfft>=0.29",
-    "trnblas>=0.12.1",
+    "trnblas>=0.13",
     "trnrand>=0.14",
     "trnsolver>=0.22.1",
-    "trnsparse>=0.15",
+    "trnsparse>=0.16",
     "trntensor>=0.25.1",
 ]
 neuron = [

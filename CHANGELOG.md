@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-11-10
+
+`pip install "trnsci[all]==0.2.1"` requires the window-6 releases validated
+on Trn2 ([#35](https://github.com/trnsci/trnsci/issues/35)): trnblas 0.13.0
+(`gemm_fp64`) and trnsparse 0.16.0.
+
 ### Added
 
 - `scripts/check_docs_drift.py` and the weekly `docs-drift.yml` workflow
@@ -24,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Extras minimums: `trnblas>=0.13` (0.13.0 adds `gemm_fp64`, an fp64-class
+  Ozaki GEMM on the Tensor Engine) and `trnsparse>=0.16` (0.16.0 fixes two
+  silent wrong results: complex V in `kernel_matmul`, and fused BSR CG at
+  65,536 or more blocks). The others are unchanged. The trnsci conda
+  recipe's `run` minimums follow, and the trnblas and trnsparse recipes pin
+  the new releases.
 - The `trnsci` conda recipe depends on all six libraries (trnblas >=0.12.1,
   trnfft >=0.29.0, trnrand >=0.14.0, trnsolver >=0.22.1, trnsparse >=0.15.0,
   trntensor >=0.25.1). Conda has no extras, so `conda install trnsci` now
