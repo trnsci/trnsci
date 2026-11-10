@@ -30,8 +30,8 @@ requirements:
     - trnfft >=0.29.0
     - trnrand >=0.14.0
     - trnsolver >=0.23.0
-    - trnsparse >=0.16.0
-    - trntensor >=0.25.1
+    - trnsparse >=0.16.1
+    - trntensor >=0.25.2
 
 tests:
   # The meta-package installs no module of its own (py-modules = []);
