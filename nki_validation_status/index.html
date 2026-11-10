@@ -5627,11 +5627,11 @@ hardware" milestone.</p>
 <td>1: a device <code>aten::convolution</code> compile failure (<a href="https://github.com/trnsci/trnfft/issues/155">trnfft#155</a>, platform)</td>
 </tr>
 <tr>
-<td>trnblas 0.12.1</td>
-<td>2026-11-07, window 5</td>
-<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6711392931">comment</a> (0.12.0: <a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6710207391">comment</a>)</td>
-<td>240 passed, 0 failed</td>
-<td>2022 at 0.12.0: complex <code>mv</code> unsupported and device float64 at fp32 (2012), test tolerance (8), harness (2); no fp32 / bf16 / fp16 failures</td>
+<td>trnblas 0.13.0</td>
+<td>2026-11-10, window 6</td>
+<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6756567385">comment</a></td>
+<td>263 passed, 0 failed</td>
+<td>2022: complex <code>mv</code> unsupported and device float64 at fp32 (2012), test tolerance (8), harness (2); no fp32 / bf16 / fp16 failures</td>
 </tr>
 <tr>
 <td>trnrand 0.14.0</td>
@@ -5641,17 +5641,17 @@ hardware" milestone.</p>
 <td>5: the documented Poisson normal approximation at λ ≥ 20 (<a href="https://github.com/trnsci/trnrand/issues/88">trnrand#88</a>)</td>
 </tr>
 <tr>
-<td>trnsolver 0.22.1</td>
-<td>2026-11-07, window 5</td>
-<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6710207391">comment</a> (<a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6708079805">main probe</a>)</td>
-<td>135 passed, 0 failed</td>
-<td>100: complex linalg unsupported (41), device float64 at fp32 (59)</td>
+<td>trnsolver 0.23.0</td>
+<td>2026-11-10, window 6</td>
+<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6759192497">comment</a> (<a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6757462669">hold</a>)</td>
+<td>137 passed, 0 failed</td>
+<td>100: complex linalg unsupported (41), device float64 at fp32 (59); plus 1 xfail, device float64 residual tolerance (<a href="https://github.com/trnsci/trnsolver/issues/144">trnsolver#144</a>)</td>
 </tr>
 <tr>
-<td>trnsparse 0.15.0</td>
-<td>2026-11-04, window 4</td>
-<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6624854688">comment</a></td>
-<td>305 passed, 0 failed (4-core slice 24/24)</td>
+<td>trnsparse 0.16.0</td>
+<td>2026-11-10, window 6</td>
+<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6756919429">comment</a></td>
+<td>315 passed, 0 failed (4 GiB opt-in 2/2)</td>
 <td>85: complex <code>mv</code> unsupported (64), device float64 at fp32 (12), harness (8), fp16 <code>sqrt</code> ulp (1)</td>
 </tr>
 <tr>

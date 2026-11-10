@@ -5691,6 +5691,10 @@ the Householder path and <code>eigh_generalized</code> through it, <code>eigh_ra
 <td>On the native <code>neuron</code> device (and for host tensors on a TorchNeuron host), <code>eigh</code> uses <code>torch.linalg.eigh</code> for matrices with fewer than <code>n</code> rows and the NKI path otherwise. The NKI path is single-tile (n ≤ 128) and falls back to <code>torch.linalg.eigh</code> above that. Default 512; <code>0</code> always uses NKI. Ignored when <code>TRNSOLVER_REQUIRE_NKI=1</code>. (#42)</td>
 </tr>
 <tr>
+<td><code>TRNSOLVER_CG_REDUCTION=pairwise\|host64\|device</code></td>
+<td>How <code>cg_block</code> and the projected preconditioner reduce over n when <code>reduction=</code> is not passed (#128). <code>pairwise</code> (default) and <code>host64</code> give the same bits at LNC=1 and LNC=2; <code>device</code> is the previous device-sum path, which is faster but LNC-dependent. See <a href="../iterative/"><code>cg_block</code></a>.</td>
+</tr>
+<tr>
 <td><code>TRNSOLVER_EIGH_METHOD=auto\|jacobi</code></td>
 <td><code>eigh</code> method when <code>method=</code> is not passed. <code>jacobi</code> selects the batched Jacobi solver (#48). Default <code>auto</code>.</td>
 </tr>

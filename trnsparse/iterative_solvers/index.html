@@ -4535,6 +4535,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="v0.3.2 — plumbing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cg_bsr-reductionnone-lnc-invariant-reductions-trnscitrnsolver128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cg_bsr(..., reduction=None): LNC-invariant reductions (trnsci/trnsolver#128)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5537,6 +5554,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="v0.3.2 — plumbing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cg_bsr-reductionnone-lnc-invariant-reductions-trnscitrnsolver128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cg_bsr(..., reduction=None): LNC-invariant reductions (trnsci/trnsolver#128)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5678,6 +5712,75 @@ once. On the NKI backend that's one kernel dispatch + one HBM
 round-trip per iteration. On CPU it's <code>torch.sparse</code>-backed and
 roughly on par with <code>scipy.sparse.linalg.cg</code> (benchmarked: 369 μs vs
 310 μs at 128×128 SPD, 1.19× slower).</p>
+<h3 id="cg_bsr-reductionnone-lnc-invariant-reductions-trnscitrnsolver128"><code>cg_bsr(..., reduction=None)</code>: LNC-invariant reductions (trnsci/trnsolver#128)<a class="headerlink" href="#cg_bsr-reductionnone-lnc-invariant-reductions-trnscitrnsolver128" title="Permanent link">&para;</a></h3>
+<p>On Trn2, device <code>dot</code> / <code>norm</code> add in an order that depends on how the
+compiler splits the work across logical cores, so LNC=1 and LNC=2 give
+different bits (bitwise reproducible within one LNC). <code>reduction=</code> picks how
+<code>cg_bsr</code>'s inner products and norms reduce over N:</p>
+<table>
+<thead>
+<tr>
+<th><code>reduction</code></th>
+<th>How</th>
+<th>LNC-invariant</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"device"</code> (default)</td>
+<td><code>torch.dot</code> / <code>torch.linalg.norm</code> on b's device</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>"pairwise"</code></td>
+<td>elementwise products, a fixed pairwise tree of elementwise adds on the device (pad to m · 2^L, m ≤ 64), then the m leaves in float64 on the host; the same tree as <code>trnsolver.cg_block</code></td>
+<td>yes, given an LNC-invariant matvec</td>
+</tr>
+<tr>
+<td><code>"host64"</code></td>
+<td>the product is copied to the host and summed in float64</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
+<p><code>None</code> reads <code>TRNSPARSE_CG_REDUCTION</code>. Host tensors are multiplied in
+float64 in the folded modes.</p>
+<p><strong>Why <code>"device"</code> stays the default:</strong> a BSR matvec is cheap, so the extra
+small device ops and host syncs are a large fraction of an iteration. Trn2,
+LNC=2, one logical core, N = 100352, block-tridiagonal compact-support
+kernel (b = 128, 2350 blocks), 60 iterations:</p>
+<table>
+<thead>
+<tr>
+<th><code>reduction</code></th>
+<th>ms / iteration</th>
+<th>vs <code>"device"</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"device"</code></td>
+<td>3.46</td>
+<td></td>
+</tr>
+<tr>
+<td><code>"pairwise"</code></td>
+<td>6.57</td>
+<td>+90%</td>
+</tr>
+<tr>
+<td><code>"host64"</code></td>
+<td>3.90</td>
+<td>+13%</td>
+</tr>
+</tbody>
+</table>
+<p>The matvec alone is 1.55 ms. For one vector at this size, <code>"host64"</code> (one
+400 KB copy) is cheaper than the 11-level fold, so it is the better choice
+when you need LNC invariance here. trnsolver's <code>cg</code> and <code>gmres</code> with an
+expensive operator (the GP <code>KernelOperator</code>, 289 ms per call) pay +0.1% (cg) or less (gmres) for
+<code>"pairwise"</code>, which is why trnsolver defaults to it. <code>cg_bsr_fused</code> reduces
+inside the kernel and does not take <code>reduction=</code>.</p>
 <h2 id="fused-cg-cg_bsr_fused-22">Fused CG: <code>cg_bsr_fused</code> (#22)<a class="headerlink" href="#fused-cg-cg_bsr_fused-22" title="Permanent link">&para;</a></h2>
 <p><code>cg_bsr_fused</code> runs the whole CG (or block-Jacobi PCG) solve in <strong>one
 kernel launch</strong>:</p>

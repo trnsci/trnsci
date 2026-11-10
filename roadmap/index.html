@@ -5657,9 +5657,9 @@
 </tr>
 <tr>
 <td><strong>trnblas</strong></td>
-<td>0.12.1 · <a href="https://github.com/trnsci/trnblas/blob/main/CHANGELOG.md">changes</a></td>
+<td>0.13.0 · <a href="https://github.com/trnsci/trnblas/blob/main/CHANGELOG.md">changes</a></td>
 <td>Phase 1 ✓ / Phase 2–3 active</td>
-<td>Dense GEMM goes to aten except the DF-MP2 half-transform, where an LNC-split NKI GEMM is 1.5–1.7× faster; fused <code>pair_energy_sym</code> is 1.8× aten. 0.12.1 row-blocks device matmuls with rows ≥ 32 MiB (<a href="https://github.com/aws-neuron/aws-neuron-sdk/issues/1457">aws-neuron-sdk#1457</a>). Next: fp64-class GEMM (<a href="https://github.com/trnsci/trnblas/issues/22">trnblas#22</a>).</td>
+<td>Dense GEMM goes to aten except the DF-MP2 half-transform, where an LNC-split NKI GEMM is 1.5–1.7× faster; fused <code>pair_energy_sym</code> is 1.8× aten. 0.13.0 adds <code>gemm_fp64</code>, an fp64-class GEMM by Ozaki splitting on the bf16 Tensor Engine with the split on the device: host-fp64-level error at k = 8, and 3–10× host fp64 on 2 vCPUs (<a href="https://github.com/trnsci/trnblas/issues/22">trnblas#22</a>).</td>
 </tr>
 <tr>
 <td><strong>trnrand</strong></td>
@@ -5669,15 +5669,15 @@
 </tr>
 <tr>
 <td><strong>trnsolver</strong></td>
-<td>0.22.1 · <a href="https://github.com/trnsci/trnsolver/blob/main/CHANGELOG.md">changes</a></td>
+<td>0.23.0 · <a href="https://github.com/trnsci/trnsolver/blob/main/CHANGELOG.md">changes</a></td>
 <td>Phase 1 ✓ / Phase 2–4 active</td>
-<td><code>cg_block</code>, pivoted low-rank preconditioner and <code>slq_logdet</code> for matrix-free GP; <code>occupied_subspace</code>, <code>orthogonalizer</code> and a minao guess for SCF; DF-RHF/MP2 drivers in <code>examples/</code> that ran to 3508 AOs. Householder <code>eigh</code> is single-tile; batched Jacobi <code>eigh</code> is opt-in multi-core.</td>
+<td><code>cg_block</code>, pivoted low-rank preconditioner and <code>slq_logdet</code> for matrix-free GP; <code>occupied_subspace</code>, <code>orthogonalizer</code> and a minao guess for SCF; DF-RHF/MP2 drivers in <code>examples/</code> that ran to 3508 AOs. 0.23.0 makes the <code>cg</code> / <code>gmres</code> / <code>cg_block</code> reductions LNC-invariant and adopts <code>torch.linalg.solve</code>'s B-shape rule in <code>solve_spd</code>. Householder <code>eigh</code> is single-tile; batched Jacobi <code>eigh</code> is opt-in multi-core.</td>
 </tr>
 <tr>
 <td><strong>trnsparse</strong></td>
-<td>0.15.0 · <a href="https://github.com/trnsci/trnsparse/blob/main/CHANGELOG.md">changes</a></td>
+<td>0.16.0 · <a href="https://github.com/trnsci/trnsparse/blob/main/CHANGELOG.md">changes</a></td>
 <td>Phase 1 ✓ / Phase 3–4 active</td>
-<td><code>KernelOperator</code> / <code>kernel_matmul</code>, a fused K(X, Y)·V that never forms K (7.3 s per apply at n = 2²⁰, 33 right-hand sides, 4 cores); BSR-128 SpMM; <code>screened_spmm</code> skips screened-out tiles; fused CG / PCG.</td>
+<td><code>KernelOperator</code> / <code>kernel_matmul</code>, a fused K(X, Y)·V that never forms K (7.3 s per apply at n = 2²⁰, 33 right-hand sides, 4 cores); BSR-128 SpMM; <code>screened_spmm</code> skips screened-out tiles; fused CG / PCG; 0.16.0 adds LNC-invariant <code>cg_bsr</code> reductions (opt-in).</td>
 </tr>
 <tr>
 <td><strong>trntensor</strong></td>

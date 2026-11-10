@@ -3976,39 +3976,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#inv_spda" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        inv_spd(A)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inv_sqrt_spda" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        inv_sqrt_spd(A)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inv_sqrt_spd_nsa-max_iters20-tol1e-7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        inv_sqrt_spd_ns(A, *, max_iters=20, tol=1e-7)
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -5557,39 +5524,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#inv_spda" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        inv_spd(A)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inv_sqrt_spda" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        inv_sqrt_spd(A)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inv_sqrt_spd_nsa-max_iters20-tol1e-7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        inv_sqrt_spd_ns(A, *, max_iters=20, tol=1e-7)
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -5626,20 +5560,18 @@
 <p>Solves <code>A X = B</code> via Cholesky — faster than <code>solve</code> when <code>A</code> is SPD.</p>
 <p><code>B</code> is <code>(n,)</code>, <code>(*, n, k)</code>, or a batch of vectors <code>(*, n)</code> with
 <code>B.shape == A.shape[:-1]</code>, as <code>torch.linalg.solve</code> reads it.</p>
-<div class="admonition warning">
-<p class="admonition-title">Deprecated in 0.22.1: an ambiguous <code>B</code> shape (#79)</p>
-<p>When A's last batch dim equals <code>n</code> (A <code>(*, n, n, n)</code>, B <code>(*, n, n)</code>), <code>B</code>
-can be read either way. <code>solve_spd</code> still reads it as <code>(*, n, k)</code>
-right-hand-side matrices broadcast over A's batch (result
-<code>(*, n, n, n)</code>), and now emits a <code>FutureWarning</code>. From 0.23.0 it reads
-it as a batch of vectors, as <code>torch.linalg.solve</code> does (result
-<code>(*, n, n)</code>; <a href="https://github.com/trnsci/trnsolver/issues/130">#130</a>).
-Be explicit; both forms mean the same in every release:</p>
-<div class="highlight"><pre><span></span><code><span class="n">X</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">solve_spd</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>  <span class="c1"># batch of vectors -&gt; (*, n, n, 1)</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">solve_spd</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">))</span>  <span class="c1"># one shared (n, k) right-hand side</span>
+<p>This includes A <code>(*, n, n, n)</code> with B <code>(*, n, n)</code>, where A's last batch dim
+equals <code>n</code>: <code>B</code> is a batch of vectors and <code>X</code> is <code>(*, n, n)</code>, as in
+<code>torch.linalg.solve</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Changed in 0.23.0 (#130)</p>
+<p>trnsolver 0.22.1 and earlier read that <code>B</code> as <code>(*, n, k)</code> right-hand-side
+matrices broadcast over A's batch (result <code>(*, n, n, n)</code>; 0.22.1 warned,</p>
+<h1 id="79-for-that-result-pass-the-explicit-form-which-means-the-same-in">79). For that result, pass the explicit form, which means the same in<a class="headerlink" href="#79-for-that-result-pass-the-explicit-form-which-means-the-same-in" title="Permanent link">&para;</a></h1>
+<p>every release:</p>
+<div class="highlight"><pre><span></span><code><span class="n">X</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">solve_spd</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">))</span>  <span class="c1"># 3-D A: one shared (n, k) right-hand side</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">trnsolver</span><span class="o">.</span><span class="n">solve_spd</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>  <span class="c1"># any A: the 0.22.1 reading</span>
 </code></pre></div>
-<p>For a 3-D <code>A</code>, <code>B.unsqueeze(-3)</code> is the current result; with more batch
-dims, <code>B.unsqueeze(0)</code> is.</p>
 </div>
 <h2 id="inv_spda"><code>inv_spd(A)</code><a class="headerlink" href="#inv_spda" title="Permanent link">&para;</a></h2>
 <p>Returns <code>A⁻¹</code> for SPD <code>A</code> via Cholesky.</p>

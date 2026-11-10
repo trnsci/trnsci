@@ -2468,6 +2468,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#gemm_fp64a-b-slices8-transafalse-transbfalse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gemm_fp64(A, B, *, slices=8, transA=False, transB=False)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#symmalpha-a-b-beta00-cnone-sideleft-uploupper" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5525,6 +5536,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#gemm_fp64a-b-slices8-transafalse-transbfalse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gemm_fp64(A, B, *, slices=8, transA=False, transB=False)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#symmalpha-a-b-beta00-cnone-sideleft-uploupper" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5624,6 +5646,92 @@ CPU/GPU.</p>
 <h2 id="batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse"><code>batched_gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)</code><a class="headerlink" href="#batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" title="Permanent link">&para;</a></h2>
 <p>Batched GEMM over the leading dimension — used for DF-MP2 tensor contractions
 over auxiliary basis indices. Routed like <code>gemm</code> on the native path.</p>
+<h2 id="gemm_fp64a-b-slices8-transafalse-transbfalse"><code>gemm_fp64(A, B, *, slices=8, transA=False, transB=False)</code><a class="headerlink" href="#gemm_fp64a-b-slices8-transafalse-transbfalse" title="Permanent link">&para;</a></h2>
+<p>fp64-class product <code>op(A) @ op(B)</code> on the bf16 Tensor Engine, by Ozaki
+splitting (<a href="https://github.com/trnsci/trnblas/issues/22">#22</a>). Returns
+float64 on A's device. <code>slices</code> (k, 1–12) is the precision knob.</p>
+<p>How it works:</p>
+<ol>
+<li><strong>Split (device, exact).</strong> A is split row by row and B column by column
+   into k bf16 integer slices of 7 bits each, |digit| ≤ 64, scaled by one
+   power of two per row / column (the digits of <code>trnblas.ozaki.split</code>). Each
+   operand is uploaded as its raw fp64 bits (8 bytes per element, a plain
+   copy) and split on the device (#123) by <code>_ozaki_emax_kernel</code> (row
+   exponents; <code>_ozaki_emax_col_kernel</code> for columns) and <code>_ozaki_split_kernel</code>
+   (<code>_ozaki_split_col_kernel</code>), in the operand's own layout. Device float64
+   arithmetic is fp32, so the kernels use only bitvec ops and exact fp32
+   arithmetic: three disjoint fp32 pieces of |x| · 2^(20 − e) from the bit
+   fields, an exact floor chain to 21-bit fixed-point chunks, the 7-bit
+   fields by shifts, and the balanced digits with their round-half-even
+   carries (<code>trnblas.ozaki.split_from_bits</code> is the same arithmetic on the
+   host, op for op). The digits equal the host split's (as values: a zero
+   digit can be −0 on one side and +0 on the other, which no product or
+   PSUM sum can see), so the result is bitwise the same either way.</li>
+<li><strong>Slice products (device).</strong> The kernel (<code>_ozaki_gemm_kernel</code>) runs the
+   k(k+1)/2 pairs (s, t) with s + t ≤ k − 1 as bf16 matmuls with fp32 PSUM
+   accumulation. The pairs of one diagonal s + t share a scale, so their K
+   tiles are laid end to end and cut into PSUM groups of at most 4096 terms:
+   4096 · 64 · 64 = 2²⁴, so every group sum is an exact integer. When K &lt; 4096,
+   one group holds several pairs.</li>
+<li><strong>Eviction (device).</strong> Each group is scaled by 2^(7(k−1−d)) on its way out
+   of PSUM and folded into an SBUF fp32 TwoSum (hi, lo) pair on VectorE,
+   diagonals smallest first.</li>
+<li><strong>Combine (host).</strong> C = (hi + lo) · 2^(e_i + e_j − 12 − 7(k−1)) in fp64.</li>
+</ol>
+<p>Properties:</p>
+<ul>
+<li><strong>Accuracy</strong> (max |C − C_exact| / (|A||B|), normal data, measured on Trn2):
+  about 1e-12 at k = 6 (21 slice GEMMs), 1e-14 at k = 7 (28), and
+  2e-16 to 4e-16 at k = 8 (36), the host fp64 BLAS level. The scaling is per
+  row / column, so entries far below their row or column maximum lose
+  relative precision: data spread over 10^±4 needs k = 10 for host-fp64
+  accuracy (k = 8 gives about 1e-14 there).</li>
+<li><strong>Deterministic.</strong> Every element is the same sequence of exact integer group
+  sums and fp32 TwoSums whatever the tiling, so the result is bitwise the same
+  at LNC=1 and LNC=2 and equals <code>trnblas.ozaki.reference_gemm</code> (the host
+  reference of the kernel arithmetic) bit for bit.</li>
+<li><strong>Launches and memory (#112).</strong> Each kernel launch computes at most a
+  1024 × 1024 output block (<code>ozaki.LAUNCH_M</code>, <code>LAUNCH_N</code>): the kernel's compile
+  time grows with its whole problem (240 s for one 4096³ launch at k = 8), so a
+  capped block keeps one NEFF per (slices, K, block shape) for every M and N.
+  At k = 8 each operand's slices take 16 bytes per element (2× fp64). Slices
+  under 2 GiB are uploaded once per call and cut into blocks on the device;
+  larger ones are uploaded block by block. Every launch's operands and result
+  stay under 2 GiB (<code>ozaki.plan</code>). M and N blocks do not change the
+  arithmetic; K is blocked only beyond ~1M at k = 8 (fp64 partial sums on the
+  host).</li>
+<li><strong>Layouts.</strong> Each operand is split in its contiguous layout (per row for
+  a row-major A or Bᵀ, per column for Aᵀ or a row-major B, as the host split
+  does); slices that are not K-major are transposed on the device (about
+  500 GB/s). The raw fp64 bits are never transposed on the device: a device
+  <code>permute(...).contiguous()</code> of int32 bit patterns did not preserve them.</li>
+<li><strong>Host split fallback.</strong> The host split (<code>trnblas.ozaki.split</code>, same
+  digits) runs under <code>TRNBLAS_OZAKI_DEVICE_SPLIT=0</code>, for an operand whose raw
+  bits or digit stack reach 2 GiB (#112), and for an operand with a row of A
+  (column of B) whose largest element is subnormal: its exponent comes from
+  the bit length, which the device route leaves to the host.</li>
+<li><strong>Routes.</strong> The kernel runs on the native TorchNeuron path (Trn2/Trn3) and
+  under <code>TRNBLAS_USE_SIMULATOR=1</code>. On CPU, on Trn1 (XLA), under
+  <code>set_backend("pytorch")</code>, and for non-finite operands (found from the
+  device exponent maxima), <code>gemm_fp64</code> is host fp64 <code>A @ B</code>. Under
+  <code>TRNBLAS_REQUIRE_NKI=1</code> the off-device case raises.</li>
+<li><strong>Cost</strong> (one logical core at LNC=2):</li>
+<li>The device split costs about 0.55 ns per element, after an 8-byte
+    upload per element. The host split costs about 11 ns per element at
+    k = 8 on one Trn2 host core (two vCPUs).</li>
+<li>The kernel runs at about 87–96 TFLOP/s of bf16 slice products.</li>
+<li>The first call per operand and launch shape compiles; the NEFFs are
+    cached afterwards.</li>
+</ul>
+<p>End to end at k = 8:
+  - Against host fp64 on 2 vCPUs: 3.0× on (3267, 8400) @ (8400, 241), 2.6×
+    on (8192, 3508) @ (3508, 241), and 10.1× at 4096³.
+  - Against a 12-vCPU host: 1.5–2.2× from 2048³ up, and about 2× slower on
+    the narrow DF-MP2 shapes. There, the upload and the split of A already
+    take as long as the 12-vCPU host GEMM.</p>
+<p>See <a href="../../benchmarks/#device-split-123">Benchmarks</a>.</p>
+<p><code>alpha</code> / <code>beta</code> are not taken: scale the fp64 result. Batched operands are
+not supported.</p>
 <h2 id="symmalpha-a-b-beta00-cnone-sideleft-uploupper"><code>symm(alpha, A, B, beta=0.0, C=None, side="left", uplo="upper")</code><a class="headerlink" href="#symmalpha-a-b-beta00-cnone-sideleft-uploupper" title="Permanent link">&para;</a></h2>
 <p>Symmetric matrix-matrix multiply. No NKI kernel: torch on the operands'
 device; on the native path, large host problems run as upload + aten.</p>
