@@ -25,14 +25,14 @@ dependencies = []
 fft = ["trnfft>=0.29"]
 blas = ["trnblas>=0.13"]
 rand = ["trnrand>=0.14"]
-solver = ["trnsolver>=0.22.1"]
+solver = ["trnsolver>=0.23"]
 sparse = ["trnsparse>=0.16"]
 tensor = ["trntensor>=0.25.1"]
 all = [
     "trnfft>=0.29",
     "trnblas>=0.13",
     "trnrand>=0.14",
-    "trnsolver>=0.22.1",
+    "trnsolver>=0.23",
     "trnsparse>=0.16",
     "trntensor>=0.25.1",
 ]

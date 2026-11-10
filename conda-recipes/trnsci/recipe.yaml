@@ -29,7 +29,7 @@ requirements:
     - trnblas >=0.13.0
     - trnfft >=0.29.0
     - trnrand >=0.14.0
-    - trnsolver >=0.22.1
+    - trnsolver >=0.23.0
     - trnsparse >=0.16.0
     - trntensor >=0.25.1
 
