@@ -5373,6 +5373,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-11-10 00:00:00+00:00">November 10, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="./" class="md-meta__link">trnblas</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              11 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnblas-fp64-accurate-gemm-on-a-tensor-engine-with-no-fp64-and-the-end-to-end-number-that-lost-first"><a class="toclink" href="../../trnblas-fp64-accurate-gemm-on-a-tensor-engine-with-no-fp64-and-the-end-to-end-number-that-lost-first/">trnblas: fp64-accurate GEMM on a Tensor Engine with no fp64, and the end-to-end number that lost first</a></h2>
+<p>trnblas now has <code>gemm_fp64</code>, a GEMM that matches host fp64 BLAS to 1.8–3.8e-16 on a Trn2 chip whose engines have no fp64 arithmetic. The arithmetic works because fp32 PSUM, fed 7-bit integers, is an exact integer accumulator. The first end-to-end measurement still lost to the host CPU: the time went into cutting fp64 numbers into those integers on the host, until that moved to the device as bit manipulation. This post is for anyone with an fp64 step stuck on the host of a Trainium job, and for anyone who assumed double-double was the obvious way to get it off.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trnblas-fp64-accurate-gemm-on-a-tensor-engine-with-no-fp64-and-the-end-to-end-number-that-lost-first/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
         
           <li class="md-meta__item">

@@ -269,6 +269,10 @@
          <lastmod>2026-11-10</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/trnblas-fp64-accurate-gemm-on-a-tensor-engine-with-no-fp64-and-the-end-to-end-number-that-lost-first/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/trnblas/</loc>
          <lastmod>2026-11-10</lastmod>
     </url>
@@ -621,6 +625,10 @@
          <lastmod>2026-11-10</lastmod>
     </url>
     <url>
+         <loc>https://trnsci.dev/blog/category/trnblas/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
          <loc>https://trnsci.dev/blog/category/trntensor/</loc>
          <lastmod>2026-11-10</lastmod>
     </url>
@@ -642,10 +650,6 @@
     </url>
     <url>
          <loc>https://trnsci.dev/blog/category/trnfft/</loc>
-         <lastmod>2026-11-10</lastmod>
-    </url>
-    <url>
-         <loc>https://trnsci.dev/blog/category/trnblas/</loc>
          <lastmod>2026-11-10</lastmod>
     </url>
     <url>
