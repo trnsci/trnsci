@@ -20,6 +20,10 @@ Exact Gaussian-process regression, matrix-free (trnsci/trnsci#109): the posterio
 
 Synthetic complex-ratio-mask demo exercising `trnfft` STFT + complex NN layers + iSTFT. Shows the full signal-processing pipeline for a complex-valued workload.
 
+## [`genomics/deepvariant/`](genomics/deepvariant/)
+
+Application exemplar for trnsci/trnsci#114: DeepVariant 1.9 `call_variants` (InceptionV3-class CNN inference on pileup tensors) rebuilt in PyTorch from the public WGS model, checked against TensorFlow on CPU, and run through a batched probe on `cpu` or a TorchNeuron `neuron` device. It uses none of the six libraries.
+
 ## Reverse direction
 
 [`reverse_port_note.md`](reverse_port_note.md) — a short note on `trnsci` idioms a CUDA programmer might borrow in the other direction (stationary-tile complex GEMM, gather-matmul-scatter SpMM, Jacobi eigh, first-class contraction plans).
