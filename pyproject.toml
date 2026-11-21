@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68.0", "setuptools-scm>=8.0"]
+requires = ["setuptools>=77.0", "setuptools-scm>=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "trnsci"
-version = "0.1.0"
+version = "0.2.2"
 description = "Scientific computing suite for AWS Trainium via NKI (FFT, BLAS, RAND, SOLVER, SPARSE, TENSOR)"
 readme = "README.md"
 license = "Apache-2.0"
@@ -22,19 +22,19 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-fft = ["trnfft>=0.27"]
-blas = ["trnblas>=0.10"]
-rand = ["trnrand>=0.13"]
-solver = ["trnsolver>=0.21"]
-sparse = ["trnsparse>=0.13"]
-tensor = ["trntensor>=0.23"]
+fft = ["trnfft>=0.29"]
+blas = ["trnblas>=0.13"]
+rand = ["trnrand>=0.14"]
+solver = ["trnsolver>=0.23"]
+sparse = ["trnsparse>=0.16.1"]
+tensor = ["trntensor>=0.25.2"]
 all = [
-    "trnfft>=0.27",
-    "trnblas>=0.10",
-    "trnrand>=0.13",
-    "trnsolver>=0.21",
-    "trnsparse>=0.13",
-    "trntensor>=0.23",
+    "trnfft>=0.29",
+    "trnblas>=0.13",
+    "trnrand>=0.14",
+    "trnsolver>=0.23",
+    "trnsparse>=0.16.1",
+    "trntensor>=0.25.2",
 ]
 neuron = [
     # neuronxcc is not on public PyPI; ships with the Deep Learning AMI Neuron.
@@ -43,10 +43,20 @@ neuron = [
     "neuronxcc>=2.24",
     "torch-neuronx>=2.9",
 ]
+torchneuron = [
+    # Trn2/Trn3 native PyTorch backend (Neuron SDK 2.33+). Matches each
+    # library's own [torchneuron] extra. torch-neuronx and nki come from the
+    # AWS pip index; torch-neuronx 2.14 needs Python >=3.12.
+    "torch>=2.14",
+    "torch-neuronx>=2.14",
+    "nki>=0.6",
+]
 dev = [
     "pytest>=7.0",
     "pytest-benchmark>=4.0",
     "pytest-cov>=4.1",
+    # NEFF cache keys in scripts/warm_neuron_cache.py (xxh3-128)
+    "xxhash>=3.0",
     "pre-commit>=3.6",
     "mkdocs>=1.5",
     "mkdocs-material>=9.0",

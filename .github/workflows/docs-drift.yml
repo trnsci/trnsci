@@ -1,0 +1,75 @@
+name: Docs drift check
+
+# Backstop for the generated version cells (trnsci/trnsci#151): reports
+# hand-written site rows and packaging that trail PyPI. It runs on its own,
+# so drift never fails the docs build. On drift it opens or updates one
+# issue labelled docs-stale; when the drift is gone it closes that issue.
+
+on:
+  schedule:
+    # Mondays 07:00 UTC, after the daily docs rebuild.
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: docs-drift
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      TITLE: "Docs drift: site rows or extras trail PyPI"
+      LABEL: docs-stale
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Compare the site and extras with PyPI
+        id: check
+        run: |
+          set +e
+          python scripts/check_docs_drift.py --output drift.md
+          rc=$?
+          set -e
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          cat drift.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          # 0 = clean, 1 = drift; anything else (PyPI unreachable) fails the job.
+          if [ "$rc" -gt 1 ]; then exit "$rc"; fi
+
+      - name: Open or update the docs-stale issue
+        if: steps.check.outputs.rc == '1'
+        run: |
+          set -euo pipefail
+          {
+            cat drift.md
+            echo
+            echo "_Updated by [docs-drift run ${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}). Closes itself when the drift is gone._"
+          } > body.md
+          num=$(gh issue list --state open --label "$LABEL" --search "\"$TITLE\" in:title" \
+                  --json number,title --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n1)
+          if [ -n "$num" ]; then
+            gh issue edit "$num" --body-file body.md
+            echo "Updated #$num"
+          else
+            gh issue create --title "$TITLE" --label "$LABEL" --milestone "Cross-cutting" --body-file body.md
+          fi
+
+      - name: Close the docs-stale issue when clean
+        if: steps.check.outputs.rc == '0'
+        run: |
+          set -euo pipefail
+          num=$(gh issue list --state open --label "$LABEL" --search "\"$TITLE\" in:title" \
+                  --json number,title --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n1)
+          if [ -n "$num" ]; then
+            gh issue close "$num" --comment "No drift as of [run ${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})."
+          fi

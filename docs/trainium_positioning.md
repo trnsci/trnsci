@@ -9,8 +9,8 @@ Every major silicon roadmap from 2022 onward has converged on the same architect
 | H100 SXM5 | 67 TFLOPS | 989 TFLOPS | 1:14.8 |
 | B200 | ~30 TFLOPS | 2,250 TFLOPS | 1:61 |
 | B300 Ultra | <1 TFLOPS | ~5,000 TFLOPS | <1:5000 |
-| Trn2 (per chip) | none | 79 TFLOPS BF16 | — |
-| Trn3 (per chip) | none | 2,520 TFLOPS FP8 | — |
+| Trn2 (per chip) | none | 667 TFLOPS | — |
+| Trn3 (per chip) | none | 671 TFLOPS (2,517 MXFP8) | — |
 
 cuBLAS in CUDA 13 now emulates FP64 DGEMM via the Ozaki scheme on FP8 tensor cores (NVIDIA Developer Blog, January 2026). AMD halved FP64 matrix throughput from MI300X to MI355X. Google TPU has never exposed FP64. Intel Gaudi 3, Cerebras WSE-3, SambaNova SN40L — none.
 
@@ -24,15 +24,18 @@ The HPL-MxP benchmark — which scores the fastest achievable HPC performance us
 
 A Trainium2 chip contains 8 NeuronCore-v3 cores. Each NeuronCore is a heterogeneous compute engine, not a GPU SM:
 
-**TensorEngine** — a 128×128 systolic array consuming a stationary matrix and a moving matrix from SBUF, always accumulating into PSUM. Delivers 158 TFLOPS FP8 / 79 TFLOPS BF16 / 20 TFLOPS FP32 per core. Supported dtypes: FP8 (E4M3/E5M2), BF16, FP16, TF32, FP32, INT8.
+**TensorEngine** — a 128×128 systolic array consuming a stationary matrix and a moving matrix from SBUF, always accumulating into PSUM. Delivers 158 TFLOPS FP8 / 79 TFLOPS BF16 / 20 TFLOPS FP32 dense per core; AWS lists the 8-core chip at 1,299 FP8 / 667 BF16 / 181 FP32 TFLOPS. Supported dtypes: FP8 (E4M3/E5M2), BF16, FP16, TF32, FP32, INT8.
 
 **VectorEngine** — elementwise/SIMD for axpy, LayerNorm, pooling, reductions, transcendentals with broadcast/scan semantics. On NC-v3, a new performance mode shares a memory bus with GpSimdE for 2–4× uplift on selected BF16/FP16 ops; NC-v3 also allows VectorE and ScalarE to access PSUM in parallel (a restriction lifted from NC-v2).
 
 **ScalarEngine** — pointwise non-linear ops (GELU, SIGMOID, EXP, bias+scale).
 
-**GpSimdEngine** — 8 fully-programmable 512-bit general-purpose vector cores running straight-line C/C++ via Neuron Custom C++ Operators. Each has its own integrated DMA engine on NC-v3. This is the most under-appreciated Trainium feature: it lets the suite offload control flow, rank-revealing logic, adaptive-precision decisions, sparse index computation, and RNG to a Turing-complete engine without leaving the chip or blocking the TensorEngine. trnrand's Philox kernel targets GpSimdE directly.
+**GpSimdEngine** — 8 fully-programmable 512-bit general-purpose vector cores running straight-line C/C++ via Neuron Custom C++ Operators. Each has its own integrated DMA engine on NC-v3. This is the most under-appreciated Trainium feature: it lets the suite offload control flow, rank-revealing logic, adaptive-precision decisions, sparse index computation, and RNG to a Turing-complete engine without leaving the chip or blocking the TensorEngine. trnrand's NKI generator is Threefry4×32-20, with a Philox 4×32-10 kernel alongside it. Neither runs only on GpSimdE: the 32-bit integer adds are pinned to GpSimdE, which on NKI 0.7 does native integer arithmetic on all-int32/uint32 operands, while the xor and rotate steps are bitwise ops on VectorE.
 
-**PSUM** — 2 MiB dedicated FP32 accumulation buffer, the exclusive write target of the systolic array, addressable by VectorE/ScalarE/GpSimdE for post-processing. SBUF is 24 MiB on NC-v2, 28 MiB on NC-v3, organized as 128 partitions × (192 or 224) KiB.
+**PSUM** — 2 MiB dedicated FP32 accumulation buffer, the exclusive write target of the systolic array, addressable by VectorE/ScalarE/GpSimdE for post-processing. SBUF is 128 partitions on both generations: 24 MiB (192 KiB per partition) on NC-v2 (Trn1), and 28 MiB (224 KiB per partition) on NC-v3 (Trn2). The compiler keeps part of each partition for itself, so NKI's allocator on Trn2 reports 212,472 bytes (about 207 KiB) per partition.
+
+!!! note "Sources (checked 2026-11-08, Neuron SDK 2.33)"
+    Per-core figures, SBUF and PSUM are from AWS's [Trainium2 architecture guide for NKI](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html) and the [NeuronCore-v3](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/neuron-core-v3.html) page. The NC-v2 SBUF figure is from the [Trainium/Inferentia2 guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium_inferentia2_arch.html). The per-chip figures are from the [Trainium2](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trainium2.html) and [Trainium3](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trainium3.html) pages. GpSimd integer arithmetic is described at [`nki.isa.tensor_tensor`](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.tensor_tensor.html). The allocator capacity was measured on Trn2 in [trnsparse#111](https://github.com/trnsci/trnsparse/pull/111). Earlier versions of this page gave 79 TFLOPS BF16 per chip (it is per core), SBUF as "192 or 224 KiB" per partition without the generation, and said trnrand's Philox kernel targeted GpSimdE directly.
 
 **Trainium3** (re:Invent 2025, 3nm process): 2.52 PFLOPs FP8 per chip, 144 GB HBM3e at 4.9 TB/s, MXFP8 and MXFP4 microscaled formats per OCP specification, NeuronSwitch-v1 all-to-all fabric for 144-chip UltraServers at 20.7 TB shared HBM3e and 362 MXFP8 PFLOPs. The MXFP formats are the hardware realization of the per-block precision assumptions that mixed-precision HODLR, BLR-LU, and progressive-precision multigrid have been assuming in theory.
 
@@ -56,13 +59,22 @@ The four engines run independently and overlap. This lets trnsci amortize adapti
 - **GMRES-IR inner orthogonalization.** The Arnoldi Gram–Schmidt sweep runs on VectorE while TensorEngine runs the next Krylov matvec. trnsolver's cg/gmres paths have the scaffolding; exploitable once Phase 2's compensated-dot primitives land.
 - **Randomized sketching.** For Hutch++ trace estimation, the m/3 Hutchinson queries run on VectorE while TensorEngine builds the low-rank projector Q.
 
+!!! warning "Correction (2026-11-08)"
+    Engine overlap is not unconditional. On Trn2 the Vector and GpSimd engines were measured not to overlap, against the architecture guide ([aws-neuron-sdk#1449](https://github.com/aws-neuron/aws-neuron-sdk/issues/1449)), and the GP exemplar's fused kernel reached 89% of a fp32 ceiling computed assuming perfect Tensor/Scalar overlap ([the GP post](blog/posts/2026-11-04-gp-million-points.md)). The Tensor → PSUM → Scalar chain does overlap; measure before counting on any other pair.
+
 ### 3. Stochastic rounding is in the ISA
 
 Per the Neuron rounding-modes documentation: from NeuronCore-v2 onward, stochastic rounding is programmable per-instruction in NKI/NISA and globally via `NEURON_RT_STOCHASTIC_ROUNDING_EN=1`. Connolly, Higham, and Mary (SIAM J. Sci. Comput., 2021) proved SR rounding errors are mean-zero — which replaces Wilkinson's worst-case n·u inner-product error bound with a √n·u probabilistic bound. This is not a nice-to-have; it is a correctness requirement for BF16 Krylov on long sequences. For BF16 (u ≈ 2⁻⁸), any dot product of length n ≥ ~300 should use SR. Trainium makes this free; most other hardware requires CPU fallback or significant overhead to achieve it.
 
+!!! warning "Correction (2026-11-08)"
+    Stochastic rounding is no longer per-instruction in NKI. NKI 0.7 (Neuron SDK 2.33) removed `round_mode` from `nisa.activation`, and the mode is set for the whole process by `NEURON_RT_STOCHASTIC_ROUNDING_EN` when the runtime initializes ([trntensor#41](https://github.com/trnsci/trntensor/issues/41)). With it on, every downcast in the process, in every library, rounds stochastically. SR still removes bias from long BF16 accumulations. It does nothing for an fp32 pipeline whose errors are already random, which is the suite's main case ([the fp32-floor post](blog/posts/2026-11-08-dfmp2-fp32-floor.md)).
+
 ### 4. Determinism is structural
 
 The TensorEngine has a fixed reduction order; the compiler statically schedules all instructions and DMAs. Bitwise reproducibility is a structural property of trnsci kernels given a fixed seed — not a ReproBLAS-style overlay with 4–10× overhead. The only non-determinism is seeded SR, which is reproducible across runs.
+
+!!! warning "Correction (2026-11-08)"
+    Two qualifications. SR with `NEURON_RT_STOCHASTIC_ROUNDING_EN=1` is not seeded or reproducible run to run, so it is the exception to this principle, not part of it. And the guarantee holds for the suite's own kernels (trnrand and trnsparse are bitwise identical across 1–4 cores, and DeepVariant `call_variants` gives byte-identical VCFs run to run), but device aten reductions can differ between LNC=1 and LNC=2: the GP posterior mean moved by 4.5e-4 ([trnsolver#128](https://github.com/trnsci/trnsolver/issues/128)).
 
 ---
 
@@ -89,7 +101,7 @@ Same workload expressed in each model:
 | FFT butterfly stage | Per-thread complex multiply-add | XLA fused reduction + permute | TE multiply, VE add, SBUF swap |
 | Jacobi rotation | Warp updates two rows | HLO scatter | TE matmul pair + VE reduction to find max |
 | Stochastic rounding | N/A or separate kernel | N/A | `nisa.activation(..., round_mode="stochastic")` |
-| Integer bit logic (RNG) | CUDA thread, shared mem | N/A (JAX) | GpSimdE straight-line C |
+| Integer bit logic (RNG) | CUDA thread, shared mem | N/A (JAX) | NKI integer ops: adds on GpSimdE, bitwise on VectorE |
 
 ---
 
@@ -101,7 +113,7 @@ Same workload expressed in each model:
 | Krylov (CG, GMRES, BiCGStab) | ✅ Clean with SR | SR required for BF16 convergence at n ≫ 300 |
 | Block-sparse at 128×128 (BSR) | ✅ Clean | Native tile match; CSR is interop only |
 | Hierarchical-matrix BLR/HODLR | ✅ Clean | Phase 2+ opportunity; mixed-precision bounds proved |
-| FFT at small N | ✅ Clean | DFT-as-GEMM up to 14× at N ≤ 256 |
+| FFT at small N | Partial | DFT-as-GEMM maps onto the Tensor Engine, but on Trn2 per-launch cost dominates standalone small transforms (see the correction below) |
 | FFT at large N | Partial | Error accumulates over log₂(N) stages; compensated butterfly + iterative refinement under development |
 | Randomized NLA (RSVD, Hutch++) | ✅ Clean | Only need approximate arithmetic; Phase 3 flagship |
 | Monte Carlo / QMC | ✅ Clean | SR-tolerant by construction |
@@ -113,6 +125,9 @@ Same workload expressed in each model:
 | Long MD trajectories | ❌ Doesn't fit | 10⁸–10¹² steps accumulate roundoff; FP32 is marginal |
 | Classical CCSD(T) | ❌ Partial | Near-cancellation in correlated sums needs compensated summation everywhere; gated on trnblas#22 |
 | Unstructured CSR SpMV | ❌ Doesn't fit | Irregular access hostile to systolic arrays; use CPU fallback |
+
+!!! warning "Correction (2026-11-08)"
+    Two rows are overtaken by Trn2 measurements. "DF-MP2 validated PySCF to nanohartree" does not hold for the fp32 device route: E_MP2 agrees with PySCF to about 1e-7–1e-5 Eh at about 500 basis functions, and the suite's gate is 1e-6 Eh against an fp64 reference, since 1e-7 Eh is below the fp32 floor at these energies ([the fp32-floor post](blog/posts/2026-11-08-dfmp2-fp32-floor.md)). Nanohartree needs device fp64 ([trnsci#129](https://github.com/trnsci/trnsci/issues/129)). The small-N FFT row read "✅ Clean, DFT-as-GEMM up to 14× at N ≤ 256". The 14× had no recorded source and predates the native Trn2 path, so it was removed on 2026-11-08. On the native Trn2 device per-launch cost dominates small transforms, and a multithreaded CPU beat standalone small FFTs ([launch-cost post](blog/posts/2026-10-27-trnfft-launch-cost.md)). Large N did better than this table says: the six-step FFT beat a 2-thread CPU by 1.5–11× from 2²⁰ to 2²⁴ on device-resident input. Current status: [exemplars](exemplars.md) and [precision and platform limits](precision_and_platform_limits.md).
 
 ---
 

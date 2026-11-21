@@ -8,7 +8,7 @@ This PR adds seven packages forming the **trnsci** scientific-computing suite fo
 
 | Package | NVIDIA analog | Scope |
 |---|---|---|
-| `trnsci` | — | Coordinating meta-package (no runtime code) |
+| `trnsci` | — | Meta-package: depends on all six libraries (no runtime code) |
 | `trnfft` | cuFFT | FFT, complex tensors, STFT, complex NN layers |
 | `trnblas` | cuBLAS | BLAS Levels 1–3, batched GEMM |
 | `trnrand` | cuRAND | Philox PRNG, Sobol / Halton QMC |
@@ -24,16 +24,17 @@ These are sibling packages maintained together. Each release cycle bumps them in
 
 ## Checklist
 
-Per-recipe items are satisfied in each `meta.yaml`:
+- [x] Title of this PR is meaningful.
+- [x] Recipes use the v1 `recipe.yaml` format.
+- [x] License file is packaged (`license_file: LICENSE`, Apache-2.0).
+- [x] Source is from official source (the PyPI sdists).
+- [x] Packages do not vendor other packages.
+- [x] No static libraries (pure Python, `noarch: python`).
+- [x] Build number is 0.
+- [x] A tarball (`url`) rather than a repo is used.
+- [x] The GitHub user listed as maintainer has confirmed in a comment.
 
-- [x] Title of the PR references what is being added
-- [x] All seven recipes have `noarch: python` (pure Python)
-- [x] `license_family` set to `APACHE`
-- [x] `license_file` points at the bundled Apache 2.0 text
-- [x] `run` requirements: `python >=3.10`, `pytorch >=2.1`, `numpy >=1.24`
-- [x] `test.imports` covers the package and its `nki` submodule where present
-- [x] `about.home`, `about.dev_url`, `about.doc_url` all filled
-- [x] `extra.recipe-maintainers` set to the single maintainer (the author)
+Per recipe: `run` is `python >=${{ python_min }}` (conda-forge's global minimum; upstream supports Python >=3.10), `pytorch >=2.1`, `numpy >=1.24`. The `trnsci` meta-package instead depends on the six libraries, since conda has no extras. Tests import the package and its `nki` submodule (and `trnfft.nn`), run `pip check`, and run on both `python_min` and the latest Python.
 
 ## Neuron runtime — out of scope for conda-forge
 
@@ -47,4 +48,4 @@ Single maintainer (myself, `@scttfrdmn`) for all seven recipes. I'm the sole mai
 
 ## Linting
 
-`conda-smithy recipe-lint recipes/trn*` passes locally for all seven. I'll re-run against the PR build matrix and respond to any additional checks.
+`conda-smithy recipe-lint --conda-forge` reports all seven "in fine form", and all seven build and pass their tests locally with `rattler-build` against the conda-forge pinning (libraries first, then `trnsci`).

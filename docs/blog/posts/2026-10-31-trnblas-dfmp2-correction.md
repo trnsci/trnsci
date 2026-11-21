@@ -10,6 +10,9 @@ trnblas published a 92× speedup for its fused pair-energy kernel on Trn2, and i
 
 <!-- more -->
 
+!!! warning "Correction (2026-11-08)"
+    "Trn2's 192 KiB per partition" below is the NeuronCore-v2 (Trn1) SBUF figure. Trn2's NeuronCore-v3 has 224 KiB per partition ([AWS Trainium2 architecture guide for NKI](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html)), about 207 KiB of it available to NKI allocation ([trnsparse#111](https://github.com/trnsci/trnsparse/pull/111)). The kernel's 144 KiB budget is unchanged and fits either way.
+
 ## The problem
 
 DF-MP2 is trnblas's flagship workload. On CUDA it is a cuBLAS story: three-index transforms, a metric contraction and a pair-energy reduction, all GEMMs with elementwise work bolted on. The [odd-shape cliff post](https://trnsci.dev/blog/trnblas-the-odd-shape-cliff-that-wasnt/) ended with a warning sign: on the native TorchNeuron `neuron` device, aten's own `matmul` beat the trnblas NKI GEMM at every size measured.

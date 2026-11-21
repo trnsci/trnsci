@@ -14,10 +14,12 @@ If you aren't sure, open the PR where it's easiest and we'll move it.
 ```bash
 git clone git@github.com:trnsci/trnsci.git
 cd trnsci
-# Clone sibling sub-projects if you don't already have them:
-for p in trnfft trnblas trnrand trnsolver trnsparse trntensor; do
+# Clone sibling sub-projects if you don't already have them
+# (trnsolver lives in the directory trnsolve, as the Makefile expects):
+for p in trnfft trnblas trnrand trnsparse trntensor; do
   [ -d "$p" ] || git clone "git@github.com:trnsci/$p.git"
 done
+[ -d trnsolve ] || git clone git@github.com:trnsci/trnsolver.git trnsolve
 make install-dev
 make test-all
 ```
