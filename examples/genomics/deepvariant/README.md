@@ -34,6 +34,9 @@ Weights are downloaded at run time and are never committed.
 | `dv_io.py` | TF-free TFRecord read/write (GZIP, CRC32C), `tf.Example` decoding, `CallVariantsOutput` encoding, DeepVariant's `round_gls`, synthetic pileups |
 | `probe.py` | batched inference on `--device cpu\|neuron`, fp32 or bf16 backbone, eager or `torch.compile`; writes probabilities and/or a `CallVariantsOutput` TFRecord for `postprocess_variants`; reports examples/s |
 | `compare.py` | `probs`: two runs (probe `.npz` or DeepVariant CVO TFRecords) matched per record; `vcf`: record-level GT / FILTER / GQ diff |
+| `cv_neuron_wgs.py` | whole-genome `call_variants`: one process per NeuronCore, each with a pinned decode pool over its share of the `make_examples` shards; writes one stock `CallVariantsOutput` file per input shard, resumable per shard; logs examples/s, host busy and input-wait (device idle) |
+| `run_wgs_neuron.sh` | the window run: S3 sync, example_info check, compile warm-up, 4 workers under the chip lock, CVO gates, `postprocess_variants`, VCF/gVCF compares |
+| `cvo_fields_eq.py` | CVO format gate (runs in the DeepVariant image): every non-probability field equals the reference CVO's |
 
 ## CPU conversion check
 
@@ -100,3 +103,36 @@ Notes:
   1.9.0 WGS model on the golden examples: only 20 of 84 records share a
   variant key, and their probabilities differ by up to 0.19. Compare against
   a CPU `call_variants` run of the 1.9.0 container instead.
+
+## Whole genome (`cv_neuron_wgs.py`)
+
+`call_variants` for a whole genome's `make_examples` output (`me.tfrecord@64.gz`)
+on a Trn2 chip, one worker process per NeuronCore:
+
+```bash
+for k in 0 1 2 3; do
+  NEURON_RT_VISIBLE_CORES=$k timeout 1740 python cv_neuron_wgs.py --worker $k --num-workers 4 \
+      --examples in/tmp/me.tfrecord@64.gz --weights $M/dv19_wgs.pt --outdir out/fp32 \
+      --device neuron --check-example-info > w$k.log 2>&1 &
+  pids+=($!)
+done
+for p in "${pids[@]}"; do wait $p; done
+python cv_neuron_wgs.py --summarize out/fp32
+postprocess_variants --infile out/fp32/cvo-neuron@64.tfrecord.gz ...   # stock DV 1.9.0
+```
+
+- **Shards.** Worker *k* takes the shards *i* with *i* mod 4 = *k*, and writes
+  `cvo-neuron-000ii-of-00064.tfrecord.gz`. A shard is renamed into place, and
+  marked in `done/`, only once it is complete. A rerun skips completed shards
+  and redoes partial ones.
+- **Host side.** Decoding runs in spawned processes (TF-free: `dv_io.example_fields`),
+  into a shared-memory ring of fixed-shape uint8 batches. The device
+  process only copies a slot to the device and runs the model, so torch and
+  NKI are touched from one thread of one process per core.
+- **CVO format.** `variant` and `alt_allele_indices` are the example's bytes;
+  `genotype_probabilities` is `round_gls(p, 10)`. There is no `debug_info`, as in stock
+  `call_variants` without `--include_debug_info`.
+- **Smoke run.** `--limit N` caps examples per shard and `--shards` picks shards. Both run on `--device cpu`.
+
+`run_wgs_neuron.sh` wraps the whole window run (stages `fetch tools check warm cv
+cvocmp post cmp summary`). See the header of that script for its environment.
