@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `examples/mlip/`: MACE-style MLIP exemplar, CPU step
+  ([#170](https://github.com/trnsci/trnsci/issues/170)). It profiles energy +
+  forces of the public MACE-MP-0b2 medium model, gives plain-PyTorch
+  references for the two block contracts (equivariant contraction:
+  trnsci/trntensor#138; graph gather / segment sum: trnsci/trnsparse#139), a
+  capture script and a candidate checker, and commits a 335 KiB fixture.
+  The tests run on CPU without MACE.
+
 ### Changed
 
 - `conda-recipes/trnsci` pins trnsci 0.2.2 (sdist sha256 from PyPI), as
