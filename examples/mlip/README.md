@@ -6,7 +6,7 @@ gradient of two kinds of kernel: equivariant contractions and graph
 gather / scatter. This directory traces the public MACE-MP-0b2 "medium"
 model on CPU, defines the two block contracts that trntensor and trnsparse
 will implement, and ships captured tensors plus a checker for candidate
-kernels. It is CPU-only; no device code yet.
+kernels. `check.py` and `mace_trnsci_step.py` also run the trnsci candidates on a Neuron device.
 
 ## Sources (public only)
 
@@ -28,6 +28,8 @@ The checkpoint is downloaded at run time (`mace_setup.py`) and is never committe
 | `blocks.py` | **the reference**: plain-PyTorch `conv_tp`, `symmetric_contraction`, `gather`, `segment_sum` (no e3nn / MACE import) |
 | `capture.py` | captures each block's inputs, outputs, cotangents and input gradients from one energy + forces run; writes full captures and the CI fixture |
 | `check.py` | checks a candidate module (or the reference) against captures, plus synthetic edge cases |
+| `trnsci_candidates.py` | candidate module for `check.py`: A1/A2 from `trntensor`, B1/B2 from `trnsparse` (backend `nki` unless `MLIP_TRNSCI_BACKEND` is set) |
+| `mace_trnsci_step.py` | one MACE energy + forces step with all three blocks swapped to the trnsci kernels inside MACE's own forward; checked against the unmodified model on the CPU, timed, and (`--shares`) split into per-block shares |
 | `fixtures/mace_mp0b2_tiny.pt` | committed slice of the 16-atom capture (335 KiB): 8 channels per irrep, 24 edges for A1, all nodes and indices |
 
 ## Structures
@@ -52,6 +54,10 @@ python capture.py --out ~/.xtmp/mlip/captures --fixture fixtures/mace_mp0b2_tiny
 python capture.py --out ~/.xtmp/mlip/captures --seed 1
 python check.py ~/.xtmp/mlip/captures/*.pt --edge-cases            # reference vs MACE
 python check.py ~/.xtmp/mlip/captures/*.pt --candidate my.kernels --device neuron
+# the trnsci kernels (trntensor + trnsparse on PYTHONPATH), per block and end to end
+python check.py ~/.xtmp/mlip/captures/*.pt --candidate trnsci_candidates --device neuron
+python mace_trnsci_step.py --structure tic001_slab_216 --mode mace --device cpu --threads 2
+python mace_trnsci_step.py --structure tic001_slab_216 --mode trnsci --device neuron --shares
 ```
 
 Full captures are about 20 MiB, 170 MiB and 790 MiB per structure and are
