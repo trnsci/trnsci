@@ -30,6 +30,9 @@ The checkpoint is downloaded at run time (`mace_setup.py`) and is never committe
 | `check.py` | checks a candidate module (or the reference) against captures, plus synthetic edge cases |
 | `trnsci_candidates.py` | candidate module for `check.py`: A1/A2 from `trntensor`, B1/B2 from `trnsparse` (backend `nki` unless `MLIP_TRNSCI_BACKEND` is set) |
 | `mace_trnsci_step.py` | one MACE energy + forces step with all three blocks swapped to the trnsci kernels inside MACE's own forward; checked against the unmodified model on the CPU, timed, and (`--shares`) split into per-block shares |
+| `profile_device_step.py` | the aten remainder of the trnsci step by MACE module on the device: each module call replayed in isolation (forward, forward + the input gradients the step needed, aten op counts), plus a whole-step op count; `--fuse` and `--pad-edges` for the prototypes below (trnsci/trnsci#178) |
+| `fusions.py` | fusion prototypes: `edge` (the whole per-edge chain, i.e. spherical harmonics, radial basis, ZBL per edge and both layers' radial and density MLPs, in one `torch.compile(backend="neuron")` region, with the species constants built once per neighbour list) and `dense` (e3nn `Linear`s and the one-hot `skip_tp` as GEMMs against probed dense matrices) |
+| `symcon_bwd_probe.py` | per-op device timing of trntensor's PyTorch-path `symmetric_contraction` forward and backward (trnsci/trntensor#140) |
 | `fixtures/mace_mp0b2_tiny.pt` | committed slice of the 16-atom capture (335 KiB): 8 channels per irrep, 24 edges for A1, all nodes and indices |
 
 ## Structures
@@ -58,6 +61,9 @@ python check.py ~/.xtmp/mlip/captures/*.pt --candidate my.kernels --device neuro
 python check.py ~/.xtmp/mlip/captures/*.pt --candidate trnsci_candidates --device neuron
 python mace_trnsci_step.py --structure tic001_slab_216 --mode mace --device cpu --threads 2
 python mace_trnsci_step.py --structure tic001_slab_216 --mode trnsci --device neuron --shares
+# the remainder by module, then the fusion prototypes and padded edge buckets
+python profile_device_step.py --device neuron --json prof216.json
+python profile_device_step.py --device neuron --no-profile --fuse edge,dense --pad-edges 512 --seeds 0,1
 ```
 
 Full captures are about 20 MiB, 170 MiB and 790 MiB per structure and are

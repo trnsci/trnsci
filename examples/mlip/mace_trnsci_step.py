@@ -148,9 +148,10 @@ def install(model, g: Graph, rec: list | None = None, torch_path=()):
     orig_ss = radial.scatter_sum
 
     def zbl_ss(src, index, dim=-1, out=None, dim_size=None, reduce="sum"):
+        # MACE 0.3.15 sums v_edges [E, 1] over dim 0 (an [E] src over dim -1 in
+        # older versions); both are the receiver segment sum.
         if (
-            dim in (0, -1)
-            and src.dim() == 1
+            ((src.dim() == 1 and dim in (0, -1)) or (src.dim() == 2 and dim == 0))
             and src.shape[0] == g.E
             and index.data_ptr() == g.receiver.data_ptr()
             and out is None
