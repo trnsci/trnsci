@@ -25,10 +25,9 @@ import statistics
 import time
 from collections import defaultdict
 
+import mace_setup as ms
 import torch
 from torch.profiler import ProfilerActivity, profile, record_function
-
-import mace_setup as ms
 
 BWD = "autograd::engine::evaluate_function: "
 STEP = "mlip.step"
@@ -73,9 +72,7 @@ class Labeller:
 
 
 def instrument(model) -> tuple[Labeller, list]:
-    import mace.modules.blocks as blocks
-    import mace.modules.models as models
-    import mace.modules.radial as radial
+    from mace.modules import blocks, models, radial
 
     lab = Labeller()
     lab.tag(model.node_embedding, "embed.node")
@@ -130,11 +127,11 @@ def block_of(label: str) -> str:
         return "A2.symcon"
     if label.startswith("B."):
         return "B.scatter"
-    if label.endswith("radial_mlp") or label.endswith("density_mlp"):
+    if label.endswith(("radial_mlp", "density_mlp")):
         return "radial_mlp"
-    if label.startswith("edge.") or label.startswith("graph."):
+    if label.startswith(("edge.", "graph.")):
         return label
-    if label.startswith("interaction") or label.startswith("product"):
+    if label.startswith(("interaction", "product")):
         return "linear/skip/other"
     return "other"
 

@@ -29,8 +29,11 @@ The checkpoint is downloaded at run time (`mace_setup.py`) and is never committe
 | `capture.py` | captures each block's inputs, outputs, cotangents and input gradients from one energy + forces run; writes full captures and the CI fixture |
 | `check.py` | checks a candidate module (or the reference) against captures, plus synthetic edge cases |
 | `trnsci_candidates.py` | candidate module for `check.py`: A1/A2 from `trntensor`, B1/B2 from `trnsparse` (backend `nki` unless `MLIP_TRNSCI_BACKEND` is set) |
-| `mace_trnsci_step.py` | one MACE energy + forces step with all three blocks swapped to the trnsci kernels inside MACE's own forward; checked against the unmodified model on the CPU, timed, and (`--shares`) split into per-block shares |
-| `profile_device_step.py` | the aten remainder of the trnsci step by MACE module on the device: each module call replayed in isolation (forward, forward + the input gradients the step needed, aten op counts), plus a whole-step op count; `--fuse` and `--pad-edges` for the prototypes below (trnsci/trnsci#178) |
+| `mace_trnsci_step.py` | one MACE energy + forces step (`--batch B`: B structures in one step) with all three blocks swapped to the trnsci kernels inside MACE's own forward; each structure checked against the unmodified model on the CPU, timed, and (`--shares`) split into per-block shares |
+| `profile_device_step.py` | the aten remainder of the trnsci step by MACE module on the device: each module call replayed in isolation (forward, forward + the input gradients the step needed, aten op counts), plus a whole-step op count; `--fuse` for the prototypes below, `--batch` and the bucket flags (trnsci/trnsci#178) |
+| `batching.py` | B structures as one block-diagonal graph (MACE's own collation: concatenated atoms and edges, offset indices), padded to a shape bucket for (total atoms, total edges); the padding atoms are a separate discarded structure and the padding edges a `[E]` mask for `trnsparse.segment_plan(..., padding=mask)`; per-structure split and `isolate` (one structure alone at the batch's shapes) |
+| `cpu_ref.py` | the CPU reference (unmodified MACE, each structure alone and unpadded, timed as `cpu_ref_s`) and the comparison against it; a missing, empty or non-finite reference raises `MissingReferenceError` instead of reporting an error of 0 |
+| `accept.py` | model-level acceptance: energy invariance under translation and rotation, force (and stress) equivariance, finite-difference forces along random directions and, when the model gives a stress, finite-difference stress under random strains; baseline CPU MACE against a target on `--device`, with a paired outcome table. Every tolerance is a flag |
 | `fusions.py` | fusion prototypes: `edge` (the whole per-edge chain, i.e. spherical harmonics, radial basis, ZBL per edge and both layers' radial and density MLPs, in one `torch.compile(backend="neuron")` region, with the species constants built once per neighbour list) and `dense` (e3nn `Linear`s and the one-hot `skip_tp` as GEMMs against probed dense matrices) |
 | `symcon_bwd_probe.py` | per-op device timing of trntensor's PyTorch-path `symmetric_contraction` forward and backward (trnsci/trntensor#140) |
 | `fixtures/mace_mp0b2_tiny.pt` | committed slice of the 16-atom capture (335 KiB): 8 channels per irrep, 24 edges for A1, all nodes and indices |
@@ -63,15 +66,40 @@ python mace_trnsci_step.py --structure tic001_slab_216 --mode mace --device cpu 
 python mace_trnsci_step.py --structure tic001_slab_216 --mode trnsci --device neuron --shares
 # the remainder by module, then the fusion prototypes and padded edge buckets
 python profile_device_step.py --device neuron --json prof216.json
-python profile_device_step.py --device neuron --no-profile --fuse edge,dense --pad-edges 512 --seeds 0,1
+python profile_device_step.py --device neuron --no-profile --fuse edge,dense --seeds 0,1
+# batches: B structures per step, one bucketed block-diagonal graph, split per structure
+python mace_trnsci_step.py --structure tic001_slab_216 --batch 8 --backend pytorch   # CPU: split checked bitwise
+python mace_trnsci_step.py --structure tic001_slab_216 --batch 8 --device neuron
+python profile_device_step.py --device neuron --no-profile --fuse edge,dense --batch 8 --seeds 0,1
+# model-level acceptance: CPU MACE (baseline) against the target
+python accept.py                                                # CPU MACE vs CPU MACE
+python accept.py --target trnsci --device neuron --backend nki --batch 8
 ```
+
+**Batching.** `--batch B` takes the `--structure` list cycled with seeds
+`seed .. seed+B-1`. Atoms and edges are padded to buckets (multiples of
+`2^(floor(log2 n) - 4)`, at most 6.25% padding; `--bucket-shift`, or a fixed
+`--edge-multiple`), so a second geometry or batch of similar size reuses
+every compiled shape: seeds 0-7 and 8-15 of the 216-atom slab both land in
+(1792 atoms, 86016 edges). The padding atoms belong to an extra structure
+whose energy is dropped; the padding edges are self-edges on them, past the
+cutoff, and the plans mask them out of every segment sum. On the CPU,
+`--split-check` runs each structure alone at the batch's own shapes
+(`batching.isolate`) and requires the trnsci-path split to match bitwise.
+Unpadded single-structure runs are not bitwise comparable on the CPU (the
+SIMD tails of the per-edge elementwise kernels and the K = 8, N = 1 density
+GEMV depend on the row count and offset); those are compared against
+`cpu_ref.py` to fp32 rounding instead.
 
 Full captures are about 20 MiB, 170 MiB and 790 MiB per structure and are
 regenerated with `capture.py`, not committed. The reference reproduces
 MACE's own tensors to ≤ 3e-7 relative (fp32) for every block, output and
 gradient on all six captures. `tests/test_mlip_blocks.py` runs the fixture
 and the edge cases on CPU without MACE; its live re-capture test is skipped
-when `mace-torch` is not installed.
+when `mace-torch` is not installed. `tests/test_mlip_batching.py` and
+`tests/test_mlip_accept.py` cover the buckets, the reference check, the
+acceptance suite (on a torch pair potential and broken variants of it) and,
+with mace-torch, batched steps on the small structures.
 
 ## The two contracts
 

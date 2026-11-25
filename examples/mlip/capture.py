@@ -27,9 +27,8 @@ import argparse
 import os
 import platform
 
-import torch
-
 import mace_setup as ms
+import torch
 
 
 def _hook(store: dict, key: str, t: torch.Tensor) -> torch.Tensor:
@@ -106,9 +105,7 @@ def sc_spec(sc) -> dict:
 
 def capture(model, atoms, name: str) -> dict:
     import mace
-    import mace.modules.blocks as blocks
-    import mace.modules.models as models
-    import mace.modules.radial as radial
+    from mace.modules import blocks, models, radial
 
     batch = ms.atoms_to_batch(atoms, model)
     N = len(atoms)
@@ -272,9 +269,9 @@ def capture(model, atoms, name: str) -> dict:
         del s["key"]
     # Messages share storage with A1 out / grad_out; keep the A1 view as the source of truth.
     for li, a in enumerate(rec["A1"]):
-        msg = [
+        msg = next(
             s for s in rec["B_scatter"] if s["name"] == f"scatter_sum messages L{li}"
-        ][0]
+        )
         a["out"], a["grad_out"] = msg["src"], msg["grad_src"]
 
     deg_r = torch.bincount(receiver, minlength=N)

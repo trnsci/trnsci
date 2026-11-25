@@ -20,8 +20,22 @@ the kernels' registered backwards. ``--mode mace`` runs the unmodified model.
     python mace_trnsci_step.py --structure tic001_slab_216 --mode trnsci --device neuron \
         --shares --json step.json
 
-The result is checked against the unmodified model on the host CPU (fp32):
-energy difference per atom and the relative Frobenius error of the forces.
+``--batch B`` evaluates B structures (the ``--structure`` list cycled, seeds
+``seed .. seed+B-1``) in one step, as one block-diagonal graph
+(``batching.make_batch``): atoms and edges concatenated with offset indices,
+one sender and one receiver ``segment_plan`` for the whole batch, and the
+totals padded to a shape bucket so a new geometry or batch of similar size
+reuses the compiled shapes (``--pad``, ``--bucket-shift``). The padding edges
+are masked out of every segment sum (``segment_plan(..., padding=mask)``).
+The batch is split back into per-structure energies and forces;
+``--split-check`` reruns each structure alone at the batch's own shapes and
+compares (bitwise for the trnsci path on the CPU).
+
+    python mace_trnsci_step.py --structure tic001_slab_216 --batch 8 --device neuron
+
+Each structure is checked against the unmodified model on the host CPU
+(fp32), run alone and unpadded (``cpu_ref.py``): energy difference per atom
+and the relative Frobenius error of the forces. A missing reference raises.
 ``--shares`` replays every block call of one step in isolation (forward +
 the input gradients the step needed, at the step's own shapes and values)
 and reports each block family's share of the step time.
@@ -53,16 +67,18 @@ def to_dev(batch: dict, dev: torch.device) -> dict:
 class Graph:
     """Per-neighbour-list state: indices on the device and their plans."""
 
-    def __init__(self, batch_host: dict, batch_dev: dict) -> None:
+    def __init__(self, batch_host: dict, batch_dev: dict, edge_padding=None) -> None:
         import trnsparse
 
         ei = batch_host["edge_index"]
         self.N = int(batch_host["positions"].shape[0])
         self.E = int(ei.shape[1])
+        self.edge_padding = edge_padding
         dev = batch_dev["edge_index"].device
         t0 = time.perf_counter()
-        self.splan = trnsparse.segment_plan(ei[0], self.N).to(dev)
-        self.rplan = trnsparse.segment_plan(ei[1], self.N).to(dev)
+        kw = {} if edge_padding is None else {"padding": edge_padding}
+        self.splan = trnsparse.segment_plan(ei[0], self.N, **kw).to(dev)
+        self.rplan = trnsparse.segment_plan(ei[1], self.N, **kw).to(dev)
         self.plan_s = time.perf_counter() - t0
         self.edge_index = batch_dev["edge_index"]
         self.sender = self.edge_index[0]
@@ -242,6 +258,192 @@ def step(model, batch, dev):
     return float(e.detach().to("cpu").sum()), f.detach().to("cpu")
 
 
+def step_outputs(model, batch, stress=False, keys=("energy", "forces")) -> dict:
+    """One energy + forces (+ stress) step; the outputs in ``keys`` on the host.
+
+    ``energy`` is per structure of the batch (the padding structure last),
+    ``node_energy`` per atom (MACE returns it in fp64), ``stress`` per
+    structure when ``stress``."""
+    b = dict(batch)
+    b["positions"] = b["positions"].detach().clone()
+    out = model(b, compute_force=True, compute_stress=stress, training=False)
+    host = {}
+    for k in keys:
+        v = out.get(k)
+        host[k] = None if v is None else v.detach().to("cpu")
+    return host
+
+
+def bucket_kwargs(args) -> dict:
+    """``batching.make_batch`` options from the shared command-line flags."""
+    return {
+        "pad": args.pad != "none",
+        "shift": args.bucket_shift,
+        "atom_multiple": args.atom_multiple,
+        "edge_multiple": args.edge_multiple,
+    }
+
+
+def add_batch_args(ap) -> None:
+    """The batching / bucket flags shared by the step scripts and accept.py."""
+    ap.add_argument(
+        "--batch",
+        type=int,
+        default=1,
+        help="structures per step (block-diagonal graph; seeds seed..seed+B-1)",
+    )
+    ap.add_argument(
+        "--pad",
+        choices=["bucket", "none"],
+        default="bucket",
+        help="pad atoms and edges to a shape bucket (masked padding edges)",
+    )
+    ap.add_argument(
+        "--bucket-shift",
+        type=int,
+        default=4,
+        help="bucket quantum 2^(floor(log2 n) - shift): padding <= 2^-shift",
+    )
+    ap.add_argument("--atom-multiple", type=int, default=0, help="fixed atom bucket")
+    ap.add_argument("--edge-multiple", type=int, default=0, help="fixed edge bucket")
+
+
+class Step:
+    """B structures as one padded block-diagonal batch on ``dev``, ready to run.
+
+    ``mode="trnsci"`` builds one ``Graph`` (a sender and a receiver
+    ``segment_plan``, with the padding mask) for the whole batch and patches
+    the three blocks while the step runs (``with step:``); ``mode="mace"``
+    runs MACE unmodified. ``batch_host`` / ``info`` come from
+    ``batching.make_batch``, or are passed in (``isolate``).
+    """
+
+    def __init__(
+        self,
+        model,
+        atoms_list,
+        dev,
+        *,
+        mode="trnsci",
+        torch_path=(),
+        stress=False,
+        node_energy=False,
+        batch=None,
+        **bucket,
+    ):
+        import batching
+
+        self.model, self.dev, self.mode = model, torch.device(dev), mode
+        self.torch_path, self.stress = set(torch_path), stress
+        self.keys = ("energy", "forces")
+        self.keys += ("node_energy",) * bool(node_energy) + ("stress",) * bool(stress)
+        self.atoms_list = atoms_list
+        if batch is None:
+            batch = batching.make_batch(atoms_list, model, **bucket)
+        self.batch_host, self.info = batch
+        self.batch = to_dev(self.batch_host, self.dev)
+        self.g = None
+        self._restore = None
+        if mode == "trnsci":
+            pad = self.info.edge_padding
+            self.g = Graph(
+                self.batch_host,
+                self.batch,
+                pad if self.info.e_pad > self.info.e_real else None,
+            )
+
+    def __enter__(self):
+        if self.mode == "trnsci":
+            self._restore = install(self.model, self.g, torch_path=self.torch_path)
+        return self
+
+    def __exit__(self, *exc):
+        if self._restore is not None:
+            self._restore()
+            self._restore = None
+
+    def run(self) -> dict:
+        """One step on the device; outputs on the host (patch with ``with``)."""
+        return step_outputs(self.model, self.batch, self.stress, self.keys)
+
+    def __call__(self) -> dict:
+        with self:
+            return self.run()
+
+    def split(self, out: dict) -> list:
+        """Per-structure ``{"energy", "forces", "node_energy", "stress"}``."""
+        info, rows = self.info, []
+        for i in range(info.num_structures):
+            a0, n = info.atom_start[i], info.atoms[i]
+            ne = out.get("node_energy")
+            st = out.get("stress")
+            rows.append(
+                {
+                    "energy": float(out["energy"][i]),
+                    "forces": out["forces"][a0 : a0 + n],
+                    "node_energy": None if ne is None else ne[a0 : a0 + n],
+                    "stress": None if st is None else st[i],
+                }
+            )
+        return rows
+
+    def isolated(self, i: int) -> Step:
+        """Structure ``i`` alone, at the same shapes and offsets (``isolate``)."""
+        import batching
+
+        return Step(
+            self.model,
+            [self.atoms_list[i]],
+            self.dev,
+            mode=self.mode,
+            torch_path=self.torch_path,
+            stress=self.stress,
+            node_energy="node_energy" in self.keys,
+            batch=batching.isolate(self.batch_host, self.info, i),
+        )
+
+
+def split_check(step: Step, bitwise: bool, warm: int = 2) -> dict:
+    """Each structure of the batch run alone at the batch's own shapes
+    (``Step.isolated``) against its slice of the batched step. With
+    ``bitwise`` any difference raises: nothing of the other structures, and
+    nothing of the padding, may reach a structure's energy or forces.
+
+    Every step is warmed up first (``warm`` calls): e3nn's TorchScript
+    modules run a profiling pass before their optimised graph, and on the
+    CPU the first call's forces differ from later calls' in the last bits."""
+    with step:
+        for _ in range(warm):
+            step.run()
+        full = step.split(step.run())
+    rows = []
+    for i in range(step.info.num_structures):
+        one = step.isolated(i)
+        with one:
+            for _ in range(warm):
+                one.run()
+            alone = one.split(one.run())[i]
+        e_eq = alone["energy"] == full[i]["energy"]
+        f_eq = torch.equal(alone["forces"], full[i]["forces"])
+        rows.append(
+            {
+                "structure": i,
+                "energy_bitwise": bool(e_eq),
+                "forces_bitwise": bool(f_eq),
+                "dE_eV": abs(alone["energy"] - full[i]["energy"]),
+                "dF_max_eV_A": float(
+                    (alone["forces"].double() - full[i]["forces"].double()).abs().max()
+                ),
+            }
+        )
+    res = {"bitwise": all(r["energy_bitwise"] and r["forces_bitwise"] for r in rows)}
+    res["rows"] = rows
+    if bitwise and not res["bitwise"]:
+        bad = [r for r in rows if not (r["energy_bitwise"] and r["forces_bitwise"])]
+        raise AssertionError(f"batched split differs from the isolated runs: {bad}")
+    return res
+
+
 def timed(fn, dev, warm: int, reps: int, budget_s: float):
     """(first call s, median s, all s). Every call ends with a host copy."""
     t0 = time.perf_counter()
@@ -327,13 +529,26 @@ def replay_shares(rec: list, dev, warm: int, reps: int) -> list:
     return rows
 
 
+def structure_list(names: str, seed: int, batch: int) -> list:
+    """``batch`` structures: the comma list ``names`` cycled, seeds
+    ``seed, seed + 1, ...`` (``batch=1``: the one structure at ``seed``)."""
+    ns = [n for n in names.split(",") if n]
+    return [ms.build_structure(ns[k % len(ns)], seed + k) for k in range(batch)]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--structure", default="tic001_slab_216")
+    ap.add_argument("--structure", default="tic001_slab_216", help="comma list")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--mode", choices=["mace", "trnsci"], default="trnsci")
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--threads", type=int, default=None)
+    ap.add_argument(
+        "--cpu-threads",
+        type=int,
+        default=None,
+        help="threads for the CPU reference (default: --threads)",
+    )
     ap.add_argument("--warm", type=int, default=2)
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--budget", type=float, default=60.0, help="timing budget, s")
@@ -347,6 +562,15 @@ def main() -> None:
         default="",
         help="comma list of A1,A2,B to run on the library's pytorch path (same device)",
     )
+    add_batch_args(ap)
+    ap.add_argument(
+        "--split-check",
+        choices=["auto", "bitwise", "report", "off"],
+        default="auto",
+        help="run each structure alone at the batch's shapes and compare with its "
+        "slice of the batch (auto: bitwise for trnsci on the cpu, off elsewhere; "
+        "report: record the differences; always off for --batch 1)",
+    )
     ap.add_argument("--shares", action="store_true")
     ap.add_argument(
         "--count-ops", action="store_true", help="count dispatched ops in one step"
@@ -357,62 +581,82 @@ def main() -> None:
     if args.threads:
         torch.set_num_threads(args.threads)
     dev = torch.device(args.device)
+    import cpu_ref
 
     model_cpu = ms.load_model(args.checkpoint)
-    atoms = ms.build_structure(args.structure, args.seed)
-    batch_host = ms.atoms_to_batch(atoms, model_cpu)
-    e_ref, f_ref = step(model_cpu, batch_host, torch.device("cpu"))
+    atoms_list = structure_list(args.structure, args.seed, args.batch)
+    refs = cpu_ref.cpu_reference(
+        model_cpu, atoms_list, args.cpu_threads or args.threads
+    )
 
     model = ms.load_model(args.checkpoint).to(dev)
-    batch = to_dev(batch_host, dev)
-    g, restore, rec = None, None, None
+    torch_path = {t for t in args.torch_path.split(",") if t}
     if args.mode == "trnsci":
         import trnsparse
         import trntensor
 
         trnsparse.set_backend(args.backend)
         trntensor.set_backend(args.backend)
-        g = Graph(batch_host, batch)
-        torch_path = {t for t in args.torch_path.split(",") if t}
-        restore = install(model, g, torch_path=torch_path)
-
-    first, med, ts, (e, f) = timed(
-        lambda: step(model, batch, dev), dev, args.warm, args.reps, args.budget
+    st = Step(
+        model,
+        atoms_list,
+        dev,
+        mode=args.mode,
+        torch_path=torch_path,
+        **bucket_kwargs(args),
     )
-    N = len(atoms)
+    with st:
+        first, med, ts, out = timed(st.run, dev, args.warm, args.reps, args.budget)
+    parts = st.split(out)
+    names = [n for n in args.structure.split(",") if n]
+    per = [
+        {"structure": names[k % len(names)], "seed": args.seed + k}
+        | cpu_ref.compare(p["energy"], p["forces"], r, f"structure {k}")
+        for k, (p, r) in enumerate(zip(parts, refs))
+    ]
+    info = st.info
     res = {
         "structure": args.structure,
         "seed": args.seed,
-        "atoms": N,
-        "edges": int(batch_host["edge_index"].shape[1]),
+        "batch": args.batch,
+        "atoms": info.n_real,
+        "edges": info.e_real,
+        "bucket": list(info.key),
+        "layout": info.as_dict(),
         "mode": args.mode,
         "device": args.device,
         "threads": torch.get_num_threads(),
         "first_s": first,
         "step_ms": 1e3 * med,
         "step_ms_all": [1e3 * t for t in ts],
-        "plan_ms": 1e3 * g.plan_s if g else None,
-        "energy": e,
-        "energy_ref_cpu": e_ref,
-        "dE_per_atom_meV": 1e3 * abs(e - e_ref) / N,
-        "forces_rel": float(
-            (f.double() - f_ref.double()).norm() / f_ref.double().norm()
-        ),
-        "forces_max_abs_eV_A": float((f - f_ref).abs().max()),
+        "per_structure_ms": 1e3 * med / args.batch,
+        "atoms_per_s": info.n_real / med,
+        "plan_ms": 1e3 * st.g.plan_s if st.g else None,
+        **cpu_ref.worst(per),
+        "per_structure": per,
         "torch": torch.__version__,
         "platform": platform.platform(),
         "backend": args.backend if args.mode == "trnsci" else None,
         "torch_path": args.torch_path if args.mode == "trnsci" else None,
         "lnc": os.environ.get("NEURON_LOGICAL_NC_CONFIG", "2 (default)"),
     }
+    mode = args.split_check
+    if mode == "auto":
+        on_cpu = dev.type == "cpu"
+        mode = "bitwise" if on_cpu and args.mode == "trnsci" else "off"
+    if args.batch > 1 and mode != "off" and args.pad != "none":
+        res["split_check"] = split_check(st, bitwise=mode == "bitwise")
     if args.count_ops:
-        res["ops"] = count_ops(lambda: step(model, batch, dev))
+        with st:
+            res["ops"] = count_ops(st.run)
     if args.shares and args.mode == "trnsci":
-        restore()
         rec = []
-        restore = install(model, g, rec, torch_path=torch_path)
-        step(model, batch, dev)
+        restore = install(model, st.g, rec, torch_path=torch_path)
+        st.run()
+        restore()
+        restore = install(model, st.g, torch_path=torch_path)
         rows = replay_shares(rec, dev, args.warm, max(5, args.reps // 2))
+        restore()
         fam = {}
         for r in rows:
             fam[r["family"]] = fam.get(r["family"], 0.0) + r["fwd_bwd_ms"]
@@ -420,13 +664,18 @@ def main() -> None:
         res["family_ms"] = fam
         res["family_share"] = {k: v / res["step_ms"] for k, v in fam.items()}
         res["rest_share"] = 1 - sum(res["family_share"].values())
-    print(json.dumps({k: v for k, v in res.items() if k not in ("calls",)}, indent=1))
-    if rec is not None:
-        for r in res["calls"]:
-            print(
-                f"  {r['family']:3s} {r['name']:44s} fwd {r['fwd_ms']:8.3f} ms  "
-                f"fwd+bwd {r['fwd_bwd_ms']:8.3f} ms  grads {r['grads']}"
-            )
+    show = {k: v for k, v in res.items() if k not in ("calls", "per_structure")}
+    print(json.dumps(show, indent=1))
+    for r in per:
+        print(
+            f"  {r['structure']:12s} seed {r['seed']:3d}  dE {r['dE_per_atom_meV']:.4f}"
+            f" meV/atom  forces rel {r['forces_rel']:.2e}  ref {r['cpu_ref_s']:.2f} s"
+        )
+    for r in res.get("calls", []):
+        print(
+            f"  {r['family']:3s} {r['name']:44s} fwd {r['fwd_ms']:8.3f} ms  "
+            f"fwd+bwd {r['fwd_bwd_ms']:8.3f} ms  grads {r['grads']}"
+        )
     if args.json:
         with open(args.json, "w") as fh:
             json.dump(res, fh, indent=1)

@@ -21,16 +21,24 @@ linears (``linear_up``, ``linear``, product ``linear``), skip tensor product,
 readouts, ZBL, node embedding, E0, scale-shift.
 
     python profile_device_step.py --device neuron --json prof216.json
-    python profile_device_step.py --device neuron --fuse radial --json fuse.json
-    python profile_device_step.py --device neuron --pad-edges 512 --seeds 0,1
+    python profile_device_step.py --device neuron --fuse edge,dense --json fuse.json
+    python profile_device_step.py --device neuron --no-profile --seeds 0,1 --batch 8
 
-``--fuse`` swaps a group for a prototype (see ``fusions``): ``radial`` puts
-the per-edge radial chain (transform, Bessel, cutoff, both layers' radial and
-density MLPs) in one ``torch.compile`` region; ``skip`` replaces e3nn's
-``FullyConnectedTensorProduct`` against the one-hot species by a per-species
-weight gather and a batched GEMM. ``--pad-edges B`` pads the edge list to a
-multiple of ``B`` with far self-edges (length 3 r_max, so the cutoff zeroes
-them exactly) to test whether the aten graphs survive a geometry change.
+``--fuse`` swaps groups for the prototypes in ``fusions``: ``edge`` (the
+whole per-edge chain in one ``torch.compile`` region) and ``dense`` (e3nn
+``Linear``s and the one-hot ``skip_tp`` as GEMMs against probed dense
+matrices).
+
+``--batch B`` profiles one step over B structures as one block-diagonal
+graph (``batching.make_batch``; seed s takes seeds ``s*B .. s*B+B-1``).
+Atoms and edges are padded to a shape bucket by default (``--pad``,
+``--bucket-shift``; ``--pad-edges M`` fixes the edge multiple instead), so a
+new geometry reuses the compiled shapes. The padding atoms are a separate,
+discarded structure and the padding edges are self-edges on them, past the
+cutoff and masked out of every segment sum by the plans
+(``segment_plan(..., padding=mask)``), not piled onto node 0. Every structure
+is checked against unmodified MACE on the host CPU (``cpu_ref.py``,
+``--cpu-threads``); a missing reference raises.
 """
 
 from __future__ import annotations
@@ -256,29 +264,6 @@ def replay(e, dev, warm, reps):
     }
 
 
-def pad_batch(batch_host, multiple, r_max):
-    """Pad the edge list to a multiple of ``multiple`` with self-edges on node 0
-    shifted by (0, 0, 3 r_max): length 3 r_max > r_max, so the polynomial
-    cutoff (``envelope * (x < r_max)``) and the ZBL envelope are exactly 0 and
-    the padded edges add nothing to the energy or the forces."""
-    b = dict(batch_host)
-    E = int(b["edge_index"].shape[1])
-    Ep = -(-E // multiple) * multiple
-    k = Ep - E
-    if k == 0:
-        return b, E, Ep
-    ei = b["edge_index"]
-    b["edge_index"] = torch.cat([ei, ei.new_zeros(2, k)], dim=1)
-    sh = b["shifts"].new_zeros(k, 3)
-    sh[:, 2] = 3.0 * r_max
-    b["shifts"] = torch.cat([b["shifts"], sh], 0)
-    if "unit_shifts" in b:
-        b["unit_shifts"] = torch.cat(
-            [b["unit_shifts"], b["unit_shifts"].new_zeros(k, 3)], 0
-        )
-    return b, E, Ep
-
-
 @contextlib.contextmanager
 def label_gev(rec):
     """Label the (patched) edge-vector function for the whole-step count."""
@@ -317,31 +302,38 @@ def whole_step_count(model, batch, dev, rec):
 
 
 def build(args, dev, seed):
+    """The model on ``dev`` and one padded batch of ``--batch`` structures
+    (seeds ``seed * B ..``), with the per-structure CPU references."""
+    import cpu_ref
+
     model_cpu = ms.load_model()
-    atoms = ms.build_structure(args.structure, seed)
-    batch_host = ms.atoms_to_batch(atoms, model_cpu)
-    e_ref, f_ref = mts.step(model_cpu, batch_host, torch.device("cpu"))
-    E0 = int(batch_host["edge_index"].shape[1])
-    if args.pad_edges:
-        batch_host, E0, _ = pad_batch(
-            batch_host, args.pad_edges, float(model_cpu.r_max)
-        )
+    atoms_list = mts.structure_list(args.structure, seed * args.batch, args.batch)
+    refs = cpu_ref.cpu_reference(model_cpu, atoms_list, args.cpu_threads)
     model = ms.load_model().to(dev)
-    batch = mts.to_dev(batch_host, dev)
-    return model, model_cpu, atoms, batch_host, batch, e_ref, f_ref, E0
+    kw = mts.bucket_kwargs(args)
+    if args.pad_edges:  # the older flag: a fixed edge multiple
+        kw["edge_multiple"] = args.pad_edges
+    st = mts.Step(model, atoms_list, dev, mode="trnsci", **kw)
+    return model, model_cpu, atoms_list, st, refs
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--structure", default="tic001_slab_216")
-    ap.add_argument("--seeds", default="0", help="comma list; each one a new geometry")
+    ap.add_argument(
+        "--seeds", default="0", help="comma list; each one a new geometry (batch)"
+    )
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--backend", default="nki")
     ap.add_argument("--warm", type=int, default=2)
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--no-profile", action="store_true", help="step timing only")
     ap.add_argument("--fuse", default="", help="comma list of prototypes: radial, skip")
-    ap.add_argument("--pad-edges", type=int, default=0)
+    ap.add_argument(
+        "--pad-edges", type=int, default=0, help="fixed edge multiple (masked)"
+    )
+    mts.add_batch_args(ap)
+    ap.add_argument("--cpu-threads", type=int, default=None, help="CPU reference")
     ap.add_argument("--compile-backend", default="neuron", help="for --fuse edge")
     ap.add_argument(
         "--count", action="store_true", help="whole-step op count with --no-profile"
@@ -356,119 +348,121 @@ def main():
     trnsparse.set_backend(args.backend)
     trntensor.set_backend(args.backend)
     results = []
+    import cpu_ref
+
     for seed in [int(s) for s in args.seeds.split(",")]:
-        model, model_cpu, atoms, batch_host, batch, e_ref, f_ref, E0 = build(
-            args, dev, seed
-        )
-        g = mts.Graph(batch_host, batch)
+        model, model_cpu, _, st, refs = build(args, dev, seed)
+        g, batch, batch_host = st.g, st.batch, st.batch_host
         restore = mts.install(model, g)
-        ctx = {
-            "dev": dev,
-            "model_cpu": model_cpu,
-            "batch_host": batch_host,
-            "g": g,
-            "compile_backend": args.compile_backend,
-        }
-        undo_fuse = fusions.apply(model, [f for f in args.fuse.split(",") if f], ctx)
-        first, med, ts, (e, f) = mts.timed(
-            lambda m=model, b=batch: mts.step(m, b, dev),
-            dev,
-            args.warm,
-            args.reps,
-            60.0,
-        )
-        N = len(atoms)
-        f = f[:N]
-        res = {
-            "structure": args.structure,
-            "seed": seed,
-            "atoms": N,
-            "edges": E0,
-            "edges_padded": int(batch_host["edge_index"].shape[1]),
-            "fuse": args.fuse,
-            "first_s": first,
-            "step_ms": 1e3 * med,
-            "step_ms_all": [1e3 * t for t in ts],
-            "energy": e,
-            "energy_ref_cpu": e_ref,
-            "dE_per_atom_meV": 1e3 * abs(e - e_ref) / N,
-            "forces_rel": float(
-                (f.double() - f_ref.double()).norm() / f_ref.double().norm()
-            ),
-            "lnc": os.environ.get("NEURON_LOGICAL_NC_CONFIG", "2 (default)"),
-        }
-        print(json.dumps(res), flush=True)
-        if args.count or not args.no_profile:
-            rec = Recorder()
-            for label, group, mod in tag_modules(model):
-                fwd = mod.__dict__.get("forward")
-                if getattr(fwd, "stash_stub", False):
-                    continue  # its work runs inside the fused region
-                if getattr(fwd, "fused_region", False):
-                    label, group = "edge_region (compiled)", "radial_fused"
-                rec.add(label, group, mod)
-            if "edge" not in args.fuse:  # inside the compiled region otherwise
-                for label, mod in sub_modules(model):
-                    rec.add(label, "detail", mod)
-            n_ops, by_label = whole_step_count(model, batch, dev, rec)
-            res["ops_total"] = n_ops
-            res["ops_by_label"] = by_label
-            print(f"  ops {n_ops}: {by_label}", flush=True)
-            if args.no_profile:
-                rec.remove()
-        if not args.no_profile:
-            # record one step: module calls + trnsci block calls
-            restore()
-            blk = []
-            restore = mts.install(model, g, blk)
-            rec.recording = True
-            mts.step(model, batch, dev)
-            rec.recording = False
-            # stop recording block calls: the module replays call them again
-            restore()
-            restore = mts.install(model, g)
-            rows = []
-            for e in rec.calls:
-                r = replay(e, dev, args.warm, max(5, args.reps // 2))
-                r.update(label=e["label"], group=e["group"])
-                rows.append(r)
-                print(
-                    f"  {e['label']:24s} fwd {r['fwd_ms']:7.3f} ms  fwd+bwd {r['fwd_bwd_ms']:7.3f} ms"
-                    f"  ops {r['ops_fwd']}+{r['ops_bwd']}",
-                    flush=True,
-                )
-            for r in mts.replay_shares(blk, dev, args.warm, max(5, args.reps // 2)):
-                rows.append(
-                    {
-                        "label": r["name"],
-                        "group": "trnsci." + r["family"],
-                        "fwd_ms": r["fwd_ms"],
-                        "fwd_bwd_ms": r["fwd_bwd_ms"],
-                    }
-                )
-            rec.remove()
-            groups = collections.defaultdict(lambda: collections.Counter())
-            for r in rows:
-                if r["group"] == "detail":
-                    continue
-                gr = groups[r["group"]]
-                gr["calls"] += 1
-                for k in ("fwd_ms", "fwd_bwd_ms", "ops_fwd", "ops_bwd"):
-                    gr[k] += r.get(k, 0)
-            res["calls"] = rows
-            res["groups"] = {k: dict(v) for k, v in groups.items()}
-            res["sum_isolated_ms"] = sum(v["fwd_bwd_ms"] for v in groups.values())
-            print(
-                f"  step {res['step_ms']:.1f} ms, {n_ops} ops; isolated sum {res['sum_isolated_ms']:.1f} ms"
+        undo_fuse = None
+        try:
+            ctx = {
+                "dev": dev,
+                "model_cpu": model_cpu,
+                "batch_host": batch_host,
+                "g": g,
+                "compile_backend": args.compile_backend,
+            }
+            undo_fuse = fusions.apply(
+                model, [f for f in args.fuse.split(",") if f], ctx
             )
-            for k, v in sorted(groups.items(), key=lambda kv: -kv[1]["fwd_bwd_ms"]):
+            first, med, ts, out = mts.timed(st.run, dev, args.warm, args.reps, 60.0)
+            per = [
+                cpu_ref.compare(p["energy"], p["forces"], r, f"structure {k}")
+                for k, (p, r) in enumerate(zip(st.split(out), refs))
+            ]
+            info = st.info
+            res = {
+                "structure": args.structure,
+                "seed": seed,
+                "batch": args.batch,
+                "atoms": info.n_real,
+                "edges": info.e_real,
+                "atoms_padded": info.n_pad,
+                "edges_padded": info.e_pad,
+                "fuse": args.fuse,
+                "first_s": first,
+                "step_ms": 1e3 * med,
+                "step_ms_all": [1e3 * t for t in ts],
+                "per_structure_ms": 1e3 * med / args.batch,
+                **cpu_ref.worst(per),
+                "per_structure": per,
+                "lnc": os.environ.get("NEURON_LOGICAL_NC_CONFIG", "2 (default)"),
+            }
+            print(json.dumps(res), flush=True)
+            if args.count or not args.no_profile:
+                rec = Recorder()
+                for label, group, mod in tag_modules(model):
+                    fwd = mod.__dict__.get("forward")
+                    if getattr(fwd, "stash_stub", False):
+                        continue  # its work runs inside the fused region
+                    if getattr(fwd, "fused_region", False):
+                        label, group = "edge_region (compiled)", "radial_fused"
+                    rec.add(label, group, mod)
+                if "edge" not in args.fuse:  # inside the compiled region otherwise
+                    for label, mod in sub_modules(model):
+                        rec.add(label, "detail", mod)
+                n_ops, by_label = whole_step_count(model, batch, dev, rec)
+                res["ops_total"] = n_ops
+                res["ops_by_label"] = by_label
+                print(f"  ops {n_ops}: {by_label}", flush=True)
+                if args.no_profile:
+                    rec.remove()
+            if not args.no_profile:
+                # record one step: module calls + trnsci block calls
+                restore()
+                blk = []
+                restore = mts.install(model, g, blk)
+                rec.recording = True
+                mts.step(model, batch, dev)
+                rec.recording = False
+                # stop recording block calls: the module replays call them again
+                restore()
+                restore = mts.install(model, g)
+                rows = []
+                for e in rec.calls:
+                    r = replay(e, dev, args.warm, max(5, args.reps // 2))
+                    r.update(label=e["label"], group=e["group"])
+                    rows.append(r)
+                    print(
+                        f"  {e['label']:24s} fwd {r['fwd_ms']:7.3f} ms  fwd+bwd {r['fwd_bwd_ms']:7.3f} ms"
+                        f"  ops {r['ops_fwd']}+{r['ops_bwd']}",
+                        flush=True,
+                    )
+                for r in mts.replay_shares(blk, dev, args.warm, max(5, args.reps // 2)):
+                    rows.append(
+                        {
+                            "label": r["name"],
+                            "group": "trnsci." + r["family"],
+                            "fwd_ms": r["fwd_ms"],
+                            "fwd_bwd_ms": r["fwd_bwd_ms"],
+                        }
+                    )
+                rec.remove()
+                groups = collections.defaultdict(lambda: collections.Counter())
+                for r in rows:
+                    if r["group"] == "detail":
+                        continue
+                    gr = groups[r["group"]]
+                    gr["calls"] += 1
+                    for k in ("fwd_ms", "fwd_bwd_ms", "ops_fwd", "ops_bwd"):
+                        gr[k] += r.get(k, 0)
+                res["calls"] = rows
+                res["groups"] = {k: dict(v) for k, v in groups.items()}
+                res["sum_isolated_ms"] = sum(v["fwd_bwd_ms"] for v in groups.values())
                 print(
-                    f"  {k:20s} x{v['calls']:<3d} fwd {v['fwd_ms']:7.2f}  fwd+bwd {v['fwd_bwd_ms']:7.2f} ms"
-                    f"  ops {v['ops_fwd']}+{v['ops_bwd']}",
-                    flush=True,
+                    f"  step {res['step_ms']:.1f} ms, {n_ops} ops; isolated sum {res['sum_isolated_ms']:.1f} ms"
                 )
-        undo_fuse()
-        restore()
+                for k, v in sorted(groups.items(), key=lambda kv: -kv[1]["fwd_bwd_ms"]):
+                    print(
+                        f"  {k:20s} x{v['calls']:<3d} fwd {v['fwd_ms']:7.2f}  fwd+bwd {v['fwd_bwd_ms']:7.2f} ms"
+                        f"  ops {v['ops_fwd']}+{v['ops_bwd']}",
+                        flush=True,
+                    )
+        finally:
+            if undo_fuse is not None:
+                undo_fuse()
+            restore()
         results.append(res)
         del model, batch
     if args.json:

@@ -32,7 +32,7 @@ from pathlib import Path
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import blocks as reference  # noqa: E402
+reference = importlib.import_module("blocks")
 
 
 def load(path: str) -> dict:
@@ -124,7 +124,7 @@ class Checker:
                 name = f"B2 segment_sum {s['name']} ({s['index_role']}, F={s['src'].shape[1] if s['src'].dim() > 1 else 1})"
                 want = ["m"] if s["grad_src"] is not None else []
                 out, gs = self.vjp(
-                    lambda m, idx: ss(m, idx, s["dim_size"]),
+                    lambda m, idx, s=s: ss(m, idx, s["dim_size"]),
                     {"m": s["src"], "idx": s["index"]},
                     s["grad_out"],
                     want,
