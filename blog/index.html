@@ -5437,6 +5437,48 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-11-25 00:00:00+00:00">November 25, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="category/suite/" class="md-meta__link">suite</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              12 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trnsci-what-trainiums-arithmetic-actually-does"><a class="toclink" href="trnsci-what-trainiums-arithmetic-actually-does/">trnsci: what Trainium's arithmetic actually does</a></h2>
+<p>The suite's next precision step, fp64-class sums and dot products on the device, depends on how each NeuronCore engine rounds, and the Neuron documentation doesn't say. So one Trn2 window measured it: VectorE and GpSimd are textbook IEEE fp32, ScalarE has a fused multiply-add the docs don't mention, the fp32 TensorE path isn't correctly rounded, and stochastic rounding is deterministic per process. The same window also produced an accuracy table that mistook the worst corner of a range for the whole range, filed it upstream, and corrected it in public that night. This post is for anyone writing NKI kernels that need more than ML accuracy, and for anyone porting double-word or compensated algorithms to Trainium.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="trnsci-what-trainiums-arithmetic-actually-does/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-11-10 00:00:00+00:00">November 10, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5762,48 +5804,6 @@
     
       <nav class="md-post__action">
         <a href="trnfft-spherical-harmonic-transforms-and-how-close-plain-pytorch-gets-on-trainium/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="category/deep-dive/" class="md-meta__link">Deep dive</a>, 
-              <a href="category/trnblas/" class="md-meta__link">trnblas</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              13 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnblas-the-92-that-was-18-and-the-df-mp2-win-that-holds-up"><a class="toclink" href="trnblas-the-92-that-was-18-and-the-df-mp2-win-that-holds-up/">trnblas: the 92× that was 1.8×, and the DF-MP2 win that holds up</a></h2>
-<p>trnblas published a 92× speedup for its fused pair-energy kernel on Trn2, and it was wrong: the aten baseline had slowed because device memory was filling up, and against a fair baseline the kernel is 1.8× faster. What survives is narrower and more useful. GEMM routes to aten, a fused kernel keeps the energy step where it avoids work aten can't, and the metric Cholesky moves to the host, which makes density-fitted MP2 1.1–1.8× faster than aten on the molecules where the device beats the CPU at all. The post is for anyone benchmarking TorchNeuron eager code, and for chemists deciding which DF-MP2 stages belong on Trainium.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="trnblas-the-92-that-was-18-and-the-df-mp2-win-that-holds-up/">
           Continue reading
         </a>
       </nav>
