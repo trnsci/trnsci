@@ -7,8 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] — 2026-11-25
+
+`pip install "trnsci[all]==0.2.3"` requires the four releases from Trn2
+window 7 ([#35](https://github.com/trnsci/trnsci/issues/35#issuecomment-7134816917)):
+trnblas 0.14.0, trnrand 0.15.0, trnsparse 0.17.0 and trntensor 0.26.0.
+
 ### Changed
 
+- Extras minimums: `trnblas>=0.14` (`gemm_fp64(scheme="ozaki2")`, an Ozaki
+  scheme II prototype, and `trnblas.fp64`, fp64-class vector arithmetic on
+  the device, [#169](https://github.com/trnsci/trnsci/issues/169)),
+  `trnrand>=0.15` (the dormant XLA deprecation hook, as in the other five
+  libraries, [#136](https://github.com/trnsci/trnsci/issues/136)),
+  `trnsparse>=0.17` (`segment_sum` / `gather` / `segment_plan` for the MLIP
+  exemplar, [#170](https://github.com/trnsci/trnsci/issues/170), and an
+  exact `kernel_matmul` square-operator diagonal) and `trntensor>=0.26`
+  (`trntensor.equivariant`: `conv_tp` and `symmetric_contraction` with
+  registered backwards). trnfft and trnsolver are unchanged. The trnsci
+  conda recipe's `run` minimums follow, and the four library recipes pin the
+  new releases (sdist sha256 from PyPI). The trnsci recipe itself moves to
+  0.2.3 after the sdist is published.
+- docs: validation-status and roadmap rows for the four releases.
 - `conda-recipes/trnsci` pins trnsci 0.2.2 (sdist sha256 from PyPI), as
   the 0.2.1 recipe followed its release.
 
