@@ -26,12 +26,12 @@ requirements:
   # the `[all]` extra in pyproject.toml (scripts/check_docs_drift.py checks).
   run:
     - python >=${{ python_min }}
-    - trnblas >=0.13.0
+    - trnblas >=0.14.0
     - trnfft >=0.29.0
-    - trnrand >=0.14.0
+    - trnrand >=0.15.0
     - trnsolver >=0.23.0
-    - trnsparse >=0.16.1
-    - trntensor >=0.25.2
+    - trnsparse >=0.17.0
+    - trntensor >=0.26.0
 
 tests:
   # The meta-package installs no module of its own (py-modules = []);
