@@ -207,7 +207,8 @@ Every kernel output and input gradient matched MACE's captured tensors to at mos
 
 ## What's next
 
-- **[trnsci#178](https://github.com/trnsci/trnsci/issues/178)**: the `conv_tp` layer-1 backward (about 6.3 ms); batching the five trnsparse calls with F ≤ 3; one compiled model with the kernels as opaque ops; 8000 atoms; a full-socket CPU baseline, a GPU reference and the model-level checks.
+- **[trnsci#178](https://github.com/trnsci/trnsci/issues/178)**: the `conv_tp` layer-1 backward (about 6.3 ms); batching the five trnsparse calls with F ≤ 3; one compiled model with the kernels as opaque ops; 8000 atoms; a full-socket CPU baseline and a GPU reference.
+- **Model-level validation:** energy invariance under rotation, and forces against finite differences of the energy, on the device.
 - **Gather → tensor product → segment sum in one kernel** ([trntensor#138](https://github.com/trnsci/trntensor/issues/138)), so the 20 KiB-per-edge messages never reach HBM and the pads go away.
 - **Architecture-native graph options** ([trnsci#170](https://github.com/trnsci/trnsci/issues/170#issuecomment-7119610678), direction 5 of [trnsci#176](https://github.com/trnsci/trnsci/issues/176)): a DMA scatter-add arm to compare with the incidence matmul, `is_stationary_onezero` on the 0/1 tiles, and an on-device neighbour list.
 - Merging the exemplar ([trnsci#171](https://github.com/trnsci/trnsci/pull/171)). Phase trackers: trntensor [Phase 5 #31](https://github.com/trnsci/trntensor/issues/31), trnsparse [Phase 3 #15](https://github.com/trnsci/trnsparse/issues/15), and the suite's [Phase 3 milestone](https://github.com/trnsci/trnsci/milestone/3).
