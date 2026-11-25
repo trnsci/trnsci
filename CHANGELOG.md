@@ -16,6 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   trnsci/trntensor#138; graph gather / segment sum: trnsci/trnsparse#139), a
   capture script and a candidate checker, and commits a 335 KiB fixture.
   The tests run on CPU without MACE.
+- `examples/mlip/`: fused ops for the aten remainder of the MACE step
+  ([#178](https://github.com/trnsci/trnsci/issues/178), item 1).
+  `mace_trnsci_step.py --fuse sh,edge,zbl,linear,skip` (or `all`) swaps in
+  `trnsci_fused.py`, which uses trntensor's `spherical_harmonics`,
+  `edge_chain` and `equivariant_linear` plus an exemplar-side ZBL pair
+  energy per edge with an analytic backward. They work with the batched,
+  bucket-padded `Step`: padding edges contribute exactly zero. With
+  `--region-backend neuron` their bodies run as compiled graphs.
+  `--count-ops` estimates the device dispatches per step, counting each
+  block or fused call as one launch per direction. At 216 atoms
+  (bucket 224 / 10,752) the estimate is 1,523 unfused and 230 with every
+  fusion. Unpadded, the estimate is 1,474; Trn2 measured 1,530.
+  `check_fused.py` checks each fused op against MACE at the six exemplar
+  captures. It compares the output and the input gradient for the real
+  force-step cotangent against MACE fp32 and fp64.
 
 ### Changed
 

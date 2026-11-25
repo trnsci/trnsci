@@ -13,12 +13,21 @@ The model is the public MACE-MP-0b2 medium checkpoint (``mace_setup.py``).
 
 Everything else (radial MLP, spherical harmonics, e3nn ``Linear`` /
 ``FullyConnectedTensorProduct``, readouts, ZBL) stays MACE's code, run as
-aten on the same device. Forces are ``-dE/dpositions`` by autograd through
-the kernels' registered backwards. ``--mode mace`` runs the unmodified model.
+aten on the same device, unless ``--fuse`` swaps it for the fused library
+ops in ``trnsci_fused.py`` (trnsci/trnsci#178): ``sh`` (spherical
+harmonics), ``edge`` (radial basis + both layers' radial and density MLPs),
+``zbl`` (ZBL per edge), ``linear`` (e3nn ``Linear``s) and ``skip`` (one-hot
+``skip_tp``), or ``all``. ``--region-backend neuron`` runs the fused ops'
+PyTorch bodies as one compiled graph per direction; ``--backend nki`` puts
+the spherical harmonics and the edge chain on their NKI kernels. Forces are
+``-dE/dpositions`` by autograd through the registered backwards.
+``--mode mace`` runs the unmodified model.
 
     python mace_trnsci_step.py --structure tic001_slab_216 --mode mace --device cpu
     python mace_trnsci_step.py --structure tic001_slab_216 --mode trnsci --device neuron \
         --shares --json step.json
+    python mace_trnsci_step.py --mode trnsci --device neuron --fuse all \
+        --region-backend neuron --count-ops --json fused.json
 
 ``--batch B`` evaluates B structures (the ``--structure`` list cycled, seeds
 ``seed .. seed+B-1``) in one step, as one block-diagonal graph
@@ -97,6 +106,27 @@ def backend(lib, name: str | None):
         yield
     finally:
         lib.set_backend(old)
+
+
+def _recorder(rec: list):
+    """``blk(family, name, fn, *tensors)`` recording into ``rec`` (as ``install``)."""
+
+    def blk(family, name, fn, *ts):
+        out = fn(*ts)
+        e = {
+            "family": family,
+            "name": name,
+            "fn": fn,
+            "inputs": [t.detach() for t in ts],
+            "need": [bool(t.requires_grad) for t in ts],
+            "grad_out": None,
+        }
+        rec.append(e)
+        if out.requires_grad:
+            out.register_hook(lambda go, e=e: e.__setitem__("grad_out", go.detach()))
+        return out
+
+    return blk
 
 
 def install(model, g: Graph, rec: list | None = None, torch_path=()):
@@ -212,8 +242,12 @@ def install(model, g: Graph, rec: list | None = None, torch_path=()):
                 raise NotImplementedError("LAMMPS path not covered")
             sc = it.skip_tp(node_feats, node_attrs) if residual else None
             h = it.linear_up(node_feats)
-            tp_w = it.conv_tp_weights(edge_feats)
-            dens = torch.tanh(it.density_fn(edge_feats) ** 2)
+            fused = getattr(it, "_trnsci_edge", None)  # trnsci_fused "edge"
+            if fused is not None:
+                tp_w, dens = fused()
+            else:
+                tp_w = it.conv_tp_weights(edge_feats)
+                dens = torch.tanh(it.density_fn(edge_feats) ** 2)
             if cutoff is not None:
                 tp_w = tp_w * cutoff
                 dens = dens * cutoff
@@ -329,12 +363,19 @@ class Step:
         stress=False,
         node_energy=False,
         batch=None,
+        fuse=(),
+        model_cpu=None,
         **bucket,
     ):
         import batching
 
         self.model, self.dev, self.mode = model, torch.device(dev), mode
         self.torch_path, self.stress = set(torch_path), stress
+        if fuse and mode != "trnsci":
+            raise ValueError("fused ops (--fuse) need mode='trnsci'")
+        # trnsci_fused builds its specs from a host copy of the model, once
+        self.fuse, self.model_cpu, self._fuse_ctx = list(fuse), model_cpu, {}
+        self.rec = None
         self.keys = ("energy", "forces")
         self.keys += ("node_energy",) * bool(node_energy) + ("stress",) * bool(stress)
         self.atoms_list = atoms_list
@@ -354,8 +395,39 @@ class Step:
 
     def __enter__(self):
         if self.mode == "trnsci":
-            self._restore = install(self.model, self.g, torch_path=self.torch_path)
+            undo = [install(self.model, self.g, self.rec, torch_path=self.torch_path)]
+            if self.fuse:
+                import trnsci_fused
+
+                if self.model_cpu is None:
+                    import copy
+
+                    self.model_cpu = copy.deepcopy(self.model).to("cpu")
+                ctx = self._fuse_ctx
+                ctx.update(
+                    dev=self.dev, model_cpu=self.model_cpu, batch_host=self.batch_host
+                )
+                blk = _recorder(self.rec) if self.rec is not None else None
+                undo.append(
+                    trnsci_fused.install_fused(self.model, self.g, self.fuse, ctx, blk)
+                )
+
+            def restore():
+                for u in reversed(undo):
+                    u()
+
+            self._restore = restore
         return self
+
+    @contextlib.contextmanager
+    def recording(self, rec: list):
+        """Patched as ``with step:``, recording every block and fused call into ``rec``."""
+        self.rec = rec
+        try:
+            with self:
+                yield self
+        finally:
+            self.rec = None
 
     def __exit__(self, *exc):
         if self._restore is not None:
@@ -400,6 +472,8 @@ class Step:
             stress=self.stress,
             node_energy="node_energy" in self.keys,
             batch=batching.isolate(self.batch_host, self.info, i),
+            fuse=self.fuse,
+            model_cpu=self.model_cpu,
         )
 
 
@@ -463,6 +537,48 @@ def timed(fn, dev, warm: int, reps: int, budget_s: float):
         if time.perf_counter() - t_start > budget_s and len(ts) >= 3:
             break
     return first, statistics.median(ts), ts, res
+
+
+def _count(fn) -> int:
+    """Ops one call of ``fn`` dispatches (forward and backward; as ``count_ops``)."""
+    from torch.utils._python_dispatch import TorchDispatchMode
+
+    n = [0]
+
+    class Count(TorchDispatchMode):
+        def __torch_dispatch__(self, func, types, args=(), kwargs=None):
+            n[0] += 1
+            return func(*args, **(kwargs or {}))
+
+    with torch.autograd.set_multithreading_enabled(False), Count():
+        fn()
+    return n[0]
+
+
+def launch_estimate(rec: list) -> dict:
+    """Per family (A1, A2, B: the trnsci blocks; F: the fused ops), the ops its
+    calls dispatch on this run (each replayed alone, forward + the input
+    gradients the step needed) and the launches they cost as kernels or
+    compiled regions on the device: one per direction."""
+    fam: dict = {}
+    for e in rec:
+        need, go = e["need"], e["grad_out"]
+
+        def fb(e=e, need=need, go=go):
+            ins = [
+                t.detach().requires_grad_(True) if n else t
+                for t, n in zip(e["inputs"], need)
+            ]
+            out = e["fn"](*ins)
+            wrt = [t for t, n in zip(ins, need) if n]
+            if wrt and go is not None:
+                torch.autograd.grad(out, wrt, go)
+
+        f = fam.setdefault(e["family"], {"calls": 0, "ops": 0, "launches": 0})
+        f["calls"] += 1
+        f["ops"] += _count(fb)
+        f["launches"] += 1 + int(go is not None and any(need))
+    return fam
 
 
 def count_ops(fn) -> dict:
@@ -564,6 +680,16 @@ def main() -> None:
     )
     add_batch_args(ap)
     ap.add_argument(
+        "--fuse",
+        default="",
+        help="comma list of fused ops for the aten remainder: sh,edge,zbl,linear,skip or all",
+    )
+    ap.add_argument(
+        "--region-backend",
+        default=None,
+        help="torch.compile backend for the fused ops' bodies (neuron on the device)",
+    )
+    ap.add_argument(
         "--split-check",
         choices=["auto", "bitwise", "report", "off"],
         default="auto",
@@ -591,18 +717,25 @@ def main() -> None:
 
     model = ms.load_model(args.checkpoint).to(dev)
     torch_path = {t for t in args.torch_path.split(",") if t}
+    fuse = [f for f in args.fuse.split(",") if f]
+    if fuse and args.mode != "trnsci":
+        raise SystemExit("--fuse needs --mode trnsci")
     if args.mode == "trnsci":
         import trnsparse
         import trntensor
 
         trnsparse.set_backend(args.backend)
         trntensor.set_backend(args.backend)
+        if fuse or args.region_backend:
+            trntensor.set_region_backend(args.region_backend)
     st = Step(
         model,
         atoms_list,
         dev,
         mode=args.mode,
         torch_path=torch_path,
+        fuse=fuse,
+        model_cpu=model_cpu if fuse else None,
         **bucket_kwargs(args),
     )
     with st:
@@ -623,6 +756,8 @@ def main() -> None:
         "edges": info.e_real,
         "bucket": list(info.key),
         "layout": info.as_dict(),
+        "fuse": fuse,
+        "region_backend": args.region_backend,
         "mode": args.mode,
         "device": args.device,
         "threads": torch.get_num_threads(),
@@ -649,14 +784,24 @@ def main() -> None:
     if args.count_ops:
         with st:
             res["ops"] = count_ops(st.run)
+        if args.mode == "trnsci":
+            # Expected device dispatches: every recorded block / fused call as one
+            # kernel or compiled graph per direction, the rest as counted here.
+            rec_c = []
+            with st.recording(rec_c):
+                st.run()
+            fam = launch_estimate(rec_c)
+            res["ops"]["by_family"] = fam
+            res["ops"]["device_estimate"] = (
+                res["ops"]["total"]
+                - sum(f["ops"] for f in fam.values())
+                + sum(f["launches"] for f in fam.values())
+            )
     if args.shares and args.mode == "trnsci":
         rec = []
-        restore = install(model, st.g, rec, torch_path=torch_path)
-        st.run()
-        restore()
-        restore = install(model, st.g, torch_path=torch_path)
+        with st.recording(rec):
+            st.run()
         rows = replay_shares(rec, dev, args.warm, max(5, args.reps // 2))
-        restore()
         fam = {}
         for r in rows:
             fam[r["family"]] = fam.get(r["family"], 0.0) + r["fwd_bwd_ms"]

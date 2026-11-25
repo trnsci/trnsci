@@ -35,6 +35,8 @@ The checkpoint is downloaded at run time (`mace_setup.py`) and is never committe
 | `cpu_ref.py` | the CPU reference (unmodified MACE, each structure alone and unpadded, timed as `cpu_ref_s`) and the comparison against it; a missing, empty or non-finite reference raises `MissingReferenceError` instead of reporting an error of 0 |
 | `accept.py` | model-level acceptance: energy invariance under translation and rotation, force (and stress) equivariance, finite-difference forces along random directions and, when the model gives a stress, finite-difference stress under random strains; baseline CPU MACE against a target on `--device`, with a paired outcome table. Every tolerance is a flag |
 | `fusions.py` | fusion prototypes: `edge` (the whole per-edge chain, i.e. spherical harmonics, radial basis, ZBL per edge and both layers' radial and density MLPs, in one `torch.compile(backend="neuron")` region, with the species constants built once per neighbour list) and `dense` (e3nn `Linear`s and the one-hot `skip_tp` as GEMMs against probed dense matrices) |
+| `trnsci_fused.py` | the maintained fused ops for the aten remainder (trnsci/trnsci#178): `sh` (`trntensor.spherical_harmonics`), `edge` (`trntensor.edge_chain`: radial basis + both layers' radial and density MLPs), `zbl` (the ZBL pair energy per edge, exemplar-side, with an analytic backward), `linear` and `skip` (`trntensor.equivariant_linear` for every e3nn `Linear` and the one-hot `skip_tp`); `mace_trnsci_step.py --fuse` installs them |
+| `check_fused.py` | each fused op against MACE at the six exemplar captures: the output and the input gradient for the real force-step cotangent, against MACE fp32 and fp64; `--trntensor-fixture` writes trntensor's CI fixture |
 | `symcon_bwd_probe.py` | per-op device timing of trntensor's PyTorch-path `symmetric_contraction` forward and backward (trnsci/trntensor#140) |
 | `fixtures/mace_mp0b2_tiny.pt` | committed slice of the 16-atom capture (335 KiB): 8 channels per irrep, 24 edges for A1, all nodes and indices |
 
@@ -74,6 +76,13 @@ python profile_device_step.py --device neuron --no-profile --fuse edge,dense --b
 # model-level acceptance: CPU MACE (baseline) against the target
 python accept.py                                                # CPU MACE vs CPU MACE
 python accept.py --target trnsci --device neuron --backend nki --batch 8
+# the fused library ops (#178 item 1): accuracy at the captures, then the step
+python check_fused.py                                              # CPU, PyTorch paths
+python check_fused.py --device neuron --backend nki                # the NKI kernels
+python mace_trnsci_step.py --mode trnsci --device neuron --fuse all --region-backend neuron \
+    --count-ops --json fused.json
+python mace_trnsci_step.py --mode trnsci --device neuron --fuse all --backend nki \
+    --region-backend neuron --batch 8 --json fused_b8.json
 ```
 
 **Batching.** `--batch B` takes the `--structure` list cycled with seeds
