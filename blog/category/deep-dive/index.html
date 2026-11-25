@@ -5403,6 +5403,49 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-11-25 00:00:00+00:00">November 25, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="./" class="md-meta__link">Deep dive</a>, 
+              <a href="../trntensor/" class="md-meta__link">trntensor</a>, 
+              <a href="../trnsparse/" class="md-meta__link">trnsparse</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              13 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trntensor-and-trnsparse-a-mace-force-step-on-trainium-from-14-s-to-40-ms"><a class="toclink" href="../../trntensor-and-trnsparse-a-mace-force-step-on-trainium-from-14-s-to-40-ms/">trntensor and trnsparse: a MACE force step on Trainium, from 14 s to 40 ms</a></h2>
+<p>One energy-plus-forces step of the open MACE-MP-0b2 potential on a 216-atom slab takes <a href="https://github.com/trnsci/trnsci/pull/171#issuecomment-7133104908">14.2 s</a> on a Trn2 logical core when the model runs unmodified, <a href="https://github.com/trnsci/trnsci/issues/178#issuecomment-7139276175">118 ms</a> with its contractions on trntensor kernels and its graph sums on trnsparse kernels, and 39.3 ms once the rest of the model is fused and the edge count padded to a bucket. The kernels looked like the work, but at 118 ms they were a quarter of the step. And the size guard the suite added for safety was wrong: at 4096 atoms the kernel was exact, and the aten fallback it routed to broke. This post is for anyone running machine-learned interatomic potentials who wants to know what Trainium asks of a model, and what it gives back: bitwise-reproducible forces.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trntensor-and-trnsparse-a-mace-force-step-on-trainium-from-14-s-to-40-ms/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-11-10 00:00:00+00:00">November 10, 2026</time></li>
         
           <li class="md-meta__item">
@@ -5770,48 +5813,6 @@
     
       <nav class="md-post__action">
         <a href="../../trnfft-batch-fusion-and-the-first-fft-result-that-beats-the-cpu/">
-          Continue reading
-        </a>
-      </nav>
-    
-    
-  </div>
-</article>
-      
-        <article class="md-post md-post--excerpt">
-  <header class="md-post__header">
-    
-    <div class="md-post__meta md-meta">
-      <ul class="md-meta__list">
-        <li class="md-meta__item">
-          <time datetime="2026-10-31 00:00:00+00:00">October 31, 2026</time></li>
-        
-          <li class="md-meta__item">
-            in
-            
-              <a href="./" class="md-meta__link">Deep dive</a>, 
-              <a href="../trnrand/" class="md-meta__link">trnrand</a></li>
-        
-        
-          
-          <li class="md-meta__item">
-            
-              10 min read
-            
-          </li>
-        
-        
-      </ul>
-      
-    </div>
-  </header>
-  <div class="md-post__content md-typeset">
-    <h2 id="trnrand-the-2-floor-of-bit-identical-threefry"><a class="toclink" href="../../trnrand-the-2-floor-of-bit-identical-threefry/">trnrand: the 2× floor of bit-identical Threefry</a></h2>
-<p>trnrand v0.9.0 takes the full-word Threefry kernel from 5.0 to 2.5 ms at 4M normals on Trn2. It also brings <code>trnrand.normal(4M)</code>, measured end to end to a host tensor, to 5.5–8.1 ms, below CPU <code>randn</code> at 11.5–15.6 ms. Most of that gain came from moving host work off the critical path and from noticing the kernel had been running twice. The part worth writing about is the kernel's floor, which sits at about 2× aten <code>randn</code> for a reason the <a href="https://trnsci.dev/blog/trnrand-rng-is-a-four-engine-workload-if-the-silicon-lets-you-say-so/">four-engine post</a> did not anticipate: on this silicon, GpSimd and the Vector Engine cannot overlap. Anyone planning to spread an integer workload across Trainium's engines and expecting the engine times to overlap should read the profile below first.</p>
-
-    
-      <nav class="md-post__action">
-        <a href="../../trnrand-the-2-floor-of-bit-identical-threefry/">
           Continue reading
         </a>
       </nav>

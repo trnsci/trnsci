@@ -5403,6 +5403,49 @@
     <div class="md-post__meta md-meta">
       <ul class="md-meta__list">
         <li class="md-meta__item">
+          <time datetime="2026-11-25 00:00:00+00:00">November 25, 2026</time></li>
+        
+          <li class="md-meta__item">
+            in
+            
+              <a href="../deep-dive/" class="md-meta__link">Deep dive</a>, 
+              <a href="../trntensor/" class="md-meta__link">trntensor</a>, 
+              <a href="./" class="md-meta__link">trnsparse</a></li>
+        
+        
+          
+          <li class="md-meta__item">
+            
+              13 min read
+            
+          </li>
+        
+        
+      </ul>
+      
+    </div>
+  </header>
+  <div class="md-post__content md-typeset">
+    <h2 id="trntensor-and-trnsparse-a-mace-force-step-on-trainium-from-14-s-to-40-ms"><a class="toclink" href="../../trntensor-and-trnsparse-a-mace-force-step-on-trainium-from-14-s-to-40-ms/">trntensor and trnsparse: a MACE force step on Trainium, from 14 s to 40 ms</a></h2>
+<p>One energy-plus-forces step of the open MACE-MP-0b2 potential on a 216-atom slab takes <a href="https://github.com/trnsci/trnsci/pull/171#issuecomment-7133104908">14.2 s</a> on a Trn2 logical core when the model runs unmodified, <a href="https://github.com/trnsci/trnsci/issues/178#issuecomment-7139276175">118 ms</a> with its contractions on trntensor kernels and its graph sums on trnsparse kernels, and 39.3 ms once the rest of the model is fused and the edge count padded to a bucket. The kernels looked like the work, but at 118 ms they were a quarter of the step. And the size guard the suite added for safety was wrong: at 4096 atoms the kernel was exact, and the aten fallback it routed to broke. This post is for anyone running machine-learned interatomic potentials who wants to know what Trainium asks of a model, and what it gives back: bitwise-reproducible forces.</p>
+
+    
+      <nav class="md-post__action">
+        <a href="../../trntensor-and-trnsparse-a-mace-force-step-on-trainium-from-14-s-to-40-ms/">
+          Continue reading
+        </a>
+      </nav>
+    
+    
+  </div>
+</article>
+      
+        <article class="md-post md-post--excerpt">
+  <header class="md-post__header">
+    
+    <div class="md-post__meta md-meta">
+      <ul class="md-meta__list">
+        <li class="md-meta__item">
           <time datetime="2026-11-04 00:00:00+00:00">November 4, 2026</time></li>
         
           <li class="md-meta__item">
