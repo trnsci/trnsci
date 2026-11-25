@@ -4437,43 +4437,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#kernel-matrix-products-kernel_matmul-93" class="md-nav__link">
+  <a href="#graph-segment-sum-and-gather-segment_sum-gather-139" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Kernel-matrix products (kernel_matmul, #93)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#screening" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Screening
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dispatch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dispatch
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#multi-core-trnsparsemulticore-native-path" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Multi-core (trnsparse.multicore, native path)
+        Graph segment sum and gather (segment_sum, gather, #139)
       
     </span>
   </a>
@@ -4894,6 +4861,8 @@
       
         
       
+        
+      
     
     
     
@@ -5075,6 +5044,34 @@
     
   
     Streaming DF integrals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/equivariant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equivariant contractions
   
 
     
@@ -5523,43 +5520,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#kernel-matrix-products-kernel_matmul-93" class="md-nav__link">
+  <a href="#graph-segment-sum-and-gather-segment_sum-gather-139" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Kernel-matrix products (kernel_matmul, #93)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#screening" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Screening
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dispatch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dispatch
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#multi-core-trnsparsemulticore-native-path" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Multi-core (trnsparse.multicore, native path)
+        Graph segment sum and gather (segment_sum, gather, #139)
       
     </span>
   </a>
@@ -5631,6 +5595,44 @@
 <code>power_iteration_bsr</code>, <code>power_iteration_bsr_fused</code>,
 <code>jacobi_preconditioner_bsr</code>, <code>bsr_diagonal</code>. See
 <a href="../iterative_solvers/">Iterative solvers</a>.</p>
+<h2 id="graph-segment-sum-and-gather-segment_sum-gather-139">Graph segment sum and gather (<code>segment_sum</code>, <code>gather</code>, #139)<a class="headerlink" href="#graph-segment-sum-and-gather-segment_sum-gather-139" title="Permanent link">&para;</a></h2>
+<p>The graph block of a message-passing interatomic potential (the MLIP
+exemplar, trnsci/trnsci#170), with MACE's <code>scatter_sum</code> semantics.</p>
+<ul>
+<li><code>segment_sum(m, idx, num_segments, *, plan=None)</code> — <code>out[i] = Σ m[e]</code> over
+  the edges with <code>idx[e] == i</code>; rows with no edge are 0. <code>m</code> is <code>[E, ...]</code>,
+  <code>idx</code> is <code>[E]</code> int64 / int32, sorted or not. Backward: <code>gather</code>.</li>
+<li><code>gather(h, idx, *, plan=None)</code> — <code>out[e] = h[idx[e]]</code>. Backward:
+  <code>segment_sum</code>.</li>
+<li><code>segment_plan(idx, num_segments, *, padding=None)</code> → <code>SegmentPlan</code> — sorts
+  the edges by segment once on the host (stable, int64) and builds the
+  kernel's tile layout. Build one per neighbour list (senders and receivers
+  each) and pass it as <code>plan=</code>; <code>.to(device)</code> stages its tables.</li>
+<li><code>padding</code>: an <code>[E]</code> bool mask of the edges that pad E to a compile
+    bucket. Padded edges take no slots, and every sum the plan computes skips
+    them: <code>segment_sum</code> ignores <code>m</code> there, and so does the backward of
+    <code>gather</code>. <code>gather</code> and the backward of <code>segment_sum</code> still fill padded
+    rows (with <code>h[idx[e]]</code> / <code>grad[idx[e]]</code>). The sums are bitwise those of
+    the plan over the real edges alone, wherever the padding points, on
+    every backend. Without a mask, padding edges are ordinary edges: give
+    them zero messages and spread them over segments 0, 1, 2, …, since
+    piling them on one segment raises the slot count of every tile (#141).</li>
+</ul>
+<p>Backends: <code>pytorch</code> is the reference (<code>index_add_</code> / <code>index_select</code>;
+deterministic on the CPU). On NKI, the <code>trnsparse::segment_sum_tiles</code> and
+<code>trnsparse::gather_rows</code> ops (each registered as the other's backward)
+reduce each 128-row tile on the TensorEngine: a 0/1 incidence tile times
+128 gathered message rows per <code>nc_matmul</code>, fp32 PSUM accumulation, in an
+order fixed by the plan. Results are bitwise identical run to run and at
+LNC=1 and LNC=2. No index is computed on the device or passes through fp32,
+and there is no flattened <code>E·F</code> / <code>N·F</code> index (aws-neuron-sdk#1466, #1467,</p>
+<h1 id="1468-one-launch-addresses-operands-up-to-234-bytes-8000-atoms-at">1468). One launch addresses operands up to 2^34 bytes (8000 atoms at<a class="headerlink" href="#1468-one-launch-addresses-operands-up-to-234-bytes-8000-atoms-at" title="Permanent link">&para;</a></h1>
+<p>F = 5120 is 9.4e9 bytes, verified on trn2, #141); a wider call splits the
+feature axis, one launch per chunk over the same plan, bitwise equal to one
+launch. Size alone no longer sends an fp32 call to device aten, whose
+<code>index_add_</code> / <code>index_select</code> fail at these sizes. fp64 follows the suite policy (host
+torch under <code>auto</code>). See the <code>trnsparse.segment</code> module
+docstring for the summation order and limits.</p>
 <h2 id="kernel-matrix-products-kernel_matmul-93">Kernel-matrix products (<code>kernel_matmul</code>, #93)<a class="headerlink" href="#kernel-matrix-products-kernel_matmul-93" title="Permanent link">&para;</a></h2>
 <p><code>K(X, Y) @ V</code> without forming <code>K</code>, for stationary kernels of the distance:
 <code>"rbf"</code>, <code>"matern12"</code>, <code>"matern32"</code>, <code>"matern52"</code> (<code>trnsparse.KERNELS</code>).

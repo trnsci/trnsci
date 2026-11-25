@@ -4884,6 +4884,8 @@
       
         
       
+        
+      
     
     
     
@@ -5065,6 +5067,34 @@
     
   
     Streaming DF integrals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trntensor/api/equivariant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equivariant contractions
   
 
     
@@ -5627,18 +5657,18 @@ hardware" milestone.</p>
 <td>1: a device <code>aten::convolution</code> compile failure (<a href="https://github.com/trnsci/trnfft/issues/155">trnfft#155</a>, platform)</td>
 </tr>
 <tr>
-<td>trnblas 0.13.0</td>
-<td>2026-11-10, window 6</td>
-<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6756567385">comment</a></td>
+<td>trnblas 0.14.0</td>
+<td>2026-11-24, window 7</td>
+<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-7134816917">comment</a> (<code>main</code> at <code>56aeffa</code>); Ozaki II <a href="https://github.com/trnsci/trnblas/pull/133#issuecomment-7134867580">trnblas#133</a>, <code>trnblas.fp64</code> <a href="https://github.com/trnsci/trnblas/pull/134">trnblas#134</a></td>
 <td>263 passed, 0 failed</td>
-<td>2022: complex <code>mv</code> unsupported and device float64 at fp32 (2012), test tolerance (8), harness (2); no fp32 / bf16 / fp16 failures</td>
+<td>2022, the window-6 IDs: complex <code>mv</code> unsupported and device float64 at fp32 (2012), test tolerance (8), harness (2); no fp32 / bf16 / fp16 failures</td>
 </tr>
 <tr>
-<td>trnrand 0.14.0</td>
-<td>2026-11-03, window 4</td>
-<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6616562992">comment</a></td>
-<td>407 passed, 0 failed</td>
-<td>5: the documented Poisson normal approximation at λ ≥ 20 (<a href="https://github.com/trnsci/trnrand/issues/88">trnrand#88</a>)</td>
+<td>trnrand 0.15.0</td>
+<td>2026-11-24, window 7</td>
+<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-7134816917">comment</a> (<code>main</code> at <code>b1b3052</code>)</td>
+<td>406 passed, 0 failed</td>
+<td>5: the documented Poisson normal approximation at 20 ≤ λ &lt; 1e4 (<a href="https://github.com/trnsci/trnrand/issues/88">trnrand#88</a>)</td>
 </tr>
 <tr>
 <td>trnsolver 0.23.0</td>
@@ -5648,21 +5678,22 @@ hardware" milestone.</p>
 <td>100: complex linalg unsupported (41), device float64 at fp32 (59); plus 1 xfail, device float64 residual tolerance (<a href="https://github.com/trnsci/trnsolver/issues/144">trnsolver#144</a>)</td>
 </tr>
 <tr>
-<td>trnsparse 0.16.1</td>
-<td>2026-11-10, window 6</td>
-<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6761384230">comment</a> (0.16.0: <a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6756919429">comment</a>)</td>
-<td>317 passed, 0 failed (0.16.0: 4 GiB opt-in 2/2)</td>
+<td>trnsparse 0.17.0</td>
+<td>2026-11-24, window 7</td>
+<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-7134816917">comment</a> (<code>main</code> at <code>efe5f46</code>); segment kernels <a href="https://github.com/trnsci/trnsparse/pull/140#issuecomment-7144005224">trnsparse#140</a> and <a href="https://github.com/trnsci/trnsparse/pull/144">#144</a>, exact diagonal <a href="https://github.com/trnsci/trnsparse/pull/142#issuecomment-7156374646">#142</a></td>
+<td>317 passed, 0 failed</td>
 <td>85: complex <code>mv</code> unsupported (64), device float64 at fp32 (12), harness (8), fp16 <code>sqrt</code> ulp (1)</td>
 </tr>
 <tr>
-<td>trntensor 0.25.2</td>
-<td>2026-11-10, window 6</td>
-<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6761384230">comment</a></td>
+<td>trntensor 0.26.0</td>
+<td>2026-11-24, window 7</td>
+<td><a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-7134816917">comment</a> (<code>main</code> at <code>1878481</code>); equivariant kernels <a href="https://github.com/trnsci/trntensor/pull/139#issuecomment-7147182408">trntensor#139</a></td>
 <td>144 passed, 0 failed</td>
 <td>10: complex SVD / solve unsupported (9), device float64 at fp32 (1)</td>
 </tr>
 </tbody>
 </table>
+<p>The window-7 rows ran <code>-m neuron</code> and device conformance on <code>main</code> before the release's new features merged; each feature PR ran its own device tests on Trn2 (SDK 2.33.1), linked in the record column.</p>
 <p>Every device conformance failure in these runs is in a documented platform category, a test-harness limit or a documented approximation, and none is new against the window-4 baselines. The platform categories are on <a href="../precision_and_platform_limits/">precision and platform limits</a>. The window-3 <a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6570060466">audit</a> and <a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6574951854">scoreboard</a>, and the window-4 <a href="https://github.com/trnsci/trnsci/issues/35#issuecomment-6604543845">conformance triage</a>, set those baselines.</p>
 <h3 id="conformance">Conformance against independent references<a class="headerlink" href="#conformance" title="Permanent link">&para;</a></h3>
 <p>The suites used to test the NKI path against the library's own pytorch path. That passes any bug in code both paths share: argument parsing, a planner, a host wrapper. Since November 2026 every library also has <code>tests/test_conformance.py</code> (<a href="https://github.com/trnsci/trnsci/issues/105">trnsci#105</a>). Each public API is checked against a reference that shares no code with it (<code>torch.fft</code>, <code>torch.einsum</code>, <code>torch.linalg</code>, scipy or a dense formula, in float64 on the host), at awkward sizes (1, 2, primes, 127 and 129 around the tile, 513, 1000) and with non-default keywords, dtypes, strides, empty shapes, <code>out=</code>, aliasing and autograd. The same cases run in CPU CI and, by hand, on the device. The audits that led to them found about 60 silent wrong-result bugs in released versions; each README lists them under "Known issues in earlier releases" (<a href="../blog/trnsci-the-suites-silent-wrong-answers-and-the-float64-rule-that-came-out-of-them/">the post</a>).</p>

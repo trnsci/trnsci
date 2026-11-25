@@ -2468,13 +2468,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#gemm_fp64a-b-slices8-transafalse-transbfalse" class="md-nav__link">
+  <a href="#gemm_fp64a-b-slices8-transafalse-transbfalse-schemeozaki1-modulinone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        gemm_fp64(A, B, *, slices=8, transA=False, transB=False)
+        gemm_fp64(A, B, *, slices=8, transA=False, transB=False, scheme="ozaki1", moduli=None)
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="gemm_fp64(A, B, *, slices=8, transA=False, transB=False, scheme=&#34;ozaki1&#34;, moduli=None)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schemeozaki2-prototype-132" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scheme="ozaki2" (prototype, #132)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4918,6 +4935,8 @@
       
         
       
+        
+      
     
     
     
@@ -5099,6 +5118,34 @@
     
   
     Streaming DF integrals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trntensor/api/equivariant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equivariant contractions
   
 
     
@@ -5536,13 +5583,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#gemm_fp64a-b-slices8-transafalse-transbfalse" class="md-nav__link">
+  <a href="#gemm_fp64a-b-slices8-transafalse-transbfalse-schemeozaki1-modulinone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        gemm_fp64(A, B, *, slices=8, transA=False, transB=False)
+        gemm_fp64(A, B, *, slices=8, transA=False, transB=False, scheme="ozaki1", moduli=None)
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="gemm_fp64(A, B, *, slices=8, transA=False, transB=False, scheme=&#34;ozaki1&#34;, moduli=None)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schemeozaki2-prototype-132" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scheme="ozaki2" (prototype, #132)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5646,7 +5710,7 @@ CPU/GPU.</p>
 <h2 id="batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse"><code>batched_gemm(alpha, A, B, beta=0.0, C=None, transA=False, transB=False)</code><a class="headerlink" href="#batched_gemmalpha-a-b-beta00-cnone-transafalse-transbfalse" title="Permanent link">&para;</a></h2>
 <p>Batched GEMM over the leading dimension — used for DF-MP2 tensor contractions
 over auxiliary basis indices. Routed like <code>gemm</code> on the native path.</p>
-<h2 id="gemm_fp64a-b-slices8-transafalse-transbfalse"><code>gemm_fp64(A, B, *, slices=8, transA=False, transB=False)</code><a class="headerlink" href="#gemm_fp64a-b-slices8-transafalse-transbfalse" title="Permanent link">&para;</a></h2>
+<h2 id="gemm_fp64a-b-slices8-transafalse-transbfalse-schemeozaki1-modulinone"><code>gemm_fp64(A, B, *, slices=8, transA=False, transB=False, scheme="ozaki1", moduli=None)</code><a class="headerlink" href="#gemm_fp64a-b-slices8-transafalse-transbfalse-schemeozaki1-modulinone" title="Permanent link">&para;</a></h2>
 <p>fp64-class product <code>op(A) @ op(B)</code> on the bf16 Tensor Engine, by Ozaki
 splitting (<a href="https://github.com/trnsci/trnblas/issues/22">#22</a>). Returns
 float64 on A's device. <code>slices</code> (k, 1–12) is the precision knob.</p>
@@ -5732,6 +5796,38 @@ float64 on A's device. <code>slices</code> (k, 1–12) is the precision knob.</p
 <p>See <a href="../../benchmarks/#device-split-123">Benchmarks</a>.</p>
 <p><code>alpha</code> / <code>beta</code> are not taken: scale the fp64 result. Batched operands are
 not supported.</p>
+<h3 id="schemeozaki2-prototype-132"><code>scheme="ozaki2"</code> (prototype, <a href="https://github.com/trnsci/trnblas/issues/132">#132</a>)<a class="headerlink" href="#schemeozaki2-prototype-132" title="Permanent link">&para;</a></h3>
+<p>The Ozaki scheme II (Ozaki, Uchino and Imamura, arXiv:2504.08009) in place
+of the slicing above; <code>scheme="ozaki1"</code> stays the default. Host half:
+<code>trnblas/ozaki2.py</code>; kernels: <code>trnblas/nki/ozaki2_kernels.py</code>.</p>
+<ol>
+<li><strong>Scale (host).</strong> Row i of A by 2^mu_i and column j of B by 2^nu_j, then
+   round to integers. The exponents come from the Cauchy–Schwarz bound
+   ||Ā_i||·||B̄_j|| ≤ M/4, with M the product of the moduli.</li>
+<li><strong>Residues (host).</strong> Balanced residues modulo <code>moduli</code> (n) pairwise
+   coprime odd moduli below 2^7 (127, 125, 123, ...), |r| ≤ 63, exact in bf16.</li>
+<li><strong>Residue GEMMs (device, one launch for all moduli).</strong> One bf16 GEMM per
+   modulus with fp32 PSUM groups of 4096 terms (4096·63² &lt; 2^24, exact),
+   and a 4-instruction VectorE modular reduction at each group close, then
+   a canonical residue.</li>
+<li><strong>CRT (device).</strong> Exact fp32 integer ops: limb sums of the CRT weights,
+   the quotient by M, carries to balanced digits, packed digit pairs; the
+   host sums the top few in fp64 and unscales.</li>
+</ol>
+<p><code>moduli</code> is the precision knob, about 3.3 bits per modulus (n GEMMs, against
+k(k+1)/2 for Ozaki I). The default of 17 gives about 53 bits of |A||B|, the
+level of <code>slices=8</code> (36 GEMMs). The result is deterministic: residues are
+canonical, so every bit is a function of the scaled integers only,
+independent of the tiling and the LNC split, and equals
+<code>trnblas.ozaki2.reference_gemm</code>.</p>
+<p>On Trn2 (one logical core, LNC=2, kernel time on resident operands, #132),
+the device result is bitwise equal to <code>reference_gemm</code> at LNC=1 and LNC=2.
+At 53 bits, the fused kernel (<code>crt_mode="fused"</code>) takes 0.57× Ozaki I's
+kernel time at 4096³ and 0.53× at 8192³. On the DF-MP2 shapes
+(3267, 8400, 241) and (8192, 3508, 241) it takes 0.53× and 0.57×. At
+2048³ and below it is no faster (1.0× at 2048³, 2.0× at 1024³). End to
+end, the prototype loses to Ozaki I, because it still scales and reduces
+the operands on the host.</p>
 <h2 id="symmalpha-a-b-beta00-cnone-sideleft-uploupper"><code>symm(alpha, A, B, beta=0.0, C=None, side="left", uplo="upper")</code><a class="headerlink" href="#symmalpha-a-b-beta00-cnone-sideleft-uploupper" title="Permanent link">&para;</a></h2>
 <p>Symmetric matrix-matrix multiply. No NKI kernel: torch on the operands'
 device; on the native path, large host problems run as upload + aten.</p>
