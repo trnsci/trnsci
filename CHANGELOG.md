@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `CITATION.cff` (Citation File Format 1.2.0) so the suite can be cited; GitHub shows a "Cite this repository" entry.
+
 ### Changed
 
 - `conda-recipes/trnsci` pins trnsci 0.2.3 (sdist sha256 from PyPI), as
