@@ -170,6 +170,24 @@ def test_batched_split_is_bitwise_and_matches_cpu(live, stress):
             assert float((p["stress"].double() - r.stress).abs().max()) < 1e-6
 
 
+def test_reference_cache_round_trip(live, tmp_path, monkeypatch):
+    """MLIP_REF_CACHE: the second call loads the stored reference (same
+    energy, forces and measured cpu_ref_s) and marks it cached; a different
+    geometry misses."""
+    import mace_setup as ms
+
+    monkeypatch.setenv("MLIP_REF_CACHE", str(tmp_path / "refs"))
+    a0 = ms.build_structure("molecule_box_16", 0)
+    (r1,) = cpu_ref.cpu_reference(live, [a0], 1)
+    assert not r1.cached and r1.cpu_ref_s > 0
+    (r2,) = cpu_ref.cpu_reference(live, [ms.build_structure("molecule_box_16", 0)], 1)
+    assert r2.cached and r2.cpu_ref_s == r1.cpu_ref_s and r2.energy == r1.energy
+    assert torch.equal(r2.forces, r1.forces)
+    assert cpu_ref.compare(r1.energy, r1.forces.float(), r2)["cpu_ref_cached"]
+    (r3,) = cpu_ref.cpu_reference(live, [ms.build_structure("molecule_box_16", 1)], 1)
+    assert not r3.cached
+
+
 def _main(mod, argv, monkeypatch):
     monkeypatch.setattr(sys, "argv", [mod.__name__ + ".py", *argv])
     mod.main()

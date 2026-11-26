@@ -31,6 +31,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `check_fused.py` checks each fused op against MACE at the six exemplar
   captures. It compares the output and the input gradient for the real
   force-step cotangent against MACE fp32 and fp64.
+- `examples/mlip/cpu_ref.py`: opt-in CPU-reference cache
+  (`MLIP_REF_CACHE=<dir>`, filled with `python cpu_ref.py --structure …
+  --seeds 0-63`), keyed by the exact inputs, the model parameters, the
+  thread count and `stress`. A cached reference keeps its measured
+  `cpu_ref_s` and is reported as `cpu_ref_cached`. At 1728 atoms the
+  reference takes ~40 s per structure on 2 threads, which alone exceeded a
+  device-run slot at batch 32 (window 8).
+- `mace_trnsci_step.py --count-ops` also records `measured_dispatches`: the
+  top-level host dispatches of one step from the PyTorch profiler, one per
+  compiled-region call plus every operator outside one (`total`, and
+  `non_view` without views and copy-free composites). The dispatch-mode
+  counts now run with the region backend off, because TorchDynamo does not
+  trace under a dispatch mode; before, `--fuse … --region-backend neuron
+  --count-ops` failed after the timing.
 
 ### Changed
 

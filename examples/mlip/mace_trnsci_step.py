@@ -607,6 +607,84 @@ def count_ops(fn) -> dict:
     }
 
 
+def measured_dispatches(fn) -> dict:
+    """Dispatches of one call of ``fn`` as the host issues them, from the
+    PyTorch profiler: top-level operators (aten, the trnsci custom ops) plus
+    one per compiled-region call (``Torch-Compiled Region`` / compiled
+    autograd functions), not counting anything nested inside those. Unlike
+    ``count_ops`` this works with compiled regions on, since it needs no
+    dispatch mode (TorchDynamo refuses to trace under one)."""
+    import collections
+
+    from torch.profiler import ProfilerActivity, profile
+
+    def is_region(n):
+        return n.startswith(("Torch-Compiled Region", "CompiledFunction"))
+
+    def is_op(n):
+        return "::" in n and n.split("::")[0] in (
+            "aten",
+            "trntensor",
+            "trnsparse",
+            "neuron",
+        )
+
+    with profile(activities=[ProfilerActivity.CPU]) as prof:
+        fn()
+    counts: collections.Counter = collections.Counter()
+    for e in prof.events():
+        n = e.name
+        if not (is_op(n) or is_region(n)):
+            continue
+        p, nested = e.cpu_parent, False
+        while p is not None:
+            if is_op(p.name) or is_region(p.name):
+                nested = True
+                break
+            p = p.cpu_parent
+        if not nested:
+            counts["compiled_region" if is_region(n) else n] += 1
+    kernels = sum(
+        v for k, v in counts.items() if k.split("::")[0] in ("trntensor", "trnsparse")
+    )
+
+    def launches(name):
+        # views and composite ops that alias or return the input when nothing
+        # changes issue no device work by themselves; everything else may
+        if not name.startswith("aten::"):
+            return True
+        op = name.split("::", 1)[1]
+        if op in _COMPOSITE_MAYBE_COPY:
+            return False
+        packet = getattr(torch.ops.aten, op, None)
+        if packet is None:
+            return True
+        try:
+            return not any(getattr(packet, o).is_view for o in packet.overloads())
+        except Exception:  # noqa: BLE001 - unknown overload metadata: count it
+            return True
+
+    return {
+        "total": sum(counts.values()),
+        "non_view": sum(v for k, v in counts.items() if launches(k)),
+        "compiled_region_calls": counts.get("compiled_region", 0),
+        "trnsci_kernels": kernels,
+        "top": counts.most_common(15),
+        "top_non_view": [kv for kv in counts.most_common() if launches(kv[0])][:15],
+    }
+
+
+# Composite aten ops that are views or no-ops unless they must copy (reshape of
+# a non-contiguous tensor, ``to`` a new dtype/device, ...): left out of
+# ``measured_dispatches()["non_view"]``; any copy they do shows up as a nested
+# ``aten::copy_`` / ``aten::_to_copy``, which is not counted either, so
+# ``non_view`` is a lower bound and ``total`` an upper bound.
+_COMPOSITE_MAYBE_COPY = frozenset(
+    {"to", "reshape", "contiguous", "flatten", "type_as", "view_as", "expand_as"}
+    | {"split", "chunk", "unbind", "narrow", "unflatten", "movedim", "swapaxes"}
+)
+
+
 def replay_shares(rec: list, dev, warm: int, reps: int) -> list:
     """Time each recorded block call in isolation: forward + the input gradients
     the step needed (the step's grad_out as cotangent)."""
@@ -782,21 +860,37 @@ def main() -> None:
     if args.batch > 1 and mode != "off" and args.pad != "none":
         res["split_check"] = split_check(st, bitwise=mode == "bitwise")
     if args.count_ops:
-        with st:
-            res["ops"] = count_ops(st.run)
+        regions = args.mode == "trnsci" and hasattr(trntensor, "get_region_backend")
+        measured = None
         if args.mode == "trnsci":
-            # Expected device dispatches: every recorded block / fused call as one
-            # kernel or compiled graph per direction, the rest as counted here.
-            rec_c = []
-            with st.recording(rec_c):
-                st.run()
-            fam = launch_estimate(rec_c)
-            res["ops"]["by_family"] = fam
-            res["ops"]["device_estimate"] = (
-                res["ops"]["total"]
-                - sum(f["ops"] for f in fam.values())
-                + sum(f["launches"] for f in fam.values())
-            )
+            # Measured with the regions on. The dispatch-mode counts below
+            # (count_ops, launch_estimate) run with them off: TorchDynamo does
+            # not trace under a dispatch mode.
+            with st:
+                measured = measured_dispatches(st.run)
+        prev_region = trntensor.get_region_backend() if regions else None
+        if regions:
+            trntensor.set_region_backend(None)
+        try:
+            with st:
+                res["ops"] = count_ops(st.run)
+            if args.mode == "trnsci":
+                res["ops"]["measured_dispatches"] = measured
+                # Expected device dispatches: every recorded block / fused call as
+                # one kernel or compiled graph per direction, the rest as counted.
+                rec_c = []
+                with st.recording(rec_c):
+                    st.run()
+                fam = launch_estimate(rec_c)
+                res["ops"]["by_family"] = fam
+                res["ops"]["device_estimate"] = (
+                    res["ops"]["total"]
+                    - sum(f["ops"] for f in fam.values())
+                    + sum(f["launches"] for f in fam.values())
+                )
+        finally:
+            if regions:
+                trntensor.set_region_backend(prev_region)
     if args.shares and args.mode == "trnsci":
         rec = []
         with st.recording(rec):
