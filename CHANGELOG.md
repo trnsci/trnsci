@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] — 2026-11-28
+
+`pip install "trnsci[all]==0.2.4"` requires the five releases from Trn2
+window 8 ([#35](https://github.com/trnsci/trnsci/issues/35#issuecomment-7236349813)):
+trnblas 0.15.0, trnfft 0.30.0, trnsolver 0.24.0, trnsparse 0.18.0 and
+trntensor 0.27.0.
+
 ### Added
 
 - `examples/mlip/`: MACE-style MLIP exemplar, CPU step
@@ -49,6 +56,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Extras minimums: `trnblas>=0.15` (device combine for `gemm_fp64`),
+  `trnfft>=0.30` (`precision="dw"` FFT), `trnsolver>=0.24`, `trnsparse>=0.18`
+  and `trntensor>=0.27` (fused MLIP ops for the
+  [MLIP exemplar](https://github.com/trnsci/trnsci/issues/178)); all five carry the
+  PSUM accumulation fix ([#185](https://github.com/trnsci/trnsci/issues/185)).
+  trnrand is unchanged. The trnsci conda recipe's `run` minimums follow, and
+  the five library recipes pin the new releases (sdist sha256 from PyPI). The
+  trnsci recipe itself moves to 0.2.4 after the sdist is published.
+- docs: validation-status and roadmap rows for the five releases.
 - `conda-recipes/trnsci` pins trnsci 0.2.3 (sdist sha256 from PyPI), as
   the 0.2.2 recipe followed its release.
 
