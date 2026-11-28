@@ -35,4 +35,4 @@ Each sub-project has its own `CLAUDE.md`, `pyproject.toml`, `tests/`, and `.git/
 
 ## Release coordination
 
-Sub-projects version independently. The umbrella `trnsci` package version reflects the meta-package itself, not the sub-projects. When a sub-project releases, bump the corresponding minimum in `pyproject.toml` extras.
+Sub-projects version independently. The umbrella `trnsci` package version reflects the meta-package itself, not the sub-projects. When a sub-project releases, bump the corresponding minimum in `pyproject.toml` extras. When the umbrella releases, also bump `version` and `date-released` in `CITATION.cff`.

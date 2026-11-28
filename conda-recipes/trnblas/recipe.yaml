@@ -1,6 +1,6 @@
 context:
   name: trnblas
-  version: "0.13.0"
+  version: "0.14.0"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  sha256: 018529e6311de4e83edd2b54895732fb5df68ec3a99b708f0d538566de93e2c9
+  sha256: aa85e35f3e55554a1fda20c5151e8a9fff330252daf864fc99cb8311112a26f4
 
 build:
   number: 0

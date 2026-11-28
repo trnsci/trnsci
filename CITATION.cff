@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use trnsci in your work, please cite it as below."
+title: "trnsci: a scientific computing suite for AWS Trainium via NKI"
+abstract: >-
+  trnsci is an umbrella for six scientific-computing libraries for AWS Trainium,
+  written against the Neuron Kernel Interface (NKI): trnfft (FFT and complex
+  tensors), trnblas (BLAS levels 1-3, fp64-class GEMM), trnrand (pseudo- and
+  quasi-random generation), trnsolver (factorizations, eigensolvers, Krylov
+  methods), trnsparse (sparse formats, SpMM, segment reductions) and trntensor
+  (einsum, tensor decompositions, equivariant contractions).
+type: software
+authors:
+  - family-names: Friedman
+    given-names: Scott
+version: 0.2.3
+date-released: "2026-11-25"
+license: Apache-2.0
+repository-code: "https://github.com/trnsci/trnsci"
+url: "https://trnsci.dev"
+keywords:
+  - AWS Trainium
+  - NKI
+  - Neuron
+  - scientific computing
+  - FFT
+  - BLAS
+  - sparse linear algebra
+  - eigensolvers
+  - tensor contractions
+  - fp64 emulation
