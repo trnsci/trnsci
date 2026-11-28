@@ -1,6 +1,6 @@
 # trnsci examples
 
-Four kinds of examples live here:
+Examples live here, grouped by kind:
 
 ## [`nvidia_samples/`](nvidia_samples/)
 
@@ -23,6 +23,10 @@ Synthetic complex-ratio-mask demo exercising `trnfft` STFT + complex NN layers +
 ## [`genomics/deepvariant/`](genomics/deepvariant/)
 
 Application exemplar for trnsci/trnsci#114: DeepVariant 1.9 `call_variants` (InceptionV3-class CNN inference on pileup tensors) rebuilt in PyTorch from the public WGS model, checked against TensorFlow on CPU, and run through a batched probe on `cpu` or a TorchNeuron `neuron` device. It uses none of the six libraries.
+
+## [`mlip/`](mlip/)
+
+MACE-style machine-learned interatomic potential (trnsci/trnsci#170): a CPU trace of the public MACE-MP-0b2 medium model (energy + forces through autograd) and the two block contracts it needs from the suite. Contract A is the equivariant contractions (interaction tensor product, symmetric contraction; trntensor). Contract B is graph gather / segment sum (trnsparse). Each comes with forward and input gradient, a plain-PyTorch reference, captured tensors and a checker for candidate kernels.
 
 ## Reverse direction
 

@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `examples/mlip/`: MACE-style MLIP exemplar, CPU step
+  ([#170](https://github.com/trnsci/trnsci/issues/170)). It profiles energy +
+  forces of the public MACE-MP-0b2 medium model, gives plain-PyTorch
+  references for the two block contracts (equivariant contraction:
+  trnsci/trntensor#138; graph gather / segment sum: trnsci/trnsparse#139), a
+  capture script and a candidate checker, and commits a 335 KiB fixture.
+  The tests run on CPU without MACE.
+- `examples/mlip/`: fused ops for the aten remainder of the MACE step
+  ([#178](https://github.com/trnsci/trnsci/issues/178), item 1).
+  `mace_trnsci_step.py --fuse sh,edge,zbl,linear,skip` (or `all`) swaps in
+  `trnsci_fused.py`, which uses trntensor's `spherical_harmonics`,
+  `edge_chain` and `equivariant_linear` plus an exemplar-side ZBL pair
+  energy per edge with an analytic backward. They work with the batched,
+  bucket-padded `Step`: padding edges contribute exactly zero. With
+  `--region-backend neuron` their bodies run as compiled graphs.
+  `--count-ops` estimates the device dispatches per step, counting each
+  block or fused call as one launch per direction. At 216 atoms
+  (bucket 224 / 10,752) the estimate is 1,523 unfused and 230 with every
+  fusion. Unpadded, the estimate is 1,474; Trn2 measured 1,530.
+  `check_fused.py` checks each fused op against MACE at the six exemplar
+  captures. It compares the output and the input gradient for the real
+  force-step cotangent against MACE fp32 and fp64.
+- `examples/mlip/cpu_ref.py`: opt-in CPU-reference cache
+  (`MLIP_REF_CACHE=<dir>`, filled with `python cpu_ref.py --structure …
+  --seeds 0-63`), keyed by the exact inputs, the model parameters, the
+  thread count and `stress`. A cached reference keeps its measured
+  `cpu_ref_s` and is reported as `cpu_ref_cached`. At 1728 atoms the
+  reference takes ~40 s per structure on 2 threads, which alone exceeded a
+  device-run slot at batch 32 (window 8).
+- `mace_trnsci_step.py --count-ops` also records `measured_dispatches`: the
+  top-level host dispatches of one step from the PyTorch profiler, one per
+  compiled-region call plus every operator outside one (`total`, and
+  `non_view` without views and copy-free composites). The dispatch-mode
+  counts now run with the region backend off, because TorchDynamo does not
+  trace under a dispatch mode; before, `--fuse … --region-backend neuron
+  --count-ops` failed after the timing.
 - `CITATION.cff` (Citation File Format 1.2.0) so the suite can be cited; GitHub shows a "Cite this repository" entry.
 
 ### Changed
