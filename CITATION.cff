@@ -12,8 +12,8 @@ type: software
 authors:
   - family-names: Friedman
     given-names: Scott
-version: 0.2.3
-date-released: "2026-11-25"
+version: 0.2.4
+date-released: "2026-11-28"
 license: Apache-2.0
 repository-code: "https://github.com/trnsci/trnsci"
 url: "https://trnsci.dev"
