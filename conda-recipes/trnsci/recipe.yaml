@@ -1,6 +1,6 @@
 context:
   name: trnsci
-  version: "0.2.3"
+  version: "0.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  sha256: 82491663294bbacec6a69fac092e3f1fc4f358dc2d3fecc29526472d28e3b793
+  sha256: 527d63b3eae1ad5731cb32e3aa6920b7ec70a33e00c68b80154346f8028ded3c
 
 build:
   number: 0
