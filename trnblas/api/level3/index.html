@@ -4937,6 +4937,8 @@
       
         
       
+        
+      
     
     
     
@@ -5146,6 +5148,34 @@
     
   
     Equivariant contractions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trntensor/api/mlip_edge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIP edge and node ops
   
 
     
@@ -5740,7 +5770,18 @@ float64 on A's device. <code>slices</code> (k, 1–12) is the precision knob.</p
 <li><strong>Eviction (device).</strong> Each group is scaled by 2^(7(k−1−d)) on its way out
    of PSUM and folded into an SBUF fp32 TwoSum (hi, lo) pair on VectorE,
    diagonals smallest first.</li>
-<li><strong>Combine (host).</strong> C = (hi + lo) · 2^(e_i + e_j − 12 − 7(k−1)) in fp64.</li>
+<li><strong>Combine (device, #125).</strong> C = RN64(hi + lo) · 2^(e_i + e_j − 12 − 7(k−1)),
+   the float64 words built on the device by <code>_fp64_ff_bits_kernel</code>
+   (<code>trnblas.fp64</code>, #134) from exact fp32 and bitvec ops, bitwise equal to
+   the host combine <code>trnblas.ozaki.combine</code>. The (hi, lo) blocks of one band
+   of output rows stay on the device, are joined along N, and one launch per
+   band writes the band's words, which are downloaded straight into the
+   result's storage. Rows the kernel flags (a non-finite element, or a
+   result outside the normal float64 range: overflow or gradual underflow)
+   are recombined on the host, as are products with several K blocks;
+   <code>TRNBLAS_OZAKI_DEVICE_COMBINE=0</code> keeps the host combine. Measured on
+   Trn2 for one 4096 × 4096 block: 14.5 ms against 79.4 ms for the
+   download and host combine.</li>
 </ol>
 <p>Properties:</p>
 <ul>

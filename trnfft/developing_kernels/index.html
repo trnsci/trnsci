@@ -4739,6 +4739,8 @@
       
         
       
+        
+      
     
     
     
@@ -4948,6 +4950,34 @@
     
   
     Equivariant contractions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/mlip_edge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIP edge and node ops
   
 
     
@@ -5510,8 +5540,12 @@ attached to the registered ops with <code>torch.library.register_autograd</code>
 </table>
 <h2 id="nki-030-calling-convention-since-this-is-the-floor">NKI 0.3.0 calling convention (since this is the floor)<a class="headerlink" href="#nki-030-calling-convention-since-this-is-the-floor" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>nisa.nc_matmul(dst=, stationary=, moving=, accumulate=True)</code> — all kwargs,
-  in-place accumulation into the PSUM tile.</li>
+<li><code>nisa.nc_matmul(dst=, stationary=, moving=, accumulate=...)</code> — all kwargs.
+  The first matmul into a PSUM location opens its accumulation group with
+  <code>accumulate=False</code> and later ones accumulate (<code>accumulate=k &gt; 0</code> over a
+  Python <code>range</code>). Do not zero a PSUM accumulator with <code>nl.zeros</code> or <code>memset</code>
+  and then accumulate onto it: on NeuronCore-v3 (Trn2) that is undefined
+  behaviour (trnsci/trnsci#185). <code>tests/test_psum_accumulate_lint.py</code> checks.</li>
 <li><code>nisa.tensor_copy</code> to materialize PSUM→SBUF. <code>nl.copy</code> now returns a view.</li>
 <li>Tensor-tensor <code>nl.divide</code> is gone; use <code>nl.multiply(x, nl.reciprocal(y))</code>.</li>
 <li>Partition-dim broadcasting is stricter on tensor-tensor arith — matching

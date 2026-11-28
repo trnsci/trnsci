@@ -4904,6 +4904,8 @@
       
         
       
+        
+      
     
     
     
@@ -5113,6 +5115,34 @@
     
   
     Equivariant contractions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/mlip_edge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIP edge and node ops
   
 
     
@@ -5814,7 +5844,14 @@ which of these features it uses:</p>
 <li><strong>Persistent operands</strong> — load once, reuse across many ops.</li>
 <li><strong>PSUM accumulator</strong> — 32-bit accumulator tile independent of
   SBUF, sized for systolic-array output. Use the <code>accumulate=True</code>
-  path on <code>nc_matmul</code> to keep results there.</li>
+  path on <code>nc_matmul</code> to keep results there, and open every
+  accumulation group with an <code>accumulate=False</code> matmul: peel the first
+  K step out of the <code>nl.affine_range</code> loop (its index is symbolic), or
+  use <code>accumulate=(k &gt; 0)</code> over a static <code>range</code>. Allocate the tile with
+  <code>nl.ndarray(..., buffer=nl.psum)</code>; do not zero it with <code>nl.zeros</code> and
+  accumulate onto that, which the <code>nc_matmul</code> docs call undefined
+  behaviour on NeuronCore-v3 (Trn2) (trnsci/trnsci#185;
+  <code>tests/test_psum_accumulate_lint.py</code> checks this).</li>
 <li><strong>Fused non-matmul reductions</strong> — patterns like
   <code>T * (2T − Tᵀ) / denom .sum()</code> have no cuBLAS equivalent. NKI
   lets us express them.</li>

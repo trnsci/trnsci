@@ -2067,6 +2067,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Precision modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#double-word-fft-dw-trnfftdwpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Double-word FFT ("dw", trnfft/dw.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -4863,6 +4880,8 @@
       
         
       
+        
+      
     
     
     
@@ -5072,6 +5091,34 @@
     
   
     Equivariant contractions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trntensor/api/mlip_edge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIP edge and node ops
   
 
     
@@ -5528,6 +5575,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Precision modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#double-word-fft-dw-trnfftdwpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Double-word FFT ("dw", trnfft/dw.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -5636,11 +5700,42 @@ covers the FP32 / FP64 modes; the BF16 modes (<code>"bf16"</code>, <code>"bf16_r
 <td>Near FP64</td>
 <td>No NKI: on the NKI path, FP64 work above the FP64 GEMM range computes on the host (v0.26.0, #109); power-of-2 N &gt; 1024 runs the FP32 kernels</td>
 </tr>
+<tr>
+<td><code>"dw"</code></td>
+<td>Power-of-2 N in [2, 4096]: double-word (float-float) FFT, every value hi + lo in FP32, butterflies from error-free FP32 transformations (#172); other N take the <code>"double"</code> route</td>
+<td>47.5–48.9 correct bits (CPU, against mpmath; host FP64 51.9–53.0, FP32 22.8–24.0)</td>
+<td>One NKI launch on the Vector engine (optionally Vector + GpSimd): 164 FP32 ops per point per twiddled radix-4 stage (115 with <code>add="sloppy"</code>), 900 per point at N = 4096; the CPU reference gives the same bits</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Recommendation:</strong> use <code>"fast"</code> for STFT, batched FFT, and any
 power-of-2 case. Use <code>"double"</code> when you need more than FP32 accuracy.
-Since v0.23.0 (#82) <code>"kahan"</code> takes the same GEMM paths as <code>"fast"</code> up to
+<code>"dw"</code> is the device arm of fp64-class accuracy (#172): its device timing
+against the host FP64 route is measured in the hardware window, so
+<code>"double"</code> stays the default accuracy-first mode until then.</p>
+<h3 id="double-word-fft-dw-trnfftdwpy">Double-word FFT (<code>"dw"</code>, <code>trnfft/dw.py</code>)<a class="headerlink" href="#double-word-fft-dw-trnfftdwpy" title="Permanent link">&para;</a></h3>
+<p>A Stockham autosort FFT, radix 4 with one leading radix-2 stage when
+log2 N is odd, on double-word complex data (four FP32 planes). The
+building blocks are Knuth's TwoSum, Dekker's FastTwoSum and FMA-free TwoProd
+(Veltkamp split), and the double-word addition and multiplication of
+Joldes, Muller and Popescu (ACM TOMS 44(2), 2017); complex products are a sum
+of two double-word products per component (Stloukal and Jézéquel,
+arXiv:2611.08371). Twiddles are computed in FP64 on the host with an octant
+reduction and split exactly into hi + lo.</p>
+<p>Why this maps to Trainium: the Vector and GpSimd engines round FP32 add,
+subtract and multiply to nearest even, so the error-free transformations
+are exact there (the E0 probe, trnsci/trnsci#169). The Tensor engine is not
+used: its FP32 products are not correctly rounded. There is no Vector-engine
+FMA, and the Scalar engine's fused <code>activation(scale * x + bias)</code> needs a
+per-partition factor (the twiddles vary along the free axis here) and
+flushes subnormal products, so every step is one unfused instruction.</p>
+<p>The kernel (<code>trnfft/nki/dw_fft.py</code>) runs the whole transform in one
+launch with the data in SBUF: each stage's output layout is the next stage's
+input layout, so there is no permutation. It runs the reference's own
+butterfly code through an ops object that issues one instruction per FP32
+operation, so a device result equals the CPU reference bit for bit at any
+batch, tiling and LNC (checked under <code>nki.simulate</code> at LNC = 1 and 2).</p>
+<p>Since v0.23.0 (#82) <code>"kahan"</code> takes the same GEMM paths as <code>"fast"</code> up to
 N = 4096 (they are more accurate on Trn2 than the Kahan butterfly) and is
 never less accurate than <code>"fast"</code>.</p>
 

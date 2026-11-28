@@ -5043,6 +5043,8 @@
       
         
       
+        
+      
     
     
     
@@ -5252,6 +5254,34 @@
     
   
     Equivariant contractions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../trntensor/api/mlip_edge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIP edge and node ops
   
 
     
@@ -5992,6 +6022,7 @@
 <li><strong>Power-of-2 sizes</strong>: Cooley-Tukey radix-2 (iterative, decimation-in-time) on the PyTorch backend. On the NKI path (FP32): a single DFT-GEMM for N &lt; 512, the batch-fused four-step (two GEMMs, one launch per batch) up to N = 4096, and the six-step (N = N1·N2, two batched four-step passes, all on the device) for N ≥ 8192. The six-step is the default since v0.25.0; <code>TRNFFT_SIX_STEP=0</code> restores the Stockham / butterfly path and <code>TRNFFT_SIX_STEP_MIN</code> moves the threshold.</li>
 <li><strong>Arbitrary sizes</strong>: Bluestein's chirp-z transform (pads to power-of-2, 3 FFTs)</li>
 <li><strong>float64</strong>: on the NKI path, float64 input runs the FP32 kernels and returns float64; <code>precision="double"</code> computes on the host in FP64 (v0.26.0, #109).</li>
+<li><strong>fp64-class on the device</strong> (<code>precision="dw"</code>, #172): power-of-2 N from 2 to 4096 run a double-word (float-float) Stockham FFT, one NKI launch on the Vector engine, about 48 correct bits; other N take the <code>"double"</code> route. Lower level, in <code>trnfft.dw</code>: <code>fft_dw(x, inverse=False, *, add="accurate", engines="auto")</code> returns complex128 on the host; <code>fft_dw_raw(DWComplex, ...)</code> takes and returns the four fp32 planes (re_hi, re_lo, im_hi, im_lo), unnormalised, and leaves a device result on the device so transforms can chain. <code>add="sloppy"</code> is ~30 % fewer operations. See <a href="../../architecture/#double-word-fft-dw-trnfftdwpy">Architecture</a>.</li>
 <li><strong>Plan caching</strong>: Plans are cached by <code>(size, inverse)</code> — first call computes, subsequent calls reuse.</li>
 </ul>
 
